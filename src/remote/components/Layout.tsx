@@ -52,7 +52,11 @@ export default function Layout({
       { id: "hymns" as Page, label: t.nav.hymns, icon: NAV_ICONS.hymns },
       { id: "bible" as Page, label: t.nav.bible, icon: NAV_ICONS.bible },
       { id: "video" as Page, label: t.nav.video, icon: NAV_ICONS.video },
-      { id: "settings" as Page, label: t.nav.settings, icon: NAV_ICONS.settings },
+      {
+        id: "settings" as Page,
+        label: t.nav.settings,
+        icon: NAV_ICONS.settings,
+      },
     ],
     [t]
   );
@@ -71,7 +75,9 @@ export default function Layout({
           state.text.slides.length
         })`;
       case "video":
-        return state.video.playing ? t.status.playingVideo : t.status.videoPaused;
+        return state.video.playing
+          ? t.status.playingVideo
+          : t.status.videoPaused;
       default:
         return "";
     }
@@ -166,16 +172,14 @@ export default function Layout({
                 </button>
               </>
             )}
-            <button
-              onClick={onGoIdle}
-              className={`w-14 h-12 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-lg sm:rounded text-xl sm:text-sm flex items-center justify-center flex-shrink-0 ${
-                state.mode === "idle"
-                  ? "bg-gray-600 text-gray-400"
-                  : "bg-red-600 hover:bg-red-500 active:bg-red-400"
-              }`}
-            >
-              {isMobile ? "■" : t.header.goIdle}
-            </button>
+            {state.mode !== "idle" && (
+              <button
+                onClick={onGoIdle}
+                className={`w-14 h-12 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-lg sm:rounded text-xl sm:text-sm flex items-center justify-center flex-shrink-0 bg-red-600 hover:bg-red-500 active:bg-red-400`}
+              >
+                {isMobile ? "■" : t.header.goIdle}
+              </button>
+            )}
           </div>
         </header>
 

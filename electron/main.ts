@@ -194,7 +194,7 @@ function setupIPC() {
     const hymn = getHymnByNumber(hymnNumber);
     if (hymn) {
       const { title, slides } = formatHymnForDisplay(hymn);
-      stateManager.loadText(title, slides.join("\n\n"));
+      stateManager.loadText(title, slides.join("\n\n"), "hymn");
     }
   });
 
@@ -227,7 +227,7 @@ function setupIPC() {
           chapter,
           verses
         );
-        stateManager.loadText(title, slides.join("\n\n"));
+        stateManager.loadText(title, slides.join("\n\n"), "bible");
       }
     }
   );

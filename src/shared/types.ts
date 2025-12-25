@@ -16,10 +16,13 @@ export interface IdleState {
   clockPosition: ClockPosition;
 }
 
+export type TextContentType = "hymn" | "bible" | "custom";
+
 export interface TextState {
   title: string;
   slides: string[];
   currentSlide: number;
+  contentType: TextContentType;
 }
 
 export interface VideoState {
@@ -121,6 +124,7 @@ export const DEFAULT_STATE: DisplayState = {
     title: "",
     slides: [],
     currentSlide: 0,
+    contentType: "custom",
   },
   video: {
     src: null,

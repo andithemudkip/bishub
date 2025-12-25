@@ -248,7 +248,7 @@ export function createServer(
       const hymn = getHymnByNumber(hymnNumber);
       if (hymn) {
         const { title, slides } = formatHymnForDisplay(hymn);
-        stateManager.loadText(title, slides.join("\n\n"));
+        stateManager.loadText(title, slides.join("\n\n"), "hymn");
       }
     });
 
@@ -271,7 +271,7 @@ export function createServer(
             chapter,
             verses
           );
-          stateManager.loadText(title, slides.join("\n\n"));
+          stateManager.loadText(title, slides.join("\n\n"), "bible");
         }
       }
     );

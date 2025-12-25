@@ -3,6 +3,7 @@ import type {
   AppSettings,
   DisplayMode,
   ClockPosition,
+  TextContentType,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
@@ -116,7 +117,7 @@ export class StateManager {
   }
 
   // Text mode
-  loadText(title: string, content: string) {
+  loadText(title: string, content: string, contentType: TextContentType = "custom") {
     // Split content into slides by double newlines or --- markers
     const slides = content
       .split(/\n\n+|---+/)
@@ -127,6 +128,7 @@ export class StateManager {
       title,
       slides,
       currentSlide: 0,
+      contentType,
     };
     this.state.mode = "text";
     this.notifyStateChange();
