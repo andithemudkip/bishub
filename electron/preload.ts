@@ -111,6 +111,44 @@ const electronAPI = {
     return () => ipcRenderer.removeAllListeners("upload-progress");
   },
 
+  // Audio Library
+  getAudioLibrary: (): Promise<any[]> =>
+    ipcRenderer.invoke("get-audio-library"),
+  addLocalAudio: (): Promise<any> => ipcRenderer.invoke("add-local-audio"),
+  deleteAudio: (audioId: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-audio", audioId),
+  renameAudio: (audioId: string, newName: string): Promise<any> =>
+    ipcRenderer.invoke("rename-audio", audioId, newName),
+
+  // Audio playback
+  loadAudio: (src: string, name: string): Promise<void> =>
+    ipcRenderer.invoke("load-audio", src, name),
+  playAudio: (): Promise<void> => ipcRenderer.invoke("play-audio"),
+  pauseAudio: (): Promise<void> => ipcRenderer.invoke("pause-audio"),
+  stopAudio: (): Promise<void> => ipcRenderer.invoke("stop-audio"),
+  seekAudio: (time: number): Promise<void> =>
+    ipcRenderer.invoke("seek-audio", time),
+  setAudioVolume: (volume: number): Promise<void> =>
+    ipcRenderer.invoke("set-audio-volume", volume),
+  audioTimeUpdate: (time: number, duration: number): Promise<void> =>
+    ipcRenderer.invoke("audio-time-update", time, duration),
+  setAudioWidgetPosition: (position: string): Promise<void> =>
+    ipcRenderer.invoke("set-audio-widget-position", position),
+
+  onAudioLibraryUpdate: (callback: (audios: any[]) => void) => {
+    ipcRenderer.on("audio-library-update", (_event: any, audios: any[]) =>
+      callback(audios)
+    );
+    return () => ipcRenderer.removeAllListeners("audio-library-update");
+  },
+
+  onAudioUploadProgress: (callback: (progress: any) => void) => {
+    ipcRenderer.on("audio-upload-progress", (_event: any, progress: any) =>
+      callback(progress)
+    );
+    return () => ipcRenderer.removeAllListeners("audio-upload-progress");
+  },
+
   onStateUpdate: (callback: (state: any) => void) => {
     ipcRenderer.on("state-update", (_event: any, state: any) =>
       callback(state)

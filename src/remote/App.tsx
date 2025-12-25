@@ -10,9 +10,18 @@ import Layout from "./components/Layout";
 import HymnsPage from "./pages/HymnsPage";
 import BiblePage from "./pages/BiblePage";
 import VideoLibraryPage from "./pages/VideoLibraryPage";
+import AudioLibraryPage from "./pages/AudioLibraryPage";
 import SettingsPage from "./pages/SettingsPage";
 import { useRemoteAPI } from "./useRemoteAPI";
-import type { VideoItem, DownloadProgress, UploadProgress } from "../shared/videoLibrary.types";
+import type {
+  VideoItem,
+  DownloadProgress,
+  UploadProgress,
+} from "../shared/videoLibrary.types";
+import type {
+  AudioItem,
+  AudioUploadProgress,
+} from "../shared/audioLibrary.types";
 
 declare global {
   interface Window {
@@ -68,14 +77,44 @@ declare global {
       getVideoLibrary: () => Promise<VideoItem[]>;
       addLocalVideo: () => Promise<VideoItem | null>;
       deleteVideo: (videoId: string) => Promise<boolean>;
-      renameVideo: (videoId: string, newName: string) => Promise<VideoItem | null>;
+      renameVideo: (
+        videoId: string,
+        newName: string
+      ) => Promise<VideoItem | null>;
       downloadYouTubeVideo: (url: string) => Promise<DownloadProgress>;
       cancelYouTubeDownload: (downloadId: string) => Promise<boolean>;
       getActiveDownloads: () => Promise<DownloadProgress[]>;
       getVideoThumbnail: (videoId: string) => Promise<string | null>;
-      onVideoLibraryUpdate: (callback: (videos: VideoItem[]) => void) => () => void;
-      onDownloadProgress: (callback: (progress: DownloadProgress) => void) => () => void;
-      onUploadProgress: (callback: (progress: UploadProgress) => void) => () => void;
+      onVideoLibraryUpdate: (
+        callback: (videos: VideoItem[]) => void
+      ) => () => void;
+      onDownloadProgress: (
+        callback: (progress: DownloadProgress) => void
+      ) => () => void;
+      onUploadProgress: (
+        callback: (progress: UploadProgress) => void
+      ) => () => void;
+      // Audio Library
+      getAudioLibrary: () => Promise<AudioItem[]>;
+      addLocalAudio: () => Promise<AudioItem | null>;
+      deleteAudio: (audioId: string) => Promise<boolean>;
+      renameAudio: (
+        audioId: string,
+        newName: string
+      ) => Promise<AudioItem | null>;
+      loadAudio: (src: string, name: string) => Promise<void>;
+      playAudio: () => Promise<void>;
+      pauseAudio: () => Promise<void>;
+      stopAudio: () => Promise<void>;
+      seekAudio: (time: number) => Promise<void>;
+      setAudioVolume: (volume: number) => Promise<void>;
+      setAudioWidgetPosition: (position: string) => Promise<void>;
+      onAudioLibraryUpdate: (
+        callback: (audios: AudioItem[]) => void
+      ) => () => void;
+      onAudioUploadProgress: (
+        callback: (progress: AudioUploadProgress) => void
+      ) => () => void;
     };
   }
 }
@@ -139,7 +178,9 @@ export default function App() {
     api.prevSlide();
   }, [api]);
 
-  const renderPage = (page: "hymns" | "bible" | "video" | "settings") => {
+  const renderPage = (
+    page: "hymns" | "bible" | "video" | "audio" | "settings"
+  ) => {
     switch (page) {
       case "hymns":
         return (
@@ -174,6 +215,19 @@ export default function App() {
             settings={api.settings}
           />
         );
+      case "audio":
+        return (
+          <AudioLibraryPage
+            audioState={api.state.audio}
+            loadAudio={api.loadAudio}
+            playAudio={api.playAudio}
+            pauseAudio={api.pauseAudio}
+            stopAudio={api.stopAudio}
+            seekAudio={api.seekAudio}
+            setAudioVolume={api.setAudioVolume}
+            settings={api.settings}
+          />
+        );
       case "settings":
         return (
           <SettingsPage
@@ -184,6 +238,7 @@ export default function App() {
             onSetWallpaper={api.setIdleWallpaper}
             onSetClockFontSize={api.setClockFontSize}
             onSetClockPosition={api.setClockPosition}
+            onSetAudioWidgetPosition={api.setAudioWidgetPosition}
           />
         );
       default:

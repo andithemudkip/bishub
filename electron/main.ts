@@ -17,8 +17,9 @@ import {
   loadBible,
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
+import { getAudioLibrary } from "./audioLibrary";
 import { startDownload, cancelDownload, getActiveDownloads } from "./ytdlp";
-import type { DisplayMode, ClockPosition } from "../src/shared/types";
+import type { DisplayMode, ClockPosition, AudioWidgetPosition } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 
 const isDev = process.env.NODE_ENV !== "production" || !app.isPackaged;
@@ -306,6 +307,90 @@ function setupIPC() {
     const video = videoLibrary.getById(videoId);
     return video?.thumbnailPath || null;
   });
+
+  // Audio Library handlers
+  const audioLibrary = getAudioLibrary();
+
+  // Validate library on startup
+  audioLibrary.validateLibrary();
+
+  // Notify renderers of library changes
+  audioLibrary.onLibraryChange((audios) => {
+    windowManager.broadcastToAll("audio-library-update", audios);
+  });
+
+  audioLibrary.onUploadProgress((progress) => {
+    windowManager.broadcastToAll("audio-upload-progress", progress);
+  });
+
+  ipcMain.handle("get-audio-library", () => {
+    return audioLibrary.getAll();
+  });
+
+  ipcMain.handle("add-local-audio", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters: [
+        {
+          name: "Audio",
+          extensions: ["mp3", "wav", "ogg", "m4a", "flac"],
+        },
+      ],
+    });
+
+    if (result.filePaths[0]) {
+      const audio = await audioLibrary.addAudio(result.filePaths[0], "local");
+      return audio;
+    }
+    return null;
+  });
+
+  ipcMain.handle("delete-audio", async (_event, audioId: string) => {
+    return audioLibrary.deleteAudio(audioId);
+  });
+
+  ipcMain.handle("rename-audio", (_event, audioId: string, newName: string) => {
+    return audioLibrary.renameAudio(audioId, newName);
+  });
+
+  // Audio playback
+  ipcMain.handle("load-audio", (_event, src: string, name: string) => {
+    stateManager.loadAudio(src, name);
+  });
+
+  ipcMain.handle("play-audio", () => {
+    stateManager.playAudio();
+  });
+
+  ipcMain.handle("pause-audio", () => {
+    stateManager.pauseAudio();
+  });
+
+  ipcMain.handle("stop-audio", () => {
+    stateManager.stopAudio();
+  });
+
+  ipcMain.handle("seek-audio", (_event, time: number) => {
+    stateManager.seekAudio(time);
+  });
+
+  ipcMain.handle("set-audio-volume", (_event, volume: number) => {
+    stateManager.setAudioVolume(volume);
+  });
+
+  ipcMain.handle(
+    "audio-time-update",
+    (_event, time: number, duration: number) => {
+      stateManager.updateAudioTime(time, duration);
+    }
+  );
+
+  ipcMain.handle(
+    "set-audio-widget-position",
+    (_event, position: AudioWidgetPosition) => {
+      stateManager.setAudioWidgetPosition(position);
+    }
+  );
 }
 
 app.whenReady().then(createWindows);

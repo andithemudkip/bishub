@@ -5,6 +5,7 @@ import type {
   AppSettings,
   IdleState,
   ClockPosition,
+  AudioWidgetPosition,
 } from "../../shared/types";
 import {
   getTranslations,
@@ -21,9 +22,18 @@ interface Props {
   onSetWallpaper: (selectNew?: boolean) => Promise<string | null>;
   onSetClockFontSize: (size: number) => void;
   onSetClockPosition: (position: ClockPosition) => void;
+  onSetAudioWidgetPosition: (position: AudioWidgetPosition) => void;
 }
 
 const CLOCK_POSITIONS: ClockPosition[] = [
+  "center",
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+];
+
+const AUDIO_WIDGET_POSITIONS: AudioWidgetPosition[] = [
   "center",
   "top-left",
   "top-right",
@@ -39,6 +49,7 @@ export default function SettingsPage({
   onSetWallpaper,
   onSetClockFontSize,
   onSetClockPosition,
+  onSetAudioWidgetPosition,
 }: Props) {
   const [localIP, setLocalIP] = useState<string>("...");
   const [securityKey, setSecurityKey] = useState<string>("...");
@@ -73,6 +84,12 @@ export default function SettingsPage({
 
   const handlePositionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onSetClockPosition(e.target.value as ClockPosition);
+  };
+
+  const handleAudioWidgetPositionChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    onSetAudioWidgetPosition(e.target.value as AudioWidgetPosition);
   };
 
   const getPositionLabel = (position: ClockPosition): string => {
@@ -215,6 +232,24 @@ export default function SettingsPage({
                 className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {CLOCK_POSITIONS.map((pos) => (
+                  <option key={pos} value={pos}>
+                    {getPositionLabel(pos)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Audio widget position */}
+            <div>
+              <label className="text-sm text-gray-400 block mb-2">
+                {t.settings.audioWidgetPosition}
+              </label>
+              <select
+                value={idleState.audioWidgetPosition}
+                onChange={handleAudioWidgetPositionChange}
+                className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {AUDIO_WIDGET_POSITIONS.map((pos) => (
                   <option key={pos} value={pos}>
                     {getPositionLabel(pos)}
                   </option>

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import type { DisplayState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 
-type Page = "hymns" | "bible" | "video" | "settings";
+type Page = "hymns" | "bible" | "video" | "audio" | "settings";
 
 interface Props {
   children: (page: Page) => React.ReactNode;
@@ -17,6 +17,7 @@ const NAV_ICONS: Record<Page, string> = {
   hymns: "♪",
   bible: "✝",
   video: "▶",
+  audio: "🎵",
   settings: "⚙",
 };
 
@@ -52,6 +53,7 @@ export default function Layout({
       { id: "hymns" as Page, label: t.nav.hymns, icon: NAV_ICONS.hymns },
       { id: "bible" as Page, label: t.nav.bible, icon: NAV_ICONS.bible },
       { id: "video" as Page, label: t.nav.video, icon: NAV_ICONS.video },
+      { id: "audio" as Page, label: t.nav.audio, icon: NAV_ICONS.audio },
       {
         id: "settings" as Page,
         label: t.nav.settings,

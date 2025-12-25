@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import type { IdleState, ClockPosition } from "../../shared/types";
+import type { IdleState, ClockPosition, AudioState } from "../../shared/types";
 import type { Language } from "../../shared/i18n";
+import AudioWidget from "../components/AudioWidget";
 
 interface Props {
   config: IdleState;
   language: Language;
+  audioState: AudioState;
+  onAudioTimeUpdate: (time: number, duration: number) => void;
 }
 
 // Map language to locale
@@ -31,7 +34,7 @@ const TEXT_ALIGN_CLASSES: Record<ClockPosition, string> = {
   center: "text-center",
 };
 
-export default function IdleMode({ config, language }: Props) {
+export default function IdleMode({ config, language, audioState, onAudioTimeUpdate }: Props) {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -105,6 +108,15 @@ export default function IdleMode({ config, language }: Props) {
             {formatDate(time)}
           </div>
         </div>
+      )}
+
+      {/* Audio widget - shown when audio is loaded */}
+      {audioState.src && (
+        <AudioWidget
+          config={audioState}
+          position={config.audioWidgetPosition}
+          onTimeUpdate={onAudioTimeUpdate}
+        />
       )}
     </div>
   );

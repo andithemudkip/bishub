@@ -9,6 +9,7 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
   ClockPosition,
+  AudioWidgetPosition,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
@@ -56,10 +57,18 @@ interface RemoteAPI {
     startVerse: number,
     endVerse?: number
   ) => void;
+  // Audio
+  loadAudio: (src: string, name: string) => void;
+  playAudio: () => void;
+  pauseAudio: () => void;
+  stopAudio: () => void;
+  seekAudio: (time: number) => void;
+  setAudioVolume: (volume: number) => void;
   // Idle screen settings (Electron only)
   setIdleWallpaper: (selectNew?: boolean) => Promise<string | null>;
   setClockFontSize: (size: number) => void;
   setClockPosition: (position: ClockPosition) => void;
+  setAudioWidgetPosition: (position: AudioWidgetPosition) => void;
 }
 
 export function useRemoteAPI(): RemoteAPI {
@@ -298,6 +307,46 @@ export function useRemoteAPI(): RemoteAPI {
       [isElectron]
     ),
 
+    // Audio
+    loadAudio: useCallback(
+      (src, name) => {
+        if (isElectron) window.electronAPI!.loadAudio(src, name);
+        else socketRef.current?.emit("loadAudio", src, name);
+      },
+      [isElectron]
+    ),
+
+    playAudio: useCallback(() => {
+      if (isElectron) window.electronAPI!.playAudio();
+      else socketRef.current?.emit("playAudio");
+    }, [isElectron]),
+
+    pauseAudio: useCallback(() => {
+      if (isElectron) window.electronAPI!.pauseAudio();
+      else socketRef.current?.emit("pauseAudio");
+    }, [isElectron]),
+
+    stopAudio: useCallback(() => {
+      if (isElectron) window.electronAPI!.stopAudio();
+      else socketRef.current?.emit("stopAudio");
+    }, [isElectron]),
+
+    seekAudio: useCallback(
+      (time) => {
+        if (isElectron) window.electronAPI!.seekAudio(time);
+        else socketRef.current?.emit("seekAudio", time);
+      },
+      [isElectron]
+    ),
+
+    setAudioVolume: useCallback(
+      (volume) => {
+        if (isElectron) window.electronAPI!.setAudioVolume(volume);
+        else socketRef.current?.emit("setAudioVolume", volume);
+      },
+      [isElectron]
+    ),
+
     // Idle screen settings (Electron only)
     setIdleWallpaper: useCallback(
       (selectNew = true) => {
@@ -319,6 +368,13 @@ export function useRemoteAPI(): RemoteAPI {
     setClockPosition: useCallback(
       (position: ClockPosition) => {
         if (isElectron) window.electronAPI!.setClockPosition(position);
+      },
+      [isElectron]
+    ),
+
+    setAudioWidgetPosition: useCallback(
+      (position: AudioWidgetPosition) => {
+        if (isElectron) window.electronAPI!.setAudioWidgetPosition(position);
       },
       [isElectron]
     ),

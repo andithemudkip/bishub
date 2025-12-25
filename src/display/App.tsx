@@ -13,6 +13,7 @@ declare global {
       onStateUpdate: (callback: (state: DisplayState) => void) => () => void;
       onSettingsUpdate: (callback: (settings: AppSettings) => void) => () => void;
       videoTimeUpdate: (time: number, duration: number) => Promise<void>;
+      audioTimeUpdate: (time: number, duration: number) => Promise<void>;
     };
   }
 }
@@ -42,9 +43,20 @@ export default function App() {
     window.electronAPI?.videoTimeUpdate(time, duration);
   };
 
+  const handleAudioTimeUpdate = (time: number, duration: number) => {
+    window.electronAPI?.audioTimeUpdate(time, duration);
+  };
+
   return (
     <div className="display-container">
-      {state.mode === "idle" && <IdleMode config={state.idle} language={settings.language} />}
+      {state.mode === "idle" && (
+        <IdleMode
+          config={state.idle}
+          language={settings.language}
+          audioState={state.audio}
+          onAudioTimeUpdate={handleAudioTimeUpdate}
+        />
+      )}
       {state.mode === "text" && <TextMode config={state.text} />}
       {state.mode === "video" && (
         <VideoMode config={state.video} onTimeUpdate={handleVideoTimeUpdate} />

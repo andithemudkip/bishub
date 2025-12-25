@@ -3,6 +3,7 @@ import type {
   AppSettings,
   DisplayMode,
   ClockPosition,
+  AudioWidgetPosition,
   TextContentType,
   BibleContext,
 } from "../src/shared/types";
@@ -20,7 +21,9 @@ interface SettingsSchema {
     wallpaper: string | null;
     clockFontSize: number;
     clockPosition: ClockPosition;
+    audioWidgetPosition: AudioWidgetPosition;
   };
+  audioVolume: number;
 }
 
 export class StateManager {
@@ -41,6 +44,7 @@ export class StateManager {
       idle: { ...DEFAULT_STATE.idle },
       text: { ...DEFAULT_STATE.text, slides: [] },
       video: { ...DEFAULT_STATE.video },
+      audio: { ...DEFAULT_STATE.audio },
     };
 
     // Initialize settings store
@@ -52,7 +56,9 @@ export class StateManager {
           wallpaper: null,
           clockFontSize: 100,
           clockPosition: "center",
+          audioWidgetPosition: "bottom-right",
         },
+        audioVolume: 1,
       },
     });
 
@@ -67,10 +73,14 @@ export class StateManager {
       this.state.idle.wallpaper = idleSettings.wallpaper ?? null;
       this.state.idle.clockFontSize = idleSettings.clockFontSize ?? 100;
       this.state.idle.clockPosition = idleSettings.clockPosition ?? "center";
+      this.state.idle.audioWidgetPosition = idleSettings.audioWidgetPosition ?? "bottom-right";
     }
 
     // Initialize video volume from persisted settings (with fallback)
     this.state.video.volume = this.settings.volume ?? 1;
+
+    // Initialize audio volume from persisted settings
+    this.state.audio.volume = this.settingsStore.get("audioVolume", 1);
   }
 
   getState(): DisplayState {
@@ -116,6 +126,10 @@ export class StateManager {
 
   // Mode control
   setMode(mode: DisplayMode) {
+    // Stop audio when leaving idle mode
+    if (mode !== "idle" && this.state.audio.playing) {
+      this.stopAudio();
+    }
     this.state.mode = mode;
     this.notifyStateChange();
   }
@@ -275,6 +289,68 @@ export class StateManager {
       wallpaper: this.state.idle.wallpaper,
       clockFontSize: this.state.idle.clockFontSize,
       clockPosition: this.state.idle.clockPosition,
+      audioWidgetPosition: this.state.idle.audioWidgetPosition,
     });
+  }
+
+  // Audio mode (plays during idle)
+  loadAudio(src: string, name: string) {
+    this.state.audio = {
+      src,
+      name,
+      playing: false,
+      currentTime: 0,
+      duration: 0,
+      volume: this.state.audio.volume,
+    };
+    // Ensure we're in idle mode for audio
+    if (this.state.mode !== "idle") {
+      this.state.mode = "idle";
+    }
+    this.notifyStateChange();
+  }
+
+  playAudio() {
+    if (this.state.audio.src) {
+      this.state.audio.playing = true;
+      this.notifyStateChange();
+    }
+  }
+
+  pauseAudio() {
+    this.state.audio.playing = false;
+    this.notifyStateChange();
+  }
+
+  stopAudio() {
+    this.state.audio.playing = false;
+    this.state.audio.currentTime = 0;
+    this.state.audio.src = null;
+    this.state.audio.name = null;
+    this.notifyStateChange();
+  }
+
+  seekAudio(time: number) {
+    this.state.audio.currentTime = time;
+    this.notifyStateChange();
+  }
+
+  setAudioVolume(volume: number) {
+    const clampedVolume = Math.max(0, Math.min(1, volume));
+    this.state.audio.volume = clampedVolume;
+    this.settingsStore.set("audioVolume", clampedVolume);
+    this.notifyStateChange();
+  }
+
+  updateAudioTime(time: number, duration: number) {
+    this.state.audio.currentTime = time;
+    this.state.audio.duration = duration;
+    this.notifyStateChange();
+  }
+
+  setAudioWidgetPosition(position: AudioWidgetPosition) {
+    this.state.idle.audioWidgetPosition = position;
+    this.persistIdleSettings();
+    this.notifyStateChange();
   }
 }

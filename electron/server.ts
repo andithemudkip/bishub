@@ -25,6 +25,7 @@ import {
   formatBibleChapterForDisplay,
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
+import { getAudioLibrary } from "./audioLibrary";
 import { startDownload, cancelDownload } from "./ytdlp";
 
 // @ts-ignore
@@ -201,6 +202,73 @@ export function createServer(
     io.emit("uploadProgress", progress);
   });
 
+  // Audio Library setup
+  const audioLibrary = getAudioLibrary();
+
+  // Configure multer for audio uploads (500MB limit)
+  const audioUpload = multer({
+    storage: multer.diskStorage({
+      destination: audioLibrary.getAudiosDir(),
+      filename: (_req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `${uuidv4()}${ext}`);
+      },
+    }),
+    limits: {
+      fileSize: 500 * 1024 * 1024, // 500MB
+    },
+    fileFilter: (_req, file, cb) => {
+      const allowedTypes = [".mp3", ".wav", ".ogg", ".m4a", ".flac"];
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, allowedTypes.includes(ext));
+    },
+  });
+
+  // Audio upload endpoint
+  app.post("/api/audio/upload", audioUpload.single("audio"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No audio file uploaded" });
+      }
+
+      const originalName =
+        req.body.name ||
+        path.basename(
+          req.file.originalname,
+          path.extname(req.file.originalname)
+        );
+
+      const audio = await audioLibrary.addAudio(req.file.path, "upload", {
+        name: originalName,
+        copyToLibrary: false, // Already in audios directory
+      });
+
+      res.json({ audio, status: "complete" });
+    } catch (error) {
+      console.error("Audio upload error:", error);
+      res.status(500).json({ error: "Upload failed" });
+    }
+  });
+
+  // Stream audio file (for web remote)
+  app.get("/api/audio/file/:id", (req, res) => {
+    const audio = audioLibrary.getById(req.params.id);
+    if (audio && fs.existsSync(audio.path)) {
+      res.sendFile(audio.path);
+    } else {
+      res.status(404).send("Audio not found");
+    }
+  });
+
+  // Broadcast audio library changes to all Socket.io clients
+  audioLibrary.onLibraryChange((audios) => {
+    io.emit("audioLibrary", audios);
+  });
+
+  audioLibrary.onUploadProgress((progress) => {
+    io.emit("audioUploadProgress", progress);
+  });
+
   // Socket.io connection handling
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
@@ -339,6 +407,44 @@ export function createServer(
 
     socket.on("cancelDownload", (downloadId) => {
       cancelDownload(downloadId);
+    });
+
+    // Audio Library
+    socket.on("getAudioLibrary", () => {
+      socket.emit("audioLibrary", audioLibrary.getAll());
+    });
+
+    socket.on("deleteAudio", async (audioId) => {
+      await audioLibrary.deleteAudio(audioId);
+    });
+
+    socket.on("renameAudio", (audioId, newName) => {
+      audioLibrary.renameAudio(audioId, newName);
+    });
+
+    // Audio playback
+    socket.on("loadAudio", (src, name) => {
+      stateManager.loadAudio(src, name);
+    });
+
+    socket.on("playAudio", () => {
+      stateManager.playAudio();
+    });
+
+    socket.on("pauseAudio", () => {
+      stateManager.pauseAudio();
+    });
+
+    socket.on("stopAudio", () => {
+      stateManager.stopAudio();
+    });
+
+    socket.on("seekAudio", (time) => {
+      stateManager.seekAudio(time);
+    });
+
+    socket.on("setAudioVolume", (volume) => {
+      stateManager.setAudioVolume(volume);
     });
 
     socket.on("disconnect", () => {

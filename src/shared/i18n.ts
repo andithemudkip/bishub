@@ -9,6 +9,7 @@ export interface Translations {
     hymns: string;
     bible: string;
     video: string;
+    audio: string;
     settings: string;
   };
 
@@ -82,6 +83,7 @@ export interface Translations {
     positionBottomLeft: string;
     positionBottomRight: string;
     positionCenter: string;
+    audioWidgetPosition: string;
     securityKey: string;
     securityKeyHint: string;
   };
@@ -116,6 +118,29 @@ export interface Translations {
     invalidUrl: string;
     enterUrl: string;
   };
+
+  // Audio library
+  audioLibrary: {
+    addLocalFile: string;
+    upload: string;
+    library: string;
+    searchPlaceholder: string;
+    noAudios: string;
+    noAudiosHint: string;
+    noResults: string;
+    nowPlaying: string;
+    play: string;
+    pause: string;
+    stop: string;
+    volume: string;
+    rename: string;
+    delete: string;
+    confirmDelete: string;
+    cancel: string;
+    uploadDrop: string;
+    uploadHint: string;
+    uploading: string;
+  };
 }
 
 const ro: Translations = {
@@ -123,6 +148,7 @@ const ro: Translations = {
     hymns: "Imnuri",
     bible: "Biblie",
     video: "Video",
+    audio: "Audio",
     settings: "Setări",
   },
   header: {
@@ -187,6 +213,7 @@ const ro: Translations = {
     positionBottomLeft: "Stânga jos",
     positionBottomRight: "Dreapta jos",
     positionCenter: "Centru",
+    audioWidgetPosition: "Poziție widget audio",
     securityKey: "Cheie de securitate:",
     securityKeyHint: "Introdu această cheie dacă accesezi de pe un desktop",
   },
@@ -219,6 +246,27 @@ const ro: Translations = {
     invalidUrl: "Te rog introdu un URL YouTube valid",
     enterUrl: "Te rog introdu un URL",
   },
+  audioLibrary: {
+    addLocalFile: "Adaugă fișier",
+    upload: "Încarcă",
+    library: "Bibliotecă audio",
+    searchPlaceholder: "Caută audio...",
+    noAudios: "Niciun fișier audio în bibliotecă",
+    noAudiosHint: "Adaugă fișiere audio folosind butoanele de mai sus",
+    noResults: "Niciun rezultat găsit",
+    nowPlaying: "Se redă:",
+    play: "Redare",
+    pause: "Pauză",
+    stop: "Stop",
+    volume: "Volum",
+    rename: "Redenumește",
+    delete: "Șterge",
+    confirmDelete: "Șterge",
+    cancel: "Anulează",
+    uploadDrop: "Trage fișierul audio sau click pentru a naviga",
+    uploadHint: "Max 500MB - MP3, WAV, OGG, M4A, FLAC",
+    uploading: "Se încarcă...",
+  },
 };
 
 const en: Translations = {
@@ -226,6 +274,7 @@ const en: Translations = {
     hymns: "Hymns",
     bible: "Bible",
     video: "Video",
+    audio: "Audio",
     settings: "Settings",
   },
   header: {
@@ -290,6 +339,7 @@ const en: Translations = {
     positionBottomLeft: "Bottom left",
     positionBottomRight: "Bottom right",
     positionCenter: "Center",
+    audioWidgetPosition: "Audio widget position",
     securityKey: "Security Key:",
     securityKeyHint: "Enter this key if accessing from a desktop",
   },
@@ -321,6 +371,27 @@ const en: Translations = {
     uploading: "Uploading...",
     invalidUrl: "Please enter a valid YouTube URL",
     enterUrl: "Please enter a URL",
+  },
+  audioLibrary: {
+    addLocalFile: "Add file",
+    upload: "Upload",
+    library: "Audio Library",
+    searchPlaceholder: "Search audio...",
+    noAudios: "No audio files in library",
+    noAudiosHint: "Add audio files using the buttons above",
+    noResults: "No results found",
+    nowPlaying: "Now playing:",
+    play: "Play",
+    pause: "Pause",
+    stop: "Stop",
+    volume: "Volume",
+    rename: "Rename",
+    delete: "Delete",
+    confirmDelete: "Delete",
+    cancel: "Cancel",
+    uploadDrop: "Drop audio file or click to browse",
+    uploadHint: "Max 500MB - MP3, WAV, OGG, M4A, FLAC",
+    uploading: "Uploading...",
   },
 };
 

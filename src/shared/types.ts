@@ -4,16 +4,25 @@ import type {
   DownloadProgress,
   UploadProgress,
 } from "./videoLibrary.types";
+import type { AudioItem, AudioUploadProgress } from "./audioLibrary.types";
 
 export type DisplayMode = "idle" | "text" | "video";
 
-export type ClockPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
+export type ClockPosition =
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right"
+  | "center";
+
+export type AudioWidgetPosition = ClockPosition;
 
 export interface IdleState {
   wallpaper: string | null;
   showClock: boolean;
   clockFontSize: number; // percentage: 50-150, 100 = default
   clockPosition: ClockPosition;
+  audioWidgetPosition: AudioWidgetPosition;
 }
 
 export type TextContentType = "hymn" | "bible" | "custom";
@@ -41,11 +50,21 @@ export interface VideoState {
   volume: number;
 }
 
+export interface AudioState {
+  src: string | null;
+  name: string | null;
+  playing: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+}
+
 export interface DisplayState {
   mode: DisplayMode;
   idle: IdleState;
   text: TextState;
   video: VideoState;
+  audio: AudioState;
 }
 
 export interface MonitorInfo {
@@ -81,6 +100,9 @@ export type ServerToClientEvents = {
   videoLibrary: (videos: VideoItem[]) => void;
   downloadProgress: (progress: DownloadProgress) => void;
   uploadProgress: (progress: UploadProgress) => void;
+  // Audio Library
+  audioLibrary: (audios: AudioItem[]) => void;
+  audioUploadProgress: (progress: AudioUploadProgress) => void;
 };
 
 export type ClientToServerEvents = {
@@ -118,6 +140,16 @@ export type ClientToServerEvents = {
   renameVideo: (videoId: string, newName: string) => void;
   downloadYouTubeVideo: (url: string) => void;
   cancelDownload: (downloadId: string) => void;
+  // Audio Library
+  getAudioLibrary: () => void;
+  deleteAudio: (audioId: string) => void;
+  renameAudio: (audioId: string, newName: string) => void;
+  loadAudio: (src: string, name: string) => void;
+  playAudio: () => void;
+  pauseAudio: () => void;
+  stopAudio: () => void;
+  seekAudio: (time: number) => void;
+  setAudioVolume: (volume: number) => void;
 };
 
 export const DEFAULT_STATE: DisplayState = {
@@ -127,6 +159,7 @@ export const DEFAULT_STATE: DisplayState = {
     showClock: true,
     clockFontSize: 100,
     clockPosition: "center",
+    audioWidgetPosition: "bottom-right",
   },
   text: {
     title: "",
@@ -137,6 +170,14 @@ export const DEFAULT_STATE: DisplayState = {
   },
   video: {
     src: null,
+    playing: false,
+    currentTime: 0,
+    duration: 0,
+    volume: 1,
+  },
+  audio: {
+    src: null,
+    name: null,
     playing: false,
     currentTime: 0,
     duration: 0,
