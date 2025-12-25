@@ -5,15 +5,38 @@ import type {
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
+import Store from "electron-store";
 
 type StateChangeCallback = (state: DisplayState) => void;
 type SettingsChangeCallback = (settings: AppSettings) => void;
 
+interface SettingsSchema {
+  settings: AppSettings;
+}
+
 export class StateManager {
   private state: DisplayState = { ...DEFAULT_STATE };
-  private settings: AppSettings = { ...DEFAULT_SETTINGS };
+  private settings: AppSettings;
   private stateListeners: StateChangeCallback[] = [];
   private settingsListeners: SettingsChangeCallback[] = [];
+  private settingsStore: Store<SettingsSchema>;
+
+  constructor() {
+    // Initialize settings store
+    this.settingsStore = new Store<SettingsSchema>({
+      name: "settings",
+      defaults: {
+        settings: DEFAULT_SETTINGS,
+      },
+    });
+
+    // Load persisted settings
+    this.settings = this.settingsStore.get("settings", DEFAULT_SETTINGS);
+    console.log("Loaded settings:", this.settings);
+
+    // Initialize video volume from persisted settings
+    this.state.video.volume = this.settings.volume;
+  }
 
   getState(): DisplayState {
     return { ...this.state };
@@ -45,6 +68,9 @@ export class StateManager {
   }
 
   private notifySettingsChange() {
+    // Persist settings to store
+    this.settingsStore.set("settings", this.settings);
+
     const settingsCopy = this.getSettings();
     this.settingsListeners.forEach((cb) => cb(settingsCopy));
   }
@@ -134,8 +160,11 @@ export class StateManager {
   }
 
   setVolume(volume: number) {
-    this.state.video.volume = Math.max(0, Math.min(1, volume));
+    const clampedVolume = Math.max(0, Math.min(1, volume));
+    this.state.video.volume = clampedVolume;
+    this.settings.volume = clampedVolume;
     this.notifyStateChange();
+    this.notifySettingsChange();
   }
 
   updateVideoTime(time: number, duration: number) {

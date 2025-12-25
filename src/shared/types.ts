@@ -49,6 +49,7 @@ export interface AppSettings {
   displayMonitor: number;
   serverPort: number;
   language: Language;
+  volume: number;
 }
 
 // Socket.io event types
@@ -128,6 +129,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   displayMonitor: -1, // -1 means auto-detect secondary
   serverPort: 3847,
   language: "ro",
+  volume: 1,
 };
 
 // Hymn types
