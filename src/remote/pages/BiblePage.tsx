@@ -118,7 +118,6 @@ export default function BiblePage({
             onKeyDown={handleKeyDown}
             placeholder="e.g., gen 1:1 or ps 23"
             className="flex-1 px-4 py-3 bg-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            autoFocus
           />
           <button
             onClick={handleQuickLoad}
@@ -191,7 +190,7 @@ export default function BiblePage({
           {/* Chapter and verse selectors */}
           {selectedBook && (
             <>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                   <label className="text-sm text-gray-400 block mb-2">
                     Chapter
@@ -258,14 +257,14 @@ export default function BiblePage({
 
               {/* Preview and load */}
               {verses.length > 0 && (
-                <div className="flex items-center justify-between">
-                  <div className="text-gray-400">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="text-gray-400 text-center sm:text-left">
                     {selectedBook.name} {selectedChapter}:{startVerse}
                     {endVerse !== startVerse && `-${endVerse}`}
                   </div>
                   <button
                     onClick={handleManualLoad}
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
+                    className="w-full sm:w-auto px-6 py-3 sm:py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors font-medium"
                   >
                     Load Verses
                   </button>

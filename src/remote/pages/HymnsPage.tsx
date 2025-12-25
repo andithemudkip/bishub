@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { Hymn, TextState } from "../../shared/types";
 
 interface Props {
@@ -7,9 +7,27 @@ interface Props {
   onLoadHymn: (hymnNumber: string) => void;
 }
 
+// Remove diacritics from text (ă->a, ș->s, ț->t, î->i, â->a, etc.)
+function removeDiacritics(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+// Normalize text for searching
+function normalizeForSearch(text: string): string {
+  return removeDiacritics(text.toLowerCase().trim());
+}
+
 export default function HymnsPage({ textState, hymns, onLoadHymn }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
+
+  // Pre-compute normalized titles for faster searching
+  const hymnsWithNormalizedTitles = useMemo(() => {
+    return hymns.map((h) => ({
+      hymn: h,
+      normalizedTitle: normalizeForSearch(h.title),
+    }));
+  }, [hymns]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -17,17 +35,26 @@ export default function HymnsPage({ textState, hymns, onLoadHymn }: Props) {
       return;
     }
 
-    const query = searchQuery.toLowerCase();
-    const filtered = hymns
-      .filter(
-        (h) =>
-          h.number.includes(searchQuery) ||
-          h.title.toLowerCase().includes(query)
-      )
+    const normalizedQuery = normalizeForSearch(searchQuery);
+
+    // Split query into words for multi-word matching
+    const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
+
+    const filtered = hymnsWithNormalizedTitles
+      .filter(({ hymn, normalizedTitle }) => {
+        // Check if it's a number search
+        if (hymn.number.includes(searchQuery.trim())) {
+          return true;
+        }
+
+        // Check if all query words appear in the title
+        return queryWords.every((word) => normalizedTitle.includes(word));
+      })
+      .map(({ hymn }) => hymn)
       .slice(0, 30);
 
     setFilteredHymns(filtered);
-  }, [searchQuery, hymns]);
+  }, [searchQuery, hymns, hymnsWithNormalizedTitles]);
 
   const handleSelectHymn = (hymn: Hymn) => {
     onLoadHymn(hymn.number);
@@ -40,14 +67,13 @@ export default function HymnsPage({ textState, hymns, onLoadHymn }: Props) {
   return (
     <div className="space-y-4">
       {/* Search */}
-      <div className="sticky top-0 bg-gray-900 pb-4 -mt-4 pt-4 -mx-4 px-4">
+      <div className="sticky -top-4 bg-gray-900 pb-4 pt-4 -mx-4 px-4">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by number or title... (e.g., 123 or Aleluia)"
+          placeholder="Search by number or title..."
           className="w-full px-4 py-3 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          autoFocus
         />
       </div>
 
