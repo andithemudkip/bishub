@@ -7,9 +7,13 @@ import type {
 
 export type DisplayMode = "idle" | "text" | "video";
 
+export type ClockPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
+
 export interface IdleState {
   wallpaper: string | null;
   showClock: boolean;
+  clockFontSize: number; // percentage: 50-150, 100 = default
+  clockPosition: ClockPosition;
 }
 
 export interface TextState {
@@ -110,6 +114,8 @@ export const DEFAULT_STATE: DisplayState = {
   idle: {
     wallpaper: null,
     showClock: true,
+    clockFontSize: 100,
+    clockPosition: "center",
   },
   text: {
     title: "",

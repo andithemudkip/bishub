@@ -1,11 +1,37 @@
 import { useEffect, useState } from "react";
-import type { IdleState } from "../../shared/types";
+import type { IdleState, ClockPosition } from "../../shared/types";
+import type { Language } from "../../shared/i18n";
 
 interface Props {
   config: IdleState;
+  language: Language;
 }
 
-export default function IdleMode({ config }: Props) {
+// Map language to locale
+const LANGUAGE_LOCALES: Record<Language, string> = {
+  ro: "ro-RO",
+  en: "en-US",
+};
+
+// Position classes for clock container
+const POSITION_CLASSES: Record<ClockPosition, string> = {
+  "top-left": "items-start justify-start pt-12 pl-12",
+  "top-right": "items-end justify-start pt-12 pr-12",
+  "bottom-left": "items-start justify-end pb-12 pl-12",
+  "bottom-right": "items-end justify-end pb-12 pr-12",
+  center: "items-center justify-center",
+};
+
+// Text alignment based on position
+const TEXT_ALIGN_CLASSES: Record<ClockPosition, string> = {
+  "top-left": "text-left",
+  "top-right": "text-right",
+  "bottom-left": "text-left",
+  "bottom-right": "text-right",
+  center: "text-center",
+};
+
+export default function IdleMode({ config, language }: Props) {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -16,16 +42,18 @@ export default function IdleMode({ config }: Props) {
     return () => clearInterval(timer);
   }, []);
 
+  const locale = LANGUAGE_LOCALES[language] || "en-US";
+
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("en-US", {
+    return date.toLocaleTimeString(locale, {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
+      hour12: language === "en",
     });
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(locale, {
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -44,20 +72,36 @@ export default function IdleMode({ config }: Props) {
           "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
       };
 
+  // Calculate font sizes based on percentage (100 = default)
+  const fontScale = config.clockFontSize / 100;
+  const timeFontSize = `${12 * fontScale}rem`;
+  const dateFontSize = `${2.25 * fontScale}rem`;
+  const marginTop = `${1 * fontScale}rem`;
+
+  const position = config.clockPosition || "center";
+  const positionClass = POSITION_CLASSES[position];
+  const textAlignClass = TEXT_ALIGN_CLASSES[position];
+
   return (
     <div
-      className="w-full h-full flex flex-col items-center justify-center"
+      className={`w-full h-full flex flex-col ${positionClass}`}
       style={backgroundStyle}
     >
       {/* Overlay for better text visibility */}
       <div className="absolute inset-0 bg-black/30" />
 
       {config.showClock && (
-        <div className="relative z-10 text-center text-white">
-          <div className="text-[12rem] font-light tracking-tight leading-none drop-shadow-lg">
+        <div className={`relative z-10 text-white ${textAlignClass}`}>
+          <div
+            className="font-light tracking-tight leading-none drop-shadow-lg"
+            style={{ fontSize: timeFontSize }}
+          >
             {formatTime(time)}
           </div>
-          <div className="text-4xl font-light mt-4 opacity-80 drop-shadow-md">
+          <div
+            className="font-light opacity-80 drop-shadow-md"
+            style={{ fontSize: dateFontSize, marginTop }}
+          >
             {formatDate(time)}
           </div>
         </div>

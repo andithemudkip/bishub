@@ -31,6 +31,14 @@ const electronAPI = {
     ipcRenderer.invoke("set-language", language),
   goIdle: (): Promise<void> => ipcRenderer.invoke("go-idle"),
 
+  // Idle screen settings
+  setIdleWallpaper: (selectNew: boolean = true): Promise<string | null> =>
+    ipcRenderer.invoke("set-idle-wallpaper", selectNew),
+  setClockFontSize: (size: number): Promise<void> =>
+    ipcRenderer.invoke("set-clock-font-size", size),
+  setClockPosition: (position: string): Promise<void> =>
+    ipcRenderer.invoke("set-clock-position", position),
+
   openFileDialog: (filters: any[]): Promise<string | null> =>
     ipcRenderer.invoke("open-file-dialog", filters),
 

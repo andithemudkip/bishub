@@ -8,6 +8,7 @@ import type {
   BibleVerse,
   ServerToClientEvents,
   ClientToServerEvents,
+  ClockPosition,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
@@ -49,6 +50,10 @@ interface RemoteAPI {
     startVerse: number,
     endVerse?: number
   ) => void;
+  // Idle screen settings (Electron only)
+  setIdleWallpaper: (selectNew?: boolean) => Promise<string | null>;
+  setClockFontSize: (size: number) => void;
+  setClockPosition: (position: ClockPosition) => void;
 }
 
 export function useRemoteAPI(): RemoteAPI {
@@ -278,6 +283,31 @@ export function useRemoteAPI(): RemoteAPI {
             startVerse,
             endVerse
           );
+      },
+      [isElectron]
+    ),
+
+    // Idle screen settings (Electron only)
+    setIdleWallpaper: useCallback(
+      (selectNew = true) => {
+        if (isElectron) {
+          return window.electronAPI!.setIdleWallpaper(selectNew);
+        }
+        return Promise.resolve(null);
+      },
+      [isElectron]
+    ),
+
+    setClockFontSize: useCallback(
+      (size: number) => {
+        if (isElectron) window.electronAPI!.setClockFontSize(size);
+      },
+      [isElectron]
+    ),
+
+    setClockPosition: useCallback(
+      (position: ClockPosition) => {
+        if (isElectron) window.electronAPI!.setClockPosition(position);
       },
       [isElectron]
     ),

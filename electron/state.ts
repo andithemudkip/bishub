@@ -2,6 +2,7 @@ import type {
   DisplayState,
   AppSettings,
   DisplayMode,
+  ClockPosition,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
@@ -12,30 +13,57 @@ type SettingsChangeCallback = (settings: AppSettings) => void;
 
 interface SettingsSchema {
   settings: AppSettings;
+  idleSettings: {
+    wallpaper: string | null;
+    clockFontSize: number;
+    clockPosition: ClockPosition;
+  };
 }
 
 export class StateManager {
-  private state: DisplayState = { ...DEFAULT_STATE };
+  private state: DisplayState;
   private settings: AppSettings;
   private stateListeners: StateChangeCallback[] = [];
   private settingsListeners: SettingsChangeCallback[] = [];
   private settingsStore: Store<SettingsSchema>;
 
   constructor() {
+    // Deep copy DEFAULT_STATE to avoid mutating the original
+    this.state = {
+      mode: DEFAULT_STATE.mode,
+      idle: { ...DEFAULT_STATE.idle },
+      text: { ...DEFAULT_STATE.text, slides: [] },
+      video: { ...DEFAULT_STATE.video },
+    };
+
     // Initialize settings store
     this.settingsStore = new Store<SettingsSchema>({
       name: "settings",
       defaults: {
         settings: DEFAULT_SETTINGS,
+        idleSettings: {
+          wallpaper: null,
+          clockFontSize: 100,
+          clockPosition: "center",
+        },
       },
     });
 
-    // Load persisted settings
-    this.settings = this.settingsStore.get("settings", DEFAULT_SETTINGS);
+    // Load persisted settings and merge with defaults to handle missing fields
+    const storedSettings = this.settingsStore.get("settings");
+    this.settings = { ...DEFAULT_SETTINGS, ...storedSettings };
     console.log("Loaded settings:", this.settings);
 
-    // Initialize video volume from persisted settings
-    this.state.video.volume = this.settings.volume;
+    // Load persisted idle settings
+    const idleSettings = this.settingsStore.get("idleSettings");
+    if (idleSettings) {
+      this.state.idle.wallpaper = idleSettings.wallpaper ?? null;
+      this.state.idle.clockFontSize = idleSettings.clockFontSize ?? 100;
+      this.state.idle.clockPosition = idleSettings.clockPosition ?? "center";
+    }
+
+    // Initialize video volume from persisted settings (with fallback)
+    this.state.video.volume = this.settings.volume ?? 1;
   }
 
   getState(): DisplayState {
@@ -187,5 +215,32 @@ export class StateManager {
   setLanguage(language: Language) {
     this.settings.language = language;
     this.notifySettingsChange();
+  }
+
+  // Idle screen settings
+  setIdleWallpaper(wallpaper: string | null) {
+    this.state.idle.wallpaper = wallpaper;
+    this.persistIdleSettings();
+    this.notifyStateChange();
+  }
+
+  setClockFontSize(size: number) {
+    this.state.idle.clockFontSize = Math.max(50, Math.min(150, size));
+    this.persistIdleSettings();
+    this.notifyStateChange();
+  }
+
+  setClockPosition(position: ClockPosition) {
+    this.state.idle.clockPosition = position;
+    this.persistIdleSettings();
+    this.notifyStateChange();
+  }
+
+  private persistIdleSettings() {
+    this.settingsStore.set("idleSettings", {
+      wallpaper: this.state.idle.wallpaper,
+      clockFontSize: this.state.idle.clockFontSize,
+      clockPosition: this.state.idle.clockPosition,
+    });
   }
 }

@@ -67,6 +67,19 @@ export interface Translations {
     nextSlide: string;
     previousSlide: string;
     goToIdle: string;
+    // Idle screen settings
+    idleScreen: string;
+    wallpaper: string;
+    selectWallpaper: string;
+    clearWallpaper: string;
+    noWallpaper: string;
+    clockFontSize: string;
+    clockPosition: string;
+    positionTopLeft: string;
+    positionTopRight: string;
+    positionBottomLeft: string;
+    positionBottomRight: string;
+    positionCenter: string;
   };
 
   // Video library
@@ -123,7 +136,7 @@ const ro: Translations = {
     of: "din",
     noHymnsFound: "Nu s-au găsit imnuri pentru",
     verses: "versuri",
-    verse: "verset",
+    verse: "vers",
     chorus: "refren",
   },
   bible: {
@@ -155,6 +168,19 @@ const ro: Translations = {
     nextSlide: "Slide următor",
     previousSlide: "Slide anterior",
     goToIdle: "Întrerupe afișarea",
+    // Idle screen settings
+    idleScreen: "Ecran de așteptare",
+    wallpaper: "Fundal",
+    selectWallpaper: "Selectează imaginea",
+    clearWallpaper: "Șterge",
+    noWallpaper: "Fără imagine",
+    clockFontSize: "Dimensiune ceas",
+    clockPosition: "Poziție ceas",
+    positionTopLeft: "Stânga sus",
+    positionTopRight: "Dreapta sus",
+    positionBottomLeft: "Stânga jos",
+    positionBottomRight: "Dreapta jos",
+    positionCenter: "Centru",
   },
   videoLibrary: {
     addLocalFile: "Adaugă fișier",
@@ -241,6 +267,19 @@ const en: Translations = {
     nextSlide: "Next slide",
     previousSlide: "Previous slide",
     goToIdle: "Go to idle",
+    // Idle screen settings
+    idleScreen: "Idle Screen",
+    wallpaper: "Wallpaper",
+    selectWallpaper: "Select image",
+    clearWallpaper: "Clear",
+    noWallpaper: "No image",
+    clockFontSize: "Clock size",
+    clockPosition: "Clock position",
+    positionTopLeft: "Top left",
+    positionTopRight: "Top right",
+    positionBottomLeft: "Bottom left",
+    positionBottomRight: "Bottom right",
+    positionCenter: "Center",
   },
   videoLibrary: {
     addLocalFile: "Add file",

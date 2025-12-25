@@ -26,6 +26,7 @@ export class WindowManager {
     });
 
     this.stateManager.onSettingsChange((settings) => {
+      this.displayWindow?.webContents.send("settings-update", settings);
       this.remoteWindow?.webContents.send("settings-update", settings);
     });
   }

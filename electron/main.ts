@@ -17,7 +17,7 @@ import {
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
 import { startDownload, cancelDownload, getActiveDownloads } from "./ytdlp";
-import type { DisplayMode } from "../src/shared/types";
+import type { DisplayMode, ClockPosition } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 
 const isDev = process.env.NODE_ENV !== "production" || !app.isPackaged;
@@ -131,6 +131,36 @@ function setupIPC() {
 
   ipcMain.handle("go-idle", () => {
     stateManager.goIdle();
+  });
+
+  // Idle screen settings
+  ipcMain.handle(
+    "set-idle-wallpaper",
+    async (_event, selectNew: boolean = true) => {
+      if (!selectNew) {
+        stateManager.setIdleWallpaper(null);
+        return null;
+      }
+      const result = await dialog.showOpenDialog({
+        properties: ["openFile"],
+        filters: [
+          { name: "Images", extensions: ["jpg", "jpeg", "png", "gif", "webp"] },
+        ],
+      });
+      if (result.filePaths[0]) {
+        stateManager.setIdleWallpaper(result.filePaths[0]);
+        return result.filePaths[0];
+      }
+      return null;
+    }
+  );
+
+  ipcMain.handle("set-clock-font-size", (_event, size: number) => {
+    stateManager.setClockFontSize(size);
+  });
+
+  ipcMain.handle("set-clock-position", (_event, position: ClockPosition) => {
+    stateManager.setClockPosition(position);
   });
 
   ipcMain.handle(

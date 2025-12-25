@@ -38,6 +38,10 @@ declare global {
       setDisplayMonitor: (monitorId: number) => Promise<void>;
       setLanguage: (language: string) => Promise<void>;
       goIdle: () => Promise<void>;
+      // Idle screen settings
+      setIdleWallpaper: (selectNew?: boolean) => Promise<string | null>;
+      setClockFontSize: (size: number) => Promise<void>;
+      setClockPosition: (position: string) => Promise<void>;
       openFileDialog: (
         filters: { name: string; extensions: string[] }[]
       ) => Promise<string | null>;
@@ -174,7 +178,11 @@ export default function App() {
           <SettingsPage
             monitors={api.monitors}
             settings={api.settings}
+            idleState={api.state.idle}
             onSetLanguage={api.setLanguage}
+            onSetWallpaper={api.setIdleWallpaper}
+            onSetClockFontSize={api.setClockFontSize}
+            onSetClockPosition={api.setClockPosition}
           />
         );
       default:
