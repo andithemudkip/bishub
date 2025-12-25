@@ -137,21 +137,44 @@ export class WindowManager {
 
     this.stateManager.setDisplayMonitor(monitorId);
 
-    // Exit fullscreen first, then move, then re-enter fullscreen
-    this.displayWindow.setFullScreen(false);
+    const displayWindow = this.displayWindow;
+    const isFullScreen = displayWindow.isFullScreen();
 
-    // Small delay to let fullscreen exit complete
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    if (isFullScreen) {
+      // Wait for fullscreen exit to complete before moving
+      await new Promise<void>((resolve) => {
+        const timeout = setTimeout(resolve, 1000);
+        displayWindow.once("leave-full-screen", () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+        displayWindow.setFullScreen(false);
+      });
 
-    this.displayWindow.setBounds({
+      // macOS needs time to settle after exiting fullscreen
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+
+    // Move window to new monitor
+    displayWindow.setBounds({
       x: monitor.bounds.x,
       y: monitor.bounds.y,
       width: monitor.bounds.width,
       height: monitor.bounds.height,
     });
 
+    // Wait for bounds to be applied before going fullscreen
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // Re-enter fullscreen on new monitor
-    this.displayWindow.setFullScreen(true);
+    await new Promise<void>((resolve) => {
+      const timeout = setTimeout(resolve, 1000);
+      displayWindow.once("enter-full-screen", () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+      displayWindow.setFullScreen(true);
+    });
   }
 
   getDisplayWindow() {
