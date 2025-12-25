@@ -15,6 +15,12 @@ import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
+// Extract security key from URL query parameter for web remote authentication
+function getSecurityKeyFromURL(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("key");
+}
+
 interface RemoteAPI {
   state: DisplayState;
   settings: AppSettings;
@@ -61,7 +67,9 @@ export function useRemoteAPI(): RemoteAPI {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
   const [hymns, setHymns] = useState<Hymn[]>([]);
-  const [bibleBooks, setBibleBooks] = useState<{ id: string; name: string; chapterCount: number }[]>([]);
+  const [bibleBooks, setBibleBooks] = useState<
+    { id: string; name: string; chapterCount: number }[]
+  >([]);
   const [isConnected, setIsConnected] = useState(false);
 
   const socketRef = useRef<SocketType | null>(null);
@@ -90,8 +98,11 @@ export function useRemoteAPI(): RemoteAPI {
         unsubSettings();
       };
     } else {
-      // Use Socket.io
-      const socket: SocketType = io();
+      // Use Socket.io with security key authentication
+      const securityKey = getSecurityKeyFromURL();
+      const socket: SocketType = io({
+        auth: { key: securityKey },
+      });
       socketRef.current = socket;
 
       socket.on("connect", () => {

@@ -82,6 +82,8 @@ export interface Translations {
     positionBottomLeft: string;
     positionBottomRight: string;
     positionCenter: string;
+    securityKey: string;
+    securityKeyHint: string;
   };
 
   // Video library
@@ -185,6 +187,8 @@ const ro: Translations = {
     positionBottomLeft: "Stânga jos",
     positionBottomRight: "Dreapta jos",
     positionCenter: "Centru",
+    securityKey: "Cheie de securitate:",
+    securityKeyHint: "Introdu această cheie dacă accesezi de pe un desktop",
   },
   videoLibrary: {
     addLocalFile: "Adaugă fișier",
@@ -286,6 +290,8 @@ const en: Translations = {
     positionBottomLeft: "Bottom left",
     positionBottomRight: "Bottom right",
     positionCenter: "Center",
+    securityKey: "Security Key:",
+    securityKeyHint: "Enter this key if accessing from a desktop",
   },
   videoLibrary: {
     addLocalFile: "Add file",

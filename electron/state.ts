@@ -9,6 +9,7 @@ import type {
 import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
 import Store from "electron-store";
+import crypto from "crypto";
 
 type StateChangeCallback = (state: DisplayState) => void;
 type SettingsChangeCallback = (settings: AppSettings) => void;
@@ -28,8 +29,12 @@ export class StateManager {
   private stateListeners: StateChangeCallback[] = [];
   private settingsListeners: SettingsChangeCallback[] = [];
   private settingsStore: Store<SettingsSchema>;
+  private securityKey: string;
 
   constructor() {
+    // Generate random security key for web remote authentication
+    this.securityKey = crypto.randomBytes(4).toString("hex");
+    console.log("Security key generated:", this.securityKey);
     // Deep copy DEFAULT_STATE to avoid mutating the original
     this.state = {
       mode: DEFAULT_STATE.mode,
@@ -74,6 +79,10 @@ export class StateManager {
 
   getSettings(): AppSettings {
     return { ...this.settings };
+  }
+
+  getSecurityKey(): string {
+    return this.securityKey;
   }
 
   onStateChange(callback: StateChangeCallback) {

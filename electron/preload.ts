@@ -5,6 +5,7 @@ const electronAPI = {
   getSettings: (): Promise<any> => ipcRenderer.invoke("get-settings"),
   getMonitors: (): Promise<any[]> => ipcRenderer.invoke("get-monitors"),
   getLocalIP: (): Promise<string> => ipcRenderer.invoke("get-local-ip"),
+  getSecurityKey: (): Promise<string> => ipcRenderer.invoke("get-security-key"),
 
   setMode: (mode: string): Promise<void> =>
     ipcRenderer.invoke("set-mode", mode),

@@ -27,6 +27,7 @@ import {
 import { getVideoLibrary } from "./videoLibrary";
 import { startDownload, cancelDownload } from "./ytdlp";
 
+// @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -50,6 +51,31 @@ export function createServer(
   );
 
   const isDev = !electronApp.isPackaged;
+  const securityKey = stateManager.getSecurityKey();
+
+  // Middleware to validate security key for web remote access
+  const validateSecurityKey = (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    const key = req.query.key as string;
+    if (key !== securityKey) {
+      return res.status(403).send("Access denied: Invalid security key");
+    }
+    next();
+  };
+
+  // Socket.io authentication middleware
+  io.use((socket, next) => {
+    const key = socket.handshake.auth.key || socket.handshake.query.key;
+    if (key === securityKey) {
+      next();
+    } else {
+      console.log("Socket.io connection rejected: invalid security key");
+      next(new Error("Invalid security key"));
+    }
+  });
 
   if (isDev) {
     // In development, proxy to Vite dev server
@@ -59,8 +85,8 @@ export function createServer(
       ws: true,
     });
 
-    // Rewrite /remote to /remote.html
-    app.use("/remote", (req, res, next) => {
+    // Rewrite /remote to /remote.html (with security key validation)
+    app.use("/remote", validateSecurityKey, (req, res, next) => {
       if (req.path === "/" || req.path === "") {
         req.url = "/remote.html";
       }
@@ -83,7 +109,7 @@ export function createServer(
   } else {
     // Serve static files for mobile remote in production
     app.use(express.static(path.join(__dirname, "../dist")));
-    app.get("/remote", (_req, res) => {
+    app.get("/remote", validateSecurityKey, (_req, res) => {
       res.sendFile(path.join(__dirname, "../dist/remote.html"));
     });
   }

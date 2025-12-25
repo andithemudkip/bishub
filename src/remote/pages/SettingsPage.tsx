@@ -41,11 +41,13 @@ export default function SettingsPage({
   onSetClockPosition,
 }: Props) {
   const [localIP, setLocalIP] = useState<string>("...");
+  const [securityKey, setSecurityKey] = useState<string>("...");
   const t = getTranslations(settings.language);
   const isElectron = !!window.electronAPI;
 
   useEffect(() => {
     window.electronAPI?.getLocalIP().then(setLocalIP);
+    window.electronAPI?.getSecurityKey().then(setSecurityKey);
   }, []);
 
   const handleMonitorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -96,7 +98,7 @@ export default function SettingsPage({
     return parts[parts.length - 1] || t.settings.noWallpaper;
   };
 
-  const remoteURL = `http://${localIP}:${settings.serverPort}/remote`;
+  const remoteURL = `http://${localIP}:${settings.serverPort}/remote?key=${securityKey}`;
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-2xl mx-auto px-2 sm:px-0">
@@ -246,6 +248,21 @@ export default function SettingsPage({
           <p className="text-sm text-gray-500 text-center">
             {t.settings.sameWifi}
           </p>
+
+          {/* Security Key Display - Electron only */}
+          {isElectron && (
+            <div className="text-center mt-4 pt-4 border-t border-gray-700 w-full">
+              <div className="text-sm text-gray-400 mb-1">
+                {t.settings.securityKey}
+              </div>
+              <div className="font-mono text-2xl font-bold text-green-400 tracking-widest">
+                {securityKey}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {t.settings.securityKeyHint}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

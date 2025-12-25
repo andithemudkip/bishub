@@ -11,9 +11,6 @@ function App() {
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">BisHub</h1>
         <p className="text-gray-400">Church Display Application</p>
-        <p className="text-gray-500 mt-4 text-sm">
-          This window should redirect to either the Display or Remote view.
-        </p>
       </div>
     </div>
   );

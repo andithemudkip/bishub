@@ -12,6 +12,12 @@ import type {
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
+// Extract security key from URL query parameter for web remote authentication
+function getSecurityKeyFromURL(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("key");
+}
+
 interface VideoLibraryAPI {
   videos: VideoItem[];
   downloads: DownloadProgress[];
@@ -84,8 +90,11 @@ export function useVideoLibrary(
         unsubUpload();
       };
     } else {
-      // Use Socket.io
-      const socket: SocketType = io();
+      // Use Socket.io with security key authentication
+      const securityKey = getSecurityKeyFromURL();
+      const socket: SocketType = io({
+        auth: { key: securityKey },
+      });
       socketRef.current = socket;
 
       socket.on("connect", () => {

@@ -78,6 +78,10 @@ function setupIPC() {
     return getLocalIPAddress();
   });
 
+  ipcMain.handle("get-security-key", () => {
+    return stateManager.getSecurityKey();
+  });
+
   ipcMain.handle("set-mode", (_event, mode: DisplayMode) => {
     stateManager.setMode(mode);
   });
