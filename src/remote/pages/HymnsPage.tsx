@@ -69,6 +69,13 @@ export default function HymnsPage({
     onLoadHymn(hymn.number);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && filteredHymns.length > 0) {
+      onLoadHymn(filteredHymns[0].number);
+      e.currentTarget.blur();
+    }
+  };
+
   const isCurrentHymn = (hymn: Hymn) => {
     return textState.title.startsWith(`${hymn.number}.`);
   };
@@ -77,19 +84,32 @@ export default function HymnsPage({
     <div className="space-y-4">
       {/* Search */}
       <div className="sticky -top-4 bg-gray-900 pb-4 pt-4 -mx-4 px-4">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={t.hymns.searchPlaceholder}
-          className="w-full px-4 py-3 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={t.hymns.searchPlaceholder}
+            className="w-full px-4 py-3 pr-10 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Current hymn indicator */}
       {textState.slides.length > 0 && (
         <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
-          <div className="text-sm text-blue-400 mb-1">{t.hymns.nowDisplaying}</div>
+          <div className="text-sm text-blue-400 mb-1">
+            {t.hymns.nowDisplaying}
+          </div>
           <div className="font-semibold">{textState.title}</div>
           <div className="text-sm text-gray-400 mt-1">
             {t.hymns.slide} {textState.currentSlide + 1} {t.hymns.of}{" "}
