@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Display styles */
+.display-container {
+  @apply w-screen h-screen overflow-hidden bg-black text-white;
+}
+
+/* Remote styles */
+.remote-container {
+  @apply min-h-screen bg-gray-900 text-white p-4;
+}
+
+/* Slide transitions */
+.slide-enter {
+  opacity: 0;
+}
+
+.slide-enter-active {
+  opacity: 1;
+  transition: opacity 300ms ease-in;
+}
+
+.slide-exit {
+  opacity: 1;
+}
+
+.slide-exit-active {
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
