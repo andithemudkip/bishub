@@ -8,6 +8,13 @@ export default defineConfig({
   appType: 'mpa',
   server: {
     open: false,
+    host: true, // Listen on all interfaces for network access
+    proxy: {
+      '/socket.io': {
+        target: 'http://localhost:3847',
+        ws: true,
+      },
+    },
   },
   plugins: [
     {

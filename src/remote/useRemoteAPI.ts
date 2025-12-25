@@ -54,6 +54,7 @@ export function useRemoteAPI(): RemoteAPI {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
   const [hymns, setHymns] = useState<Hymn[]>([]);
+  const [bibleBooks, setBibleBooks] = useState<{ id: string; name: string; chapterCount: number }[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
   const socketRef = useRef<SocketType | null>(null);
@@ -101,6 +102,7 @@ export function useRemoteAPI(): RemoteAPI {
       socket.on("monitors", setMonitors);
       socket.on("hymns", setHymns);
       socket.on("bibleBooks", (books) => {
+        setBibleBooks(books);
         if (bibleBooksCb.current) {
           bibleBooksCb.current(books);
           bibleBooksCb.current = null;
@@ -224,11 +226,15 @@ export function useRemoteAPI(): RemoteAPI {
       if (isElectron) {
         return window.electronAPI!.getBibleBooks();
       }
+      // Return cached books if available
+      if (bibleBooks.length > 0) {
+        return Promise.resolve(bibleBooks);
+      }
       return new Promise((resolve) => {
         bibleBooksCb.current = resolve;
         socketRef.current?.emit("getBibleBooks");
       });
-    }, [isElectron]),
+    }, [isElectron, bibleBooks]),
 
     getBibleChapter: useCallback(
       (bookId, chapter) => {

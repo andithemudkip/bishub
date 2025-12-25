@@ -45,8 +45,9 @@ async function createWindows() {
   // Start the Socket.io server
   const server = createServer(stateManager, windowManager);
   const port = stateManager.getSettings().serverPort;
-  server.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`Server running on http://0.0.0.0:${port}`);
+    console.log(`Local IP: http://${getLocalIPAddress()}:${port}`);
   });
 
   // Create remote window on primary monitor

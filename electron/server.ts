@@ -47,23 +47,25 @@ export function createServer(
   const isDev = !electronApp.isPackaged;
 
   if (isDev) {
-    // In development, proxy everything except /api and socket.io to Vite
+    // In development, proxy to Vite dev server
+    const viteProxy = createProxyMiddleware({
+      target: VITE_DEV_SERVER_URL,
+      changeOrigin: true,
+      ws: true,
+    });
+
+    // Rewrite /remote to /remote.html
+    app.use("/remote", (req, res, next) => {
+      if (req.path === "/" || req.path === "") {
+        req.url = "/remote.html";
+      }
+      viteProxy(req, res, next);
+    });
+
+    // Proxy all Vite-related paths and static assets
     app.use(
-      "/remote",
-      createProxyMiddleware({
-        target: VITE_DEV_SERVER_URL,
-        changeOrigin: true,
-        pathRewrite: { "^/remote": "/remote.html" },
-      })
-    );
-    // Proxy all Vite-related paths
-    app.use(
-      ["/@vite", "/@react-refresh", "/@fs", "/src", "/node_modules", "/.vite"],
-      createProxyMiddleware({
-        target: VITE_DEV_SERVER_URL,
-        changeOrigin: true,
-        ws: true,
-      })
+      ["/@vite", "/@react-refresh", "/@fs", "/src", "/node_modules", "/.vite", "/assets"],
+      viteProxy
     );
   } else {
     // Serve static files for mobile remote in production
