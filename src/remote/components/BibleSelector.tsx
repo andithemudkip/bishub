@@ -22,7 +22,7 @@ export default function BibleSelector() {
 
   useEffect(() => {
     if (selectedBook && selectedChapter) {
-      window.electronAPI?.getBibleChapter(selectedBook.id, selectedChapter).then((v) => {
+      window.electronAPI?.getBibleChapter(selectedBook.id, selectedChapter).then((v: BibleVerse[]) => {
         setVerses(v)
         setStartVerse(1)
         setEndVerse(v.length > 0 ? v[v.length - 1].verse : 1)

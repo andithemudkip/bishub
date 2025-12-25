@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import type { BibleVerse, TextState } from '../../shared/types'
-import { parseBibleReference, getBookSuggestions, BIBLE_BOOKS } from '../../shared/bibleParser'
+import { parseBibleReference } from '../../shared/bibleParser'
 
 interface BibleBook {
   id: string
@@ -37,7 +37,7 @@ export default function BiblePage({ textState }: Props) {
   // Load chapter verses when book/chapter changes
   useEffect(() => {
     if (selectedBook && selectedChapter) {
-      window.electronAPI?.getBibleChapter(selectedBook.id, selectedChapter).then((v) => {
+      window.electronAPI?.getBibleChapter(selectedBook.id, selectedChapter).then((v: BibleVerse[]) => {
         setVerses(v)
         setStartVerse(1)
         setEndVerse(v.length > 0 ? v[v.length - 1].verse : 1)
