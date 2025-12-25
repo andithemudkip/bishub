@@ -8,6 +8,7 @@ import type {
   AudioItem,
   AudioSource,
   AudioUploadProgress,
+  DirectoryImportProgress,
 } from "../src/shared/audioLibrary.types";
 
 // Find ffprobe path
@@ -34,7 +35,9 @@ const ffprobePath = findBinaryPath("ffprobe");
 if (ffprobePath) {
   console.log(`[AudioLibrary] ffprobe found at: ${ffprobePath}`);
 } else {
-  console.warn("[AudioLibrary] ffprobe not found, duration extraction will be disabled");
+  console.warn(
+    "[AudioLibrary] ffprobe not found, duration extraction will be disabled"
+  );
 }
 
 interface AudioLibrarySchema {
@@ -44,12 +47,18 @@ interface AudioLibrarySchema {
 
 type AudioLibraryChangeCallback = (audios: AudioItem[]) => void;
 type UploadProgressCallback = (progress: AudioUploadProgress) => void;
+type DirectoryImportProgressCallback = (
+  progress: DirectoryImportProgress
+) => void;
+
+const SUPPORTED_AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a", ".flac"];
 
 export class AudioLibraryManager {
   private store: Store<AudioLibrarySchema>;
   private audiosDir: string;
   private changeListeners: AudioLibraryChangeCallback[] = [];
   private uploadProgressListeners: UploadProgressCallback[] = [];
+  private directoryImportListeners: DirectoryImportProgressCallback[] = [];
 
   constructor() {
     this.store = new Store<AudioLibrarySchema>({
@@ -94,6 +103,23 @@ export class AudioLibraryManager {
         (cb) => cb !== callback
       );
     };
+  }
+
+  onDirectoryImportProgress(
+    callback: DirectoryImportProgressCallback
+  ): () => void {
+    this.directoryImportListeners.push(callback);
+    return () => {
+      this.directoryImportListeners = this.directoryImportListeners.filter(
+        (cb) => cb !== callback
+      );
+    };
+  }
+
+  private notifyDirectoryImportProgress(
+    progress: DirectoryImportProgress
+  ): void {
+    this.directoryImportListeners.forEach((cb) => cb(progress));
   }
 
   private notifyLibraryChange(): void {
@@ -174,9 +200,114 @@ export class AudioLibraryManager {
     return audio;
   }
 
+  async addAudiosFromDirectory(
+    directoryPath: string
+  ): Promise<{
+    completed: AudioItem[];
+    errors: { file: string; error: string }[];
+  }> {
+    const importId = uuidv4();
+    const completed: AudioItem[] = [];
+    const errors: { file: string; error: string }[] = [];
+
+    // Notify scanning status
+    this.notifyDirectoryImportProgress({
+      id: importId,
+      directory: directoryPath,
+      current: 0,
+      total: 0,
+      currentFile: "",
+      completed: [],
+      errors: [],
+      status: "scanning",
+    });
+
+    // Read directory and filter audio files
+    let files: string[];
+    try {
+      const entries = await fs.promises.readdir(directoryPath);
+      files = entries.filter((file) => {
+        const ext = path.extname(file).toLowerCase();
+        return SUPPORTED_AUDIO_EXTENSIONS.includes(ext);
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      this.notifyDirectoryImportProgress({
+        id: importId,
+        directory: directoryPath,
+        current: 0,
+        total: 0,
+        currentFile: "",
+        completed: [],
+        errors: [{ file: directoryPath, error: errorMsg }],
+        status: "error",
+      });
+      return {
+        completed: [],
+        errors: [{ file: directoryPath, error: errorMsg }],
+      };
+    }
+
+    if (files.length === 0) {
+      this.notifyDirectoryImportProgress({
+        id: importId,
+        directory: directoryPath,
+        current: 0,
+        total: 0,
+        currentFile: "",
+        completed: [],
+        errors: [],
+        status: "complete",
+      });
+      return { completed: [], errors: [] };
+    }
+
+    // Import files sequentially
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const filePath = path.join(directoryPath, file);
+
+      this.notifyDirectoryImportProgress({
+        id: importId,
+        directory: directoryPath,
+        current: i + 1,
+        total: files.length,
+        currentFile: file,
+        completed: [...completed],
+        errors: [...errors],
+        status: "importing",
+      });
+
+      try {
+        const audio = await this.addAudio(filePath, "local");
+        completed.push(audio);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        errors.push({ file, error: errorMsg });
+        console.error(`[AudioLibrary] Failed to import ${file}:`, errorMsg);
+      }
+    }
+
+    // Final notification
+    this.notifyDirectoryImportProgress({
+      id: importId,
+      directory: directoryPath,
+      current: files.length,
+      total: files.length,
+      currentFile: "",
+      completed: [...completed],
+      errors: [...errors],
+      status: "complete",
+    });
+
+    return { completed, errors };
+  }
+
   private async extractDuration(audio: AudioItem): Promise<void> {
     if (!ffprobePath) {
-      console.warn("[AudioLibrary] Cannot extract duration: ffprobe not available");
+      console.warn(
+        "[AudioLibrary] Cannot extract duration: ffprobe not available"
+      );
       return;
     }
 
@@ -186,7 +317,10 @@ export class AudioLibraryManager {
 
       exec(cmd, (error, stdout) => {
         if (error) {
-          console.error("[AudioLibrary] Duration extraction failed:", error.message);
+          console.error(
+            "[AudioLibrary] Duration extraction failed:",
+            error.message
+          );
           resolve();
           return;
         }

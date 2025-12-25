@@ -115,6 +115,10 @@ const electronAPI = {
   getAudioLibrary: (): Promise<any[]> =>
     ipcRenderer.invoke("get-audio-library"),
   addLocalAudio: (): Promise<any> => ipcRenderer.invoke("add-local-audio"),
+  addLocalAudioDirectory: (): Promise<{
+    completed: any[];
+    errors: { file: string; error: string }[];
+  }> => ipcRenderer.invoke("add-local-audio-directory"),
   deleteAudio: (audioId: string): Promise<boolean> =>
     ipcRenderer.invoke("delete-audio", audioId),
   renameAudio: (audioId: string, newName: string): Promise<any> =>
@@ -147,6 +151,66 @@ const electronAPI = {
       callback(progress)
     );
     return () => ipcRenderer.removeAllListeners("audio-upload-progress");
+  },
+
+  onAudioDirectoryImportProgress: (callback: (progress: any) => void) => {
+    ipcRenderer.on(
+      "audio-directory-import-progress",
+      (_event: any, progress: any) => callback(progress)
+    );
+    return () =>
+      ipcRenderer.removeAllListeners("audio-directory-import-progress");
+  },
+
+  // Audio Scheduling
+  getAudioSchedules: (): Promise<any[]> =>
+    ipcRenderer.invoke("get-audio-schedules"),
+  getAudioPresets: (): Promise<any[]> =>
+    ipcRenderer.invoke("get-audio-presets"),
+  createAudioSchedule: (params: {
+    audioId: string;
+    audioName: string;
+    audioPath: string;
+    timeType: "absolute" | "relative";
+    absoluteTime?: string;
+    relativeMinutes?: number;
+  }): Promise<any> => ipcRenderer.invoke("create-audio-schedule", params),
+  cancelAudioSchedule: (scheduleId: string): Promise<boolean> =>
+    ipcRenderer.invoke("cancel-audio-schedule", scheduleId),
+  createAudioPreset: (params: {
+    name: string;
+    audioId: string;
+    audioName: string;
+    timeType: "absolute" | "relative";
+    hour?: number;
+    minute?: number;
+    relativeMinutes?: number;
+  }): Promise<any> => ipcRenderer.invoke("create-audio-preset", params),
+  activateAudioPreset: (
+    presetId: string,
+    audioPath: string
+  ): Promise<any> =>
+    ipcRenderer.invoke("activate-audio-preset", presetId, audioPath),
+  deleteAudioPreset: (presetId: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-audio-preset", presetId),
+
+  onAudioSchedulesUpdate: (callback: (schedules: any[]) => void) => {
+    ipcRenderer.on("audio-schedules-update", (_event: any, schedules: any[]) =>
+      callback(schedules)
+    );
+    return () => ipcRenderer.removeAllListeners("audio-schedules-update");
+  },
+  onAudioPresetsUpdate: (callback: (presets: any[]) => void) => {
+    ipcRenderer.on("audio-presets-update", (_event: any, presets: any[]) =>
+      callback(presets)
+    );
+    return () => ipcRenderer.removeAllListeners("audio-presets-update");
+  },
+  onAudioScheduleEvent: (callback: (event: any) => void) => {
+    ipcRenderer.on("audio-schedule-event", (_event: any, event: any) =>
+      callback(event)
+    );
+    return () => ipcRenderer.removeAllListeners("audio-schedule-event");
   },
 
   onStateUpdate: (callback: (state: any) => void) => {

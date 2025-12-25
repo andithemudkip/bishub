@@ -122,6 +122,7 @@ export interface Translations {
   // Audio library
   audioLibrary: {
     addLocalFile: string;
+    addFolder: string;
     upload: string;
     library: string;
     searchPlaceholder: string;
@@ -140,6 +141,40 @@ export interface Translations {
     uploadDrop: string;
     uploadHint: string;
     uploading: string;
+    // Directory import
+    scanningFolder: string;
+    importingFolder: string;
+    importProgress: string;
+    importComplete: string;
+    importErrors: string;
+    noAudioFiles: string;
+  };
+
+  // Audio scheduling
+  audioSchedule: {
+    title: string;
+    newSchedule: string;
+    atTime: string;
+    inMinutes: string;
+    schedule: string;
+    saveAsPreset: string;
+    presets: string;
+    noPresets: string;
+    pendingSchedules: string;
+    noPendingSchedules: string;
+    scheduledFor: string;
+    inXMinutes: string;
+    cancel: string;
+    activate: string;
+    delete: string;
+    presetName: string;
+    selectAudio: string;
+    enterTime: string;
+    enterMinutes: string;
+    willPlayAt: string;
+    skippedNotIdle: string;
+    triggered: string;
+    expired: string;
   };
 }
 
@@ -248,6 +283,7 @@ const ro: Translations = {
   },
   audioLibrary: {
     addLocalFile: "Adaugă fișier",
+    addFolder: "Adaugă folder",
     upload: "Încarcă",
     library: "Bibliotecă audio",
     searchPlaceholder: "Caută audio...",
@@ -266,6 +302,37 @@ const ro: Translations = {
     uploadDrop: "Trage fișierul audio sau click pentru a naviga",
     uploadHint: "Max 500MB - MP3, WAV, OGG, M4A, FLAC",
     uploading: "Se încarcă...",
+    scanningFolder: "Se scanează folderul...",
+    importingFolder: "Se importă folderul...",
+    importProgress: "{current} din {total} fișiere",
+    importComplete: "Import finalizat",
+    importErrors: "{count} fișiere eșuate",
+    noAudioFiles: "Niciun fișier audio găsit în folder",
+  },
+  audioSchedule: {
+    title: "Programare audio",
+    newSchedule: "Programare nouă",
+    atTime: "La ora",
+    inMinutes: "Peste minute",
+    schedule: "Programează",
+    saveAsPreset: "Salvează ca preset",
+    presets: "Presetări",
+    noPresets: "Nicio presetare salvată",
+    pendingSchedules: "Programări active",
+    noPendingSchedules: "Nicio programare activă",
+    scheduledFor: "Programat pentru",
+    inXMinutes: "peste {minutes} minute",
+    cancel: "Anulează",
+    activate: "Activează",
+    delete: "Șterge",
+    presetName: "Nume preset",
+    selectAudio: "Selectează fișierul audio",
+    enterTime: "Introdu ora (HH:MM)",
+    enterMinutes: "Minute de acum",
+    willPlayAt: "Va reda la",
+    skippedNotIdle: "Omis (nu e în modul inactiv)",
+    triggered: "Redat",
+    expired: "Expirat",
   },
 };
 
@@ -374,6 +441,7 @@ const en: Translations = {
   },
   audioLibrary: {
     addLocalFile: "Add file",
+    addFolder: "Add folder",
     upload: "Upload",
     library: "Audio Library",
     searchPlaceholder: "Search audio...",
@@ -392,6 +460,37 @@ const en: Translations = {
     uploadDrop: "Drop audio file or click to browse",
     uploadHint: "Max 500MB - MP3, WAV, OGG, M4A, FLAC",
     uploading: "Uploading...",
+    scanningFolder: "Scanning folder...",
+    importingFolder: "Importing folder...",
+    importProgress: "{current} of {total} files",
+    importComplete: "Import complete",
+    importErrors: "{count} files failed",
+    noAudioFiles: "No audio files found in folder",
+  },
+  audioSchedule: {
+    title: "Audio Scheduling",
+    newSchedule: "New Schedule",
+    atTime: "At time",
+    inMinutes: "In minutes",
+    schedule: "Schedule",
+    saveAsPreset: "Save as Preset",
+    presets: "Presets",
+    noPresets: "No presets saved",
+    pendingSchedules: "Pending Schedules",
+    noPendingSchedules: "No scheduled audio",
+    scheduledFor: "Scheduled for",
+    inXMinutes: "in {minutes} minutes",
+    cancel: "Cancel",
+    activate: "Activate",
+    delete: "Delete",
+    presetName: "Preset name",
+    selectAudio: "Select audio file",
+    enterTime: "Enter time (HH:MM)",
+    enterMinutes: "Minutes from now",
+    willPlayAt: "Will play at",
+    skippedNotIdle: "Skipped (not in idle mode)",
+    triggered: "Played",
+    expired: "Expired",
   },
 };
 

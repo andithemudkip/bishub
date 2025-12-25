@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import type {
   AudioItem,
   AudioUploadProgress,
+  DirectoryImportProgress,
 } from "../shared/audioLibrary.types";
 import type {
   ServerToClientEvents,
@@ -20,9 +21,11 @@ function getSecurityKeyFromURL(): string | null {
 interface AudioLibraryAPI {
   audios: AudioItem[];
   uploads: AudioUploadProgress[];
+  directoryImport: DirectoryImportProgress | null;
   isElectron: boolean;
   // Actions
   addLocalAudio: () => Promise<AudioItem | null>;
+  addLocalAudioDirectory: () => Promise<void>;
   deleteAudio: (audioId: string) => Promise<boolean>;
   renameAudio: (audioId: string, newName: string) => void;
   uploadAudio: (file: File) => Promise<void>;
@@ -34,6 +37,8 @@ export function useAudioLibrary(
 ): AudioLibraryAPI {
   const [audios, setAudios] = useState<AudioItem[]>([]);
   const [uploads, setUploads] = useState<AudioUploadProgress[]>([]);
+  const [directoryImport, setDirectoryImport] =
+    useState<DirectoryImportProgress | null>(null);
 
   const socketRef = useRef<SocketType | null>(null);
   const isElectron = !!window.electronAPI;
@@ -60,10 +65,22 @@ export function useAudioLibrary(
           });
         }
       );
+      const unsubDirImport = window.electronAPI!.onAudioDirectoryImportProgress(
+        (progress: DirectoryImportProgress) => {
+          if (progress.status === "complete" || progress.status === "error") {
+            // Keep showing for 3 seconds after completion
+            setTimeout(() => {
+              setDirectoryImport(null);
+            }, 3000);
+          }
+          setDirectoryImport(progress);
+        }
+      );
 
       return () => {
         unsubLibrary();
         unsubUpload();
+        unsubDirImport();
       };
     } else {
       // Use Socket.io with security key authentication
@@ -102,6 +119,7 @@ export function useAudioLibrary(
   const api: AudioLibraryAPI = {
     audios,
     uploads,
+    directoryImport,
     isElectron,
 
     addLocalAudio: useCallback(async () => {
@@ -109,6 +127,13 @@ export function useAudioLibrary(
         return window.electronAPI!.addLocalAudio();
       }
       return null; // Not available in web mode
+    }, [isElectron]),
+
+    addLocalAudioDirectory: useCallback(async () => {
+      if (isElectron) {
+        await window.electronAPI!.addLocalAudioDirectory();
+      }
+      // Not available in web mode
     }, [isElectron]),
 
     deleteAudio: useCallback(

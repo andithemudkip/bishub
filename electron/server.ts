@@ -26,6 +26,7 @@ import {
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
+import { getAudioScheduler } from "./audioScheduler";
 import { startDownload, cancelDownload } from "./ytdlp";
 
 // @ts-ignore
@@ -447,6 +448,40 @@ export function createServer(
       stateManager.setAudioVolume(volume);
     });
 
+    // Audio Scheduling
+    socket.on("getAudioSchedules", () => {
+      socket.emit("audioSchedules", getAudioScheduler()?.getSchedules() || []);
+    });
+
+    socket.on("getAudioPresets", () => {
+      socket.emit("audioPresets", getAudioScheduler()?.getPresets() || []);
+    });
+
+    socket.on("createAudioSchedule", (params) => {
+      getAudioScheduler()?.createSchedule({
+        ...params,
+        absoluteTime: params.absoluteTime
+          ? new Date(params.absoluteTime)
+          : undefined,
+      });
+    });
+
+    socket.on("cancelAudioSchedule", (scheduleId) => {
+      getAudioScheduler()?.cancelSchedule(scheduleId);
+    });
+
+    socket.on("createAudioPreset", (params) => {
+      getAudioScheduler()?.createPreset(params);
+    });
+
+    socket.on("activateAudioPreset", (presetId, audioPath) => {
+      getAudioScheduler()?.activatePreset(presetId, audioPath);
+    });
+
+    socket.on("deleteAudioPreset", (presetId) => {
+      getAudioScheduler()?.deletePreset(presetId);
+    });
+
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
     });
@@ -460,6 +495,20 @@ export function createServer(
   stateManager.onSettingsChange((settings) => {
     io.emit("settingsUpdate", settings);
   });
+
+  // Subscribe to audio scheduler changes
+  const scheduler = getAudioScheduler();
+  if (scheduler) {
+    scheduler.onScheduleChange((schedules) => {
+      io.emit("audioSchedules", schedules);
+    });
+    scheduler.onPresetChange((presets) => {
+      io.emit("audioPresets", presets);
+    });
+    scheduler.onScheduleEvent((event) => {
+      io.emit("audioScheduleEvent", event);
+    });
+  }
 
   return httpServer;
 }

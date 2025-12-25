@@ -24,3 +24,14 @@ export interface AudioLibraryState {
   audios: AudioItem[];
   isLoading: boolean;
 }
+
+export interface DirectoryImportProgress {
+  id: string;
+  directory: string;
+  current: number;
+  total: number;
+  currentFile: string;
+  completed: AudioItem[];
+  errors: { file: string; error: string }[];
+  status: "scanning" | "importing" | "complete" | "error";
+}

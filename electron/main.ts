@@ -18,6 +18,7 @@ import {
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
+import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import { startDownload, cancelDownload, getActiveDownloads } from "./ytdlp";
 import type { DisplayMode, ClockPosition, AudioWidgetPosition } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
@@ -43,6 +44,18 @@ let stateManager: StateManager;
 async function createWindows() {
   stateManager = new StateManager();
   windowManager = new WindowManager(stateManager);
+
+  // Initialize audio scheduler
+  const audioScheduler = initAudioScheduler(stateManager);
+  audioScheduler.onScheduleChange((schedules) => {
+    windowManager.broadcastToAll("audio-schedules-update", schedules);
+  });
+  audioScheduler.onPresetChange((presets) => {
+    windowManager.broadcastToAll("audio-presets-update", presets);
+  });
+  audioScheduler.onScheduleEvent((event) => {
+    windowManager.broadcastToAll("audio-schedule-event", event);
+  });
 
   // Set up IPC handlers BEFORE creating windows
   setupIPC();
@@ -323,6 +336,10 @@ function setupIPC() {
     windowManager.broadcastToAll("audio-upload-progress", progress);
   });
 
+  audioLibrary.onDirectoryImportProgress((progress) => {
+    windowManager.broadcastToAll("audio-directory-import-progress", progress);
+  });
+
   ipcMain.handle("get-audio-library", () => {
     return audioLibrary.getAll();
   });
@@ -343,6 +360,17 @@ function setupIPC() {
       return audio;
     }
     return null;
+  });
+
+  ipcMain.handle("add-local-audio-directory", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openDirectory"],
+    });
+
+    if (result.filePaths[0]) {
+      return audioLibrary.addAudiosFromDirectory(result.filePaths[0]);
+    }
+    return { completed: [], errors: [] };
   });
 
   ipcMain.handle("delete-audio", async (_event, audioId: string) => {
@@ -391,6 +419,70 @@ function setupIPC() {
       stateManager.setAudioWidgetPosition(position);
     }
   );
+
+  // Audio Scheduling
+  ipcMain.handle("get-audio-schedules", () => {
+    return getAudioScheduler()?.getSchedules() || [];
+  });
+
+  ipcMain.handle("get-audio-presets", () => {
+    return getAudioScheduler()?.getPresets() || [];
+  });
+
+  ipcMain.handle(
+    "create-audio-schedule",
+    (
+      _event,
+      params: {
+        audioId: string;
+        audioName: string;
+        audioPath: string;
+        timeType: "absolute" | "relative";
+        absoluteTime?: string;
+        relativeMinutes?: number;
+      }
+    ) => {
+      return getAudioScheduler()?.createSchedule({
+        ...params,
+        absoluteTime: params.absoluteTime
+          ? new Date(params.absoluteTime)
+          : undefined,
+      });
+    }
+  );
+
+  ipcMain.handle("cancel-audio-schedule", (_event, scheduleId: string) => {
+    return getAudioScheduler()?.cancelSchedule(scheduleId);
+  });
+
+  ipcMain.handle(
+    "create-audio-preset",
+    (
+      _event,
+      params: {
+        name: string;
+        audioId: string;
+        audioName: string;
+        timeType: "absolute" | "relative";
+        hour?: number;
+        minute?: number;
+        relativeMinutes?: number;
+      }
+    ) => {
+      return getAudioScheduler()?.createPreset(params);
+    }
+  );
+
+  ipcMain.handle(
+    "activate-audio-preset",
+    (_event, presetId: string, audioPath: string) => {
+      return getAudioScheduler()?.activatePreset(presetId, audioPath);
+    }
+  );
+
+  ipcMain.handle("delete-audio-preset", (_event, presetId: string) => {
+    return getAudioScheduler()?.deletePreset(presetId);
+  });
 }
 
 app.whenReady().then(createWindows);

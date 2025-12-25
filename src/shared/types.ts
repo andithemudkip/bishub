@@ -5,6 +5,13 @@ import type {
   UploadProgress,
 } from "./videoLibrary.types";
 import type { AudioItem, AudioUploadProgress } from "./audioLibrary.types";
+import type {
+  AudioSchedule,
+  AudioSchedulePreset,
+  ScheduleEvent,
+  CreateScheduleParams,
+  CreatePresetParams,
+} from "./audioSchedule.types";
 
 export type DisplayMode = "idle" | "text" | "video";
 
@@ -103,6 +110,10 @@ export type ServerToClientEvents = {
   // Audio Library
   audioLibrary: (audios: AudioItem[]) => void;
   audioUploadProgress: (progress: AudioUploadProgress) => void;
+  // Audio Scheduling
+  audioSchedules: (schedules: AudioSchedule[]) => void;
+  audioPresets: (presets: AudioSchedulePreset[]) => void;
+  audioScheduleEvent: (event: ScheduleEvent) => void;
 };
 
 export type ClientToServerEvents = {
@@ -150,6 +161,14 @@ export type ClientToServerEvents = {
   stopAudio: () => void;
   seekAudio: (time: number) => void;
   setAudioVolume: (volume: number) => void;
+  // Audio Scheduling
+  getAudioSchedules: () => void;
+  getAudioPresets: () => void;
+  createAudioSchedule: (params: CreateScheduleParams) => void;
+  cancelAudioSchedule: (scheduleId: string) => void;
+  createAudioPreset: (params: CreatePresetParams) => void;
+  activateAudioPreset: (presetId: string, audioPath: string) => void;
+  deleteAudioPreset: (presetId: string) => void;
 };
 
 export const DEFAULT_STATE: DisplayState = {
