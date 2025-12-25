@@ -1,3 +1,5 @@
+import type { Language } from "./i18n";
+
 export type DisplayMode = "idle" | "text" | "video";
 
 export interface IdleState {
@@ -41,6 +43,7 @@ export interface MonitorInfo {
 export interface AppSettings {
   displayMonitor: number;
   serverPort: number;
+  language: Language;
 }
 
 // Socket.io event types
@@ -68,6 +71,7 @@ export type ClientToServerEvents = {
   seekVideo: (time: number) => void;
   setVolume: (volume: number) => void;
   setDisplayMonitor: (monitorId: number) => void;
+  setLanguage: (language: Language) => void;
   getMonitors: () => void;
   goIdle: () => void;
   // Hymns
@@ -108,6 +112,7 @@ export const DEFAULT_STATE: DisplayState = {
 export const DEFAULT_SETTINGS: AppSettings = {
   displayMonitor: -1, // -1 means auto-detect secondary
   serverPort: 3847,
+  language: "ro",
 };
 
 // Hymn types

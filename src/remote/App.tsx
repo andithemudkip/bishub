@@ -35,6 +35,7 @@ declare global {
       seekVideo: (time: number) => Promise<void>;
       setVolume: (volume: number) => Promise<void>;
       setDisplayMonitor: (monitorId: number) => Promise<void>;
+      setLanguage: (language: string) => Promise<void>;
       goIdle: () => Promise<void>;
       openFileDialog: (
         filters: { name: string; extensions: string[] }[]
@@ -77,9 +78,15 @@ export default function App() {
 
       switch (e.key) {
         case "ArrowRight":
+        case "PageDown":
+          // Prevent scroll when presenting
+          if (api.state.mode === "text") e.preventDefault();
           handleNextSlide();
           break;
         case "ArrowLeft":
+        case "PageUp":
+          // Prevent scroll when presenting
+          if (api.state.mode === "text") e.preventDefault();
           api.prevSlide();
           break;
         case "Escape":
@@ -123,6 +130,7 @@ export default function App() {
             textState={api.state.text}
             hymns={api.hymns}
             onLoadHymn={api.loadHymn}
+            settings={api.settings}
           />
         );
       case "bible":
@@ -132,12 +140,19 @@ export default function App() {
             getBibleBooks={api.getBibleBooks}
             getBibleChapter={api.getBibleChapter}
             loadBibleVerses={api.loadBibleVerses}
+            settings={api.settings}
           />
         );
       case "video":
         return <VideoPage videoState={api.state.video} />;
       case "settings":
-        return <SettingsPage monitors={api.monitors} settings={api.settings} />;
+        return (
+          <SettingsPage
+            monitors={api.monitors}
+            settings={api.settings}
+            onSetLanguage={api.setLanguage}
+          />
+        );
       default:
         return null;
     }
@@ -146,6 +161,7 @@ export default function App() {
   return (
     <Layout
       state={api.state}
+      settings={api.settings}
       onGoIdle={handleGoIdle}
       onNextSlide={handleNextSlide}
       onPrevSlide={handlePrevSlide}

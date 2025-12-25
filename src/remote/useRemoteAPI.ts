@@ -9,6 +9,7 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "../shared/types";
+import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -32,6 +33,7 @@ interface RemoteAPI {
   seekVideo: (time: number) => void;
   setVolume: (volume: number) => void;
   setDisplayMonitor: (monitorId: number) => void;
+  setLanguage: (language: Language) => void;
   goIdle: () => void;
   // Hymns
   loadHymn: (hymnNumber: string) => void;
@@ -205,6 +207,14 @@ export function useRemoteAPI(): RemoteAPI {
       (monitorId) => {
         if (isElectron) window.electronAPI!.setDisplayMonitor(monitorId);
         else socketRef.current?.emit("setDisplayMonitor", monitorId);
+      },
+      [isElectron]
+    ),
+
+    setLanguage: useCallback(
+      (language: Language) => {
+        if (isElectron) window.electronAPI!.setLanguage(language);
+        else socketRef.current?.emit("setLanguage", language);
       },
       [isElectron]
     ),

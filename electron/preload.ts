@@ -27,6 +27,8 @@ const electronAPI = {
 
   setDisplayMonitor: (monitorId: number): Promise<void> =>
     ipcRenderer.invoke("set-display-monitor", monitorId),
+  setLanguage: (language: string): Promise<void> =>
+    ipcRenderer.invoke("set-language", language),
   goIdle: (): Promise<void> => ipcRenderer.invoke("go-idle"),
 
   openFileDialog: (filters: any[]): Promise<string | null> =>

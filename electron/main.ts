@@ -16,6 +16,7 @@ import {
   loadBible,
 } from "./dataLoader";
 import type { DisplayMode } from "../src/shared/types";
+import type { Language } from "../src/shared/i18n";
 
 const isDev = process.env.NODE_ENV !== "production" || !app.isPackaged;
 
@@ -120,6 +121,10 @@ function setupIPC() {
 
   ipcMain.handle("set-display-monitor", (_event, monitorId: number) => {
     windowManager.moveDisplayToMonitor(monitorId);
+  });
+
+  ipcMain.handle("set-language", (_event, language: Language) => {
+    stateManager.setLanguage(language);
   });
 
   ipcMain.handle("go-idle", () => {

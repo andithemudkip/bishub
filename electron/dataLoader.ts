@@ -8,6 +8,7 @@ import type {
   BibleVerse,
   BibleData,
 } from "../src/shared/types";
+import type { Language } from "../src/shared/i18n";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,30 +20,54 @@ function getAssetsPath(): string {
   return path.join(__dirname, "..", "assets");
 }
 
-let hymnsCache: Hymn[] | null = null;
-let bibleCache: BibleData | null = null;
+// Get language-specific asset path with fallback to default
+// Future: assets/{language}/hymns.json, assets/{language}/bible.xml
+// Current: assets/hymns.json, assets/bible.xml (Romanian only)
+function getLanguageAssetPath(
+  language: Language,
+  filename: string
+): string {
+  const assetsPath = getAssetsPath();
 
-export function loadHymns(): Hymn[] {
-  if (hymnsCache) return hymnsCache;
+  // Try language-specific path first
+  const langPath = path.join(assetsPath, language, filename);
+  if (fs.existsSync(langPath)) {
+    return langPath;
+  }
 
-  const hymnsPath = path.join(getAssetsPath(), "hymns.json");
+  // Fallback to default path (current Romanian data)
+  return path.join(assetsPath, filename);
+}
+
+// Cache structure to support multiple languages
+const hymnsCache = new Map<Language, Hymn[]>();
+const bibleCache = new Map<Language, BibleData>();
+
+export function loadHymns(language: Language = "ro"): Hymn[] {
+  if (hymnsCache.has(language)) return hymnsCache.get(language)!;
+
+  const hymnsPath = getLanguageAssetPath(language, "hymns.json");
   try {
     const data = fs.readFileSync(hymnsPath, "utf-8");
-    hymnsCache = JSON.parse(data) as Hymn[];
-    return hymnsCache;
+    const hymns = JSON.parse(data) as Hymn[];
+    hymnsCache.set(language, hymns);
+    return hymns;
   } catch (error) {
-    console.error("Failed to load hymns:", error);
+    console.error(`Failed to load hymns for ${language}:`, error);
     return [];
   }
 }
 
-export function getHymnByNumber(number: string): Hymn | null {
-  const hymns = loadHymns();
+export function getHymnByNumber(
+  number: string,
+  language: Language = "ro"
+): Hymn | null {
+  const hymns = loadHymns(language);
   return hymns.find((h) => h.number === number) || null;
 }
 
-export function searchHymns(query: string): Hymn[] {
-  const hymns = loadHymns();
+export function searchHymns(query: string, language: Language = "ro"): Hymn[] {
+  const hymns = loadHymns(language);
   const lowerQuery = query.toLowerCase();
   return hymns
     .filter(
@@ -52,16 +77,17 @@ export function searchHymns(query: string): Hymn[] {
     .slice(0, 20); // Limit results
 }
 
-export function loadBible(): BibleData {
-  if (bibleCache) return bibleCache;
+export function loadBible(language: Language = "ro"): BibleData {
+  if (bibleCache.has(language)) return bibleCache.get(language)!;
 
-  const biblePath = path.join(getAssetsPath(), "bible.xml");
+  const biblePath = getLanguageAssetPath(language, "bible.xml");
   try {
     const xml = fs.readFileSync(biblePath, "utf-8");
-    bibleCache = parseBibleXML(xml);
-    return bibleCache;
+    const bible = parseBibleXML(xml);
+    bibleCache.set(language, bible);
+    return bible;
   } catch (error) {
-    console.error("Failed to load bible:", error);
+    console.error(`Failed to load bible for ${language}:`, error);
     return { books: [] };
   }
 }
@@ -137,12 +163,14 @@ function parseBibleXML(xml: string): BibleData {
   return { books };
 }
 
-export function getBibleBooks(): {
+export function getBibleBooks(
+  language: Language = "ro"
+): {
   id: string;
   name: string;
   chapterCount: number;
 }[] {
-  const bible = loadBible();
+  const bible = loadBible(language);
   return bible.books.map((b) => ({
     id: b.id,
     name: b.name,
@@ -150,8 +178,12 @@ export function getBibleBooks(): {
   }));
 }
 
-export function getBibleChapter(bookId: string, chapter: number): BibleVerse[] {
-  const bible = loadBible();
+export function getBibleChapter(
+  bookId: string,
+  chapter: number,
+  language: Language = "ro"
+): BibleVerse[] {
+  const bible = loadBible(language);
   const book = bible.books.find((b) => b.id === bookId);
   if (!book) return [];
 
@@ -163,9 +195,10 @@ export function getBibleVerses(
   bookId: string,
   chapter: number,
   startVerse: number,
-  endVerse?: number
+  endVerse?: number,
+  language: Language = "ro"
 ): BibleVerse[] {
-  const verses = getBibleChapter(bookId, chapter);
+  const verses = getBibleChapter(bookId, chapter, language);
   const end = endVerse || startVerse;
   return verses.filter((v) => v.verse >= startVerse && v.verse <= end);
 }

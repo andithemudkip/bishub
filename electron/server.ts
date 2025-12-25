@@ -12,6 +12,7 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "../src/shared/types";
+import type { Language } from "../src/shared/i18n";
 import {
   loadHymns,
   getHymnByNumber,
@@ -148,6 +149,10 @@ export function createServer(
 
     socket.on("getMonitors", () => {
       socket.emit("monitors", windowManager.getMonitors());
+    });
+
+    socket.on("setLanguage", (language: Language) => {
+      stateManager.setLanguage(language);
     });
 
     // Hymns

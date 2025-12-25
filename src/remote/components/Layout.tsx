@@ -1,22 +1,24 @@
-import { useState, useEffect } from "react";
-import type { DisplayState } from "../../shared/types";
+import { useState, useEffect, useMemo } from "react";
+import type { DisplayState, AppSettings } from "../../shared/types";
+import { getTranslations } from "../../shared/i18n";
 
 type Page = "hymns" | "bible" | "video" | "settings";
 
 interface Props {
   children: (page: Page) => React.ReactNode;
   state: DisplayState;
+  settings: AppSettings;
   onGoIdle: () => void;
   onNextSlide: () => void;
   onPrevSlide: () => void;
 }
 
-const NAV_ITEMS: { id: Page; label: string; icon: string }[] = [
-  { id: "hymns", label: "Hymns", icon: "♪" },
-  { id: "bible", label: "Bible", icon: "✝" },
-  { id: "video", label: "Video", icon: "▶" },
-  { id: "settings", label: "Settings", icon: "⚙" },
-];
+const NAV_ICONS: Record<Page, string> = {
+  hymns: "♪",
+  bible: "✝",
+  video: "▶",
+  settings: "⚙",
+};
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -34,6 +36,7 @@ function useIsMobile() {
 export default function Layout({
   children,
   state,
+  settings,
   onGoIdle,
   onNextSlide,
   onPrevSlide,
@@ -41,6 +44,18 @@ export default function Layout({
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState<Page>("hymns");
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+
+  const t = getTranslations(settings.language);
+
+  const navItems = useMemo(
+    () => [
+      { id: "hymns" as Page, label: t.nav.hymns, icon: NAV_ICONS.hymns },
+      { id: "bible" as Page, label: t.nav.bible, icon: NAV_ICONS.bible },
+      { id: "video" as Page, label: t.nav.video, icon: NAV_ICONS.video },
+      { id: "settings" as Page, label: t.nav.settings, icon: NAV_ICONS.settings },
+    ],
+    [t]
+  );
 
   // Update sidebar state when switching between mobile/desktop
   useEffect(() => {
@@ -50,13 +65,13 @@ export default function Layout({
   const getStatusText = () => {
     switch (state.mode) {
       case "idle":
-        return "Idle";
+        return t.status.idle;
       case "text":
         return `${state.text.title} (${state.text.currentSlide + 1}/${
           state.text.slides.length
         })`;
       case "video":
-        return state.video.playing ? "Playing video" : "Video paused";
+        return state.video.playing ? t.status.playingVideo : t.status.videoPaused;
       default:
         return "";
     }
@@ -80,7 +95,7 @@ export default function Layout({
 
         {/* Nav items */}
         <nav className="flex-1">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setCurrentPage(item.id)}
@@ -126,7 +141,7 @@ export default function Layout({
         {/* Header with controls */}
         <header className="flex-shrink-0 bg-gray-800 px-3 md:px-4 py-2 md:py-3 flex flex-col sm:flex-row sm:items-center gap-2 border-b border-gray-700">
           <h1 className="text-lg font-semibold hidden md:block">
-            {NAV_ITEMS.find((i) => i.id === currentPage)?.label}
+            {navItems.find((i) => i.id === currentPage)?.label}
           </h1>
 
           {/* Quick controls - centered on mobile */}
@@ -159,7 +174,7 @@ export default function Layout({
                   : "bg-red-600 hover:bg-red-500 active:bg-red-400"
               }`}
             >
-              {isMobile ? "■" : "Go Idle"}
+              {isMobile ? "■" : t.header.goIdle}
             </button>
           </div>
         </header>
@@ -172,7 +187,7 @@ export default function Layout({
 
       {/* Bottom navigation - mobile only */}
       <nav className="md:hidden flex-shrink-0 bg-gray-800 border-t border-gray-700 flex safe-area-pb">
-        {NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setCurrentPage(item.id)}

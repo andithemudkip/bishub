@@ -3,6 +3,7 @@ import type {
   AppSettings,
   DisplayMode,
 } from "../src/shared/types";
+import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
 
 type StateChangeCallback = (state: DisplayState) => void;
@@ -151,6 +152,11 @@ export class StateManager {
 
   setServerPort(port: number) {
     this.settings.serverPort = port;
+    this.notifySettingsChange();
+  }
+
+  setLanguage(language: Language) {
+    this.settings.language = language;
     this.notifySettingsChange();
   }
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import type { BibleVerse, TextState } from "../../shared/types";
+import type { BibleVerse, TextState, AppSettings } from "../../shared/types";
 import { parseBibleReference } from "../../shared/bibleParser";
+import { getTranslations } from "../../shared/i18n";
 
 interface BibleBook {
   id: string;
@@ -19,6 +20,7 @@ interface Props {
     startVerse: number,
     endVerse?: number
   ) => void;
+  settings: AppSettings;
 }
 
 export default function BiblePage({
@@ -26,6 +28,7 @@ export default function BiblePage({
   getBibleBooks,
   getBibleChapter,
   loadBibleVerses,
+  settings,
 }: Props) {
   const [books, setBooks] = useState<BibleBook[]>([]);
   const [quickSearch, setQuickSearch] = useState("");
@@ -39,15 +42,17 @@ export default function BiblePage({
   const [startVerse, setStartVerse] = useState<number>(1);
   const [endVerse, setEndVerse] = useState<number>(1);
 
+  const t = getTranslations(settings.language);
+
   useEffect(() => {
     getBibleBooks().then(setBooks);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Parse quick search input
+  // Parse quick search input with language
   useEffect(() => {
-    const parsed = parseBibleReference(quickSearch);
+    const parsed = parseBibleReference(quickSearch, settings.language);
     setParsedRef(parsed);
-  }, [quickSearch]);
+  }, [quickSearch, settings.language]);
 
   // Load chapter verses when book/chapter changes
   useEffect(() => {
@@ -102,13 +107,8 @@ export default function BiblePage({
     <div className="space-y-6">
       {/* Quick search */}
       <div className="bg-gray-800 rounded-lg p-4">
-        <h2 className="text-lg font-semibold mb-3">Quick Search</h2>
-        <p className="text-sm text-gray-400 mb-3">
-          Type a reference like: <span className="text-blue-400">gen 2:16</span>
-          , <span className="text-blue-400">ps 23:1-6</span>,{" "}
-          <span className="text-blue-400">ioan 3:16</span>,{" "}
-          <span className="text-blue-400">1imp 1:20</span>
-        </p>
+        <h2 className="text-lg font-semibold mb-3">{t.bible.quickSearch}</h2>
+        <p className="text-sm text-gray-400 mb-3">{t.bible.quickSearchHint}</p>
 
         <div className="flex gap-2">
           <input
@@ -124,7 +124,7 @@ export default function BiblePage({
             disabled={!parsedRef}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
           >
-            Load
+            {t.bible.load}
           </button>
         </div>
 
@@ -145,7 +145,7 @@ export default function BiblePage({
                   `-${parsedRef.endVerse}`}
               </span>
             ) : (
-              <span className="text-red-400">✗ Could not parse reference</span>
+              <span className="text-red-400">✗ {t.bible.couldNotParse}</span>
             )}
           </div>
         )}
@@ -154,22 +154,27 @@ export default function BiblePage({
       {/* Current display indicator */}
       {textState.slides.length > 0 && (
         <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
-          <div className="text-sm text-blue-400 mb-1">Now displaying:</div>
+          <div className="text-sm text-blue-400 mb-1">
+            {t.hymns.nowDisplaying}
+          </div>
           <div className="font-semibold">{textState.title}</div>
           <div className="text-sm text-gray-400 mt-1">
-            Slide {textState.currentSlide + 1} of {textState.slides.length}
+            {t.hymns.slide} {textState.currentSlide + 1} {t.hymns.of}{" "}
+            {textState.slides.length}
           </div>
         </div>
       )}
 
       {/* Manual browser */}
       <div className="bg-gray-800 rounded-lg p-4">
-        <h2 className="text-lg font-semibold mb-3">Browse</h2>
+        <h2 className="text-lg font-semibold mb-3">{t.bible.browse}</h2>
 
         <div className="grid gap-4">
           {/* Book selector */}
           <div>
-            <label className="text-sm text-gray-400 block mb-2">Book</label>
+            <label className="text-sm text-gray-400 block mb-2">
+              {t.bible.book}
+            </label>
             <select
               value={selectedBook?.id || ""}
               onChange={(e) => {
@@ -178,7 +183,7 @@ export default function BiblePage({
               }}
               className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Select a book...</option>
+              <option value="">{t.bible.selectBook}</option>
               {books.map((book) => (
                 <option key={book.id} value={book.id}>
                   {book.name}
@@ -193,7 +198,7 @@ export default function BiblePage({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                   <label className="text-sm text-gray-400 block mb-2">
-                    Chapter
+                    {t.bible.chapter}
                   </label>
                   <select
                     value={selectedChapter}
@@ -215,7 +220,7 @@ export default function BiblePage({
                   <>
                     <div>
                       <label className="text-sm text-gray-400 block mb-2">
-                        From verse
+                        {t.bible.fromVerse}
                       </label>
                       <select
                         value={startVerse}
@@ -235,7 +240,7 @@ export default function BiblePage({
                     </div>
                     <div>
                       <label className="text-sm text-gray-400 block mb-2">
-                        To verse
+                        {t.bible.toVerse}
                       </label>
                       <select
                         value={endVerse}
@@ -266,7 +271,7 @@ export default function BiblePage({
                     onClick={handleManualLoad}
                     className="w-full sm:w-auto px-6 py-3 sm:py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors font-medium"
                   >
-                    Load Verses
+                    {t.bible.loadVerses}
                   </button>
                 </div>
               )}

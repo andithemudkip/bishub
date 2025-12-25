@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
-import type { Hymn, TextState } from "../../shared/types";
+import type { Hymn, TextState, AppSettings } from "../../shared/types";
+import { getTranslations } from "../../shared/i18n";
 
 interface Props {
   textState: TextState;
   hymns: Hymn[];
   onLoadHymn: (hymnNumber: string) => void;
+  settings: AppSettings;
 }
 
 // Remove diacritics from text (ă->a, ș->s, ț->t, î->i, â->a, etc.)
@@ -17,9 +19,16 @@ function normalizeForSearch(text: string): string {
   return removeDiacritics(text.toLowerCase().trim());
 }
 
-export default function HymnsPage({ textState, hymns, onLoadHymn }: Props) {
+export default function HymnsPage({
+  textState,
+  hymns,
+  onLoadHymn,
+  settings,
+}: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
+
+  const t = getTranslations(settings.language);
 
   // Pre-compute normalized titles for faster searching
   const hymnsWithNormalizedTitles = useMemo(() => {
@@ -72,7 +81,7 @@ export default function HymnsPage({ textState, hymns, onLoadHymn }: Props) {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by number or title..."
+          placeholder={t.hymns.searchPlaceholder}
           className="w-full px-4 py-3 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
@@ -80,10 +89,11 @@ export default function HymnsPage({ textState, hymns, onLoadHymn }: Props) {
       {/* Current hymn indicator */}
       {textState.slides.length > 0 && (
         <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
-          <div className="text-sm text-blue-400 mb-1">Now displaying:</div>
+          <div className="text-sm text-blue-400 mb-1">{t.hymns.nowDisplaying}</div>
           <div className="font-semibold">{textState.title}</div>
           <div className="text-sm text-gray-400 mt-1">
-            Slide {textState.currentSlide + 1} of {textState.slides.length}
+            {t.hymns.slide} {textState.currentSlide + 1} {t.hymns.of}{" "}
+            {textState.slides.length}
           </div>
         </div>
       )}
@@ -108,15 +118,15 @@ export default function HymnsPage({ textState, hymns, onLoadHymn }: Props) {
             </div>
             <div className="text-sm text-gray-400 mt-1 ml-15">
               {hymn.verses.length}{" "}
-              {hymn.verses.length === 1 ? "verse" : "verses"}
-              {hymn.chorus && " + chorus"}
+              {hymn.verses.length === 1 ? t.hymns.verse : t.hymns.verses}
+              {hymn.chorus && ` + ${t.hymns.chorus}`}
             </div>
           </button>
         ))}
 
         {filteredHymns.length === 0 && searchQuery && (
           <div className="text-center py-8 text-gray-400">
-            No hymns found for "{searchQuery}"
+            {t.hymns.noHymnsFound} "{searchQuery}"
           </div>
         )}
       </div>
