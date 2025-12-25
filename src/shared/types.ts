@@ -1,4 +1,4 @@
-export type DisplayMode = 'idle' | 'text' | 'video';
+export type DisplayMode = "idle" | "text" | "video";
 
 export interface IdleState {
   wallpaper: string | null;
@@ -48,6 +48,11 @@ export type ServerToClientEvents = {
   stateUpdate: (state: DisplayState) => void;
   settingsUpdate: (settings: AppSettings) => void;
   monitors: (monitors: MonitorInfo[]) => void;
+  hymns: (hymns: Hymn[]) => void;
+  bibleBooks: (
+    books: { id: string; name: string; chapterCount: number }[]
+  ) => void;
+  bibleChapter: (verses: BibleVerse[]) => void;
 };
 
 export type ClientToServerEvents = {
@@ -65,16 +70,29 @@ export type ClientToServerEvents = {
   setDisplayMonitor: (monitorId: number) => void;
   getMonitors: () => void;
   goIdle: () => void;
+  // Hymns
+  getHymns: () => void;
+  loadHymn: (hymnNumber: string) => void;
+  // Bible
+  getBibleBooks: () => void;
+  getBibleChapter: (bookId: string, chapter: number) => void;
+  loadBibleVerses: (
+    bookId: string,
+    bookName: string,
+    chapter: number,
+    startVerse: number,
+    endVerse?: number
+  ) => void;
 };
 
 export const DEFAULT_STATE: DisplayState = {
-  mode: 'idle',
+  mode: "idle",
   idle: {
     wallpaper: null,
     showClock: true,
   },
   text: {
-    title: '',
+    title: "",
     slides: [],
     currentSlide: 0,
   },

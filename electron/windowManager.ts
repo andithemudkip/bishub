@@ -1,69 +1,72 @@
-import { BrowserWindow, screen } from 'electron'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import type { MonitorInfo } from '../src/shared/types'
-import type { StateManager } from './state'
+import { app, BrowserWindow, screen } from "electron";
+import path from "path";
+import { fileURLToPath } from "url";
+import type { MonitorInfo } from "../src/shared/types";
+import type { StateManager } from "./state";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const isDev = process.env.NODE_ENV !== 'production'
-const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173'
+const isDev = !app.isPackaged;
+const VITE_DEV_SERVER_URL =
+  process.env.VITE_DEV_SERVER_URL || "http://localhost:5173";
 
 export class WindowManager {
-  private displayWindow: BrowserWindow | null = null
-  private remoteWindow: BrowserWindow | null = null
-  private stateManager: StateManager
+  private displayWindow: BrowserWindow | null = null;
+  private remoteWindow: BrowserWindow | null = null;
+  private stateManager: StateManager;
 
   constructor(stateManager: StateManager) {
-    this.stateManager = stateManager
+    this.stateManager = stateManager;
 
     // Subscribe to state changes to notify windows
     this.stateManager.onStateChange((state) => {
-      this.displayWindow?.webContents.send('state-update', state)
-      this.remoteWindow?.webContents.send('state-update', state)
-    })
+      this.displayWindow?.webContents.send("state-update", state);
+      this.remoteWindow?.webContents.send("state-update", state);
+    });
 
     this.stateManager.onSettingsChange((settings) => {
-      this.remoteWindow?.webContents.send('settings-update', settings)
-    })
+      this.remoteWindow?.webContents.send("settings-update", settings);
+    });
   }
 
   getMonitors(): MonitorInfo[] {
-    const displays = screen.getAllDisplays()
+    const displays = screen.getAllDisplays();
     return displays.map((display, index) => ({
       id: display.id,
-      name: `Display ${index + 1}${display.bounds.x === 0 && display.bounds.y === 0 ? ' (Primary)' : ''}`,
+      name: `Display ${index + 1}${
+        display.bounds.x === 0 && display.bounds.y === 0 ? " (Primary)" : ""
+      }`,
       bounds: display.bounds,
       isPrimary: display.bounds.x === 0 && display.bounds.y === 0,
-    }))
+    }));
   }
 
   private getSecondaryMonitor() {
-    const displays = screen.getAllDisplays()
-    const primaryDisplay = screen.getPrimaryDisplay()
+    const displays = screen.getAllDisplays();
+    const primaryDisplay = screen.getPrimaryDisplay();
 
     // Find a non-primary display, or use primary if only one monitor
-    const secondary = displays.find((d) => d.id !== primaryDisplay.id)
-    return secondary || primaryDisplay
+    const secondary = displays.find((d) => d.id !== primaryDisplay.id);
+    return secondary || primaryDisplay;
   }
 
   private getDisplayMonitor() {
-    const settings = this.stateManager.getSettings()
-    const displays = screen.getAllDisplays()
+    const settings = this.stateManager.getSettings();
+    const displays = screen.getAllDisplays();
 
     if (settings.displayMonitor === -1) {
       // Auto-detect: use secondary monitor
-      return this.getSecondaryMonitor()
+      return this.getSecondaryMonitor();
     }
 
     // Find specific monitor by ID
-    const monitor = displays.find((d) => d.id === settings.displayMonitor)
-    return monitor || this.getSecondaryMonitor()
+    const monitor = displays.find((d) => d.id === settings.displayMonitor);
+    return monitor || this.getSecondaryMonitor();
   }
 
   async createDisplayWindow() {
-    const monitor = this.getDisplayMonitor()
+    const monitor = this.getDisplayMonitor();
 
     this.displayWindow = new BrowserWindow({
       x: monitor.bounds.x,
@@ -73,26 +76,28 @@ export class WindowManager {
       fullscreen: true,
       frame: false,
       webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
+        preload: path.join(__dirname, "preload.js"),
         contextIsolation: true,
         nodeIntegration: false,
         webSecurity: false, // Allow loading local video files
       },
-    })
+    });
 
     if (isDev && VITE_DEV_SERVER_URL) {
-      await this.displayWindow.loadURL(`${VITE_DEV_SERVER_URL}/display.html`)
+      await this.displayWindow.loadURL(`${VITE_DEV_SERVER_URL}/display.html`);
     } else {
-      await this.displayWindow.loadFile(path.join(__dirname, '../dist/display.html'))
+      await this.displayWindow.loadFile(
+        path.join(__dirname, "../dist/display.html")
+      );
     }
 
-    this.displayWindow.on('closed', () => {
-      this.displayWindow = null
-    })
+    this.displayWindow.on("closed", () => {
+      this.displayWindow = null;
+    });
   }
 
   async createRemoteWindow() {
-    const primaryDisplay = screen.getPrimaryDisplay()
+    const primaryDisplay = screen.getPrimaryDisplay();
 
     this.remoteWindow = new BrowserWindow({
       x: primaryDisplay.bounds.x + 50,
@@ -100,58 +105,60 @@ export class WindowManager {
       width: 1024,
       height: 768,
       webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
+        preload: path.join(__dirname, "preload.js"),
         contextIsolation: true,
         nodeIntegration: false,
       },
-    })
+    });
 
     if (isDev && VITE_DEV_SERVER_URL) {
-      await this.remoteWindow.loadURL(`${VITE_DEV_SERVER_URL}/remote.html`)
-      this.remoteWindow.webContents.openDevTools()
+      await this.remoteWindow.loadURL(`${VITE_DEV_SERVER_URL}/remote.html`);
+      this.remoteWindow.webContents.openDevTools();
     } else {
-      await this.remoteWindow.loadFile(path.join(__dirname, '../dist/remote.html'))
+      await this.remoteWindow.loadFile(
+        path.join(__dirname, "../dist/remote.html")
+      );
     }
 
-    this.remoteWindow.on('closed', () => {
-      this.remoteWindow = null
+    this.remoteWindow.on("closed", () => {
+      this.remoteWindow = null;
       // Close display window when remote is closed
       if (this.displayWindow) {
-        this.displayWindow.close()
+        this.displayWindow.close();
       }
-    })
+    });
   }
 
   async moveDisplayToMonitor(monitorId: number) {
-    const displays = screen.getAllDisplays()
-    const monitor = displays.find((d) => d.id === monitorId)
+    const displays = screen.getAllDisplays();
+    const monitor = displays.find((d) => d.id === monitorId);
 
-    if (!monitor || !this.displayWindow) return
+    if (!monitor || !this.displayWindow) return;
 
-    this.stateManager.setDisplayMonitor(monitorId)
+    this.stateManager.setDisplayMonitor(monitorId);
 
     // Exit fullscreen first, then move, then re-enter fullscreen
-    this.displayWindow.setFullScreen(false)
+    this.displayWindow.setFullScreen(false);
 
     // Small delay to let fullscreen exit complete
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     this.displayWindow.setBounds({
       x: monitor.bounds.x,
       y: monitor.bounds.y,
       width: monitor.bounds.width,
-      height: monitor.bounds.height
-    })
+      height: monitor.bounds.height,
+    });
 
     // Re-enter fullscreen on new monitor
-    this.displayWindow.setFullScreen(true)
+    this.displayWindow.setFullScreen(true);
   }
 
   getDisplayWindow() {
-    return this.displayWindow
+    return this.displayWindow;
   }
 
   getRemoteWindow() {
-    return this.remoteWindow
+    return this.remoteWindow;
   }
 }

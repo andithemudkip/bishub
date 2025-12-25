@@ -1,34 +1,34 @@
-import type { VideoState } from '../../shared/types'
+import type { VideoState } from "../../shared/types";
 
 interface Props {
-  videoState: VideoState
+  videoState: VideoState;
 }
 
 export default function VideoPage({ videoState }: Props) {
   const handleLoadVideo = async () => {
     const path = await window.electronAPI?.openFileDialog([
-      { name: 'Video Files', extensions: ['mp4', 'webm', 'mov', 'avi', 'mkv'] },
-    ])
+      { name: "Video Files", extensions: ["mp4", "webm", "mov", "avi", "mkv"] },
+    ]);
     if (path) {
-      window.electronAPI?.loadVideo(path)
+      window.electronAPI?.loadVideo(path);
     }
-  }
+  };
 
-  const handlePlay = () => window.electronAPI?.playVideo()
-  const handlePause = () => window.electronAPI?.pauseVideo()
-  const handleStop = () => window.electronAPI?.stopVideo()
+  const handlePlay = () => window.electronAPI?.playVideo();
+  const handlePause = () => window.electronAPI?.pauseVideo();
+  const handleStop = () => window.electronAPI?.stopVideo();
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    window.electronAPI?.seekVideo(Number(e.target.value))
-  }
+    window.electronAPI?.seekVideo(Number(e.target.value));
+  };
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
-    window.electronAPI?.setVolume(Number(e.target.value))
-  }
+    window.electronAPI?.setVolume(Number(e.target.value));
+  };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -50,7 +50,7 @@ export default function VideoPage({ videoState }: Props) {
           <div>
             <div className="text-sm text-gray-400 mb-1">Now loaded:</div>
             <div className="font-semibold truncate">
-              {videoState.src.split('/').pop()}
+              {videoState.src.split("/").pop()}
             </div>
           </div>
 
@@ -122,9 +122,11 @@ export default function VideoPage({ videoState }: Props) {
         <div className="text-center py-12 text-gray-500">
           <div className="text-4xl mb-4">🎬</div>
           <p>No video loaded</p>
-          <p className="text-sm mt-2">Click the button above to load a video file</p>
+          <p className="text-sm mt-2">
+            Click the button above to load a video file
+          </p>
         </div>
       )}
     </div>
-  )
+  );
 }

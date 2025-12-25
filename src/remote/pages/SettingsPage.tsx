@@ -1,25 +1,25 @@
-import { useEffect, useState } from 'react'
-import { QRCodeSVG } from 'qrcode.react'
-import type { MonitorInfo, AppSettings } from '../../shared/types'
+import { useEffect, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import type { MonitorInfo, AppSettings } from "../../shared/types";
 
 interface Props {
-  monitors: MonitorInfo[]
-  settings: AppSettings
+  monitors: MonitorInfo[];
+  settings: AppSettings;
 }
 
 export default function SettingsPage({ monitors, settings }: Props) {
-  const [localIP, setLocalIP] = useState<string>('...')
+  const [localIP, setLocalIP] = useState<string>("...");
 
   useEffect(() => {
-    window.electronAPI?.getLocalIP().then(setLocalIP)
-  }, [])
+    window.electronAPI?.getLocalIP().then(setLocalIP);
+  }, []);
 
   const handleMonitorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const monitorId = Number(e.target.value)
-    window.electronAPI?.setDisplayMonitor(monitorId)
-  }
+    const monitorId = Number(e.target.value);
+    window.electronAPI?.setDisplayMonitor(monitorId);
+  };
 
-  const remoteURL = `http://${localIP}:${settings.serverPort}/remote`
+  const remoteURL = `http://${localIP}:${settings.serverPort}/remote`;
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -28,7 +28,9 @@ export default function SettingsPage({ monitors, settings }: Props) {
         <h2 className="text-lg font-semibold mb-4">Display</h2>
 
         <div>
-          <label className="text-sm text-gray-400 block mb-2">Display Monitor</label>
+          <label className="text-sm text-gray-400 block mb-2">
+            Display Monitor
+          </label>
           <select
             value={settings.displayMonitor}
             onChange={handleMonitorChange}
@@ -60,9 +62,7 @@ export default function SettingsPage({ monitors, settings }: Props) {
           {/* URL */}
           <div className="text-center">
             <div className="text-sm text-gray-400 mb-1">Scan or visit:</div>
-            <div className="font-mono text-lg text-blue-400">
-              {remoteURL}
-            </div>
+            <div className="font-mono text-lg text-blue-400">{remoteURL}</div>
           </div>
 
           <p className="text-sm text-gray-500 text-center">
@@ -76,7 +76,10 @@ export default function SettingsPage({ monitors, settings }: Props) {
         <h2 className="text-lg font-semibold mb-4">About</h2>
 
         <div className="space-y-2 text-gray-400">
-          <p><span className="text-gray-300">BisHub</span> - Church Display Application</p>
+          <p>
+            <span className="text-gray-300">BisHub</span> - Church Display
+            Application
+          </p>
           <p>Version 0.1.0</p>
         </div>
       </div>
@@ -96,10 +99,12 @@ export default function SettingsPage({ monitors, settings }: Props) {
           </div>
           <div className="flex justify-between py-2 border-b border-gray-700">
             <span className="text-gray-400">Go to idle</span>
-            <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">Esc</kbd>
+            <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
+              Esc
+            </kbd>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

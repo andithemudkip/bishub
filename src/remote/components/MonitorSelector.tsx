@@ -1,18 +1,18 @@
-import type { MonitorInfo } from '../../shared/types'
+import type { MonitorInfo } from "../../shared/types";
 
 interface Props {
-  monitors: MonitorInfo[]
-  currentMonitor: number
+  monitors: MonitorInfo[];
+  currentMonitor: number;
 }
 
 export default function MonitorSelector({ monitors, currentMonitor }: Props) {
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const monitorId = Number(e.target.value)
-    window.electronAPI?.setDisplayMonitor(monitorId)
-  }
+    const monitorId = Number(e.target.value);
+    window.electronAPI?.setDisplayMonitor(monitorId);
+  };
 
   if (monitors.length <= 1) {
-    return null // Don't show selector if only one monitor
+    return null; // Don't show selector if only one monitor
   }
 
   return (
@@ -34,5 +34,5 @@ export default function MonitorSelector({ monitors, currentMonitor }: Props) {
         </select>
       </div>
     </div>
-  )
+  );
 }

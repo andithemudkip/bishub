@@ -1,85 +1,102 @@
-import { useState, useEffect } from 'react'
-import type { BibleVerse, TextState } from '../../shared/types'
-import { parseBibleReference } from '../../shared/bibleParser'
+import { useState, useEffect } from "react";
+import type { BibleVerse, TextState } from "../../shared/types";
+import { parseBibleReference } from "../../shared/bibleParser";
 
 interface BibleBook {
-  id: string
-  name: string
-  chapterCount: number
+  id: string;
+  name: string;
+  chapterCount: number;
 }
 
 interface Props {
-  textState: TextState
+  textState: TextState;
+  getBibleBooks: () => Promise<BibleBook[]>;
+  getBibleChapter: (bookId: string, chapter: number) => Promise<BibleVerse[]>;
+  loadBibleVerses: (
+    bookId: string,
+    bookName: string,
+    chapter: number,
+    startVerse: number,
+    endVerse?: number
+  ) => void;
 }
 
-export default function BiblePage({ textState }: Props) {
-  const [books, setBooks] = useState<BibleBook[]>([])
-  const [quickSearch, setQuickSearch] = useState('')
-  const [parsedRef, setParsedRef] = useState<ReturnType<typeof parseBibleReference>>(null)
+export default function BiblePage({
+  textState,
+  getBibleBooks,
+  getBibleChapter,
+  loadBibleVerses,
+}: Props) {
+  const [books, setBooks] = useState<BibleBook[]>([]);
+  const [quickSearch, setQuickSearch] = useState("");
+  const [parsedRef, setParsedRef] =
+    useState<ReturnType<typeof parseBibleReference>>(null);
 
   // Manual selection state
-  const [selectedBook, setSelectedBook] = useState<BibleBook | null>(null)
-  const [selectedChapter, setSelectedChapter] = useState<number>(1)
-  const [verses, setVerses] = useState<BibleVerse[]>([])
-  const [startVerse, setStartVerse] = useState<number>(1)
-  const [endVerse, setEndVerse] = useState<number>(1)
+  const [selectedBook, setSelectedBook] = useState<BibleBook | null>(null);
+  const [selectedChapter, setSelectedChapter] = useState<number>(1);
+  const [verses, setVerses] = useState<BibleVerse[]>([]);
+  const [startVerse, setStartVerse] = useState<number>(1);
+  const [endVerse, setEndVerse] = useState<number>(1);
 
   useEffect(() => {
-    window.electronAPI?.getBibleBooks().then(setBooks)
-  }, [])
+    getBibleBooks().then(setBooks);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Parse quick search input
   useEffect(() => {
-    const parsed = parseBibleReference(quickSearch)
-    setParsedRef(parsed)
-  }, [quickSearch])
+    const parsed = parseBibleReference(quickSearch);
+    setParsedRef(parsed);
+  }, [quickSearch]);
 
   // Load chapter verses when book/chapter changes
   useEffect(() => {
     if (selectedBook && selectedChapter) {
-      window.electronAPI?.getBibleChapter(selectedBook.id, selectedChapter).then((v: BibleVerse[]) => {
-        setVerses(v)
-        setStartVerse(1)
-        setEndVerse(v.length > 0 ? v[v.length - 1].verse : 1)
-      })
+      getBibleChapter(selectedBook.id, selectedChapter).then(
+        (v: BibleVerse[]) => {
+          setVerses(v);
+          setStartVerse(1);
+          setEndVerse(v.length > 0 ? v[v.length - 1].verse : 1);
+        }
+      );
     }
-  }, [selectedBook, selectedChapter])
+  }, [selectedBook, selectedChapter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleQuickLoad = () => {
     if (parsedRef) {
-      window.electronAPI?.loadBibleVerses(
+      loadBibleVerses(
         parsedRef.bookId,
         parsedRef.bookName,
         parsedRef.chapter,
         parsedRef.startVerse,
         parsedRef.endVerse
-      )
-      setQuickSearch('')
+      );
+      setQuickSearch("");
     }
-  }
+  };
 
   const handleManualLoad = () => {
     if (selectedBook && selectedChapter) {
-      window.electronAPI?.loadBibleVerses(
+      loadBibleVerses(
         selectedBook.id,
         selectedBook.name,
         selectedChapter,
         startVerse,
         endVerse
-      )
+      );
     }
-  }
+  };
 
   const handleBookSelect = (book: BibleBook) => {
-    setSelectedBook(book)
-    setSelectedChapter(1)
-  }
+    setSelectedBook(book);
+    setSelectedChapter(1);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && parsedRef) {
-      handleQuickLoad()
+    if (e.key === "Enter" && parsedRef) {
+      handleQuickLoad();
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -87,9 +104,9 @@ export default function BiblePage({ textState }: Props) {
       <div className="bg-gray-800 rounded-lg p-4">
         <h2 className="text-lg font-semibold mb-3">Quick Search</h2>
         <p className="text-sm text-gray-400 mb-3">
-          Type a reference like: <span className="text-blue-400">gen 2:16</span>,{' '}
-          <span className="text-blue-400">ps 23:1-6</span>,{' '}
-          <span className="text-blue-400">ioan 3:16</span>,{' '}
+          Type a reference like: <span className="text-blue-400">gen 2:16</span>
+          , <span className="text-blue-400">ps 23:1-6</span>,{" "}
+          <span className="text-blue-400">ioan 3:16</span>,{" "}
           <span className="text-blue-400">1imp 1:20</span>
         </p>
 
@@ -114,11 +131,19 @@ export default function BiblePage({ textState }: Props) {
 
         {/* Parsed preview */}
         {quickSearch && (
-          <div className={`mt-3 p-3 rounded-lg ${parsedRef ? 'bg-green-900/30 border border-green-700' : 'bg-red-900/30 border border-red-700'}`}>
+          <div
+            className={`mt-3 p-3 rounded-lg ${
+              parsedRef
+                ? "bg-green-900/30 border border-green-700"
+                : "bg-red-900/30 border border-red-700"
+            }`}
+          >
             {parsedRef ? (
               <span className="text-green-400">
-                ✓ {parsedRef.bookName} {parsedRef.chapter}:{parsedRef.startVerse}
-                {parsedRef.endVerse !== parsedRef.startVerse && `-${parsedRef.endVerse}`}
+                ✓ {parsedRef.bookName} {parsedRef.chapter}:
+                {parsedRef.startVerse}
+                {parsedRef.endVerse !== parsedRef.startVerse &&
+                  `-${parsedRef.endVerse}`}
               </span>
             ) : (
               <span className="text-red-400">✗ Could not parse reference</span>
@@ -147,10 +172,10 @@ export default function BiblePage({ textState }: Props) {
           <div>
             <label className="text-sm text-gray-400 block mb-2">Book</label>
             <select
-              value={selectedBook?.id || ''}
+              value={selectedBook?.id || ""}
               onChange={(e) => {
-                const book = books.find(b => b.id === e.target.value)
-                if (book) handleBookSelect(book)
+                const book = books.find((b) => b.id === e.target.value);
+                if (book) handleBookSelect(book);
               }}
               className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -168,14 +193,21 @@ export default function BiblePage({ textState }: Props) {
             <>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm text-gray-400 block mb-2">Chapter</label>
+                  <label className="text-sm text-gray-400 block mb-2">
+                    Chapter
+                  </label>
                   <select
                     value={selectedChapter}
                     onChange={(e) => setSelectedChapter(Number(e.target.value))}
                     className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {Array.from({ length: selectedBook.chapterCount }, (_, i) => i + 1).map((ch) => (
-                      <option key={ch} value={ch}>{ch}</option>
+                    {Array.from(
+                      { length: selectedBook.chapterCount },
+                      (_, i) => i + 1
+                    ).map((ch) => (
+                      <option key={ch} value={ch}>
+                        {ch}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -183,31 +215,41 @@ export default function BiblePage({ textState }: Props) {
                 {verses.length > 0 && (
                   <>
                     <div>
-                      <label className="text-sm text-gray-400 block mb-2">From verse</label>
+                      <label className="text-sm text-gray-400 block mb-2">
+                        From verse
+                      </label>
                       <select
                         value={startVerse}
                         onChange={(e) => {
-                          const v = Number(e.target.value)
-                          setStartVerse(v)
-                          if (v > endVerse) setEndVerse(v)
+                          const v = Number(e.target.value);
+                          setStartVerse(v);
+                          if (v > endVerse) setEndVerse(v);
                         }}
                         className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         {verses.map((v) => (
-                          <option key={v.verse} value={v.verse}>{v.verse}</option>
+                          <option key={v.verse} value={v.verse}>
+                            {v.verse}
+                          </option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="text-sm text-gray-400 block mb-2">To verse</label>
+                      <label className="text-sm text-gray-400 block mb-2">
+                        To verse
+                      </label>
                       <select
                         value={endVerse}
                         onChange={(e) => setEndVerse(Number(e.target.value))}
                         className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        {verses.filter(v => v.verse >= startVerse).map((v) => (
-                          <option key={v.verse} value={v.verse}>{v.verse}</option>
-                        ))}
+                        {verses
+                          .filter((v) => v.verse >= startVerse)
+                          .map((v) => (
+                            <option key={v.verse} value={v.verse}>
+                              {v.verse}
+                            </option>
+                          ))}
                       </select>
                     </div>
                   </>
@@ -234,5 +276,5 @@ export default function BiblePage({ textState }: Props) {
         </div>
       </div>
     </div>
-  )
+  );
 }

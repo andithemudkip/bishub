@@ -1,6 +1,6 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import './styles/index.css'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./styles/index.css";
 
 // This is a placeholder entry point - redirects to appropriate app
 // In Electron, windows load display.html or remote.html directly
@@ -16,11 +16,11 @@ function App() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
-)
+);

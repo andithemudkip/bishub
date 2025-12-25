@@ -1,41 +1,41 @@
-import { useState, useEffect } from 'react'
-import type { Hymn, TextState } from '../../shared/types'
+import { useState, useEffect } from "react";
+import type { Hymn, TextState } from "../../shared/types";
 
 interface Props {
-  textState: TextState
+  textState: TextState;
+  hymns: Hymn[];
+  onLoadHymn: (hymnNumber: string) => void;
 }
 
-export default function HymnsPage({ textState }: Props) {
-  const [hymns, setHymns] = useState<Hymn[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([])
-
-  useEffect(() => {
-    window.electronAPI?.getHymns().then(setHymns)
-  }, [])
+export default function HymnsPage({ textState, hymns, onLoadHymn }: Props) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setFilteredHymns(hymns.slice(0, 30))
-      return
+      setFilteredHymns(hymns.slice(0, 30));
+      return;
     }
 
-    const query = searchQuery.toLowerCase()
-    const filtered = hymns.filter(h =>
-      h.number.includes(searchQuery) ||
-      h.title.toLowerCase().includes(query)
-    ).slice(0, 30)
+    const query = searchQuery.toLowerCase();
+    const filtered = hymns
+      .filter(
+        (h) =>
+          h.number.includes(searchQuery) ||
+          h.title.toLowerCase().includes(query)
+      )
+      .slice(0, 30);
 
-    setFilteredHymns(filtered)
-  }, [searchQuery, hymns])
+    setFilteredHymns(filtered);
+  }, [searchQuery, hymns]);
 
   const handleSelectHymn = (hymn: Hymn) => {
-    window.electronAPI?.loadHymn(hymn.number)
-  }
+    onLoadHymn(hymn.number);
+  };
 
   const isCurrentHymn = (hymn: Hymn) => {
-    return textState.title.startsWith(`${hymn.number}.`)
-  }
+    return textState.title.startsWith(`${hymn.number}.`);
+  };
 
   return (
     <div className="space-y-4">
@@ -70,8 +70,8 @@ export default function HymnsPage({ textState }: Props) {
             onClick={() => handleSelectHymn(hymn)}
             className={`text-left p-4 rounded-lg transition-colors ${
               isCurrentHymn(hymn)
-                ? 'bg-blue-600 ring-2 ring-blue-400'
-                : 'bg-gray-800 hover:bg-gray-700'
+                ? "bg-blue-600 ring-2 ring-blue-400"
+                : "bg-gray-800 hover:bg-gray-700"
             }`}
           >
             <div className="flex items-baseline gap-3">
@@ -81,8 +81,9 @@ export default function HymnsPage({ textState }: Props) {
               <span className="text-lg">{hymn.title}</span>
             </div>
             <div className="text-sm text-gray-400 mt-1 ml-15">
-              {hymn.verses.length} {hymn.verses.length === 1 ? 'verse' : 'verses'}
-              {hymn.chorus && ' + chorus'}
+              {hymn.verses.length}{" "}
+              {hymn.verses.length === 1 ? "verse" : "verses"}
+              {hymn.chorus && " + chorus"}
             </div>
           </button>
         ))}
@@ -94,5 +95,5 @@ export default function HymnsPage({ textState }: Props) {
         )}
       </div>
     </div>
-  )
+  );
 }

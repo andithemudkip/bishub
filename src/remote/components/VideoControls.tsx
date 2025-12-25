@@ -1,35 +1,35 @@
-import type { VideoState } from '../../shared/types'
+import type { VideoState } from "../../shared/types";
 
 interface Props {
-  config: VideoState
+  config: VideoState;
 }
 
 export default function VideoControls({ config }: Props) {
   const handlePlay = () => {
-    window.electronAPI?.playVideo()
-  }
+    window.electronAPI?.playVideo();
+  };
 
   const handlePause = () => {
-    window.electronAPI?.pauseVideo()
-  }
+    window.electronAPI?.pauseVideo();
+  };
 
   const handleStop = () => {
-    window.electronAPI?.stopVideo()
-  }
+    window.electronAPI?.stopVideo();
+  };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    window.electronAPI?.seekVideo(Number(e.target.value))
-  }
+    window.electronAPI?.seekVideo(Number(e.target.value));
+  };
 
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
-    window.electronAPI?.setVolume(Number(e.target.value))
-  }
+    window.electronAPI?.setVolume(Number(e.target.value));
+  };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   return (
     <div className="bg-gray-800 rounded-lg p-4 mb-4">
@@ -89,9 +89,11 @@ export default function VideoControls({ config }: Props) {
             onChange={handleVolume}
             className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
           />
-          <span className="text-sm text-gray-400 w-12">{Math.round(config.volume * 100)}%</span>
+          <span className="text-sm text-gray-400 w-12">
+            {Math.round(config.volume * 100)}%
+          </span>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
 interface Props {
-  onLoadText: () => void
-  onLoadVideo: () => void
+  onLoadText: () => void;
+  onLoadVideo: () => void;
 }
 
 export default function FileLoader({ onLoadText, onLoadVideo }: Props) {
@@ -22,5 +22,5 @@ export default function FileLoader({ onLoadText, onLoadVideo }: Props) {
         </button>
       </div>
     </div>
-  )
+  );
 }

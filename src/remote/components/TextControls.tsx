@@ -1,24 +1,24 @@
-import type { TextState } from '../../shared/types'
+import type { TextState } from "../../shared/types";
 
 interface Props {
-  config: TextState
+  config: TextState;
 }
 
 export default function TextControls({ config }: Props) {
   const handlePrev = () => {
-    window.electronAPI?.prevSlide()
-  }
+    window.electronAPI?.prevSlide();
+  };
 
   const handleNext = () => {
-    window.electronAPI?.nextSlide()
-  }
+    window.electronAPI?.nextSlide();
+  };
 
   const handleGoToSlide = (index: number) => {
-    window.electronAPI?.goToSlide(index)
-  }
+    window.electronAPI?.goToSlide(index);
+  };
 
-  const isFirstSlide = config.currentSlide === 0
-  const isLastSlide = config.currentSlide === config.slides.length - 1
+  const isFirstSlide = config.currentSlide === 0;
+  const isLastSlide = config.currentSlide === config.slides.length - 1;
 
   return (
     <div className="bg-gray-800 rounded-lg p-4 mb-4">
@@ -50,19 +50,20 @@ export default function TextControls({ config }: Props) {
             onClick={() => handleGoToSlide(index)}
             className={`w-full text-left p-3 rounded-lg transition-colors ${
               index === config.currentSlide
-                ? 'bg-blue-600'
-                : 'bg-gray-700 hover:bg-gray-600'
+                ? "bg-blue-600"
+                : "bg-gray-700 hover:bg-gray-600"
             }`}
           >
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400 w-6">{index + 1}</span>
               <span className="truncate text-sm">
-                {slide.substring(0, 60)}{slide.length > 60 ? '...' : ''}
+                {slide.substring(0, 60)}
+                {slide.length > 60 ? "..." : ""}
               </span>
             </div>
           </button>
         ))}
       </div>
     </div>
-  )
+  );
 }

@@ -1,37 +1,40 @@
-import { useState, useEffect } from 'react'
-import type { Hymn } from '../../shared/types'
+import { useState, useEffect } from "react";
+import type { Hymn } from "../../shared/types";
 
 export default function HymnSelector() {
-  const [hymns, setHymns] = useState<Hymn[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([])
-  const [isOpen, setIsOpen] = useState(false)
+  const [hymns, setHymns] = useState<Hymn[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     // Load all hymns on mount
-    window.electronAPI?.getHymns().then(setHymns)
-  }, [])
+    window.electronAPI?.getHymns().then(setHymns);
+  }, []);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setFilteredHymns(hymns.slice(0, 20))
-      return
+      setFilteredHymns(hymns.slice(0, 20));
+      return;
     }
 
-    const query = searchQuery.toLowerCase()
-    const filtered = hymns.filter(h =>
-      h.number.includes(searchQuery) ||
-      h.title.toLowerCase().includes(query)
-    ).slice(0, 20)
+    const query = searchQuery.toLowerCase();
+    const filtered = hymns
+      .filter(
+        (h) =>
+          h.number.includes(searchQuery) ||
+          h.title.toLowerCase().includes(query)
+      )
+      .slice(0, 20);
 
-    setFilteredHymns(filtered)
-  }, [searchQuery, hymns])
+    setFilteredHymns(filtered);
+  }, [searchQuery, hymns]);
 
   const handleSelectHymn = (hymn: Hymn) => {
-    window.electronAPI?.loadHymn(hymn.number)
-    setIsOpen(false)
-    setSearchQuery('')
-  }
+    window.electronAPI?.loadHymn(hymn.number);
+    setIsOpen(false);
+    setSearchQuery("");
+  };
 
   return (
     <div className="bg-gray-800 rounded-lg p-4 mb-4">
@@ -41,7 +44,7 @@ export default function HymnSelector() {
           onClick={() => setIsOpen(!isOpen)}
           className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm"
         >
-          {isOpen ? 'Close' : 'Browse'}
+          {isOpen ? "Close" : "Browse"}
         </button>
       </div>
 
@@ -63,7 +66,9 @@ export default function HymnSelector() {
                 onClick={() => handleSelectHymn(hymn)}
                 className="w-full text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
               >
-                <span className="text-blue-400 font-mono mr-2">{hymn.number}.</span>
+                <span className="text-blue-400 font-mono mr-2">
+                  {hymn.number}.
+                </span>
                 <span>{hymn.title}</span>
               </button>
             ))}
@@ -74,5 +79,5 @@ export default function HymnSelector() {
         </>
       )}
     </div>
-  )
+  );
 }

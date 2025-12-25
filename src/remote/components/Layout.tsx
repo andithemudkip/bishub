@@ -1,50 +1,62 @@
-import { useState } from 'react'
-import type { DisplayState } from '../../shared/types'
+import { useState } from "react";
+import type { DisplayState } from "../../shared/types";
 
-type Page = 'hymns' | 'bible' | 'video' | 'settings'
+type Page = "hymns" | "bible" | "video" | "settings";
 
 interface Props {
-  children: (page: Page) => React.ReactNode
-  state: DisplayState
-  onGoIdle: () => void
-  onNextSlide: () => void
-  onPrevSlide: () => void
+  children: (page: Page) => React.ReactNode;
+  state: DisplayState;
+  onGoIdle: () => void;
+  onNextSlide: () => void;
+  onPrevSlide: () => void;
 }
 
 const NAV_ITEMS: { id: Page; label: string; icon: string }[] = [
-  { id: 'hymns', label: 'Hymns', icon: '♪' },
-  { id: 'bible', label: 'Bible', icon: '✝' },
-  { id: 'video', label: 'Video', icon: '▶' },
-  { id: 'settings', label: 'Settings', icon: '⚙' },
-]
+  { id: "hymns", label: "Hymns", icon: "♪" },
+  { id: "bible", label: "Bible", icon: "✝" },
+  { id: "video", label: "Video", icon: "▶" },
+  { id: "settings", label: "Settings", icon: "⚙" },
+];
 
-export default function Layout({ children, state, onGoIdle, onNextSlide, onPrevSlide }: Props) {
-  const [currentPage, setCurrentPage] = useState<Page>('hymns')
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+export default function Layout({
+  children,
+  state,
+  onGoIdle,
+  onNextSlide,
+  onPrevSlide,
+}: Props) {
+  const [currentPage, setCurrentPage] = useState<Page>("hymns");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const getStatusText = () => {
     switch (state.mode) {
-      case 'idle':
-        return 'Idle'
-      case 'text':
-        return `${state.text.title} (${state.text.currentSlide + 1}/${state.text.slides.length})`
-      case 'video':
-        return state.video.playing ? 'Playing video' : 'Video paused'
+      case "idle":
+        return "Idle";
+      case "text":
+        return `${state.text.title} (${state.text.currentSlide + 1}/${
+          state.text.slides.length
+        })`;
+      case "video":
+        return state.video.playing ? "Playing video" : "Video paused";
       default:
-        return ''
+        return "";
     }
-  }
+  };
 
   return (
     <div className="h-screen flex bg-gray-900 text-white overflow-hidden">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-48' : 'w-14'} bg-gray-800 flex flex-col transition-all duration-200`}>
+      <div
+        className={`${
+          sidebarOpen ? "w-48" : "w-14"
+        } bg-gray-800 flex flex-col transition-all duration-200`}
+      >
         {/* Toggle button */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-4 text-gray-400 hover:text-white hover:bg-gray-700 text-left"
         >
-          {sidebarOpen ? '◀' : '▶'}
+          {sidebarOpen ? "◀" : "▶"}
         </button>
 
         {/* Nav items */}
@@ -55,8 +67,8 @@ export default function Layout({ children, state, onGoIdle, onNextSlide, onPrevS
               onClick={() => setCurrentPage(item.id)}
               className={`w-full p-4 flex items-center gap-3 transition-colors ${
                 currentPage === item.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-400 hover:text-white hover:bg-gray-700"
               }`}
             >
               <span className="text-lg">{item.icon}</span>
@@ -67,13 +79,24 @@ export default function Layout({ children, state, onGoIdle, onNextSlide, onPrevS
 
         {/* Status bar at bottom */}
         <div className="p-3 bg-gray-900 border-t border-gray-700">
-          <div className={`flex items-center gap-2 ${sidebarOpen ? '' : 'justify-center'}`}>
-            <div className={`w-2 h-2 rounded-full ${
-              state.mode === 'idle' ? 'bg-gray-500' :
-              state.mode === 'text' ? 'bg-blue-500' : 'bg-green-500'
-            }`} />
+          <div
+            className={`flex items-center gap-2 ${
+              sidebarOpen ? "" : "justify-center"
+            }`}
+          >
+            <div
+              className={`w-2 h-2 rounded-full ${
+                state.mode === "idle"
+                  ? "bg-gray-500"
+                  : state.mode === "text"
+                  ? "bg-blue-500"
+                  : "bg-green-500"
+              }`}
+            />
             {sidebarOpen && (
-              <span className="text-xs text-gray-400 truncate">{getStatusText()}</span>
+              <span className="text-xs text-gray-400 truncate">
+                {getStatusText()}
+              </span>
             )}
           </div>
         </div>
@@ -84,12 +107,12 @@ export default function Layout({ children, state, onGoIdle, onNextSlide, onPrevS
         {/* Header with controls */}
         <header className="bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-700">
           <h1 className="text-lg font-semibold">
-            {NAV_ITEMS.find(i => i.id === currentPage)?.label}
+            {NAV_ITEMS.find((i) => i.id === currentPage)?.label}
           </h1>
 
           {/* Quick controls */}
           <div className="flex items-center gap-2">
-            {state.mode === 'text' && state.text.slides.length > 0 && (
+            {state.mode === "text" && state.text.slides.length > 0 && (
               <>
                 <button
                   onClick={onPrevSlide}
@@ -112,9 +135,9 @@ export default function Layout({ children, state, onGoIdle, onNextSlide, onPrevS
             <button
               onClick={onGoIdle}
               className={`px-3 py-1.5 rounded text-sm ${
-                state.mode === 'idle'
-                  ? 'bg-gray-600 text-gray-400'
-                  : 'bg-gray-700 hover:bg-gray-600'
+                state.mode === "idle"
+                  ? "bg-gray-600 text-gray-400"
+                  : "bg-gray-700 hover:bg-gray-600"
               }`}
             >
               Go Idle
@@ -128,5 +151,5 @@ export default function Layout({ children, state, onGoIdle, onNextSlide, onPrevS
         </main>
       </div>
     </div>
-  )
+  );
 }
