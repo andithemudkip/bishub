@@ -227,11 +227,9 @@ export class StateManager {
 
   stopVideo() {
     this.state.video.src = null;
-    this.state.video.playing = false;
     this.state.video.currentTime = 0;
     this.state.video.duration = 0;
     this.goIdle();
-    this.notifyStateChange();
   }
 
   seekVideo(time: number) {

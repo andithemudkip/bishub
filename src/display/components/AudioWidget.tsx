@@ -89,7 +89,7 @@ export default function AudioWidget({ config, position, onTimeUpdate }: Props) {
 
   return (
     <div className={`absolute ${positionClass} z-20`}>
-      <div className="bg-black/70 backdrop-blur-md rounded-xl p-4 text-white min-w-[280px] max-w-[400px] shadow-2xl">
+      <div className="bg-black/50 backdrop-blur-md rounded-lg p-4 text-white min-w-[280px] max-w-[400px] shadow-2xl">
         {/* Audio name */}
         <div className="text-sm font-medium truncate mb-3 opacity-90">
           {config.name || config.src?.split("/").pop() || "Audio"}

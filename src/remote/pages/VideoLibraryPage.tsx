@@ -39,6 +39,7 @@ export default function VideoLibraryPage({
   const handleSelectVideo = (video: VideoItem) => {
     setSelectedVideoId(video.id);
     library.loadVideoToDisplay(video);
+    playVideo();
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {

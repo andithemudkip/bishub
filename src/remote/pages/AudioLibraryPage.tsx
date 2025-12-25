@@ -36,6 +36,7 @@ export default function AudioLibraryPage({
   const handleSelectAudio = (audio: AudioItem) => {
     setSelectedAudioId(audio.id);
     library.loadAudioToDisplay(audio);
+    playAudio();
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
