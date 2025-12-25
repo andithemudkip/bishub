@@ -161,4 +161,9 @@ export class WindowManager {
   getRemoteWindow() {
     return this.remoteWindow;
   }
+
+  broadcastToAll(channel: string, ...args: unknown[]) {
+    this.displayWindow?.webContents.send(channel, ...args);
+    this.remoteWindow?.webContents.send(channel, ...args);
+  }
 }

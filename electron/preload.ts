@@ -64,6 +64,44 @@ const electronAPI = {
       endVerse
     ),
 
+  // Video Library
+  getVideoLibrary: (): Promise<any[]> =>
+    ipcRenderer.invoke("get-video-library"),
+  addLocalVideo: (): Promise<any> => ipcRenderer.invoke("add-local-video"),
+  deleteVideo: (videoId: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-video", videoId),
+  renameVideo: (videoId: string, newName: string): Promise<any> =>
+    ipcRenderer.invoke("rename-video", videoId, newName),
+  downloadYouTubeVideo: (url: string): Promise<any> =>
+    ipcRenderer.invoke("download-youtube-video", url),
+  cancelYouTubeDownload: (downloadId: string): Promise<boolean> =>
+    ipcRenderer.invoke("cancel-youtube-download", downloadId),
+  getActiveDownloads: (): Promise<any[]> =>
+    ipcRenderer.invoke("get-active-downloads"),
+  getVideoThumbnail: (videoId: string): Promise<string | null> =>
+    ipcRenderer.invoke("get-video-thumbnail", videoId),
+
+  onVideoLibraryUpdate: (callback: (videos: any[]) => void) => {
+    ipcRenderer.on("video-library-update", (_event: any, videos: any[]) =>
+      callback(videos)
+    );
+    return () => ipcRenderer.removeAllListeners("video-library-update");
+  },
+
+  onDownloadProgress: (callback: (progress: any) => void) => {
+    ipcRenderer.on("download-progress", (_event: any, progress: any) =>
+      callback(progress)
+    );
+    return () => ipcRenderer.removeAllListeners("download-progress");
+  },
+
+  onUploadProgress: (callback: (progress: any) => void) => {
+    ipcRenderer.on("upload-progress", (_event: any, progress: any) =>
+      callback(progress)
+    );
+    return () => ipcRenderer.removeAllListeners("upload-progress");
+  },
+
   onStateUpdate: (callback: (state: any) => void) => {
     ipcRenderer.on("state-update", (_event: any, state: any) =>
       callback(state)

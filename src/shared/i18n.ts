@@ -68,6 +68,37 @@ export interface Translations {
     previousSlide: string;
     goToIdle: string;
   };
+
+  // Video library
+  videoLibrary: {
+    addLocalFile: string;
+    youtube: string;
+    upload: string;
+    library: string;
+    searchPlaceholder: string;
+    noVideos: string;
+    noVideosHint: string;
+    noResults: string;
+    nowPlaying: string;
+    play: string;
+    pause: string;
+    stop: string;
+    volume: string;
+    rename: string;
+    delete: string;
+    confirmDelete: string;
+    cancel: string;
+    youtubeUrl: string;
+    download: string;
+    downloading: string;
+    processing: string;
+    complete: string;
+    uploadDrop: string;
+    uploadHint: string;
+    uploading: string;
+    invalidUrl: string;
+    enterUrl: string;
+  };
 }
 
 const ro: Translations = {
@@ -125,6 +156,35 @@ const ro: Translations = {
     previousSlide: "Slide anterior",
     goToIdle: "Întrerupe afișarea",
   },
+  videoLibrary: {
+    addLocalFile: "Adaugă fișier",
+    youtube: "YouTube",
+    upload: "Încarcă",
+    library: "Bibliotecă video",
+    searchPlaceholder: "Caută videoclipuri...",
+    noVideos: "Niciun videoclip în bibliotecă",
+    noVideosHint: "Adaugă videoclipuri folosind butoanele de mai sus",
+    noResults: "Niciun rezultat găsit",
+    nowPlaying: "Se redă:",
+    play: "Redare",
+    pause: "Pauză",
+    stop: "Stop",
+    volume: "Volum",
+    rename: "Redenumește",
+    delete: "Șterge",
+    confirmDelete: "Șterge",
+    cancel: "Anulează",
+    youtubeUrl: "Lipește URL YouTube...",
+    download: "Descarcă",
+    downloading: "Se descarcă...",
+    processing: "Se procesează...",
+    complete: "Finalizat!",
+    uploadDrop: "Trage fișierul video sau click pentru a naviga",
+    uploadHint: "Max 1GB - MP4, WebM, MOV, AVI, MKV",
+    uploading: "Se încarcă...",
+    invalidUrl: "Te rog introdu un URL YouTube valid",
+    enterUrl: "Te rog introdu un URL",
+  },
 };
 
 const en: Translations = {
@@ -181,6 +241,35 @@ const en: Translations = {
     nextSlide: "Next slide",
     previousSlide: "Previous slide",
     goToIdle: "Go to idle",
+  },
+  videoLibrary: {
+    addLocalFile: "Add file",
+    youtube: "YouTube",
+    upload: "Upload",
+    library: "Video Library",
+    searchPlaceholder: "Search videos...",
+    noVideos: "No videos in library",
+    noVideosHint: "Add videos using the buttons above",
+    noResults: "No results found",
+    nowPlaying: "Now playing:",
+    play: "Play",
+    pause: "Pause",
+    stop: "Stop",
+    volume: "Volume",
+    rename: "Rename",
+    delete: "Delete",
+    confirmDelete: "Delete",
+    cancel: "Cancel",
+    youtubeUrl: "Paste YouTube URL...",
+    download: "Download",
+    downloading: "Downloading...",
+    processing: "Processing...",
+    complete: "Complete!",
+    uploadDrop: "Drop video file or click to browse",
+    uploadHint: "Max 1GB - MP4, WebM, MOV, AVI, MKV",
+    uploading: "Uploading...",
+    invalidUrl: "Please enter a valid YouTube URL",
+    enterUrl: "Please enter a URL",
   },
 };
 

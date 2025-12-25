@@ -1,4 +1,9 @@
 import type { Language } from "./i18n";
+import type {
+  VideoItem,
+  DownloadProgress,
+  UploadProgress,
+} from "./videoLibrary.types";
 
 export type DisplayMode = "idle" | "text" | "video";
 
@@ -56,6 +61,10 @@ export type ServerToClientEvents = {
     books: { id: string; name: string; chapterCount: number }[]
   ) => void;
   bibleChapter: (verses: BibleVerse[]) => void;
+  // Video Library
+  videoLibrary: (videos: VideoItem[]) => void;
+  downloadProgress: (progress: DownloadProgress) => void;
+  uploadProgress: (progress: UploadProgress) => void;
 };
 
 export type ClientToServerEvents = {
@@ -87,6 +96,12 @@ export type ClientToServerEvents = {
     startVerse: number,
     endVerse?: number
   ) => void;
+  // Video Library
+  getVideoLibrary: () => void;
+  deleteVideo: (videoId: string) => void;
+  renameVideo: (videoId: string, newName: string) => void;
+  downloadYouTubeVideo: (url: string) => void;
+  cancelDownload: (downloadId: string) => void;
 };
 
 export const DEFAULT_STATE: DisplayState = {

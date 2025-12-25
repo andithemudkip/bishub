@@ -14,6 +14,9 @@ export default defineConfig({
         target: 'http://localhost:3847',
         ws: true,
       },
+      '/api': {
+        target: 'http://localhost:3847',
+      },
     },
   },
   plugins: [

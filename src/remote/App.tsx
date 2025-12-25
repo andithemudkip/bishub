@@ -9,9 +9,10 @@ import type {
 import Layout from "./components/Layout";
 import HymnsPage from "./pages/HymnsPage";
 import BiblePage from "./pages/BiblePage";
-import VideoPage from "./pages/VideoPage";
+import VideoLibraryPage from "./pages/VideoLibraryPage";
 import SettingsPage from "./pages/SettingsPage";
 import { useRemoteAPI } from "./useRemoteAPI";
+import type { VideoItem, DownloadProgress, UploadProgress } from "../shared/videoLibrary.types";
 
 declare global {
   interface Window {
@@ -59,6 +60,18 @@ declare global {
         startVerse: number,
         endVerse?: number
       ) => Promise<void>;
+      // Video Library
+      getVideoLibrary: () => Promise<VideoItem[]>;
+      addLocalVideo: () => Promise<VideoItem | null>;
+      deleteVideo: (videoId: string) => Promise<boolean>;
+      renameVideo: (videoId: string, newName: string) => Promise<VideoItem | null>;
+      downloadYouTubeVideo: (url: string) => Promise<DownloadProgress>;
+      cancelYouTubeDownload: (downloadId: string) => Promise<boolean>;
+      getActiveDownloads: () => Promise<DownloadProgress[]>;
+      getVideoThumbnail: (videoId: string) => Promise<string | null>;
+      onVideoLibraryUpdate: (callback: (videos: VideoItem[]) => void) => () => void;
+      onDownloadProgress: (callback: (progress: DownloadProgress) => void) => () => void;
+      onUploadProgress: (callback: (progress: UploadProgress) => void) => () => void;
     };
   }
 }
@@ -144,7 +157,18 @@ export default function App() {
           />
         );
       case "video":
-        return <VideoPage videoState={api.state.video} />;
+        return (
+          <VideoLibraryPage
+            videoState={api.state.video}
+            loadVideo={api.loadVideo}
+            playVideo={api.playVideo}
+            pauseVideo={api.pauseVideo}
+            stopVideo={api.stopVideo}
+            seekVideo={api.seekVideo}
+            setVolume={api.setVolume}
+            settings={api.settings}
+          />
+        );
       case "settings":
         return (
           <SettingsPage

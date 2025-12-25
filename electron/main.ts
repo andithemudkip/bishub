@@ -15,6 +15,8 @@ import {
   formatBibleVersesForDisplay,
   loadBible,
 } from "./dataLoader";
+import { getVideoLibrary } from "./videoLibrary";
+import { startDownload, cancelDownload, getActiveDownloads } from "./ytdlp";
 import type { DisplayMode } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 
@@ -199,6 +201,75 @@ function setupIPC() {
       }
     }
   );
+
+  // Video Library handlers
+  const videoLibrary = getVideoLibrary();
+
+  // Validate library on startup
+  videoLibrary.validateLibrary();
+
+  // Notify renderers of library changes
+  videoLibrary.onLibraryChange((videos) => {
+    windowManager.broadcastToAll("video-library-update", videos);
+  });
+
+  videoLibrary.onDownloadProgress((progress) => {
+    windowManager.broadcastToAll("download-progress", progress);
+  });
+
+  videoLibrary.onUploadProgress((progress) => {
+    windowManager.broadcastToAll("upload-progress", progress);
+  });
+
+  ipcMain.handle("get-video-library", () => {
+    return videoLibrary.getAll();
+  });
+
+  ipcMain.handle("add-local-video", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters: [
+        {
+          name: "Videos",
+          extensions: ["mp4", "webm", "mov", "avi", "mkv"],
+        },
+      ],
+    });
+
+    if (result.filePaths[0]) {
+      const video = await videoLibrary.addVideo(result.filePaths[0], "local");
+      return video;
+    }
+    return null;
+  });
+
+  ipcMain.handle("delete-video", async (_event, videoId: string) => {
+    return videoLibrary.deleteVideo(videoId);
+  });
+
+  ipcMain.handle(
+    "rename-video",
+    (_event, videoId: string, newName: string) => {
+      return videoLibrary.renameVideo(videoId, newName);
+    }
+  );
+
+  ipcMain.handle("download-youtube-video", (_event, url: string) => {
+    return startDownload(url);
+  });
+
+  ipcMain.handle("cancel-youtube-download", (_event, downloadId: string) => {
+    return cancelDownload(downloadId);
+  });
+
+  ipcMain.handle("get-active-downloads", () => {
+    return getActiveDownloads();
+  });
+
+  ipcMain.handle("get-video-thumbnail", (_event, videoId: string) => {
+    const video = videoLibrary.getById(videoId);
+    return video?.thumbnailPath || null;
+  });
 }
 
 app.whenReady().then(createWindows);
