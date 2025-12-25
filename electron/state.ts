@@ -73,7 +73,8 @@ export class StateManager {
       this.state.idle.wallpaper = idleSettings.wallpaper ?? null;
       this.state.idle.clockFontSize = idleSettings.clockFontSize ?? 100;
       this.state.idle.clockPosition = idleSettings.clockPosition ?? "center";
-      this.state.idle.audioWidgetPosition = idleSettings.audioWidgetPosition ?? "bottom-right";
+      this.state.idle.audioWidgetPosition =
+        idleSettings.audioWidgetPosition ?? "bottom-right";
     }
 
     // Initialize video volume from persisted settings (with fallback)
@@ -225,8 +226,11 @@ export class StateManager {
   }
 
   stopVideo() {
+    this.state.video.src = null;
     this.state.video.playing = false;
     this.state.video.currentTime = 0;
+    this.state.video.duration = 0;
+    this.goIdle();
     this.notifyStateChange();
   }
 
