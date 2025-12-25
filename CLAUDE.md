@@ -40,6 +40,13 @@ Central `StateManager` in `electron/state.ts` uses observer pattern:
 ### Data Loading
 - Hymns: `assets/hymns.json` - parsed and cached in memory
 - Bible: `assets/bible.xml` - USFX format, parsed with regex
+- Language-specific assets: `assets/{language}/hymns.json`, `assets/{language}/bible.xml`
+- Falls back to default paths if language-specific files don't exist
+
+### Internationalization (i18n)
+- Translations in `src/shared/i18n.ts` - Romanian (`ro`) and English (`en`)
+- Bible parser supports language-specific book names/abbreviations in `src/shared/bibleParser.ts`
+- Current data is Romanian only; English data can be added at `assets/en/`
 
 ## Key Files
 
@@ -51,10 +58,20 @@ Central `StateManager` in `electron/state.ts` uses observer pattern:
 | `electron/windowManager.ts` | Multi-monitor window management |
 | `electron/dataLoader.ts` | Hymn/Bible data parsing |
 | `src/shared/types.ts` | Shared TypeScript interfaces |
+| `src/shared/i18n.ts` | UI translations (Romanian/English) |
+| `src/shared/bibleParser.ts` | Bible reference parsing with language support |
 
 ## Path Alias
 
 `@shared/` maps to `src/shared/` - use for shared types between Electron and React.
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `→` / `PageDown` | Next slide |
+| `←` / `PageUp` | Previous slide |
+| `Escape` | Go to idle mode |
 
 ## Build Pipeline
 
