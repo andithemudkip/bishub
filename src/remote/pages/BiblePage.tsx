@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { BibleVerse, TextState, AppSettings } from "../../shared/types";
 import { parseBibleReference } from "../../shared/bibleParser";
 import { getTranslations } from "../../shared/i18n";
@@ -20,6 +20,7 @@ interface Props {
     startVerse: number,
     endVerse?: number
   ) => void;
+  goToSlide: (index: number) => void;
   settings: AppSettings;
 }
 
@@ -28,6 +29,7 @@ export default function BiblePage({
   getBibleBooks,
   getBibleChapter,
   loadBibleVerses,
+  goToSlide,
   settings,
 }: Props) {
   const [books, setBooks] = useState<BibleBook[]>([]);
@@ -41,6 +43,8 @@ export default function BiblePage({
   const [verses, setVerses] = useState<BibleVerse[]>([]);
   const [startVerse, setStartVerse] = useState<number>(1);
   const [endVerse, setEndVerse] = useState<number>(1);
+
+  const verseListRef = useRef<HTMLDivElement>(null);
 
   const t = getTranslations(settings.language);
 
@@ -66,6 +70,16 @@ export default function BiblePage({
       );
     }
   }, [selectedBook, selectedChapter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-scroll to current verse in the list
+  useEffect(() => {
+    if (textState.bibleContext && verseListRef.current) {
+      const activeButton = verseListRef.current.querySelector(
+        '[data-active="true"]'
+      );
+      activeButton?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [textState.currentSlide, textState.bibleContext]);
 
   const handleQuickLoad = () => {
     if (parsedRef) {
@@ -151,18 +165,62 @@ export default function BiblePage({
         )}
       </div>
 
-      {/* Current display indicator */}
-      {textState.slides.length > 0 && (
-        <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
-          <div className="text-sm text-blue-400 mb-1">
-            {t.hymns.nowDisplaying}
+      {/* Chapter verse list when Bible is displayed */}
+      {textState.contentType === "bible" && textState.bibleContext ? (
+        <div className="bg-gray-800 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold">
+              {textState.bibleContext.bookName} {textState.bibleContext.chapter}
+            </h2>
+            <span className="text-sm text-gray-400">
+              {t.bible.verse} {textState.currentSlide + 1} {t.hymns.of}{" "}
+              {textState.slides.length}
+            </span>
           </div>
-          <div className="font-semibold">{textState.title}</div>
-          <div className="text-sm text-gray-400 mt-1">
-            {t.hymns.slide} {textState.currentSlide + 1} {t.hymns.of}{" "}
-            {textState.slides.length}
+          <p className="text-xs text-gray-500 mb-3">{t.bible.tapToJump}</p>
+
+          <div
+            ref={verseListRef}
+            className="max-h-64 sm:max-h-80 overflow-y-auto space-y-1"
+          >
+            {textState.bibleContext.verses.map((verse, index) => (
+              <button
+                key={verse.verse}
+                data-active={index === textState.currentSlide}
+                onClick={() => goToSlide(index)}
+                className={`w-full text-left p-3 rounded-lg transition-colors ${
+                  index === textState.currentSlide
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                }`}
+              >
+                <span
+                  className={`font-bold mr-2 ${
+                    index === textState.currentSlide
+                      ? "text-white"
+                      : "text-blue-400"
+                  }`}
+                >
+                  {verse.verse}.
+                </span>
+                <span className="line-clamp-2">{verse.text}</span>
+              </button>
+            ))}
           </div>
         </div>
+      ) : (
+        textState.slides.length > 0 && (
+          <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+            <div className="text-sm text-blue-400 mb-1">
+              {t.hymns.nowDisplaying}
+            </div>
+            <div className="font-semibold">{textState.title}</div>
+            <div className="text-sm text-gray-400 mt-1">
+              {t.hymns.slide} {textState.currentSlide + 1} {t.hymns.of}{" "}
+              {textState.slides.length}
+            </div>
+          </div>
+        )
       )}
 
       {/* Manual browser */}

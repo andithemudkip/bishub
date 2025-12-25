@@ -18,11 +18,19 @@ export interface IdleState {
 
 export type TextContentType = "hymn" | "bible" | "custom";
 
+export interface BibleContext {
+  bookId: string;
+  bookName: string;
+  chapter: number;
+  verses: BibleVerse[];
+}
+
 export interface TextState {
   title: string;
   slides: string[];
   currentSlide: number;
   contentType: TextContentType;
+  bibleContext?: BibleContext;
 }
 
 export interface VideoState {
@@ -125,6 +133,7 @@ export const DEFAULT_STATE: DisplayState = {
     slides: [],
     currentSlide: 0,
     contentType: "custom",
+    bibleContext: undefined,
   },
   video: {
     src: null,

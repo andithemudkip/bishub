@@ -4,6 +4,7 @@ import type {
   DisplayMode,
   ClockPosition,
   TextContentType,
+  BibleContext,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
@@ -117,7 +118,11 @@ export class StateManager {
   }
 
   // Text mode
-  loadText(title: string, content: string, contentType: TextContentType = "custom") {
+  loadText(
+    title: string,
+    content: string,
+    contentType: TextContentType = "custom"
+  ) {
     // Split content into slides by double newlines or --- markers
     const slides = content
       .split(/\n\n+|---+/)
@@ -129,6 +134,24 @@ export class StateManager {
       slides,
       currentSlide: 0,
       contentType,
+      bibleContext: undefined,
+    };
+    this.state.mode = "text";
+    this.notifyStateChange();
+  }
+
+  loadBibleChapter(
+    title: string,
+    slides: string[],
+    startIndex: number,
+    bibleContext: BibleContext
+  ) {
+    this.state.text = {
+      title,
+      slides,
+      currentSlide: startIndex,
+      contentType: "bible",
+      bibleContext,
     };
     this.state.mode = "text";
     this.notifyStateChange();

@@ -7,6 +7,7 @@ import type {
   BibleChapter,
   BibleVerse,
   BibleData,
+  BibleContext,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 
@@ -23,10 +24,7 @@ function getAssetsPath(): string {
 // Get language-specific asset path with fallback to default
 // Future: assets/{language}/hymns.json, assets/{language}/bible.xml
 // Current: assets/hymns.json, assets/bible.xml (Romanian only)
-function getLanguageAssetPath(
-  language: Language,
-  filename: string
-): string {
+function getLanguageAssetPath(language: Language, filename: string): string {
   const assetsPath = getAssetsPath();
 
   // Try language-specific path first
@@ -163,9 +161,7 @@ function parseBibleXML(xml: string): BibleData {
   return { books };
 }
 
-export function getBibleBooks(
-  language: Language = "ro"
-): {
+export function getBibleBooks(language: Language = "ro"): {
   id: string;
   name: string;
   chapterCount: number;
@@ -242,4 +238,28 @@ export function formatBibleVersesForDisplay(
   const slides = verses.map((v) => `${v.verse}. ${v.text}`);
 
   return { title, slides };
+}
+
+export function formatBibleChapterForDisplay(
+  bookId: string,
+  bookName: string,
+  chapter: number,
+  allVerses: BibleVerse[],
+  startAtVerse: number = 1
+): {
+  title: string;
+  slides: string[];
+  startIndex: number;
+  bibleContext: BibleContext;
+} {
+  const title = `${bookName} ${chapter}`;
+  const slides = allVerses.map((v) => `${v.verse}. ${v.text}`);
+  const startIndex = allVerses.findIndex((v) => v.verse === startAtVerse);
+
+  return {
+    title,
+    slides,
+    startIndex: startIndex >= 0 ? startIndex : 0,
+    bibleContext: { bookId, bookName, chapter, verses: allVerses },
+  };
 }

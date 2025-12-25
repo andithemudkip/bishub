@@ -49,6 +49,8 @@ export interface Translations {
     loadVerses: string;
     selectBook: string;
     couldNotParse: string;
+    verse: string;
+    tapToJump: string;
   };
 
   // Settings page
@@ -152,6 +154,8 @@ const ro: Translations = {
     loadVerses: "Încarcă versetele",
     selectBook: "Selectează o carte...",
     couldNotParse: "Nu s-a putut interpreta referința",
+    verse: "Versetul",
+    tapToJump: "Atinge un verset pentru a sări la el",
   },
   settings: {
     language: "Limbă",
@@ -251,6 +255,8 @@ const en: Translations = {
     loadVerses: "Load Verses",
     selectBook: "Select a book...",
     couldNotParse: "Could not parse reference",
+    verse: "Verse",
+    tapToJump: "Tap a verse to jump to it",
   },
   settings: {
     language: "Language",

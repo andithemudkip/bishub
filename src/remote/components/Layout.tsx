@@ -151,7 +151,10 @@ export default function Layout({
           </h1>
 
           {/* Quick controls - centered on mobile */}
-          <div className="flex items-center justify-center sm:justify-end gap-2 sm:gap-2 flex-1">
+          <div className="flex items-center justify-around sm:justify-end gap-4 sm:gap-2 flex-1 min-h-8">
+            <h1 className="text-lg font-semibold block md:hidden min-h-12 flex items-center">
+              {navItems.find((i) => i.id === currentPage)?.label}
+            </h1>
             {state.mode === "text" && state.text.slides.length > 0 && (
               <>
                 <button
@@ -195,7 +198,7 @@ export default function Layout({
           <button
             key={item.id}
             onClick={() => setCurrentPage(item.id)}
-            className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
+            className={`flex-1 py-2 flex flex-col items-center gap-1 transition-colors ${
               currentPage === item.id
                 ? "bg-blue-600 text-white"
                 : "text-gray-400 active:bg-gray-700"

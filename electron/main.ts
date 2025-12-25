@@ -13,6 +13,7 @@ import {
   getBibleChapter,
   getBibleVerses,
   formatBibleVersesForDisplay,
+  formatBibleChapterForDisplay,
   loadBible,
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
@@ -218,16 +219,20 @@ function setupIPC() {
       bookName: string,
       chapter: number,
       startVerse: number,
-      endVerse?: number
+      _endVerse?: number
     ) => {
-      const verses = getBibleVerses(bookId, chapter, startVerse, endVerse);
-      if (verses.length > 0) {
-        const { title, slides } = formatBibleVersesForDisplay(
-          bookName,
-          chapter,
-          verses
-        );
-        stateManager.loadText(title, slides.join("\n\n"), "bible");
+      // Load entire chapter, starting at the requested verse
+      const allVerses = getBibleChapter(bookId, chapter);
+      if (allVerses.length > 0) {
+        const { title, slides, startIndex, bibleContext } =
+          formatBibleChapterForDisplay(
+            bookId,
+            bookName,
+            chapter,
+            allVerses,
+            startVerse
+          );
+        stateManager.loadBibleChapter(title, slides, startIndex, bibleContext);
       }
     }
   );
@@ -277,12 +282,9 @@ function setupIPC() {
     return videoLibrary.deleteVideo(videoId);
   });
 
-  ipcMain.handle(
-    "rename-video",
-    (_event, videoId: string, newName: string) => {
-      return videoLibrary.renameVideo(videoId, newName);
-    }
-  );
+  ipcMain.handle("rename-video", (_event, videoId: string, newName: string) => {
+    return videoLibrary.renameVideo(videoId, newName);
+  });
 
   ipcMain.handle("download-youtube-video", (_event, url: string) => {
     return startDownload(url);

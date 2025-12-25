@@ -22,8 +22,7 @@ import {
   formatHymnForDisplay,
   getBibleBooks,
   getBibleChapter,
-  getBibleVerses,
-  formatBibleVersesForDisplay,
+  formatBibleChapterForDisplay,
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
 import { startDownload, cancelDownload } from "./ytdlp";
@@ -70,7 +69,15 @@ export function createServer(
 
     // Proxy all Vite-related paths and static assets
     app.use(
-      ["/@vite", "/@react-refresh", "/@fs", "/src", "/node_modules", "/.vite", "/assets"],
+      [
+        "/@vite",
+        "/@react-refresh",
+        "/@fs",
+        "/src",
+        "/node_modules",
+        "/.vite",
+        "/assets",
+      ],
       viteProxy
     );
   } else {
@@ -116,10 +123,12 @@ export function createServer(
         return res.status(400).json({ error: "No video file uploaded" });
       }
 
-      const originalName = req.body.name || path.basename(
-        req.file.originalname,
-        path.extname(req.file.originalname)
-      );
+      const originalName =
+        req.body.name ||
+        path.basename(
+          req.file.originalname,
+          path.extname(req.file.originalname)
+        );
 
       const video = await videoLibrary.addVideo(req.file.path, "upload", {
         name: originalName,
@@ -263,15 +272,24 @@ export function createServer(
 
     socket.on(
       "loadBibleVerses",
-      (bookId, bookName, chapter, startVerse, endVerse) => {
-        const verses = getBibleVerses(bookId, chapter, startVerse, endVerse);
-        if (verses.length > 0) {
-          const { title, slides } = formatBibleVersesForDisplay(
-            bookName,
-            chapter,
-            verses
+      (bookId, bookName, chapter, startVerse, _endVerse) => {
+        // Load entire chapter, starting at the requested verse
+        const allVerses = getBibleChapter(bookId, chapter);
+        if (allVerses.length > 0) {
+          const { title, slides, startIndex, bibleContext } =
+            formatBibleChapterForDisplay(
+              bookId,
+              bookName,
+              chapter,
+              allVerses,
+              startVerse
+            );
+          stateManager.loadBibleChapter(
+            title,
+            slides,
+            startIndex,
+            bibleContext
           );
-          stateManager.loadText(title, slides.join("\n\n"), "bible");
         }
       }
     );

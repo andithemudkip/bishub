@@ -157,6 +157,7 @@ export default function App() {
             getBibleBooks={api.getBibleBooks}
             getBibleChapter={api.getBibleChapter}
             loadBibleVerses={api.loadBibleVerses}
+            goToSlide={api.goToSlide}
             settings={api.settings}
           />
         );
