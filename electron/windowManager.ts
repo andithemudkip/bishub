@@ -103,8 +103,8 @@ export class WindowManager {
     this.remoteWindow = new BrowserWindow({
       x: primaryDisplay.bounds.x + 50,
       y: primaryDisplay.bounds.y + 50,
-      width: 1024,
-      height: 768,
+      width: 1280,
+      height: 800,
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
         contextIsolation: true,

@@ -23,7 +23,6 @@ interface SettingsSchema {
     clockPosition: ClockPosition;
     audioWidgetPosition: AudioWidgetPosition;
   };
-  audioVolume: number;
 }
 
 export class StateManager {
@@ -58,7 +57,6 @@ export class StateManager {
           clockPosition: "center",
           audioWidgetPosition: "bottom-right",
         },
-        audioVolume: 1,
       },
     });
 
@@ -81,7 +79,7 @@ export class StateManager {
     this.state.video.volume = this.settings.volume ?? 1;
 
     // Initialize audio volume from persisted settings
-    this.state.audio.volume = this.settingsStore.get("audioVolume", 1);
+    this.state.audio.volume = this.settings.audioVolume ?? 1;
   }
 
   getState(): DisplayState {

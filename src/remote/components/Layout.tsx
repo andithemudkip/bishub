@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import type { DisplayState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
+import { PreviewPanel, PreviewHeader, usePreviewState } from "./preview";
 
 type Page = "hymns" | "bible" | "video" | "audio" | "settings";
 
@@ -45,6 +46,8 @@ export default function Layout({
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState<Page>("hymns");
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+
+  const preview = usePreviewState({ mode: state.mode, isMobile });
 
   const t = getTranslations(settings.language);
 
@@ -146,6 +149,16 @@ export default function Layout({
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-0">
+        {/* Mobile Preview Header - only on mobile */}
+        <div className="md:hidden">
+          <PreviewHeader
+            state={state}
+            settings={settings}
+            isOpen={preview.isOpen}
+            onToggle={preview.toggle}
+          />
+        </div>
+
         {/* Header with controls */}
         <header className="flex-shrink-0 bg-gray-800 px-3 md:px-4 py-2 md:py-3 flex flex-col sm:flex-row sm:items-center gap-2 border-b border-gray-700">
           <h1 className="text-lg font-semibold hidden md:block">
@@ -188,10 +201,28 @@ export default function Layout({
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-4 min-h-0">
-          {children(currentPage)}
-        </main>
+        {/* Page content with optional preview panel */}
+        <div className="flex-1 flex min-h-0">
+          {/* Main page content */}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-4 min-h-0">
+            {children(currentPage)}
+          </main>
+
+          {/* Desktop Preview Panel */}
+          <div className="hidden md:block relative">
+            <PreviewPanel
+              state={state}
+              settings={settings}
+              isOpen={preview.isOpen}
+              width={preview.panelWidth}
+              isResizing={preview.isResizing}
+              onToggle={preview.toggle}
+              onWidthChange={preview.setWidth}
+              onResizeStart={preview.startResize}
+              onResizeEnd={preview.endResize}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Bottom navigation - mobile only */}

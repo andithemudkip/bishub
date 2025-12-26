@@ -91,6 +91,7 @@ export interface AppSettings {
   serverPort: number;
   language: Language;
   volume: number;
+  audioVolume: number;
 }
 
 // Socket.io event types
@@ -209,6 +210,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   serverPort: 3847,
   language: "ro",
   volume: 1,
+  audioVolume: 1,
 };
 
 // Hymn types

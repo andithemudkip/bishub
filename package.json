@@ -8,6 +8,7 @@
     "build:preload": "esbuild electron/preload.ts --bundle --platform=node --outfile=dist-electron/preload.js --external:electron --format=cjs",
     "dev": "rm -rf dist-electron && npm run build:preload && vite",
     "build": "tsc && npm run build:preload && vite build && electron-builder",
+    "build:win": "npm run build -- --win --x64",
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "npm run build:preload && vite build && electron-builder"
@@ -55,21 +56,35 @@
       "dist-electron/**/*",
       "assets/**/*"
     ],
-    "extraResources": [
-      {
-        "from": "bin/${os}",
-        "to": "bin",
-        "filter": ["**/*"]
-      }
-    ],
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "extraResources": [
+        {
+          "from": "bin/darwin",
+          "to": "bin",
+          "filter": ["**/*"]
+        }
+      ]
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "extraResources": [
+        {
+          "from": "bin/win32",
+          "to": "bin",
+          "filter": ["**/*"]
+        }
+      ]
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "extraResources": [
+        {
+          "from": "bin/linux",
+          "to": "bin",
+          "filter": ["**/*"]
+        }
+      ]
     }
   }
 }

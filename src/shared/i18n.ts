@@ -176,6 +176,14 @@ export interface Translations {
     triggered: string;
     expired: string;
   };
+
+  // Preview panel
+  preview: {
+    title: string;
+    collapse: string;
+    expand: string;
+    tapToCollapse: string;
+  };
 }
 
 const ro: Translations = {
@@ -334,6 +342,12 @@ const ro: Translations = {
     triggered: "Redat",
     expired: "Expirat",
   },
+  preview: {
+    title: "Previzualizare",
+    collapse: "Ascunde",
+    expand: "Arată previzualizare",
+    tapToCollapse: "Atinge pentru a ascunde",
+  },
 };
 
 const en: Translations = {
@@ -491,6 +505,12 @@ const en: Translations = {
     skippedNotIdle: "Skipped (not in idle mode)",
     triggered: "Played",
     expired: "Expired",
+  },
+  preview: {
+    title: "Preview",
+    collapse: "Collapse",
+    expand: "Show preview",
+    tapToCollapse: "Tap to hide",
   },
 };
 
