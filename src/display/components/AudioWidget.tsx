@@ -79,10 +79,14 @@ export default function AudioWidget({ config, position, onTimeUpdate }: Props) {
     return null;
   }
 
-  // Convert path to file URL
-  const audioSrc = config.src.startsWith("file://")
-    ? config.src
-    : `file://${config.src}`;
+  // Convert path to file URL (handles Windows backslashes)
+  const getFileUrl = (filePath: string) => {
+    if (filePath.startsWith("file://")) return filePath;
+    const normalizedPath = filePath.replace(/\\/g, "/");
+    const prefix = normalizedPath.startsWith("/") ? "file://" : "file:///";
+    return `${prefix}${normalizedPath}`;
+  };
+  const audioSrc = getFileUrl(config.src);
 
   const positionClass = WIDGET_POSITION_CLASSES[position] || WIDGET_POSITION_CLASSES["bottom-right"];
   const progress = config.duration > 0 ? (config.currentTime / config.duration) * 100 : 0;

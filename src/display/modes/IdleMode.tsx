@@ -64,9 +64,18 @@ export default function IdleMode({ config, language, audioState, onAudioTimeUpda
     });
   };
 
+  // Convert file path to proper file:// URL (handles Windows backslashes)
+  const getFileUrl = (filePath: string) => {
+    // Replace backslashes with forward slashes for Windows paths
+    const normalizedPath = filePath.replace(/\\/g, "/");
+    // Windows paths need file:/// (three slashes), Unix paths need file://
+    const prefix = normalizedPath.startsWith("/") ? "file://" : "file:///";
+    return `${prefix}${normalizedPath}`;
+  };
+
   const backgroundStyle = config.wallpaper
     ? {
-        backgroundImage: `url(file://${config.wallpaper})`,
+        backgroundImage: `url("${getFileUrl(config.wallpaper)}")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }

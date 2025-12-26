@@ -116,8 +116,11 @@ export class WindowManager {
       await this.remoteWindow.loadURL(`${VITE_DEV_SERVER_URL}/remote.html`);
       this.remoteWindow.webContents.openDevTools();
     } else {
-      await this.remoteWindow.loadFile(
-        path.join(__dirname, "../dist/remote.html")
+      // Load via HTTP server so relative API URLs work correctly
+      const port = this.stateManager.getSettings().serverPort;
+      const securityKey = this.stateManager.getSecurityKey();
+      await this.remoteWindow.loadURL(
+        `http://localhost:${port}/remote?key=${securityKey}`
       );
     }
 
