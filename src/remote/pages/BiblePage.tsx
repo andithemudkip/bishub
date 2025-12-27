@@ -11,6 +11,7 @@ interface BibleBook {
 
 interface Props {
   textState: TextState;
+  isIdle: boolean;
   getBibleBooks: () => Promise<BibleBook[]>;
   getBibleChapter: (bookId: string, chapter: number) => Promise<BibleVerse[]>;
   loadBibleVerses: (
@@ -26,6 +27,7 @@ interface Props {
 
 export default function BiblePage({
   textState,
+  isIdle,
   getBibleBooks,
   getBibleChapter,
   loadBibleVerses,
@@ -44,7 +46,18 @@ export default function BiblePage({
   const [startVerse, setStartVerse] = useState<number>(1);
   const [endVerse, setEndVerse] = useState<number>(1);
 
+  // Loaded but not yet presented state (for two-step loading)
+  const [loadedContext, setLoadedContext] = useState<{
+    bookId: string;
+    bookName: string;
+    chapter: number;
+    startVerse: number;
+    endVerse: number;
+    verses: BibleVerse[];
+  } | null>(null);
+
   const verseListRef = useRef<HTMLDivElement>(null);
+  const loadedVerseListRef = useRef<HTMLDivElement>(null);
 
   const t = getTranslations(settings.language);
 
@@ -58,18 +71,41 @@ export default function BiblePage({
     setParsedRef(parsed);
   }, [quickSearch, settings.language]);
 
+  // Sync quick search to browse section
+  useEffect(() => {
+    if (parsedRef && books.length > 0) {
+      const book = books.find((b) => b.id === parsedRef.bookId);
+      if (book && book.id !== selectedBook?.id) {
+        setSelectedBook(book);
+        setSelectedChapter(parsedRef.chapter);
+      } else if (book && parsedRef.chapter !== selectedChapter) {
+        setSelectedChapter(parsedRef.chapter);
+      }
+    }
+  }, [parsedRef, books]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Load chapter verses when book/chapter changes
   useEffect(() => {
     if (selectedBook && selectedChapter) {
       getBibleChapter(selectedBook.id, selectedChapter).then(
         (v: BibleVerse[]) => {
           setVerses(v);
-          setStartVerse(1);
-          setEndVerse(v.length > 0 ? v[v.length - 1].verse : 1);
+          // If we have a parsed reference that matches, use its verse range
+          if (
+            parsedRef &&
+            parsedRef.bookId === selectedBook.id &&
+            parsedRef.chapter === selectedChapter
+          ) {
+            setStartVerse(parsedRef.startVerse);
+            setEndVerse(parsedRef.endVerse);
+          } else {
+            setStartVerse(1);
+            setEndVerse(v.length > 0 ? v[v.length - 1].verse : 1);
+          }
         }
       );
     }
-  }, [selectedBook, selectedChapter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedBook, selectedChapter, parsedRef]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll to current verse in the list
   useEffect(() => {
@@ -81,8 +117,35 @@ export default function BiblePage({
     }
   }, [textState.currentSlide, textState.bibleContext]);
 
-  const handleQuickLoad = () => {
-    if (parsedRef) {
+  // Auto-scroll to start verse in the loaded preview list
+  useEffect(() => {
+    if (loadedContext && loadedVerseListRef.current) {
+      const startButton = loadedVerseListRef.current.querySelector(
+        '[data-start="true"]'
+      );
+      startButton?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [loadedContext]);
+
+  // Check if loadedContext matches current quick search reference
+  const isQuickSearchLoaded =
+    loadedContext &&
+    parsedRef &&
+    loadedContext.bookId === parsedRef.bookId &&
+    loadedContext.chapter === parsedRef.chapter;
+
+  // Check if loadedContext matches current browse selection
+  const isBrowseLoaded =
+    loadedContext &&
+    selectedBook &&
+    loadedContext.bookId === selectedBook.id &&
+    loadedContext.chapter === selectedChapter;
+
+  const handleQuickLoad = async () => {
+    if (!parsedRef) return;
+
+    // If already loaded (second press), present the verses
+    if (isQuickSearchLoaded) {
       loadBibleVerses(
         parsedRef.bookId,
         parsedRef.bookName,
@@ -90,12 +153,31 @@ export default function BiblePage({
         parsedRef.startVerse,
         parsedRef.endVerse
       );
+      setLoadedContext(null);
       setQuickSearch("");
+      return;
     }
+
+    // First press: load verses into preview
+    const chapterVerses = await getBibleChapter(
+      parsedRef.bookId,
+      parsedRef.chapter
+    );
+    setLoadedContext({
+      bookId: parsedRef.bookId,
+      bookName: parsedRef.bookName,
+      chapter: parsedRef.chapter,
+      startVerse: parsedRef.startVerse,
+      endVerse: parsedRef.endVerse,
+      verses: chapterVerses,
+    });
   };
 
-  const handleManualLoad = () => {
-    if (selectedBook && selectedChapter) {
+  const handleManualLoad = async () => {
+    if (!selectedBook || !selectedChapter) return;
+
+    // If already loaded (second press), present the verses
+    if (isBrowseLoaded) {
       loadBibleVerses(
         selectedBook.id,
         selectedBook.name,
@@ -103,6 +185,57 @@ export default function BiblePage({
         startVerse,
         endVerse
       );
+      setLoadedContext(null);
+      return;
+    }
+
+    // First press: load verses into preview
+    const chapterVerses = await getBibleChapter(
+      selectedBook.id,
+      selectedChapter
+    );
+    setLoadedContext({
+      bookId: selectedBook.id,
+      bookName: selectedBook.name,
+      chapter: selectedChapter,
+      startVerse,
+      endVerse,
+      verses: chapterVerses,
+    });
+  };
+
+  // Present a specific verse from the loaded preview (clicking on a verse)
+  const handlePresentVerse = (verseIndex: number) => {
+    if (!loadedContext) return;
+    const verse = loadedContext.verses[verseIndex];
+    if (!verse) return;
+
+    loadBibleVerses(
+      loadedContext.bookId,
+      loadedContext.bookName,
+      loadedContext.chapter,
+      verse.verse,
+      loadedContext.endVerse
+    );
+    setLoadedContext(null);
+    setQuickSearch("");
+  };
+
+  // Handle clicking a verse in the currently displayed list
+  const handleDisplayedVerseClick = (index: number) => {
+    if (isIdle && textState.bibleContext) {
+      // Re-present starting at this verse
+      const verse = textState.bibleContext.verses[index];
+      if (verse) {
+        loadBibleVerses(
+          textState.bibleContext.bookId,
+          textState.bibleContext.bookName,
+          textState.bibleContext.chapter,
+          verse.verse
+        );
+      }
+    } else {
+      goToSlide(index);
     }
   };
 
@@ -136,9 +269,13 @@ export default function BiblePage({
           <button
             onClick={handleQuickLoad}
             disabled={!parsedRef}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
+            className={`px-6 py-3 ${
+              isQuickSearchLoaded
+                ? "bg-green-600 hover:bg-green-500"
+                : "bg-blue-600 hover:bg-blue-500"
+            } disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold`}
           >
-            {t.bible.load}
+            {isQuickSearchLoaded ? t.bible.present : t.bible.load}
           </button>
         </div>
 
@@ -165,6 +302,51 @@ export default function BiblePage({
         )}
       </div>
 
+      {/* Loaded preview verse list (not yet presenting) */}
+      {loadedContext && (
+        <div className="bg-gray-800 rounded-lg p-4 border-2 border-yellow-600">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold">
+              {loadedContext.bookName} {loadedContext.chapter}
+            </h2>
+            <span className="text-sm text-yellow-400">
+              {t.bible.loadedPreview}
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">{t.bible.tapToJump}</p>
+
+          <div
+            ref={loadedVerseListRef}
+            className="max-h-64 sm:max-h-80 overflow-y-auto space-y-1"
+          >
+            {loadedContext.verses.map((verse, index) => {
+              const isStartVerse = verse.verse === loadedContext.startVerse;
+              return (
+                <button
+                  key={verse.verse}
+                  data-start={isStartVerse}
+                  onClick={() => handlePresentVerse(index)}
+                  className={`w-full text-left p-3 rounded-lg transition-colors ${
+                    isStartVerse
+                      ? "bg-yellow-600 text-white"
+                      : "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                  }`}
+                >
+                  <span
+                    className={`font-bold mr-2 ${
+                      isStartVerse ? "text-white" : "text-blue-400"
+                    }`}
+                  >
+                    {verse.verse}.
+                  </span>
+                  <span className="line-clamp-2">{verse.text}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Chapter verse list when Bible is displayed */}
       {textState.contentType === "bible" && textState.bibleContext ? (
         <div className="bg-gray-800 rounded-lg p-4">
@@ -187,7 +369,7 @@ export default function BiblePage({
               <button
                 key={verse.verse}
                 data-active={index === textState.currentSlide}
-                onClick={() => goToSlide(index)}
+                onClick={() => handleDisplayedVerseClick(index)}
                 className={`w-full text-left p-3 rounded-lg transition-colors ${
                   index === textState.currentSlide
                     ? "bg-blue-600 text-white"
@@ -327,9 +509,15 @@ export default function BiblePage({
                   </div>
                   <button
                     onClick={handleManualLoad}
-                    className="w-full sm:w-auto px-6 py-3 sm:py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors font-medium"
+                    className={`w-full sm:w-auto px-6 py-3 sm:py-2 ${
+                      isBrowseLoaded
+                        ? "bg-green-600 hover:bg-green-500"
+                        : "bg-blue-600 hover:bg-blue-500"
+                    } rounded-lg transition-colors font-medium`}
                   >
-                    {t.bible.loadVerses}
+                    {isBrowseLoaded
+                      ? t.bible.presentVerses
+                      : t.bible.loadVerses}
                   </button>
                 </div>
               )}

@@ -52,6 +52,9 @@ export interface Translations {
     couldNotParse: string;
     verse: string;
     tapToJump: string;
+    present: string;
+    presentVerses: string;
+    loadedPreview: string;
   };
 
   // Settings page
@@ -227,6 +230,9 @@ const ro: Translations = {
     couldNotParse: "Nu s-a putut interpreta referința",
     verse: "Versetul",
     tapToJump: "Atinge un verset pentru a sări la el",
+    present: "Prezintă",
+    presentVerses: "Prezintă versetele",
+    loadedPreview: "Încărcat (nu se afișează)",
   },
   settings: {
     language: "Limbă",
@@ -391,6 +397,9 @@ const en: Translations = {
     couldNotParse: "Could not parse reference",
     verse: "Verse",
     tapToJump: "Tap a verse to jump to it",
+    present: "Present",
+    presentVerses: "Present Verses",
+    loadedPreview: "Loaded (not presenting)",
   },
   settings: {
     language: "Language",

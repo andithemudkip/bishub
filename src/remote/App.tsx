@@ -156,7 +156,6 @@ export default function App() {
   }, [api.state]);
 
   const handleGoIdle = useCallback(() => {
-    api.loadText("", "");
     api.goIdle();
   }, [api]);
 
@@ -195,6 +194,7 @@ export default function App() {
         return (
           <BiblePage
             textState={api.state.text}
+            isIdle={api.state.mode === "idle"}
             getBibleBooks={api.getBibleBooks}
             getBibleChapter={api.getBibleChapter}
             loadBibleVerses={api.loadBibleVerses}
