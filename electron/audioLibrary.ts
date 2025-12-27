@@ -11,35 +11,7 @@ import type {
   DirectoryImportProgress,
 } from "../src/shared/audioLibrary.types";
 
-// Find ffprobe path
-function findBinaryPath(name: string): string | null {
-  const paths = [
-    name,
-    `/opt/homebrew/bin/${name}`,
-    `/usr/local/bin/${name}`,
-    `/usr/bin/${name}`,
-  ];
-  for (const p of paths) {
-    try {
-      execSync(`"${p}" -version`, { stdio: "ignore" });
-      return p;
-    } catch {
-      // Try next
-    }
-  }
-  return null;
-}
-
-const ffprobePath = findBinaryPath("ffprobe");
-
-if (ffprobePath) {
-  console.log(`[AudioLibrary] ffprobe found at: ${ffprobePath}`);
-} else {
-  console.warn(
-    "[AudioLibrary] ffprobe not found, duration extraction will be disabled"
-  );
-}
-
+import { getFfprobePath } from "./utils";
 interface AudioLibrarySchema {
   audios: AudioItem[];
   version: number;
@@ -200,9 +172,7 @@ export class AudioLibraryManager {
     return audio;
   }
 
-  async addAudiosFromDirectory(
-    directoryPath: string
-  ): Promise<{
+  async addAudiosFromDirectory(directoryPath: string): Promise<{
     completed: AudioItem[];
     errors: { file: string; error: string }[];
   }> {
@@ -304,6 +274,8 @@ export class AudioLibraryManager {
   }
 
   private async extractDuration(audio: AudioItem): Promise<void> {
+    const ffprobePath = getFfprobePath();
+
     if (!ffprobePath) {
       console.warn(
         "[AudioLibrary] Cannot extract duration: ffprobe not available"

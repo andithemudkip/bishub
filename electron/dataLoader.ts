@@ -204,10 +204,24 @@ export function formatHymnForDisplay(hymn: Hymn): {
   slides: string[];
 } {
   const slides: string[] = [];
+  if (hymn.chorus && hymn.chorus.trim()) {
+    hymn.chorus = `R: ${hymn.chorus.trim()}`;
+  }
 
   hymn.verses.forEach((verse, index) => {
-    // Add verse
-    slides.push(verse);
+    // Split verse into lines
+    verse = `${index + 1}. ${verse}`; // Prepend verse number
+    const lines = verse.split(/\r?\n/);
+    if (lines.length >= 8) {
+      // Split into two slides, roughly in half
+      const mid = Math.ceil(lines.length / 2);
+      const firstSlide = lines.slice(0, mid).join("\n");
+      const secondSlide = lines.slice(mid).join("\n");
+      slides.push(firstSlide);
+      slides.push(secondSlide);
+    } else {
+      slides.push(verse);
+    }
 
     // Add chorus after each verse if it exists
     if (hymn.chorus && hymn.chorus.trim()) {

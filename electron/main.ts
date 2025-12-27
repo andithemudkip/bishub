@@ -20,10 +20,12 @@ import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import { startDownload, cancelDownload, getActiveDownloads } from "./ytdlp";
-import type { DisplayMode, ClockPosition, AudioWidgetPosition } from "../src/shared/types";
+import type {
+  DisplayMode,
+  ClockPosition,
+  AudioWidgetPosition,
+} from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
-
-const isDev = process.env.NODE_ENV !== "production" || !app.isPackaged;
 
 function getLocalIPAddress(): string {
   const interfaces = os.networkInterfaces();
