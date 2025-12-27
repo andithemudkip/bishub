@@ -242,3 +242,12 @@ export interface BibleBook {
 export interface BibleData {
   books: BibleBook[];
 }
+
+// Update types
+export interface UpdateStatus {
+  state: "idle" | "checking" | "available" | "downloading" | "ready" | "error";
+  version?: string;
+  releaseNotes?: string;
+  progress?: number; // 0-100
+  error?: string;
+}

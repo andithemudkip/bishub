@@ -4,6 +4,7 @@ import path from "path";
 import { createServer } from "./server";
 import { WindowManager } from "./windowManager";
 import { StateManager } from "./state";
+import { initUpdater, checkForUpdates, quitAndInstall } from "./updater";
 import {
   loadHymns,
   searchHymns,
@@ -70,6 +71,14 @@ async function createWindows() {
     console.log(`Local IP: http://${getLocalIPAddress()}:${port}`);
   });
 
+  // Initialize auto-updater
+  initUpdater((channel, data) => windowManager.broadcastToAll(channel, data));
+
+  // Check for updates 1 minute after launch
+  setTimeout(() => {
+    checkForUpdates();
+  }, 60000);
+
   // Create remote window on primary monitor
   await windowManager.createRemoteWindow();
 
@@ -78,6 +87,19 @@ async function createWindows() {
 }
 
 function setupIPC() {
+  // Update handlers
+  ipcMain.handle("get-app-version", () => {
+    return app.getVersion();
+  });
+
+  ipcMain.handle("check-for-updates", () => {
+    checkForUpdates();
+  });
+
+  ipcMain.handle("install-update", () => {
+    quitAndInstall();
+  });
+
   ipcMain.handle("get-state", () => {
     return stateManager.getState();
   });

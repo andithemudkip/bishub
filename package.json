@@ -11,10 +11,14 @@
     "build:win": "npm run build -- --win --x64",
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build:preload && vite build && electron-builder"
+    "electron:build": "npm run build:preload && vite build && electron-builder",
+    "release": "npm run build && electron-builder --publish always",
+    "release:mac": "npm run build && electron-builder --mac --publish always",
+    "release:win": "npm run build && electron-builder --win --publish always"
   },
   "dependencies": {
     "electron-store": "^8.1.0",
+    "electron-updater": "^6.6.2",
     "express": "^4.18.2",
     "http-proxy-middleware": "^3.0.5",
     "multer": "^1.4.5-lts.1",
@@ -51,6 +55,11 @@
     "directories": {
       "output": "release"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "andithemudkip",
+      "repo": "bishub"
+    },
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
@@ -62,7 +71,9 @@
         {
           "from": "bin/darwin",
           "to": "bin",
-          "filter": ["**/*"]
+          "filter": [
+            "**/*"
+          ]
         }
       ]
     },
@@ -72,7 +83,9 @@
         {
           "from": "bin/win32",
           "to": "bin",
-          "filter": ["**/*"]
+          "filter": [
+            "**/*"
+          ]
         }
       ]
     },
@@ -82,7 +95,9 @@
         {
           "from": "bin/linux",
           "to": "bin",
-          "filter": ["**/*"]
+          "filter": [
+            "**/*"
+          ]
         }
       ]
     }

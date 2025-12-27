@@ -1,11 +1,14 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import type {
   DisplayState,
   AppSettings,
   MonitorInfo,
   Hymn,
   BibleVerse,
+  UpdateStatus,
 } from "../shared/types";
+import { getTranslations } from "../shared/i18n";
+import UpdateBanner from "./components/UpdateBanner";
 import Layout from "./components/Layout";
 import HymnsPage from "./pages/HymnsPage";
 import BiblePage from "./pages/BiblePage";
@@ -115,12 +118,55 @@ declare global {
       onAudioUploadProgress: (
         callback: (progress: AudioUploadProgress) => void
       ) => () => void;
+      // Updates
+      getAppVersion: () => Promise<string>;
+      checkForUpdates: () => Promise<void>;
+      installUpdate: () => Promise<void>;
+      onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void;
     };
   }
 }
 
 export default function App() {
   const api = useRemoteAPI();
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({
+    state: "idle",
+  });
+  const [appVersion, setAppVersion] = useState<string>("0.0.0");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  const t = getTranslations(api.settings.language);
+
+  // Load app version and listen for update events
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.getAppVersion?.().then(setAppVersion);
+
+      const cleanup = window.electronAPI.onUpdateStatus?.(
+        (status: UpdateStatus) => {
+          setUpdateStatus(status);
+          // Show banner again when update is ready
+          if (status.state === "ready") {
+            setBannerDismissed(false);
+          }
+        }
+      );
+
+      return cleanup;
+    }
+  }, []);
+
+  const handleCheckForUpdates = useCallback(() => {
+    window.electronAPI?.checkForUpdates?.();
+  }, []);
+
+  const handleInstallUpdate = useCallback(() => {
+    window.electronAPI?.installUpdate?.();
+  }, []);
+
+  const handleDismissBanner = useCallback(() => {
+    setBannerDismissed(true);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -134,12 +180,14 @@ export default function App() {
 
       switch (e.key) {
         case "ArrowRight":
+        case "ArrowDown":
         case "PageDown":
           // Prevent scroll when presenting
           if (api.state.mode === "text") e.preventDefault();
           handleNextSlide();
           break;
         case "ArrowLeft":
+        case "ArrowUp":
         case "PageUp":
           // Prevent scroll when presenting
           if (api.state.mode === "text") e.preventDefault();
@@ -239,6 +287,9 @@ export default function App() {
             onSetClockFontSize={api.setClockFontSize}
             onSetClockPosition={api.setClockPosition}
             onSetAudioWidgetPosition={api.setAudioWidgetPosition}
+            appVersion={appVersion}
+            updateStatus={updateStatus}
+            onCheckForUpdates={handleCheckForUpdates}
           />
         );
       default:
@@ -247,14 +298,24 @@ export default function App() {
   };
 
   return (
-    <Layout
-      state={api.state}
-      settings={api.settings}
-      onGoIdle={handleGoIdle}
-      onNextSlide={handleNextSlide}
-      onPrevSlide={handlePrevSlide}
-    >
-      {renderPage}
-    </Layout>
+    <>
+      {!bannerDismissed && (
+        <UpdateBanner
+          status={updateStatus}
+          t={t}
+          onInstall={handleInstallUpdate}
+          onDismiss={handleDismissBanner}
+        />
+      )}
+      <Layout
+        state={api.state}
+        settings={api.settings}
+        onGoIdle={handleGoIdle}
+        onNextSlide={handleNextSlide}
+        onPrevSlide={handlePrevSlide}
+      >
+        {renderPage}
+      </Layout>
+    </>
   );
 }

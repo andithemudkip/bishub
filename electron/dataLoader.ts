@@ -11,6 +11,7 @@ import type {
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 
+// @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

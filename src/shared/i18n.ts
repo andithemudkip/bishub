@@ -187,6 +187,19 @@ export interface Translations {
     expand: string;
     tapToCollapse: string;
   };
+
+  // Updates
+  updates: {
+    updateAvailable: string;
+    updateDownloading: string;
+    updateReady: string;
+    restartToUpdate: string;
+    currentVersion: string;
+    checkingForUpdates: string;
+    upToDate: string;
+    checkForUpdates: string;
+    newVersion: string;
+  };
 }
 
 const ro: Translations = {
@@ -354,6 +367,17 @@ const ro: Translations = {
     expand: "Arată previzualizare",
     tapToCollapse: "Atinge pentru a ascunde",
   },
+  updates: {
+    updateAvailable: "Actualizare disponibilă",
+    updateDownloading: "Se descarcă actualizarea...",
+    updateReady: "Actualizare pregătită",
+    restartToUpdate: "Reporniți pentru actualizare",
+    currentVersion: "Versiunea curentă",
+    checkingForUpdates: "Se verifică actualizările...",
+    upToDate: "Aplicația este la zi",
+    checkForUpdates: "Verifică actualizări",
+    newVersion: "Versiune nouă",
+  },
 };
 
 const en: Translations = {
@@ -520,6 +544,17 @@ const en: Translations = {
     collapse: "Collapse",
     expand: "Show preview",
     tapToCollapse: "Tap to hide",
+  },
+  updates: {
+    updateAvailable: "Update available",
+    updateDownloading: "Downloading update...",
+    updateReady: "Update ready",
+    restartToUpdate: "Restart to update",
+    currentVersion: "Current version",
+    checkingForUpdates: "Checking for updates...",
+    upToDate: "You're up to date",
+    checkForUpdates: "Check for updates",
+    newVersion: "New version",
   },
 };
 

@@ -7,6 +7,17 @@ const electronAPI = {
   getLocalIP: (): Promise<string> => ipcRenderer.invoke("get-local-ip"),
   getSecurityKey: (): Promise<string> => ipcRenderer.invoke("get-security-key"),
 
+  // Updates
+  getAppVersion: (): Promise<string> => ipcRenderer.invoke("get-app-version"),
+  checkForUpdates: (): Promise<void> => ipcRenderer.invoke("check-for-updates"),
+  installUpdate: (): Promise<void> => ipcRenderer.invoke("install-update"),
+  onUpdateStatus: (callback: (status: any) => void) => {
+    ipcRenderer.on("update-status", (_event: any, status: any) =>
+      callback(status)
+    );
+    return () => ipcRenderer.removeAllListeners("update-status");
+  },
+
   setMode: (mode: string): Promise<void> =>
     ipcRenderer.invoke("set-mode", mode),
   loadText: (title: string, content: string): Promise<void> =>

@@ -6,6 +6,7 @@ import type {
   IdleState,
   ClockPosition,
   AudioWidgetPosition,
+  UpdateStatus,
 } from "../../shared/types";
 import {
   getTranslations,
@@ -23,6 +24,9 @@ interface Props {
   onSetClockFontSize: (size: number) => void;
   onSetClockPosition: (position: ClockPosition) => void;
   onSetAudioWidgetPosition: (position: AudioWidgetPosition) => void;
+  appVersion: string;
+  updateStatus: UpdateStatus;
+  onCheckForUpdates: () => void;
 }
 
 const CLOCK_POSITIONS: ClockPosition[] = [
@@ -50,6 +54,9 @@ export default function SettingsPage({
   onSetClockFontSize,
   onSetClockPosition,
   onSetAudioWidgetPosition,
+  appVersion,
+  updateStatus,
+  onCheckForUpdates,
 }: Props) {
   const [localIP, setLocalIP] = useState<string>("...");
   const [securityKey, setSecurityKey] = useState<string>("...");
@@ -305,12 +312,51 @@ export default function SettingsPage({
       <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
         <h2 className="text-lg font-semibold mb-4">{t.settings.about}</h2>
 
-        <div className="space-y-2 text-gray-400">
+        <div className="space-y-4 text-gray-400">
           <p>
             <span className="text-gray-300">BisHub</span> -{" "}
             {t.settings.churchDisplayApp}
           </p>
-          <p>Version 0.1.0</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <p>
+              {t.updates.currentVersion}:{" "}
+              <span className="text-white font-mono">v{appVersion}</span>
+            </p>
+            {isElectron && (
+              <button
+                onClick={onCheckForUpdates}
+                disabled={
+                  updateStatus.state === "checking" ||
+                  updateStatus.state === "downloading"
+                }
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg text-white text-sm transition-colors"
+              >
+                {updateStatus.state === "checking"
+                  ? t.updates.checkingForUpdates
+                  : updateStatus.state === "downloading"
+                  ? `${t.updates.updateDownloading} ${
+                      updateStatus.progress || 0
+                    }%`
+                  : t.updates.checkForUpdates}
+              </button>
+            )}
+          </div>
+          {updateStatus.state === "idle" && (
+            <p className="text-sm text-green-400">{t.updates.upToDate}</p>
+          )}
+          {updateStatus.state === "available" && (
+            <p className="text-sm text-yellow-400">
+              {t.updates.newVersion}: v{updateStatus.version}
+            </p>
+          )}
+          {updateStatus.state === "ready" && (
+            <p className="text-sm text-green-400">
+              {t.updates.updateReady}: v{updateStatus.version}
+            </p>
+          )}
+          {updateStatus.state === "error" && (
+            <p className="text-sm text-red-400">{updateStatus.error}</p>
+          )}
         </div>
       </div>
 
@@ -328,6 +374,9 @@ export default function SettingsPage({
                 →
               </kbd>
               <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
+                ↓
+              </kbd>
+              <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
                 PgDn
               </kbd>
             </div>
@@ -337,6 +386,9 @@ export default function SettingsPage({
             <div className="flex gap-1">
               <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
                 ←
+              </kbd>
+              <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
+                ↑
               </kbd>
               <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
                 PgUp
