@@ -67,7 +67,10 @@
       "assets/**/*"
     ],
     "mac": {
-      "target": "dmg",
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "extraResources": [
         {
           "from": "bin/darwin",
