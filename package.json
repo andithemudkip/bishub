@@ -1,6 +1,6 @@
 {
   "name": "bishub",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Church display application with remote control",
   "main": "dist-electron/main.js",
