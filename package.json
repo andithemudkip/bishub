@@ -71,6 +71,7 @@
         "dmg",
         "zip"
       ],
+      "identity": null,
       "extraResources": [
         {
           "from": "bin/darwin",
