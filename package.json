@@ -59,7 +59,7 @@
     "publish": {
       "provider": "github",
       "owner": "andithemudkip",
-      "repo": "bishub-releases"
+      "repo": "bishub"
     },
     "files": [
       "dist/**/*",
