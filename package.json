@@ -6,15 +6,16 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "build:preload": "esbuild electron/preload.ts --bundle --platform=node --outfile=dist-electron/preload.js --external:electron --format=cjs",
-    "dev": "rm -rf dist-electron && npm run build:preload && vite",
-    "build": "tsc && npm run build:preload && vite build && electron-builder",
-    "build:win": "npm run build -- --win --x64",
+    "dev": "npm run build:preload && vite",
+    "build": "tsc && npm run build:preload && vite build",
+    "build:win": "tsc && npm run build:preload && vite build && electron-builder --win --x64 --publish never",
+    "build:mac": "tsc && npm run build:preload && vite build && electron-builder --mac --publish never",
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build:preload && vite build && electron-builder",
-    "release": "npm run build && electron-builder --publish always",
-    "release:mac": "npm run build && electron-builder --mac --publish always",
-    "release:win": "npm run build && electron-builder --win --publish always"
+    "electron:build": "npm run build:preload && vite build && electron-builder --publish never",
+    "release": "tsc && npm run build:preload && vite build && electron-builder --publish always",
+    "release:mac": "tsc && npm run build:preload && vite build && electron-builder --mac --publish always",
+    "release:win": "tsc && npm run build:preload && vite build && electron-builder --win --x64 --publish always"
   },
   "dependencies": {
     "electron-store": "^8.1.0",
@@ -58,7 +59,7 @@
     "publish": {
       "provider": "github",
       "owner": "andithemudkip",
-      "repo": "bishub"
+      "repo": "bishub-releases"
     },
     "files": [
       "dist/**/*",

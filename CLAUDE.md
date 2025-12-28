@@ -28,11 +28,35 @@ BisHub is a church display application built with Electron + React + TypeScript.
 
 ## Development Commands
 
+### Development
+
 ```bash
+npm run dev             # Vite dev server only (builds preload first)
 npm run electron:dev    # Start development (Vite + Electron with HMR)
-npm run build           # Full production build
-npm run dev             # Vite dev server only (without Electron)
-npm run build:preload   # Bundle preload.ts separately (required before electron:dev)
+npm run preview         # Preview production build
+```
+
+### Local Building (no GitHub publishing)
+
+```bash
+npm run build           # Build only (no bundling)
+npm run electron:build  # Bundle for current platform locally
+npm run build:mac       # Bundle for macOS locally
+npm run build:win       # Bundle for Windows locally
+```
+
+### Release to GitHub
+
+```bash
+npm run release         # Build and publish for current platform
+npm run release:mac     # Build and publish macOS version
+npm run release:win     # Build and publish Windows version
+```
+
+### Utilities
+
+```bash
+npm run build:preload   # Bundle preload.ts separately (if needed manually)
 ```
 
 ## Architecture
