@@ -57,7 +57,7 @@ export default function AudioLibraryPage({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0 max-w-full">
       {/* Add audio section */}
       <div className="bg-gray-800 rounded-lg p-3 sm:p-4">
         {/* Tabs */}
@@ -81,7 +81,7 @@ export default function AudioLibraryPage({
                     d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span>{t.audioLibrary.addLocalFile}</span>
+                <span className="hidden xs:inline">{t.audioLibrary.addLocalFile}</span>
               </button>
               <button
                 onClick={() => library.addLocalAudioDirectory()}
@@ -101,7 +101,7 @@ export default function AudioLibraryPage({
                     d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                   />
                 </svg>
-                <span>{t.audioLibrary.addFolder}</span>
+                <span className="hidden xs:inline">{t.audioLibrary.addFolder}</span>
               </button>
             </>
           )}
@@ -129,7 +129,7 @@ export default function AudioLibraryPage({
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
                 />
               </svg>
-              {t.audioLibrary.upload}
+              <span className="hidden xs:inline">{t.audioLibrary.upload}</span>
             </button>
           )}
         </div>
@@ -222,7 +222,7 @@ export default function AudioLibraryPage({
       </div>
 
       {/* Audio library */}
-      <div className="bg-gray-800 rounded-lg p-3 sm:p-4">
+      <div className="bg-gray-800 rounded-lg p-3 sm:p-4 overflow-hidden">
         <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
           {t.audioLibrary.library} ({library.audios.length})
         </h3>
@@ -282,7 +282,7 @@ export default function AudioLibraryPage({
             )}
             <button
               onClick={stopAudio}
-              className="py-3 px-4 sm:py-4 sm:px-6 bg-red-600 hover:bg-red-500 rounded-lg transition-colors text-base sm:text-lg font-semibold flex items-center gap-2"
+              className="py-3 px-3 sm:py-4 sm:px-4 bg-red-600 hover:bg-red-500 rounded-lg transition-colors text-base sm:text-lg font-semibold flex items-center gap-2"
             >
               <svg
                 className="w-5 h-5 sm:w-6 sm:h-6"

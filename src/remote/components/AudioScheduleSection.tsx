@@ -161,10 +161,10 @@ export default function AudioScheduleSection({
         </h3>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors text-sm flex items-center gap-1"
+          className="px-2 sm:px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors text-sm flex items-center gap-1"
         >
           <svg
-            className="w-4 h-4"
+            className="w-4 h-4 flex-shrink-0"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -176,7 +176,7 @@ export default function AudioScheduleSection({
               d="M12 4v16m8-8H4"
             />
           </svg>
-          {t.audioSchedule.newSchedule}
+          <span className="hidden sm:inline">{t.audioSchedule.newSchedule}</span>
         </button>
       </div>
 

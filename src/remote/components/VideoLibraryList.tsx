@@ -106,7 +106,7 @@ export default function VideoLibraryList({
       </div>
 
       {/* Video list */}
-      <div className="space-y-2 max-h-[350px] sm:max-h-[400px] overflow-y-auto p-1">
+      <div className="space-y-2 max-h-[350px] sm:max-h-[400px] overflow-y-auto overflow-x-hidden p-1">
         {filteredVideos.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             {videos.length === 0 ? (
@@ -127,14 +127,14 @@ export default function VideoLibraryList({
           filteredVideos.map((video) => (
             <div
               key={video.id}
-              className={`bg-gray-700 rounded-lg p-2 sm:p-3 cursor-pointer transition-colors ${
+              className={`bg-gray-700 rounded-lg p-2 sm:p-3 cursor-pointer transition-colors overflow-hidden ${
                 selectedVideoId === video.id
                   ? "ring-2 ring-blue-500"
                   : "hover:bg-gray-600"
               }`}
               onClick={() => onSelect(video)}
             >
-              <div className="flex gap-2 sm:gap-3">
+              <div className="flex gap-2 sm:gap-3 min-w-0">
                 {/* Thumbnail */}
                 <div className="w-16 h-10 sm:w-24 sm:h-14 bg-gray-800 rounded flex-shrink-0 flex items-center justify-center overflow-hidden">
                   {video.thumbnailPath ? (
@@ -173,7 +173,7 @@ export default function VideoLibraryList({
                   ) : (
                     <div className="font-medium truncate text-sm sm:text-base">{video.name}</div>
                   )}
-                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400 mt-0.5 sm:mt-1">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400 mt-0.5 sm:mt-1">
                     <span title={video.source} className="flex-shrink-0">
                       <SourceIcon source={video.source} />
                     </span>

@@ -153,7 +153,7 @@ export default function Layout({
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Mobile Preview Header - only on mobile */}
         <div className="md:hidden">
           <PreviewHeader
@@ -207,9 +207,9 @@ export default function Layout({
         </header>
 
         {/* Page content with optional preview panel */}
-        <div className="flex-1 flex min-h-0">
+        <div className="flex-1 flex min-h-0 min-w-0">
           {/* Main page content */}
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-4 min-h-0">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-4 min-h-0 min-w-0">
             {children(currentPage)}
           </main>
 
