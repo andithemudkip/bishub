@@ -361,6 +361,7 @@ export function useRemoteAPI(): RemoteAPI {
     setClockFontSize: useCallback(
       (size: number) => {
         if (isElectron) window.electronAPI!.setClockFontSize(size);
+        else socketRef.current?.emit("setClockFontSize", size);
       },
       [isElectron]
     ),
@@ -368,6 +369,7 @@ export function useRemoteAPI(): RemoteAPI {
     setClockPosition: useCallback(
       (position: ClockPosition) => {
         if (isElectron) window.electronAPI!.setClockPosition(position);
+        else socketRef.current?.emit("setClockPosition", position);
       },
       [isElectron]
     ),
@@ -375,6 +377,7 @@ export function useRemoteAPI(): RemoteAPI {
     setAudioWidgetPosition: useCallback(
       (position: AudioWidgetPosition) => {
         if (isElectron) window.electronAPI!.setAudioWidgetPosition(position);
+        else socketRef.current?.emit("setAudioWidgetPosition", position);
       },
       [isElectron]
     ),

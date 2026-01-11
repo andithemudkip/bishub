@@ -226,30 +226,34 @@ export function createServer(
   });
 
   // Audio upload endpoint
-  app.post("/api/audio/upload", audioUpload.single("audio"), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No audio file uploaded" });
+  app.post(
+    "/api/audio/upload",
+    audioUpload.single("audio"),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: "No audio file uploaded" });
+        }
+
+        const originalName =
+          req.body.name ||
+          path.basename(
+            req.file.originalname,
+            path.extname(req.file.originalname)
+          );
+
+        const audio = await audioLibrary.addAudio(req.file.path, "upload", {
+          name: originalName,
+          copyToLibrary: false, // Already in audios directory
+        });
+
+        res.json({ audio, status: "complete" });
+      } catch (error) {
+        console.error("Audio upload error:", error);
+        res.status(500).json({ error: "Upload failed" });
       }
-
-      const originalName =
-        req.body.name ||
-        path.basename(
-          req.file.originalname,
-          path.extname(req.file.originalname)
-        );
-
-      const audio = await audioLibrary.addAudio(req.file.path, "upload", {
-        name: originalName,
-        copyToLibrary: false, // Already in audios directory
-      });
-
-      res.json({ audio, status: "complete" });
-    } catch (error) {
-      console.error("Audio upload error:", error);
-      res.status(500).json({ error: "Upload failed" });
     }
-  });
+  );
 
   // Stream audio file (for web remote)
   app.get("/api/audio/file/:id", (req, res) => {
@@ -480,6 +484,19 @@ export function createServer(
 
     socket.on("deleteAudioPreset", (presetId) => {
       getAudioScheduler()?.deletePreset(presetId);
+    });
+
+    // Idle
+    socket.on("setClockFontSize", (size) => {
+      stateManager.setClockFontSize(size);
+    });
+
+    socket.on("setClockPosition", (position) => {
+      stateManager.setClockPosition(position);
+    });
+
+    socket.on("setAudioWidgetPosition", (position) => {
+      stateManager.setAudioWidgetPosition(position);
     });
 
     socket.on("disconnect", () => {

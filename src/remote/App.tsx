@@ -196,6 +196,10 @@ export default function App() {
         case "Escape":
           api.goIdle();
           break;
+        case "F5":
+          // TODO: focus search input
+          e.preventDefault();
+          break;
       }
     };
 

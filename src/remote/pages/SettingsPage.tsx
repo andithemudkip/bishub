@@ -64,9 +64,16 @@ export default function SettingsPage({
   const isElectron = !!window.electronAPI;
 
   useEffect(() => {
-    window.electronAPI?.getLocalIP().then(setLocalIP);
-    window.electronAPI?.getSecurityKey().then(setSecurityKey);
-  }, []);
+    if (isElectron) {
+      window.electronAPI?.getLocalIP().then(setLocalIP);
+      window.electronAPI?.getSecurityKey().then(setSecurityKey);
+    } else {
+      const url = new URL(window.location.href);
+      const securityKey = url.searchParams.get("key") || "unknown";
+      setSecurityKey(securityKey);
+      setLocalIP(url.hostname);
+    }
+  }, [isElectron]);
 
   const handleMonitorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const monitorId = Number(e.target.value);
@@ -172,14 +179,12 @@ export default function SettingsPage({
       </div>
 
       {/* Idle screen settings - Electron only */}
-      {isElectron && (
-        <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
-          <h2 className="text-lg font-semibold mb-4">
-            {t.settings.idleScreen}
-          </h2>
-
-          <div className="space-y-4 sm:space-y-6">
-            {/* Wallpaper */}
+      {/* {isElectron && ( */}
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+        <h2 className="text-lg font-semibold mb-4">{t.settings.idleScreen}</h2>
+        <div className="space-y-4 sm:space-y-6">
+          {/* Wallpaper */}
+          {isElectron && (
             <div>
               <label className="text-sm text-gray-400 block mb-2">
                 {t.settings.wallpaper}
@@ -206,66 +211,66 @@ export default function SettingsPage({
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Clock font size */}
-            <div>
-              <label className="text-sm text-gray-400 block mb-2">
-                {t.settings.clockFontSize}: {idleState.clockFontSize}%
-              </label>
-              <input
-                type="range"
-                min="50"
-                max="150"
-                step="10"
-                value={idleState.clockFontSize}
-                onChange={handleFontSizeChange}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-              />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>50%</span>
-                <span>100%</span>
-                <span>150%</span>
-              </div>
-            </div>
-
-            {/* Clock position */}
-            <div>
-              <label className="text-sm text-gray-400 block mb-2">
-                {t.settings.clockPosition}
-              </label>
-              <select
-                value={idleState.clockPosition}
-                onChange={handlePositionChange}
-                className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {CLOCK_POSITIONS.map((pos) => (
-                  <option key={pos} value={pos}>
-                    {getPositionLabel(pos)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Audio widget position */}
-            <div>
-              <label className="text-sm text-gray-400 block mb-2">
-                {t.settings.audioWidgetPosition}
-              </label>
-              <select
-                value={idleState.audioWidgetPosition}
-                onChange={handleAudioWidgetPositionChange}
-                className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {AUDIO_WIDGET_POSITIONS.map((pos) => (
-                  <option key={pos} value={pos}>
-                    {getPositionLabel(pos)}
-                  </option>
-                ))}
-              </select>
+          {/* Clock font size */}
+          <div>
+            <label className="text-sm text-gray-400 block mb-2">
+              {t.settings.clockFontSize}: {idleState.clockFontSize}%
+            </label>
+            <input
+              type="range"
+              min="50"
+              max="150"
+              step="10"
+              value={idleState.clockFontSize}
+              onChange={handleFontSizeChange}
+              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>50%</span>
+              <span>100%</span>
+              <span>150%</span>
             </div>
           </div>
+
+          {/* Clock position */}
+          <div>
+            <label className="text-sm text-gray-400 block mb-2">
+              {t.settings.clockPosition}
+            </label>
+            <select
+              value={idleState.clockPosition}
+              onChange={handlePositionChange}
+              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {CLOCK_POSITIONS.map((pos) => (
+                <option key={pos} value={pos}>
+                  {getPositionLabel(pos)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Audio widget position */}
+          <div>
+            <label className="text-sm text-gray-400 block mb-2">
+              {t.settings.audioWidgetPosition}
+            </label>
+            <select
+              value={idleState.audioWidgetPosition}
+              onChange={handleAudioWidgetPositionChange}
+              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {AUDIO_WIDGET_POSITIONS.map((pos) => (
+                <option key={pos} value={pos}>
+                  {getPositionLabel(pos)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Connection info */}
       <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
@@ -280,12 +285,14 @@ export default function SettingsPage({
           </div>
 
           {/* URL */}
-          <div className="text-center">
-            <div className="text-sm text-gray-400 mb-1">
-              {t.settings.scanOrVisit}
+          {isElectron && (
+            <div className="text-center">
+              <div className="text-sm text-gray-400 mb-1">
+                {t.settings.scanOrVisit}
+              </div>
+              <div className="font-mono text-lg text-blue-400">{remoteURL}</div>
             </div>
-            <div className="font-mono text-lg text-blue-400">{remoteURL}</div>
-          </div>
+          )}
 
           <p className="text-sm text-gray-500 text-center">
             {t.settings.sameWifi}

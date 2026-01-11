@@ -2,6 +2,11 @@ import { useState, useEffect, useMemo } from "react";
 import type { DisplayState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 import { PreviewPanel, PreviewHeader, usePreviewState } from "./preview";
+import { HymnsIcon } from "./icons/hymns";
+import { BibleIcon } from "./icons/bible";
+import { VideoIcon } from "./icons/video";
+import { AudioIcon } from "./icons/audio";
+import { SettingsIcon } from "./icons/settings";
 
 type Page = "hymns" | "bible" | "video" | "audio" | "settings";
 
@@ -14,12 +19,12 @@ interface Props {
   onPrevSlide: () => void;
 }
 
-const NAV_ICONS: Record<Page, string> = {
-  hymns: "♪",
-  bible: "✝",
-  video: "▶",
-  audio: "🎵",
-  settings: "⚙",
+const NAV_ICONS: Record<Page, React.ReactNode> = {
+  hymns: <HymnsIcon className="w-6 h-6" />,
+  bible: <BibleIcon className="w-6 h-6" />,
+  video: <VideoIcon className="w-6 h-6" />,
+  audio: <AudioIcon className="w-6 h-6" />,
+  settings: <SettingsIcon className="w-6 h-6" />,
 };
 
 function useIsMobile() {

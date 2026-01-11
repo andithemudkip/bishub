@@ -224,8 +224,8 @@ const ro: Translations = {
     slide: "Slide",
     of: "din",
     noHymnsFound: "Nu s-au găsit imnuri pentru",
-    verses: "versuri",
-    verse: "vers",
+    verses: "strofe",
+    verse: "strofă",
     chorus: "refren",
   },
   bible: {

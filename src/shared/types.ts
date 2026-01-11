@@ -170,6 +170,10 @@ export type ClientToServerEvents = {
   createAudioPreset: (params: CreatePresetParams) => void;
   activateAudioPreset: (presetId: string, audioPath: string) => void;
   deleteAudioPreset: (presetId: string) => void;
+  // Idle
+  setClockFontSize: (size: number) => void;
+  setClockPosition: (position: ClockPosition) => void;
+  setAudioWidgetPosition: (position: AudioWidgetPosition) => void;
 };
 
 export const DEFAULT_STATE: DisplayState = {
