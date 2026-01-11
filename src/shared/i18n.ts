@@ -89,6 +89,7 @@ export interface Translations {
     audioWidgetPosition: string;
     securityKey: string;
     securityKeyHint: string;
+    openOnStartup: string;
   };
 
   // Video library
@@ -278,6 +279,7 @@ const ro: Translations = {
     audioWidgetPosition: "Poziție widget audio",
     securityKey: "Cheie de securitate:",
     securityKeyHint: "Introdu această cheie dacă accesezi de pe un desktop",
+    openOnStartup: "Deschide la pornirea sistemului",
   },
   videoLibrary: {
     addLocalFile: "Adaugă fișier",
@@ -456,6 +458,7 @@ const en: Translations = {
     audioWidgetPosition: "Audio widget position",
     securityKey: "Security Key:",
     securityKeyHint: "Enter this key if accessing from a desktop",
+    openOnStartup: "Open on system startup",
   },
   videoLibrary: {
     addLocalFile: "Add file",

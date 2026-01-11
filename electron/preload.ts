@@ -41,6 +41,10 @@ const electronAPI = {
     ipcRenderer.invoke("set-display-monitor", monitorId),
   setLanguage: (language: string): Promise<void> =>
     ipcRenderer.invoke("set-language", language),
+  setOpenOnStartup: (openOnStartup: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-open-on-startup", openOnStartup),
+  getOpenOnStartup: (): Promise<boolean> =>
+    ipcRenderer.invoke("get-open-on-startup"),
   goIdle: (): Promise<void> => ipcRenderer.invoke("go-idle"),
 
   // Idle screen settings
@@ -197,10 +201,7 @@ const electronAPI = {
     minute?: number;
     relativeMinutes?: number;
   }): Promise<any> => ipcRenderer.invoke("create-audio-preset", params),
-  activateAudioPreset: (
-    presetId: string,
-    audioPath: string
-  ): Promise<any> =>
+  activateAudioPreset: (presetId: string, audioPath: string): Promise<any> =>
     ipcRenderer.invoke("activate-audio-preset", presetId, audioPath),
   deleteAudioPreset: (presetId: string): Promise<boolean> =>
     ipcRenderer.invoke("delete-audio-preset", presetId),
@@ -240,3 +241,5 @@ const electronAPI = {
 };
 
 contextBridge.exposeInMainWorld("electronAPI", electronAPI);
+
+export type ElectronAPI = typeof electronAPI;

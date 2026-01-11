@@ -92,6 +92,7 @@ export interface AppSettings {
   language: Language;
   volume: number;
   audioVolume: number;
+  openOnStartup: boolean;
 }
 
 // Socket.io event types
@@ -215,6 +216,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   language: "ro",
   volume: 1,
   audioVolume: 1,
+  openOnStartup: false,
 };
 
 // Hymn types

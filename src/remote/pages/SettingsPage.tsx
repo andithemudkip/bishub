@@ -60,6 +60,7 @@ export default function SettingsPage({
 }: Props) {
   const [localIP, setLocalIP] = useState<string>("...");
   const [securityKey, setSecurityKey] = useState<string>("...");
+  const [openOnStartup, setOpenOnStartup] = useState<boolean>(false);
   const t = getTranslations(settings.language);
   const isElectron = !!window.electronAPI;
 
@@ -67,6 +68,7 @@ export default function SettingsPage({
     if (isElectron) {
       window.electronAPI?.getLocalIP().then(setLocalIP);
       window.electronAPI?.getSecurityKey().then(setSecurityKey);
+      window.electronAPI?.getOpenOnStartup().then(setOpenOnStartup);
     } else {
       const url = new URL(window.location.href);
       const securityKey = url.searchParams.get("key") || "unknown";
@@ -104,6 +106,14 @@ export default function SettingsPage({
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     onSetAudioWidgetPosition(e.target.value as AudioWidgetPosition);
+  };
+
+  const handleOpenOnStartupChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newValue = e.target.checked;
+    setOpenOnStartup(newValue);
+    await window.electronAPI?.setOpenOnStartup(newValue);
   };
 
   const getPositionLabel = (position: ClockPosition): string => {
@@ -151,6 +161,26 @@ export default function SettingsPage({
           </select>
         </div>
       </div>
+
+      {/* Open on startup - Electron only */}
+      {isElectron && (
+        <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+          <label className="flex items-center justify-between cursor-pointer">
+            <span className="text-lg font-semibold">
+              {t.settings.openOnStartup}
+            </span>
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={openOnStartup}
+                onChange={handleOpenOnStartupChange}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </div>
+          </label>
+        </div>
+      )}
 
       {/* Display settings */}
       <div className="bg-gray-800 rounded-lg p-4 sm:p-6">

@@ -265,6 +265,11 @@ export class StateManager {
     this.notifySettingsChange();
   }
 
+  setOpenOnStartup(openOnStartup: boolean) {
+    this.settings.openOnStartup = openOnStartup;
+    this.notifySettingsChange();
+  }
+
   // Idle screen settings
   setIdleWallpaper(wallpaper: string | null) {
     this.state.idle.wallpaper = wallpaper;

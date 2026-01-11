@@ -48,6 +48,13 @@ async function createWindows() {
   stateManager = new StateManager();
   windowManager = new WindowManager(stateManager);
 
+  // Sync login item settings with stored preference
+  const settings = stateManager.getSettings();
+  app.setLoginItemSettings({
+    openAtLogin: settings.openOnStartup,
+    openAsHidden: false,
+  });
+
   // Initialize audio scheduler
   const audioScheduler = initAudioScheduler(stateManager);
   audioScheduler.onScheduleChange((schedules) => {
@@ -170,6 +177,21 @@ function setupIPC() {
 
   ipcMain.handle("set-language", (_event, language: Language) => {
     stateManager.setLanguage(language);
+  });
+
+  ipcMain.handle("set-open-on-startup", (_event, openOnStartup: boolean) => {
+    stateManager.setOpenOnStartup(openOnStartup);
+
+    // Update the system's login item settings
+    app.setLoginItemSettings({
+      openAtLogin: openOnStartup,
+      openAsHidden: false,
+    });
+  });
+
+  ipcMain.handle("get-open-on-startup", () => {
+    const loginSettings = app.getLoginItemSettings();
+    return loginSettings.openAtLogin;
   });
 
   ipcMain.handle("go-idle", () => {
