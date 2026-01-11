@@ -1,9 +1,34 @@
 const { contextBridge, ipcRenderer } = require("electron");
+import type {
+  DisplayState,
+  AppSettings,
+  MonitorInfo,
+  Hymn,
+  BibleVerse,
+  UpdateStatus,
+} from "../src/shared/types";
+import type {
+  VideoItem,
+  DownloadProgress,
+  UploadProgress,
+} from "../src/shared/videoLibrary.types";
+import type {
+  AudioItem,
+  AudioUploadProgress,
+  DirectoryImportProgress,
+} from "../src/shared/audioLibrary.types";
+import type {
+  AudioSchedule,
+  AudioSchedulePreset,
+  ScheduleEvent,
+  CreateScheduleParams,
+  CreatePresetParams,
+} from "../src/shared/audioSchedule.types";
 
 const electronAPI = {
-  getState: (): Promise<any> => ipcRenderer.invoke("get-state"),
-  getSettings: (): Promise<any> => ipcRenderer.invoke("get-settings"),
-  getMonitors: (): Promise<any[]> => ipcRenderer.invoke("get-monitors"),
+  getState: (): Promise<DisplayState> => ipcRenderer.invoke("get-state"),
+  getSettings: (): Promise<AppSettings> => ipcRenderer.invoke("get-settings"),
+  getMonitors: (): Promise<MonitorInfo[]> => ipcRenderer.invoke("get-monitors"),
   getLocalIP: (): Promise<string> => ipcRenderer.invoke("get-local-ip"),
   getSecurityKey: (): Promise<string> => ipcRenderer.invoke("get-security-key"),
 
@@ -11,8 +36,8 @@ const electronAPI = {
   getAppVersion: (): Promise<string> => ipcRenderer.invoke("get-app-version"),
   checkForUpdates: (): Promise<void> => ipcRenderer.invoke("check-for-updates"),
   installUpdate: (): Promise<void> => ipcRenderer.invoke("install-update"),
-  onUpdateStatus: (callback: (status: any) => void) => {
-    ipcRenderer.on("update-status", (_event: any, status: any) =>
+  onUpdateStatus: (callback: (status: UpdateStatus) => void) => {
+    ipcRenderer.on("update-status", (_event: any, status: UpdateStatus) =>
       callback(status)
     );
     return () => ipcRenderer.removeAllListeners("update-status");
@@ -62,15 +87,17 @@ const electronAPI = {
     ipcRenderer.invoke("video-time-update", time, duration),
 
   // Hymns
-  getHymns: (): Promise<any[]> => ipcRenderer.invoke("get-hymns"),
-  searchHymns: (query: string): Promise<any[]> =>
+  getHymns: (): Promise<Hymn[]> => ipcRenderer.invoke("get-hymns"),
+  searchHymns: (query: string): Promise<Hymn[]> =>
     ipcRenderer.invoke("search-hymns", query),
   loadHymn: (hymnNumber: string): Promise<void> =>
     ipcRenderer.invoke("load-hymn", hymnNumber),
 
   // Bible
-  getBibleBooks: (): Promise<any[]> => ipcRenderer.invoke("get-bible-books"),
-  getBibleChapter: (bookId: string, chapter: number): Promise<any[]> =>
+  getBibleBooks: (): Promise<
+    { id: string; name: string; chapterCount: number }[]
+  > => ipcRenderer.invoke("get-bible-books"),
+  getBibleChapter: (bookId: string, chapter: number): Promise<BibleVerse[]> =>
     ipcRenderer.invoke("get-bible-chapter", bookId, chapter),
   loadBibleVerses: (
     bookId: string,
@@ -89,54 +116,54 @@ const electronAPI = {
     ),
 
   // Video Library
-  getVideoLibrary: (): Promise<any[]> =>
+  getVideoLibrary: (): Promise<VideoItem[]> =>
     ipcRenderer.invoke("get-video-library"),
-  addLocalVideo: (): Promise<any> => ipcRenderer.invoke("add-local-video"),
+  addLocalVideo: (): Promise<VideoItem> => ipcRenderer.invoke("add-local-video"),
   deleteVideo: (videoId: string): Promise<boolean> =>
     ipcRenderer.invoke("delete-video", videoId),
-  renameVideo: (videoId: string, newName: string): Promise<any> =>
+  renameVideo: (videoId: string, newName: string): Promise<VideoItem> =>
     ipcRenderer.invoke("rename-video", videoId, newName),
-  downloadYouTubeVideo: (url: string): Promise<any> =>
+  downloadYouTubeVideo: (url: string): Promise<VideoItem> =>
     ipcRenderer.invoke("download-youtube-video", url),
   cancelYouTubeDownload: (downloadId: string): Promise<boolean> =>
     ipcRenderer.invoke("cancel-youtube-download", downloadId),
-  getActiveDownloads: (): Promise<any[]> =>
+  getActiveDownloads: (): Promise<DownloadProgress[]> =>
     ipcRenderer.invoke("get-active-downloads"),
   getVideoThumbnail: (videoId: string): Promise<string | null> =>
     ipcRenderer.invoke("get-video-thumbnail", videoId),
 
-  onVideoLibraryUpdate: (callback: (videos: any[]) => void) => {
-    ipcRenderer.on("video-library-update", (_event: any, videos: any[]) =>
+  onVideoLibraryUpdate: (callback: (videos: VideoItem[]) => void) => {
+    ipcRenderer.on("video-library-update", (_event: any, videos: VideoItem[]) =>
       callback(videos)
     );
     return () => ipcRenderer.removeAllListeners("video-library-update");
   },
 
-  onDownloadProgress: (callback: (progress: any) => void) => {
-    ipcRenderer.on("download-progress", (_event: any, progress: any) =>
+  onDownloadProgress: (callback: (progress: DownloadProgress) => void) => {
+    ipcRenderer.on("download-progress", (_event: any, progress: DownloadProgress) =>
       callback(progress)
     );
     return () => ipcRenderer.removeAllListeners("download-progress");
   },
 
-  onUploadProgress: (callback: (progress: any) => void) => {
-    ipcRenderer.on("upload-progress", (_event: any, progress: any) =>
+  onUploadProgress: (callback: (progress: UploadProgress) => void) => {
+    ipcRenderer.on("upload-progress", (_event: any, progress: UploadProgress) =>
       callback(progress)
     );
     return () => ipcRenderer.removeAllListeners("upload-progress");
   },
 
   // Audio Library
-  getAudioLibrary: (): Promise<any[]> =>
+  getAudioLibrary: (): Promise<AudioItem[]> =>
     ipcRenderer.invoke("get-audio-library"),
-  addLocalAudio: (): Promise<any> => ipcRenderer.invoke("add-local-audio"),
+  addLocalAudio: (): Promise<AudioItem> => ipcRenderer.invoke("add-local-audio"),
   addLocalAudioDirectory: (): Promise<{
-    completed: any[];
+    completed: AudioItem[];
     errors: { file: string; error: string }[];
   }> => ipcRenderer.invoke("add-local-audio-directory"),
   deleteAudio: (audioId: string): Promise<boolean> =>
     ipcRenderer.invoke("delete-audio", audioId),
-  renameAudio: (audioId: string, newName: string): Promise<any> =>
+  renameAudio: (audioId: string, newName: string): Promise<AudioItem> =>
     ipcRenderer.invoke("rename-audio", audioId, newName),
 
   // Audio playback
@@ -154,86 +181,76 @@ const electronAPI = {
   setAudioWidgetPosition: (position: string): Promise<void> =>
     ipcRenderer.invoke("set-audio-widget-position", position),
 
-  onAudioLibraryUpdate: (callback: (audios: any[]) => void) => {
-    ipcRenderer.on("audio-library-update", (_event: any, audios: any[]) =>
+  onAudioLibraryUpdate: (callback: (audios: AudioItem[]) => void) => {
+    ipcRenderer.on("audio-library-update", (_event: any, audios: AudioItem[]) =>
       callback(audios)
     );
     return () => ipcRenderer.removeAllListeners("audio-library-update");
   },
 
-  onAudioUploadProgress: (callback: (progress: any) => void) => {
-    ipcRenderer.on("audio-upload-progress", (_event: any, progress: any) =>
+  onAudioUploadProgress: (callback: (progress: AudioUploadProgress) => void) => {
+    ipcRenderer.on("audio-upload-progress", (_event: any, progress: AudioUploadProgress) =>
       callback(progress)
     );
     return () => ipcRenderer.removeAllListeners("audio-upload-progress");
   },
 
-  onAudioDirectoryImportProgress: (callback: (progress: any) => void) => {
+  onAudioDirectoryImportProgress: (callback: (progress: DirectoryImportProgress) => void) => {
     ipcRenderer.on(
       "audio-directory-import-progress",
-      (_event: any, progress: any) => callback(progress)
+      (_event: any, progress: DirectoryImportProgress) => callback(progress)
     );
     return () =>
       ipcRenderer.removeAllListeners("audio-directory-import-progress");
   },
 
   // Audio Scheduling
-  getAudioSchedules: (): Promise<any[]> =>
+  getAudioSchedules: (): Promise<AudioSchedule[]> =>
     ipcRenderer.invoke("get-audio-schedules"),
-  getAudioPresets: (): Promise<any[]> =>
+  getAudioPresets: (): Promise<AudioSchedulePreset[]> =>
     ipcRenderer.invoke("get-audio-presets"),
-  createAudioSchedule: (params: {
-    audioId: string;
-    audioName: string;
-    audioPath: string;
-    timeType: "absolute" | "relative";
-    absoluteTime?: string;
-    relativeMinutes?: number;
-  }): Promise<any> => ipcRenderer.invoke("create-audio-schedule", params),
+  createAudioSchedule: (params: CreateScheduleParams): Promise<AudioSchedule> =>
+    ipcRenderer.invoke("create-audio-schedule", params),
   cancelAudioSchedule: (scheduleId: string): Promise<boolean> =>
     ipcRenderer.invoke("cancel-audio-schedule", scheduleId),
-  createAudioPreset: (params: {
-    name: string;
-    audioId: string;
-    audioName: string;
-    timeType: "absolute" | "relative";
-    hour?: number;
-    minute?: number;
-    relativeMinutes?: number;
-  }): Promise<any> => ipcRenderer.invoke("create-audio-preset", params),
-  activateAudioPreset: (presetId: string, audioPath: string): Promise<any> =>
+  createAudioPreset: (params: CreatePresetParams): Promise<AudioSchedulePreset> =>
+    ipcRenderer.invoke("create-audio-preset", params),
+  activateAudioPreset: (
+    presetId: string,
+    audioPath: string
+  ): Promise<AudioSchedule> =>
     ipcRenderer.invoke("activate-audio-preset", presetId, audioPath),
   deleteAudioPreset: (presetId: string): Promise<boolean> =>
     ipcRenderer.invoke("delete-audio-preset", presetId),
 
-  onAudioSchedulesUpdate: (callback: (schedules: any[]) => void) => {
-    ipcRenderer.on("audio-schedules-update", (_event: any, schedules: any[]) =>
+  onAudioSchedulesUpdate: (callback: (schedules: AudioSchedule[]) => void) => {
+    ipcRenderer.on("audio-schedules-update", (_event: any, schedules: AudioSchedule[]) =>
       callback(schedules)
     );
     return () => ipcRenderer.removeAllListeners("audio-schedules-update");
   },
-  onAudioPresetsUpdate: (callback: (presets: any[]) => void) => {
-    ipcRenderer.on("audio-presets-update", (_event: any, presets: any[]) =>
+  onAudioPresetsUpdate: (callback: (presets: AudioSchedulePreset[]) => void) => {
+    ipcRenderer.on("audio-presets-update", (_event: any, presets: AudioSchedulePreset[]) =>
       callback(presets)
     );
     return () => ipcRenderer.removeAllListeners("audio-presets-update");
   },
-  onAudioScheduleEvent: (callback: (event: any) => void) => {
-    ipcRenderer.on("audio-schedule-event", (_event: any, event: any) =>
+  onAudioScheduleEvent: (callback: (event: ScheduleEvent) => void) => {
+    ipcRenderer.on("audio-schedule-event", (_event: any, event: ScheduleEvent) =>
       callback(event)
     );
     return () => ipcRenderer.removeAllListeners("audio-schedule-event");
   },
 
-  onStateUpdate: (callback: (state: any) => void) => {
-    ipcRenderer.on("state-update", (_event: any, state: any) =>
+  onStateUpdate: (callback: (state: DisplayState) => void) => {
+    ipcRenderer.on("state-update", (_event: any, state: DisplayState) =>
       callback(state)
     );
     return () => ipcRenderer.removeAllListeners("state-update");
   },
 
-  onSettingsUpdate: (callback: (settings: any) => void) => {
-    ipcRenderer.on("settings-update", (_event: any, settings: any) =>
+  onSettingsUpdate: (callback: (settings: AppSettings) => void) => {
+    ipcRenderer.on("settings-update", (_event: any, settings: AppSettings) =>
       callback(settings)
     );
     return () => ipcRenderer.removeAllListeners("settings-update");

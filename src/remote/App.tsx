@@ -1,12 +1,5 @@
 import { useEffect, useCallback, useState } from "react";
-import type {
-  DisplayState,
-  AppSettings,
-  MonitorInfo,
-  Hymn,
-  BibleVerse,
-  UpdateStatus,
-} from "../shared/types";
+import type { UpdateStatus } from "../shared/types";
 import { getTranslations } from "../shared/i18n";
 import UpdateBanner from "./components/UpdateBanner";
 import Layout from "./components/Layout";
@@ -16,116 +9,6 @@ import VideoLibraryPage from "./pages/VideoLibraryPage";
 import AudioLibraryPage from "./pages/AudioLibraryPage";
 import SettingsPage from "./pages/SettingsPage";
 import { useRemoteAPI } from "./useRemoteAPI";
-import type {
-  VideoItem,
-  DownloadProgress,
-  UploadProgress,
-} from "../shared/videoLibrary.types";
-import type {
-  AudioItem,
-  AudioUploadProgress,
-} from "../shared/audioLibrary.types";
-
-declare global {
-  interface Window {
-    electronAPI?: {
-      getState: () => Promise<DisplayState>;
-      getSettings: () => Promise<AppSettings>;
-      getMonitors: () => Promise<MonitorInfo[]>;
-      onStateUpdate: (callback: (state: DisplayState) => void) => () => void;
-      onSettingsUpdate: (
-        callback: (settings: AppSettings) => void
-      ) => () => void;
-      setMode: (mode: "idle" | "text" | "video") => Promise<void>;
-      loadText: (title: string, content: string) => Promise<void>;
-      nextSlide: () => Promise<void>;
-      prevSlide: () => Promise<void>;
-      goToSlide: (index: number) => Promise<void>;
-      loadVideo: (src: string) => Promise<void>;
-      playVideo: () => Promise<void>;
-      pauseVideo: () => Promise<void>;
-      stopVideo: () => Promise<void>;
-      seekVideo: (time: number) => Promise<void>;
-      setVolume: (volume: number) => Promise<void>;
-      setDisplayMonitor: (monitorId: number) => Promise<void>;
-      setLanguage: (language: string) => Promise<void>;
-      goIdle: () => Promise<void>;
-      // Idle screen settings
-      setIdleWallpaper: (selectNew?: boolean) => Promise<string | null>;
-      setClockFontSize: (size: number) => Promise<void>;
-      setClockPosition: (position: string) => Promise<void>;
-      openFileDialog: (
-        filters: { name: string; extensions: string[] }[]
-      ) => Promise<string | null>;
-      // Hymns
-      getHymns: () => Promise<Hymn[]>;
-      searchHymns: (query: string) => Promise<Hymn[]>;
-      loadHymn: (hymnNumber: string) => Promise<void>;
-      // Bible
-      getBibleBooks: () => Promise<
-        { id: string; name: string; chapterCount: number }[]
-      >;
-      getBibleChapter: (
-        bookId: string,
-        chapter: number
-      ) => Promise<BibleVerse[]>;
-      loadBibleVerses: (
-        bookId: string,
-        bookName: string,
-        chapter: number,
-        startVerse: number,
-        endVerse?: number
-      ) => Promise<void>;
-      // Video Library
-      getVideoLibrary: () => Promise<VideoItem[]>;
-      addLocalVideo: () => Promise<VideoItem | null>;
-      deleteVideo: (videoId: string) => Promise<boolean>;
-      renameVideo: (
-        videoId: string,
-        newName: string
-      ) => Promise<VideoItem | null>;
-      downloadYouTubeVideo: (url: string) => Promise<DownloadProgress>;
-      cancelYouTubeDownload: (downloadId: string) => Promise<boolean>;
-      getActiveDownloads: () => Promise<DownloadProgress[]>;
-      getVideoThumbnail: (videoId: string) => Promise<string | null>;
-      onVideoLibraryUpdate: (
-        callback: (videos: VideoItem[]) => void
-      ) => () => void;
-      onDownloadProgress: (
-        callback: (progress: DownloadProgress) => void
-      ) => () => void;
-      onUploadProgress: (
-        callback: (progress: UploadProgress) => void
-      ) => () => void;
-      // Audio Library
-      getAudioLibrary: () => Promise<AudioItem[]>;
-      addLocalAudio: () => Promise<AudioItem | null>;
-      deleteAudio: (audioId: string) => Promise<boolean>;
-      renameAudio: (
-        audioId: string,
-        newName: string
-      ) => Promise<AudioItem | null>;
-      loadAudio: (src: string, name: string) => Promise<void>;
-      playAudio: () => Promise<void>;
-      pauseAudio: () => Promise<void>;
-      stopAudio: () => Promise<void>;
-      seekAudio: (time: number) => Promise<void>;
-      setAudioVolume: (volume: number) => Promise<void>;
-      setAudioWidgetPosition: (position: string) => Promise<void>;
-      onAudioLibraryUpdate: (
-        callback: (audios: AudioItem[]) => void
-      ) => () => void;
-      onAudioUploadProgress: (
-        callback: (progress: AudioUploadProgress) => void
-      ) => () => void;
-      // Updates
-      getAppVersion: () => Promise<string>;
-      checkForUpdates: () => Promise<void>;
-      installUpdate: () => Promise<void>;
-      onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void;
-    };
-  }
-}
 
 export default function App() {
   const api = useRemoteAPI();
@@ -286,11 +169,15 @@ export default function App() {
             monitors={api.monitors}
             settings={api.settings}
             idleState={api.state.idle}
+            videoVolume={api.state.video.volume}
+            audioVolume={api.state.audio.volume}
             onSetLanguage={api.setLanguage}
             onSetWallpaper={api.setIdleWallpaper}
             onSetClockFontSize={api.setClockFontSize}
             onSetClockPosition={api.setClockPosition}
             onSetAudioWidgetPosition={api.setAudioWidgetPosition}
+            onSetVolume={api.setVolume}
+            onSetAudioVolume={api.setAudioVolume}
             appVersion={appVersion}
             updateStatus={updateStatus}
             onCheckForUpdates={handleCheckForUpdates}

@@ -73,6 +73,10 @@ export interface Translations {
     nextSlide: string;
     previousSlide: string;
     goToIdle: string;
+    volume: string;
+    securityKey: string;
+    securityKeyHint: string;
+    openOnStartup: string;
     // Idle screen settings
     idleScreen: string;
     wallpaper: string;
@@ -87,9 +91,6 @@ export interface Translations {
     positionBottomRight: string;
     positionCenter: string;
     audioWidgetPosition: string;
-    securityKey: string;
-    securityKeyHint: string;
-    openOnStartup: string;
   };
 
   // Video library
@@ -263,6 +264,7 @@ const ro: Translations = {
     nextSlide: "Slide următor",
     previousSlide: "Slide anterior",
     goToIdle: "Întrerupe afișarea",
+    volume: "Volum",
     // Idle screen settings
     idleScreen: "Ecran de așteptare",
     wallpaper: "Fundal",
@@ -294,7 +296,7 @@ const ro: Translations = {
     play: "Redare",
     pause: "Pauză",
     stop: "Stop",
-    volume: "Volum",
+    volume: "Volum video",
     rename: "Redenumește",
     delete: "Șterge",
     confirmDelete: "Șterge",
@@ -323,7 +325,7 @@ const ro: Translations = {
     play: "Redare",
     pause: "Pauză",
     stop: "Stop",
-    volume: "Volum",
+    volume: "Volum audio",
     rename: "Redenumește",
     delete: "Șterge",
     confirmDelete: "Șterge",
@@ -442,6 +444,7 @@ const en: Translations = {
     nextSlide: "Next slide",
     previousSlide: "Previous slide",
     goToIdle: "Go to idle",
+    volume: "Volume",
     // Idle screen settings
     idleScreen: "Idle Screen",
     wallpaper: "Wallpaper",
@@ -473,7 +476,7 @@ const en: Translations = {
     play: "Play",
     pause: "Pause",
     stop: "Stop",
-    volume: "Volume",
+    volume: "Video volume",
     rename: "Rename",
     delete: "Delete",
     confirmDelete: "Delete",
@@ -502,7 +505,7 @@ const en: Translations = {
     play: "Play",
     pause: "Pause",
     stop: "Stop",
-    volume: "Volume",
+    volume: "Audio volume",
     rename: "Rename",
     delete: "Delete",
     confirmDelete: "Delete",

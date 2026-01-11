@@ -19,11 +19,15 @@ interface Props {
   monitors: MonitorInfo[];
   settings: AppSettings;
   idleState: IdleState;
+  videoVolume: number;
+  audioVolume: number;
   onSetLanguage: (language: Language) => void;
   onSetWallpaper: (selectNew?: boolean) => Promise<string | null>;
   onSetClockFontSize: (size: number) => void;
   onSetClockPosition: (position: ClockPosition) => void;
   onSetAudioWidgetPosition: (position: AudioWidgetPosition) => void;
+  onSetVolume: (volume: number) => void;
+  onSetAudioVolume: (volume: number) => void;
   appVersion: string;
   updateStatus: UpdateStatus;
   onCheckForUpdates: () => void;
@@ -49,11 +53,15 @@ export default function SettingsPage({
   monitors,
   settings,
   idleState,
+  videoVolume,
+  audioVolume,
   onSetLanguage,
   onSetWallpaper,
   onSetClockFontSize,
   onSetClockPosition,
   onSetAudioWidgetPosition,
+  onSetVolume,
+  onSetAudioVolume,
   appVersion,
   updateStatus,
   onCheckForUpdates,
@@ -106,6 +114,14 @@ export default function SettingsPage({
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     onSetAudioWidgetPosition(e.target.value as AudioWidgetPosition);
+  };
+
+  const handleVideoVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onSetVolume(Number(e.target.value));
+  };
+
+  const handleAudioVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onSetAudioVolume(Number(e.target.value));
   };
 
   const handleOpenOnStartupChange = async (
@@ -298,6 +314,70 @@ export default function SettingsPage({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Volume controls */}
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+        <h2 className="text-lg font-semibold mb-4">
+          {t.settings.volume || "Volume"}
+        </h2>
+        <div className="space-y-4 sm:space-y-6">
+          {/* Video volume */}
+          <div>
+            <div className="text-sm text-gray-400 mb-2">
+              {t.videoLibrary?.volume || "Video Volume"}
+            </div>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <svg
+                className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+              </svg>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={videoVolume}
+                onChange={handleVideoVolumeChange}
+                className="flex-1 h-2 sm:h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <span className="w-10 sm:w-12 text-right text-gray-400 text-xs sm:text-sm">
+                {Math.round(videoVolume * 100)}%
+              </span>
+            </div>
+          </div>
+
+          {/* Audio volume */}
+          <div>
+            <div className="text-sm text-gray-400 mb-2">
+              {t.audioLibrary?.volume || "Audio Volume"}
+            </div>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <svg
+                className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+              </svg>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={audioVolume}
+                onChange={handleAudioVolumeChange}
+                className="flex-1 h-2 sm:h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <span className="w-10 sm:w-12 text-right text-gray-400 text-xs sm:text-sm">
+                {Math.round(audioVolume * 100)}%
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -343,8 +343,9 @@ export class StateManager {
   setAudioVolume(volume: number) {
     const clampedVolume = Math.max(0, Math.min(1, volume));
     this.state.audio.volume = clampedVolume;
-    this.settingsStore.set("audioVolume", clampedVolume);
+    this.settings.audioVolume = clampedVolume;
     this.notifyStateChange();
+    this.notifySettingsChange();
   }
 
   updateAudioTime(time: number, duration: number) {

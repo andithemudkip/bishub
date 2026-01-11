@@ -8,10 +8,10 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "../dist-electron",
-    "rootDir": ".",
+    "rootDir": "..",
     "declaration": false,
     "composite": false
   },
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts", "../src/shared/**/*.ts"],
   "exclude": ["node_modules"]
 }
