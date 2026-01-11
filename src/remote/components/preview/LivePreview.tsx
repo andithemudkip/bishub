@@ -8,6 +8,7 @@ const MIN_PREVIEW_FONT = 6;
 interface Props {
   state: DisplayState;
   settings: AppSettings;
+  showLabels?: boolean;
 }
 
 const LANGUAGE_LOCALES: Record<Language, string> = {
@@ -15,13 +16,19 @@ const LANGUAGE_LOCALES: Record<Language, string> = {
   en: "en-US",
 };
 
-export default function LivePreview({ state, settings }: Props) {
+export default function LivePreview({
+  state,
+  settings,
+  showLabels = true,
+}: Props) {
   if (state.mode === "idle") {
     return <IdlePreview state={state} language={settings.language} />;
   }
 
   if (state.mode === "text") {
-    return <TextPreview state={state} settings={settings} />;
+    return (
+      <TextPreview state={state} settings={settings} showLabels={showLabels} />
+    );
   }
 
   if (state.mode === "video") {
@@ -115,7 +122,7 @@ function SlideText({
       className={`w-full h-full flex flex-col ${className}`}
     >
       {label && (
-        <div className="flex-shrink-0 text-[10px] text-white/30 uppercase tracking-widest text-center h-[20px] flex items-center justify-center select-none">
+        <div className="flex-shrink-0 text-[10px] text-white/30 uppercase tracking-widest text-center h-[20px] flex items-center justify-center select-none hidden md:flex">
           {label}
         </div>
       )}
@@ -142,9 +149,11 @@ function SlideText({
 function TextPreview({
   state,
   settings,
+  showLabels,
 }: {
   state: DisplayState;
   settings: AppSettings;
+  showLabels: boolean;
 }) {
   const { text } = state;
   const currentSlide = text.slides[text.currentSlide] || "";
@@ -153,10 +162,10 @@ function TextPreview({
   const t = getTranslations(settings.language);
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-b from-gray-900 to-black p-2 overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-gradient-to-b from-gray-900 to-black p-1 md:p-2 overflow-hidden">
       {/* Title - fixed height */}
       {text.title && (
-        <div className="flex-shrink-0 text-[10px] text-white/50 mb-1 truncate w-full text-center">
+        <div className="block md:hidden flex-shrink-0 text-[10px] text-white/50 mb-1 truncate w-full text-center">
           {text.title}
         </div>
       )}
@@ -168,7 +177,7 @@ function TextPreview({
           <SlideText
             content={currentSlide}
             align={align}
-            label={t.preview?.current || "Current"}
+            label={showLabels ? t.preview?.current || "Current" : undefined}
           />
         </div>
 
@@ -178,7 +187,7 @@ function TextPreview({
             <SlideText
               content={nextSlide}
               align={align}
-              label={t.preview?.next || "Next"}
+              label={showLabels ? t.preview?.next || "Next" : undefined}
               className="opacity-70"
             />
           ) : (

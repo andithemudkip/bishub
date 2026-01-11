@@ -36,7 +36,11 @@ export default function PreviewHeader({
               style={{ aspectRatio: "16/9" }}
               onClick={onToggle}
             >
-              <LivePreview state={state} settings={settings} />
+              <LivePreview
+                state={state}
+                settings={settings}
+                showLabels={false}
+              />
               {/* Tap to collapse hint */}
               <div className="absolute bottom-1 right-1 text-[8px] text-white/30 bg-black/50 px-1 rounded">
                 {t.preview?.tapToCollapse || "Tap to hide"}
