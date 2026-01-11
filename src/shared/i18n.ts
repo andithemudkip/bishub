@@ -188,6 +188,9 @@ export interface Translations {
     collapse: string;
     expand: string;
     tapToCollapse: string;
+    current: string;
+    next: string;
+    endOfSlides: string;
   };
 
   // Updates
@@ -370,6 +373,9 @@ const ro: Translations = {
     collapse: "Ascunde",
     expand: "Arată previzualizare",
     tapToCollapse: "Atinge pentru a ascunde",
+    current: "Curent",
+    next: "Următor",
+    endOfSlides: "Sfârșitul slide-urilor",
   },
   updates: {
     updateAvailable: "Actualizare disponibilă",
@@ -550,6 +556,9 @@ const en: Translations = {
     collapse: "Collapse",
     expand: "Show preview",
     tapToCollapse: "Tap to hide",
+    current: "Current",
+    next: "Next",
+    endOfSlides: "End of slides",
   },
   updates: {
     updateAvailable: "Update available",

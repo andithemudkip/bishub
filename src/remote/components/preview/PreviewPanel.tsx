@@ -84,7 +84,7 @@ export default function PreviewPanel({
   return (
     <div
       ref={panelRef}
-      className={`flex-shrink-0 bg-gray-800 border-l border-gray-700 flex flex-col transition-all duration-300 ${
+      className={`flex-shrink-0 h-full bg-gray-800 border-l border-gray-700 flex flex-col transition-all duration-300 ${
         isResizing ? "transition-none select-none" : ""
       }`}
       style={{ width: isOpen ? width : 0, minWidth: isOpen ? MIN_WIDTH : 0 }}
@@ -112,11 +112,11 @@ export default function PreviewPanel({
             </button>
           </div>
 
-          {/* Preview content - 16:9 aspect ratio container */}
+          {/* Preview content - dynamic aspect ratio container */}
           <div className="flex-1 p-3 flex flex-col min-h-0">
             <div
               className="relative w-full rounded-lg overflow-hidden border border-gray-700"
-              style={{ aspectRatio: "16/9" }}
+              style={{ aspectRatio: state.mode === "text" ? "3/4" : "16/9" }}
             >
               <LivePreview state={state} settings={settings} />
             </div>

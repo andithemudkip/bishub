@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import type { DisplayState, AppSettings } from "../../../shared/types";
-import type { Language } from "../../../shared/i18n";
+import { getTranslations, type Language } from "../../../shared/i18n";
 
 const MAX_PREVIEW_FONT = 32;
 const MIN_PREVIEW_FONT = 6;
@@ -21,7 +21,7 @@ export default function LivePreview({ state, settings }: Props) {
   }
 
   if (state.mode === "text") {
-    return <TextPreview state={state} />;
+    return <TextPreview state={state} settings={settings} />;
   }
 
   if (state.mode === "video") {
@@ -31,11 +31,18 @@ export default function LivePreview({ state, settings }: Props) {
   return null;
 }
 
-// Text mode preview with dynamic font scaling
-function TextPreview({ state }: { state: DisplayState }) {
-  const { text } = state;
-  const currentSlide = text.slides[text.currentSlide] || "";
-
+// Reusable component for auto-scaling text
+function SlideText({
+  content,
+  align,
+  label,
+  className = "",
+}: {
+  content: string;
+  align: "left" | "center";
+  label?: string;
+  className?: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
   const [fontSize, setFontSize] = useState(12);
@@ -68,13 +75,13 @@ function TextPreview({ state }: { state: DisplayState }) {
 
   // Calculate optimal font size when text or container changes
   useLayoutEffect(() => {
-    const container = containerRef.current;
     const textEl = textRef.current;
-    if (!container || !textEl || !currentSlide) return;
+    if (!textEl || !content) return;
 
-    // Get available space (reserve space for title and indicators)
-    const availableHeight = container.clientHeight - 64;
-    const availableWidth = container.clientWidth - 16;
+    // Use captured dimensions - subtract label height estimate if label exists
+    const labelHeight = label ? 20 : 0;
+    const availableHeight = containerSize.height - labelHeight;
+    const availableWidth = containerSize.width;
 
     if (availableHeight <= 0 || availableWidth <= 0) return;
 
@@ -100,13 +107,53 @@ function TextPreview({ state }: { state: DisplayState }) {
     }
 
     setFontSize(Math.max(MIN_PREVIEW_FONT, optimalSize));
-  }, [currentSlide, text.currentSlide, containerSize]);
+  }, [content, containerSize, label]);
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col bg-gradient-to-b from-gray-900 to-black p-2 overflow-hidden"
+      className={`w-full h-full flex flex-col ${className}`}
     >
+      {label && (
+        <div className="flex-shrink-0 text-[10px] text-white/30 uppercase tracking-widest text-center h-[20px] flex items-center justify-center select-none">
+          {label}
+        </div>
+      )}
+      <div
+        className={`flex-1 min-h-0 w-full flex items-center overflow-hidden ${
+          align === "left" ? "justify-start" : "justify-center"
+        }`}
+      >
+        <p
+          ref={textRef}
+          className={`text-white leading-snug whitespace-pre-line ${
+            align === "left" ? "text-left" : "text-center"
+          }`}
+          style={{ fontSize: `${fontSize}px` }}
+        >
+          {content}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Text mode preview with dynamic font scaling
+function TextPreview({
+  state,
+  settings,
+}: {
+  state: DisplayState;
+  settings: AppSettings;
+}) {
+  const { text } = state;
+  const currentSlide = text.slides[text.currentSlide] || "";
+  const nextSlide = text.slides[text.currentSlide + 1] || "";
+  const align = text.contentType === "bible" ? "left" : "center";
+  const t = getTranslations(settings.language);
+
+  return (
+    <div className="w-full h-full flex flex-col bg-gradient-to-b from-gray-900 to-black p-2 overflow-hidden">
       {/* Title - fixed height */}
       {text.title && (
         <div className="flex-shrink-0 text-[10px] text-white/50 mb-1 truncate w-full text-center">
@@ -114,21 +161,32 @@ function TextPreview({ state }: { state: DisplayState }) {
         </div>
       )}
 
-      {/* Slide text - fills remaining space */}
-      <div
-        className={`flex-1 min-h-0 overflow-hidden flex items-center ${
-          text.contentType === "bible" ? "justify-start" : "justify-center"
-        }`}
-      >
-        <p
-          ref={textRef}
-          className={`text-white leading-snug whitespace-pre-line ${
-            text.contentType === "bible" ? "text-left" : "text-center"
-          }`}
-          style={{ fontSize: `${fontSize}px` }}
-        >
-          {currentSlide}
-        </p>
+      {/* Main content area */}
+      <div className="flex-1 min-h-0 flex flex-col gap-2">
+        {/* Current Slide */}
+        <div className="flex-1 min-h-0">
+          <SlideText
+            content={currentSlide}
+            align={align}
+            label={t.preview?.current || "Current"}
+          />
+        </div>
+
+        {/* Next Slide (Desktop Only) */}
+        <div className="hidden md:flex flex-1 min-h-0 border-t border-white/10 pt-2">
+          {nextSlide ? (
+            <SlideText
+              content={nextSlide}
+              align={align}
+              label={t.preview?.next || "Next"}
+              className="opacity-70"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/20 text-xs italic">
+              {t.preview?.endOfSlides || "End of slides"}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Slide indicator - fixed height */}
