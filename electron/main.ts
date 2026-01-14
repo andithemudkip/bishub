@@ -16,6 +16,7 @@ import {
   formatBibleVersesForDisplay,
   formatBibleChapterForDisplay,
   loadBible,
+  searchBibleVerses,
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
@@ -300,6 +301,10 @@ function setupIPC() {
       }
     }
   );
+
+  ipcMain.handle("search-bible-verses", (_event, query: string) => {
+    return searchBibleVerses(query);
+  });
 
   // Video Library handlers
   const videoLibrary = getVideoLibrary();

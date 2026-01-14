@@ -1,0 +1,127 @@
+Date : 2026-01-12 02:38:40
+Directory : /Users/andrei/Developer/bishub
+Total : 76 files,  30246 codes, 520 comments, 1354 blanks, all 32120 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| JSON               |          5 |     18,603 |          0 |          5 |     18,608 |
+| TypeScript         |         26 |      5,365 |        305 |        785 |      6,455 |
+| TypeScript JSX     |         34 |      4,686 |        205 |        482 |      5,373 |
+| XML                |          1 |      1,256 |          0 |          1 |      1,257 |
+| Markdown           |          2 |        161 |          0 |         60 |        221 |
+| PostCSS            |          1 |         63 |          9 |         14 |         86 |
+| HTML               |          3 |         48 |          0 |          3 |         51 |
+| JSON with Comments |          2 |         42 |          0 |          2 |         44 |
+| JavaScript         |          2 |         22 |          1 |          2 |         25 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                            | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                               |         76 |     30,246 |        520 |      1,354 |     32,120 |
+| . (Files)                                                                       |         12 |      9,329 |          2 |         71 |      9,402 |
+| .claude                                                                         |          1 |         11 |          0 |          1 |         12 |
+| assets                                                                          |          2 |     10,838 |          0 |          2 |     10,840 |
+| electron                                                                        |         13 |      3,074 |        210 |        569 |      3,853 |
+| src                                                                             |         48 |      6,994 |        308 |        711 |      8,013 |
+| src (Files)                                                                     |          2 |         24 |          3 |          7 |         34 |
+| src/display                                                                     |          6 |        467 |         40 |         86 |        593 |
+| src/display (Files)                                                             |          2 |         65 |          2 |         11 |         78 |
+| src/display/components                                                          |          1 |         97 |         12 |         19 |        128 |
+| src/display/modes                                                               |          3 |        305 |         26 |         56 |        387 |
+| src/remote                                                                      |         33 |      5,126 |        194 |        518 |      5,838 |
+| src/remote (Files)                                                              |          6 |      1,046 |         33 |        128 |      1,207 |
+| src/remote/components                                                           |         22 |      2,436 |         88 |        259 |      2,783 |
+| src/remote/components (Files)                                                   |         12 |      1,842 |         51 |        174 |      2,067 |
+| src/remote/components/icons                                                     |          5 |         71 |          0 |          5 |         76 |
+| src/remote/components/preview                                                   |          5 |        523 |         37 |         80 |        640 |
+| src/remote/pages                                                                |          5 |      1,644 |         73 |        131 |      1,848 |
+| src/shared                                                                      |          6 |      1,314 |         62 |         86 |      1,462 |
+| src/styles                                                                      |          1 |         63 |          9 |         14 |         86 |
++---------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                        | language           | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| /Users/andrei/Developer/bishub/.claude/settings.local.json                      | JSON               |         11 |          0 |          1 |         12 |
+| /Users/andrei/Developer/bishub/CLAUDE.md                                        | Markdown           |        110 |          0 |         45 |        155 |
+| /Users/andrei/Developer/bishub/README.md                                        | Markdown           |         51 |          0 |         15 |         66 |
+| /Users/andrei/Developer/bishub/assets/bible.xml                                 | XML                |      1,256 |          0 |          1 |      1,257 |
+| /Users/andrei/Developer/bishub/assets/hymns.json                                | JSON               |      9,582 |          0 |          1 |      9,583 |
+| /Users/andrei/Developer/bishub/display.html                                     | HTML               |         20 |          0 |          1 |         21 |
+| /Users/andrei/Developer/bishub/electron/audioLibrary.ts                         | TypeScript         |        326 |         22 |         57 |        405 |
+| /Users/andrei/Developer/bishub/electron/audioScheduler.ts                       | TypeScript         |        276 |         17 |         50 |        343 |
+| /Users/andrei/Developer/bishub/electron/dataLoader.ts                           | TypeScript         |        220 |         19 |         42 |        281 |
+| /Users/andrei/Developer/bishub/electron/main.ts                                 | TypeScript         |        430 |         24 |         92 |        546 |
+| /Users/andrei/Developer/bishub/electron/preload.ts                              | TypeScript         |        229 |          8 |         26 |        263 |
+| /Users/andrei/Developer/bishub/electron/server.ts                               | TypeScript         |        429 |         36 |         86 |        551 |
+| /Users/andrei/Developer/bishub/electron/state.ts                                | TypeScript         |        297 |         17 |         49 |        363 |
+| /Users/andrei/Developer/bishub/electron/tsconfig.json                           | JSON with Comments |         17 |          0 |          1 |         18 |
+| /Users/andrei/Developer/bishub/electron/updater.ts                              | TypeScript         |         66 |          1 |         13 |         80 |
+| /Users/andrei/Developer/bishub/electron/utils.ts                                | TypeScript         |         90 |          7 |         15 |        112 |
+| /Users/andrei/Developer/bishub/electron/videoLibrary.ts                         | TypeScript         |        281 |         26 |         53 |        360 |
+| /Users/andrei/Developer/bishub/electron/windowManager.ts                        | TypeScript         |        153 |         11 |         33 |        197 |
+| /Users/andrei/Developer/bishub/electron/ytdlp.ts                                | TypeScript         |        260 |         22 |         52 |        334 |
+| /Users/andrei/Developer/bishub/index.html                                       | HTML               |         12 |          0 |          1 |         13 |
+| /Users/andrei/Developer/bishub/package-lock.json                                | JSON               |      8,889 |          0 |          1 |      8,890 |
+| /Users/andrei/Developer/bishub/package.json                                     | JSON               |        110 |          0 |          1 |        111 |
+| /Users/andrei/Developer/bishub/postcss.config.js                                | JavaScript         |          6 |          0 |          1 |          7 |
+| /Users/andrei/Developer/bishub/remote.html                                      | HTML               |         16 |          0 |          1 |         17 |
+| /Users/andrei/Developer/bishub/src/display/App.tsx                              | TypeScript JSX     |         56 |          2 |          9 |         67 |
+| /Users/andrei/Developer/bishub/src/display/components/AudioWidget.tsx           | TypeScript JSX     |         97 |         12 |         19 |        128 |
+| /Users/andrei/Developer/bishub/src/display/main.tsx                             | TypeScript JSX     |          9 |          0 |          2 |         11 |
+| /Users/andrei/Developer/bishub/src/display/modes/IdleMode.tsx                   | TypeScript JSX     |        106 |          9 |         18 |        133 |
+| /Users/andrei/Developer/bishub/src/display/modes/TextMode.tsx                   | TypeScript JSX     |        116 |         12 |         24 |        152 |
+| /Users/andrei/Developer/bishub/src/display/modes/VideoMode.tsx                  | TypeScript JSX     |         83 |          5 |         14 |        102 |
+| /Users/andrei/Developer/bishub/src/main.tsx                                     | TypeScript JSX     |         18 |          2 |          4 |         24 |
+| /Users/andrei/Developer/bishub/src/remote/App.tsx                               | TypeScript JSX     |        188 |          8 |         17 |        213 |
+| /Users/andrei/Developer/bishub/src/remote/components/AudioLibraryList.tsx       | TypeScript JSX     |        275 |          5 |         15 |        295 |
+| /Users/andrei/Developer/bishub/src/remote/components/AudioScheduleSection.tsx   | TypeScript JSX     |        389 |         12 |         36 |        437 |
+| /Users/andrei/Developer/bishub/src/remote/components/AudioUploader.tsx          | TypeScript JSX     |        143 |          4 |         16 |        163 |
+| /Users/andrei/Developer/bishub/src/remote/components/Layout.tsx                 | TypeScript JSX     |        218 |         13 |         22 |        253 |
+| /Users/andrei/Developer/bishub/src/remote/components/MonitorSelector.tsx        | TypeScript JSX     |         34 |          0 |          5 |         39 |
+| /Users/andrei/Developer/bishub/src/remote/components/StatusIndicator.tsx        | TypeScript JSX     |         62 |          0 |          7 |         69 |
+| /Users/andrei/Developer/bishub/src/remote/components/TextControls.tsx           | TypeScript JSX     |         59 |          2 |          9 |         70 |
+| /Users/andrei/Developer/bishub/src/remote/components/UpdateBanner.tsx           | TypeScript JSX     |         82 |          1 |          9 |         92 |
+| /Users/andrei/Developer/bishub/src/remote/components/VideoControls.tsx          | TypeScript JSX     |         85 |          3 |         12 |        100 |
+| /Users/andrei/Developer/bishub/src/remote/components/VideoLibraryList.tsx       | TypeScript JSX     |        215 |          5 |         15 |        235 |
+| /Users/andrei/Developer/bishub/src/remote/components/VideoUploader.tsx          | TypeScript JSX     |        136 |          4 |         16 |        156 |
+| /Users/andrei/Developer/bishub/src/remote/components/YouTubeDownloader.tsx      | TypeScript JSX     |        144 |          2 |         12 |        158 |
+| /Users/andrei/Developer/bishub/src/remote/components/icons/audio.tsx            | TypeScript JSX     |         15 |          0 |          1 |         16 |
+| /Users/andrei/Developer/bishub/src/remote/components/icons/bible.tsx            | TypeScript JSX     |         14 |          0 |          1 |         15 |
+| /Users/andrei/Developer/bishub/src/remote/components/icons/hymns.tsx            | TypeScript JSX     |         14 |          0 |          1 |         15 |
+| /Users/andrei/Developer/bishub/src/remote/components/icons/settings.tsx         | TypeScript JSX     |         14 |          0 |          1 |         15 |
+| /Users/andrei/Developer/bishub/src/remote/components/icons/video.tsx            | TypeScript JSX     |         14 |          0 |          1 |         15 |
+| /Users/andrei/Developer/bishub/src/remote/components/preview/LivePreview.tsx    | TypeScript JSX     |        269 |         24 |         41 |        334 |
+| /Users/andrei/Developer/bishub/src/remote/components/preview/PreviewHeader.tsx  | TypeScript JSX     |         49 |          2 |          6 |         57 |
+| /Users/andrei/Developer/bishub/src/remote/components/preview/PreviewPanel.tsx   | TypeScript JSX     |        129 |          5 |         16 |        150 |
+| /Users/andrei/Developer/bishub/src/remote/components/preview/index.ts           | TypeScript         |          9 |          0 |          1 |         10 |
+| /Users/andrei/Developer/bishub/src/remote/components/preview/usePreviewState.ts | TypeScript         |         67 |          6 |         16 |         89 |
+| /Users/andrei/Developer/bishub/src/remote/main.tsx                              | TypeScript JSX     |          9 |          0 |          2 |         11 |
+| /Users/andrei/Developer/bishub/src/remote/pages/AudioLibraryPage.tsx            | TypeScript JSX     |        331 |         11 |         17 |        359 |
+| /Users/andrei/Developer/bishub/src/remote/pages/BiblePage.tsx                   | TypeScript JSX     |        467 |         25 |         39 |        531 |
+| /Users/andrei/Developer/bishub/src/remote/pages/HymnsPage.tsx                   | TypeScript JSX     |        127 |          9 |         20 |        156 |
+| /Users/andrei/Developer/bishub/src/remote/pages/SettingsPage.tsx                | TypeScript JSX     |        469 |         18 |         39 |        526 |
+| /Users/andrei/Developer/bishub/src/remote/pages/VideoLibraryPage.tsx            | TypeScript JSX     |        250 |         10 |         16 |        276 |
+| /Users/andrei/Developer/bishub/src/remote/useAudioLibrary.ts                    | TypeScript         |        155 |          6 |         21 |        182 |
+| /Users/andrei/Developer/bishub/src/remote/useAudioScheduler.ts                  | TypeScript         |        170 |          3 |         22 |        195 |
+| /Users/andrei/Developer/bishub/src/remote/useRemoteAPI.ts                       | TypeScript         |        333 |         11 |         44 |        388 |
+| /Users/andrei/Developer/bishub/src/remote/useVideoLibrary.ts                    | TypeScript         |        191 |          5 |         22 |        218 |
+| /Users/andrei/Developer/bishub/src/shared/audioLibrary.types.ts                 | TypeScript         |         33 |          0 |          5 |         38 |
+| /Users/andrei/Developer/bishub/src/shared/audioSchedule.types.ts                | TypeScript         |         47 |          9 |         14 |         70 |
+| /Users/andrei/Developer/bishub/src/shared/bibleParser.ts                        | TypeScript         |        422 |         22 |         20 |        464 |
+| /Users/andrei/Developer/bishub/src/shared/i18n.ts                               | TypeScript         |        552 |         18 |         19 |        589 |
+| /Users/andrei/Developer/bishub/src/shared/types.ts                              | TypeScript         |        224 |         13 |         23 |        260 |
+| /Users/andrei/Developer/bishub/src/shared/videoLibrary.types.ts                 | TypeScript         |         36 |          0 |          5 |         41 |
+| /Users/andrei/Developer/bishub/src/styles/index.css                             | PostCSS            |         63 |          9 |         14 |         86 |
+| /Users/andrei/Developer/bishub/src/vite-env.d.ts                                | TypeScript         |          6 |          1 |          3 |         10 |
+| /Users/andrei/Developer/bishub/tailwind.config.js                               | JavaScript         |         16 |          1 |          1 |         18 |
+| /Users/andrei/Developer/bishub/tsconfig.json                                    | JSON with Comments |         25 |          0 |          1 |         26 |
+| /Users/andrei/Developer/bishub/tsconfig.node.json                               | JSON               |         11 |          0 |          1 |         12 |
+| /Users/andrei/Developer/bishub/vite.config.ts                                   | TypeScript         |         63 |          1 |          2 |         66 |
+| Total                                                                           |                    |     30,246 |        520 |      1,354 |     32,120 |
++---------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+

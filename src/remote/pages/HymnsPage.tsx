@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import type { Hymn, TextState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 
@@ -27,8 +27,18 @@ export default function HymnsPage({
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const t = getTranslations(settings.language);
+
+  // Listen for F5 focus event
+  useEffect(() => {
+    const handleFocusSearch = () => {
+      searchInputRef.current?.focus();
+    };
+    window.addEventListener("focusSearch", handleFocusSearch);
+    return () => window.removeEventListener("focusSearch", handleFocusSearch);
+  }, []);
 
   // Pre-compute normalized titles for faster searching
   const hymnsWithNormalizedTitles = useMemo(() => {
@@ -86,6 +96,7 @@ export default function HymnsPage({
       <div className="sticky -top-4 bg-gray-900 pb-4 pt-4 -mx-4 px-4">
         <div className="relative">
           <input
+            ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

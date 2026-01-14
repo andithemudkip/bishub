@@ -8,6 +8,7 @@ import type {
   BibleVerse,
   BibleData,
   BibleContext,
+  BibleSearchResult,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 
@@ -277,4 +278,153 @@ export function formatBibleChapterForDisplay(
     startIndex: startIndex >= 0 ? startIndex : 0,
     bibleContext: { bookId, bookName, chapter, verses: allVerses },
   };
+}
+
+// Remove diacritics for search matching (ă→a, â→a, î→i, ș→s, ț→t)
+function normalizeForSearch(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+// Cache for normalized verse text
+const normalizedBibleCache = new Map<Language, Map<string, string>>();
+
+function getNormalizedVerse(
+  bookId: string,
+  chapter: number,
+  verse: number,
+  text: string,
+  language: Language
+): string {
+  let langCache = normalizedBibleCache.get(language);
+  if (!langCache) {
+    langCache = new Map();
+    normalizedBibleCache.set(language, langCache);
+  }
+
+  const key = `${bookId}:${chapter}:${verse}`;
+  let normalized = langCache.get(key);
+  if (!normalized) {
+    normalized = normalizeForSearch(text);
+    langCache.set(key, normalized);
+  }
+  return normalized;
+}
+
+export function searchBibleVerses(
+  query: string,
+  language: Language = "ro"
+): BibleSearchResult[] {
+  const bible = loadBible(language);
+  const normalizedQuery = normalizeForSearch(query.trim());
+
+  if (normalizedQuery.length < 3) {
+    return [];
+  }
+
+  const queryWords = normalizedQuery.split(/\s+/).filter((w) => w.length > 0);
+  if (queryWords.length === 0) {
+    return [];
+  }
+
+  const results: BibleSearchResult[] = [];
+
+  for (const book of bible.books) {
+    for (const chapter of book.chapters) {
+      for (const verse of chapter.verses) {
+        const normalizedText = getNormalizedVerse(
+          book.id,
+          chapter.number,
+          verse.verse,
+          verse.text,
+          language
+        );
+
+        const score = calculateRelevanceScore(
+          normalizedQuery,
+          queryWords,
+          normalizedText
+        );
+
+        if (score > 0) {
+          results.push({
+            bookId: book.id,
+            bookName: book.name,
+            chapter: chapter.number,
+            verse: verse.verse,
+            text: verse.text,
+            score,
+          });
+        }
+      }
+    }
+  }
+
+  // Sort by score descending, then by canonical order
+  results.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    // Same score: sort by book order, chapter, verse
+    if (a.bookId !== b.bookId) {
+      const aIdx = bible.books.findIndex((b) => b.id === a.bookId);
+      const bIdx = bible.books.findIndex((b) => b.id === b.bookId);
+      return aIdx - bIdx;
+    }
+    if (a.chapter !== b.chapter) return a.chapter - b.chapter;
+    return a.verse - b.verse;
+  });
+
+  return results.slice(0, 50);
+}
+
+function calculateRelevanceScore(
+  normalizedQuery: string,
+  queryWords: string[],
+  normalizedText: string
+): number {
+  let score = 0;
+
+  // Exact phrase match (highest priority)
+  if (normalizedText.includes(normalizedQuery)) {
+    score += 100;
+    // Bonus for match at start
+    if (normalizedText.startsWith(normalizedQuery)) {
+      score += 10;
+    }
+  }
+
+  // All words present
+  const allWordsPresent = queryWords.every((word) =>
+    normalizedText.includes(word)
+  );
+  if (allWordsPresent && score === 0) {
+    score += 50;
+  }
+
+  // Partial word matches (word appears as prefix)
+  if (score === 0) {
+    const textWords = normalizedText.split(/\s+/);
+    let matchedWords = 0;
+    for (const queryWord of queryWords) {
+      if (textWords.some((tw) => tw.startsWith(queryWord))) {
+        matchedWords++;
+      }
+    }
+    if (matchedWords > 0) {
+      score += 25 * (matchedWords / queryWords.length);
+    }
+  }
+
+  // Position bonus: earlier matches rank higher
+  if (score > 0) {
+    const firstMatchPos = normalizedText.indexOf(queryWords[0]);
+    if (firstMatchPos !== -1) {
+      // Add up to 5 points for matches near the start
+      const positionBonus = Math.max(0, 5 - Math.floor(firstMatchPos / 20));
+      score += positionBonus;
+    }
+  }
+
+  return score;
 }

@@ -1,5 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import type { BibleVerse, TextState, AppSettings } from "../../shared/types";
+import { useState, useEffect, useRef, useCallback } from "react";
+import type {
+  BibleVerse,
+  BibleSearchResult,
+  TextState,
+  AppSettings,
+} from "../../shared/types";
 import { parseBibleReference } from "../../shared/bibleParser";
 import { getTranslations } from "../../shared/i18n";
 
@@ -21,6 +26,7 @@ interface Props {
     startVerse: number,
     endVerse?: number
   ) => void;
+  searchBibleVerses: (query: string) => Promise<BibleSearchResult[]>;
   goToSlide: (index: number) => void;
   settings: AppSettings;
 }
@@ -31,6 +37,7 @@ export default function BiblePage({
   getBibleBooks,
   getBibleChapter,
   loadBibleVerses,
+  searchBibleVerses,
   goToSlide,
   settings,
 }: Props) {
@@ -56,14 +63,32 @@ export default function BiblePage({
     verses: BibleVerse[];
   } | null>(null);
 
+  // Text search state
+  const [textSearchQuery, setTextSearchQuery] = useState("");
+  const [textSearchResults, setTextSearchResults] = useState<
+    BibleSearchResult[]
+  >([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const verseListRef = useRef<HTMLDivElement>(null);
   const loadedVerseListRef = useRef<HTMLDivElement>(null);
+  const quickSearchInputRef = useRef<HTMLInputElement>(null);
 
   const t = getTranslations(settings.language);
 
   useEffect(() => {
     getBibleBooks().then(setBooks);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Listen for F5 focus event
+  useEffect(() => {
+    const handleFocusSearch = () => {
+      quickSearchInputRef.current?.focus();
+    };
+    window.addEventListener("focusSearch", handleFocusSearch);
+    return () => window.removeEventListener("focusSearch", handleFocusSearch);
+  }, []);
 
   // Parse quick search input with language
   useEffect(() => {
@@ -126,6 +151,33 @@ export default function BiblePage({
       startButton?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [loadedContext]);
+
+  // Debounced text search
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    const query = textSearchQuery.trim();
+    if (query.length < 3) {
+      setTextSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      const results = await searchBibleVerses(query);
+      setTextSearchResults(results);
+      setIsSearching(false);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [textSearchQuery, searchBibleVerses]);
 
   // Check if loadedContext matches current quick search reference
   const isQuickSearchLoaded =
@@ -250,6 +302,21 @@ export default function BiblePage({
     }
   };
 
+  // Handle clicking on a text search result
+  const handleSearchResultClick = useCallback(
+    (result: BibleSearchResult) => {
+      loadBibleVerses(
+        result.bookId,
+        result.bookName,
+        result.chapter,
+        result.verse
+      );
+      setTextSearchQuery("");
+      setTextSearchResults([]);
+    },
+    [loadBibleVerses]
+  );
+
   return (
     <div className="space-y-6">
       {/* Quick search */}
@@ -259,6 +326,7 @@ export default function BiblePage({
 
         <div className="flex gap-2">
           <input
+            ref={quickSearchInputRef}
             type="text"
             value={quickSearch}
             onChange={(e) => setQuickSearch(e.target.value)}
@@ -300,6 +368,78 @@ export default function BiblePage({
             )}
           </div>
         )}
+      </div>
+
+      {/* Text Search */}
+      <div className="bg-gray-800 rounded-lg p-4">
+        <h2 className="text-lg font-semibold mb-3">{t.bible.textSearch}</h2>
+        <p className="text-sm text-gray-400 mb-3">{t.bible.textSearchHint}</p>
+
+        <div className="relative">
+          <input
+            type="text"
+            value={textSearchQuery}
+            onChange={(e) => setTextSearchQuery(e.target.value)}
+            placeholder={t.bible.textSearchPlaceholder}
+            className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {textSearchQuery && (
+            <button
+              onClick={() => {
+                setTextSearchQuery("");
+                setTextSearchResults([]);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Search status */}
+        {textSearchQuery.length > 0 && textSearchQuery.length < 3 && (
+          <p className="text-sm text-gray-500 mt-2">{t.bible.minCharsHint}</p>
+        )}
+
+        {isSearching && (
+          <p className="text-sm text-blue-400 mt-2">{t.bible.searching}</p>
+        )}
+
+        {/* Search results */}
+        {textSearchResults.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm text-gray-400 mb-2">
+              {t.bible.searchResults} ({textSearchResults.length})
+            </p>
+            <div className="max-h-64 sm:max-h-80 overflow-y-auto space-y-2">
+              {textSearchResults.map((result) => (
+                <button
+                  key={`${result.bookId}-${result.chapter}-${result.verse}`}
+                  onClick={() => handleSearchResultClick(result)}
+                  className="w-full text-left p-3 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+                >
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-blue-400 font-semibold">
+                      {result.bookName} {result.chapter}:{result.verse}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300 line-clamp-2">
+                    {result.text}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* No results */}
+        {textSearchQuery.length >= 3 &&
+          !isSearching &&
+          textSearchResults.length === 0 && (
+            <p className="text-sm text-gray-500 mt-2">
+              {t.bible.noSearchResults} &quot;{textSearchQuery}&quot;
+            </p>
+          )}
       </div>
 
       {/* Loaded preview verse list (not yet presenting) */}

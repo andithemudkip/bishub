@@ -6,6 +6,7 @@ import type {
   MonitorInfo,
   Hymn,
   BibleVerse,
+  BibleSearchResult,
   ServerToClientEvents,
   ClientToServerEvents,
   ClockPosition,
@@ -57,6 +58,7 @@ interface RemoteAPI {
     startVerse: number,
     endVerse?: number
   ) => void;
+  searchBibleVerses: (query: string) => Promise<BibleSearchResult[]>;
   // Audio
   loadAudio: (src: string, name: string) => void;
   playAudio: () => void;
@@ -87,6 +89,9 @@ export function useRemoteAPI(): RemoteAPI {
     | null
   >(null);
   const bibleChapterCb = useRef<((verses: BibleVerse[]) => void) | null>(null);
+  const bibleSearchCb = useRef<((results: BibleSearchResult[]) => void) | null>(
+    null
+  );
 
   const isElectron = !!window.electronAPI;
 
@@ -139,6 +144,12 @@ export function useRemoteAPI(): RemoteAPI {
         if (bibleChapterCb.current) {
           bibleChapterCb.current(verses);
           bibleChapterCb.current = null;
+        }
+      });
+      socket.on("bibleSearchResults", (results) => {
+        if (bibleSearchCb.current) {
+          bibleSearchCb.current(results);
+          bibleSearchCb.current = null;
         }
       });
 
@@ -303,6 +314,19 @@ export function useRemoteAPI(): RemoteAPI {
             startVerse,
             endVerse
           );
+      },
+      [isElectron]
+    ),
+
+    searchBibleVerses: useCallback(
+      (query: string) => {
+        if (isElectron) {
+          return window.electronAPI!.searchBibleVerses(query);
+        }
+        return new Promise((resolve) => {
+          bibleSearchCb.current = resolve;
+          socketRef.current?.emit("searchBibleVerses", query);
+        });
       },
       [isElectron]
     ),

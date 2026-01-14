@@ -5,6 +5,7 @@ import type {
   MonitorInfo,
   Hymn,
   BibleVerse,
+  BibleSearchResult,
   UpdateStatus,
 } from "../src/shared/types";
 import type {
@@ -114,11 +115,14 @@ const electronAPI = {
       startVerse,
       endVerse
     ),
+  searchBibleVerses: (query: string): Promise<BibleSearchResult[]> =>
+    ipcRenderer.invoke("search-bible-verses", query),
 
   // Video Library
   getVideoLibrary: (): Promise<VideoItem[]> =>
     ipcRenderer.invoke("get-video-library"),
-  addLocalVideo: (): Promise<VideoItem> => ipcRenderer.invoke("add-local-video"),
+  addLocalVideo: (): Promise<VideoItem> =>
+    ipcRenderer.invoke("add-local-video"),
   deleteVideo: (videoId: string): Promise<boolean> =>
     ipcRenderer.invoke("delete-video", videoId),
   renameVideo: (videoId: string, newName: string): Promise<VideoItem> =>
@@ -140,8 +144,9 @@ const electronAPI = {
   },
 
   onDownloadProgress: (callback: (progress: DownloadProgress) => void) => {
-    ipcRenderer.on("download-progress", (_event: any, progress: DownloadProgress) =>
-      callback(progress)
+    ipcRenderer.on(
+      "download-progress",
+      (_event: any, progress: DownloadProgress) => callback(progress)
     );
     return () => ipcRenderer.removeAllListeners("download-progress");
   },
@@ -156,7 +161,8 @@ const electronAPI = {
   // Audio Library
   getAudioLibrary: (): Promise<AudioItem[]> =>
     ipcRenderer.invoke("get-audio-library"),
-  addLocalAudio: (): Promise<AudioItem> => ipcRenderer.invoke("add-local-audio"),
+  addLocalAudio: (): Promise<AudioItem> =>
+    ipcRenderer.invoke("add-local-audio"),
   addLocalAudioDirectory: (): Promise<{
     completed: AudioItem[];
     errors: { file: string; error: string }[];
@@ -188,14 +194,19 @@ const electronAPI = {
     return () => ipcRenderer.removeAllListeners("audio-library-update");
   },
 
-  onAudioUploadProgress: (callback: (progress: AudioUploadProgress) => void) => {
-    ipcRenderer.on("audio-upload-progress", (_event: any, progress: AudioUploadProgress) =>
-      callback(progress)
+  onAudioUploadProgress: (
+    callback: (progress: AudioUploadProgress) => void
+  ) => {
+    ipcRenderer.on(
+      "audio-upload-progress",
+      (_event: any, progress: AudioUploadProgress) => callback(progress)
     );
     return () => ipcRenderer.removeAllListeners("audio-upload-progress");
   },
 
-  onAudioDirectoryImportProgress: (callback: (progress: DirectoryImportProgress) => void) => {
+  onAudioDirectoryImportProgress: (
+    callback: (progress: DirectoryImportProgress) => void
+  ) => {
     ipcRenderer.on(
       "audio-directory-import-progress",
       (_event: any, progress: DirectoryImportProgress) => callback(progress)
@@ -213,7 +224,9 @@ const electronAPI = {
     ipcRenderer.invoke("create-audio-schedule", params),
   cancelAudioSchedule: (scheduleId: string): Promise<boolean> =>
     ipcRenderer.invoke("cancel-audio-schedule", scheduleId),
-  createAudioPreset: (params: CreatePresetParams): Promise<AudioSchedulePreset> =>
+  createAudioPreset: (
+    params: CreatePresetParams
+  ): Promise<AudioSchedulePreset> =>
     ipcRenderer.invoke("create-audio-preset", params),
   activateAudioPreset: (
     presetId: string,
@@ -224,20 +237,25 @@ const electronAPI = {
     ipcRenderer.invoke("delete-audio-preset", presetId),
 
   onAudioSchedulesUpdate: (callback: (schedules: AudioSchedule[]) => void) => {
-    ipcRenderer.on("audio-schedules-update", (_event: any, schedules: AudioSchedule[]) =>
-      callback(schedules)
+    ipcRenderer.on(
+      "audio-schedules-update",
+      (_event: any, schedules: AudioSchedule[]) => callback(schedules)
     );
     return () => ipcRenderer.removeAllListeners("audio-schedules-update");
   },
-  onAudioPresetsUpdate: (callback: (presets: AudioSchedulePreset[]) => void) => {
-    ipcRenderer.on("audio-presets-update", (_event: any, presets: AudioSchedulePreset[]) =>
-      callback(presets)
+  onAudioPresetsUpdate: (
+    callback: (presets: AudioSchedulePreset[]) => void
+  ) => {
+    ipcRenderer.on(
+      "audio-presets-update",
+      (_event: any, presets: AudioSchedulePreset[]) => callback(presets)
     );
     return () => ipcRenderer.removeAllListeners("audio-presets-update");
   },
   onAudioScheduleEvent: (callback: (event: ScheduleEvent) => void) => {
-    ipcRenderer.on("audio-schedule-event", (_event: any, event: ScheduleEvent) =>
-      callback(event)
+    ipcRenderer.on(
+      "audio-schedule-event",
+      (_event: any, event: ScheduleEvent) => callback(event)
     );
     return () => ipcRenderer.removeAllListeners("audio-schedule-event");
   },

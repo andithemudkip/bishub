@@ -1,0 +1,78 @@
+"filename", "language", "JavaScript", "Markdown", "JSON", "HTML", "TypeScript JSX", "PostCSS", "TypeScript", "JSON with Comments", "XML", "comment", "blank", "total"
+"/Users/andrei/Developer/bishub/.claude/settings.local.json", "JSON", 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 1, 12
+"/Users/andrei/Developer/bishub/CLAUDE.md", "Markdown", 0, 110, 0, 0, 0, 0, 0, 0, 0, 0, 45, 155
+"/Users/andrei/Developer/bishub/README.md", "Markdown", 0, 51, 0, 0, 0, 0, 0, 0, 0, 0, 15, 66
+"/Users/andrei/Developer/bishub/assets/bible.xml", "XML", 0, 0, 0, 0, 0, 0, 0, 0, 1256, 0, 1, 1257
+"/Users/andrei/Developer/bishub/assets/hymns.json", "JSON", 0, 0, 9582, 0, 0, 0, 0, 0, 0, 0, 1, 9583
+"/Users/andrei/Developer/bishub/display.html", "HTML", 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 1, 21
+"/Users/andrei/Developer/bishub/electron/audioLibrary.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 326, 0, 0, 22, 57, 405
+"/Users/andrei/Developer/bishub/electron/audioScheduler.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 276, 0, 0, 17, 50, 343
+"/Users/andrei/Developer/bishub/electron/dataLoader.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 220, 0, 0, 19, 42, 281
+"/Users/andrei/Developer/bishub/electron/main.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 430, 0, 0, 24, 92, 546
+"/Users/andrei/Developer/bishub/electron/preload.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 229, 0, 0, 8, 26, 263
+"/Users/andrei/Developer/bishub/electron/server.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 429, 0, 0, 36, 86, 551
+"/Users/andrei/Developer/bishub/electron/state.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 297, 0, 0, 17, 49, 363
+"/Users/andrei/Developer/bishub/electron/tsconfig.json", "JSON with Comments", 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 1, 18
+"/Users/andrei/Developer/bishub/electron/updater.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 66, 0, 0, 1, 13, 80
+"/Users/andrei/Developer/bishub/electron/utils.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 90, 0, 0, 7, 15, 112
+"/Users/andrei/Developer/bishub/electron/videoLibrary.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 281, 0, 0, 26, 53, 360
+"/Users/andrei/Developer/bishub/electron/windowManager.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 153, 0, 0, 11, 33, 197
+"/Users/andrei/Developer/bishub/electron/ytdlp.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 260, 0, 0, 22, 52, 334
+"/Users/andrei/Developer/bishub/index.html", "HTML", 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 1, 13
+"/Users/andrei/Developer/bishub/package-lock.json", "JSON", 0, 0, 8889, 0, 0, 0, 0, 0, 0, 0, 1, 8890
+"/Users/andrei/Developer/bishub/package.json", "JSON", 0, 0, 110, 0, 0, 0, 0, 0, 0, 0, 1, 111
+"/Users/andrei/Developer/bishub/postcss.config.js", "JavaScript", 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7
+"/Users/andrei/Developer/bishub/remote.html", "HTML", 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 1, 17
+"/Users/andrei/Developer/bishub/src/display/App.tsx", "TypeScript JSX", 0, 0, 0, 0, 56, 0, 0, 0, 0, 2, 9, 67
+"/Users/andrei/Developer/bishub/src/display/components/AudioWidget.tsx", "TypeScript JSX", 0, 0, 0, 0, 97, 0, 0, 0, 0, 12, 19, 128
+"/Users/andrei/Developer/bishub/src/display/main.tsx", "TypeScript JSX", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 2, 11
+"/Users/andrei/Developer/bishub/src/display/modes/IdleMode.tsx", "TypeScript JSX", 0, 0, 0, 0, 106, 0, 0, 0, 0, 9, 18, 133
+"/Users/andrei/Developer/bishub/src/display/modes/TextMode.tsx", "TypeScript JSX", 0, 0, 0, 0, 116, 0, 0, 0, 0, 12, 24, 152
+"/Users/andrei/Developer/bishub/src/display/modes/VideoMode.tsx", "TypeScript JSX", 0, 0, 0, 0, 83, 0, 0, 0, 0, 5, 14, 102
+"/Users/andrei/Developer/bishub/src/main.tsx", "TypeScript JSX", 0, 0, 0, 0, 18, 0, 0, 0, 0, 2, 4, 24
+"/Users/andrei/Developer/bishub/src/remote/App.tsx", "TypeScript JSX", 0, 0, 0, 0, 188, 0, 0, 0, 0, 8, 17, 213
+"/Users/andrei/Developer/bishub/src/remote/components/AudioLibraryList.tsx", "TypeScript JSX", 0, 0, 0, 0, 275, 0, 0, 0, 0, 5, 15, 295
+"/Users/andrei/Developer/bishub/src/remote/components/AudioScheduleSection.tsx", "TypeScript JSX", 0, 0, 0, 0, 389, 0, 0, 0, 0, 12, 36, 437
+"/Users/andrei/Developer/bishub/src/remote/components/AudioUploader.tsx", "TypeScript JSX", 0, 0, 0, 0, 143, 0, 0, 0, 0, 4, 16, 163
+"/Users/andrei/Developer/bishub/src/remote/components/Layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 218, 0, 0, 0, 0, 13, 22, 253
+"/Users/andrei/Developer/bishub/src/remote/components/MonitorSelector.tsx", "TypeScript JSX", 0, 0, 0, 0, 34, 0, 0, 0, 0, 0, 5, 39
+"/Users/andrei/Developer/bishub/src/remote/components/StatusIndicator.tsx", "TypeScript JSX", 0, 0, 0, 0, 62, 0, 0, 0, 0, 0, 7, 69
+"/Users/andrei/Developer/bishub/src/remote/components/TextControls.tsx", "TypeScript JSX", 0, 0, 0, 0, 59, 0, 0, 0, 0, 2, 9, 70
+"/Users/andrei/Developer/bishub/src/remote/components/UpdateBanner.tsx", "TypeScript JSX", 0, 0, 0, 0, 82, 0, 0, 0, 0, 1, 9, 92
+"/Users/andrei/Developer/bishub/src/remote/components/VideoControls.tsx", "TypeScript JSX", 0, 0, 0, 0, 85, 0, 0, 0, 0, 3, 12, 100
+"/Users/andrei/Developer/bishub/src/remote/components/VideoLibraryList.tsx", "TypeScript JSX", 0, 0, 0, 0, 215, 0, 0, 0, 0, 5, 15, 235
+"/Users/andrei/Developer/bishub/src/remote/components/VideoUploader.tsx", "TypeScript JSX", 0, 0, 0, 0, 136, 0, 0, 0, 0, 4, 16, 156
+"/Users/andrei/Developer/bishub/src/remote/components/YouTubeDownloader.tsx", "TypeScript JSX", 0, 0, 0, 0, 144, 0, 0, 0, 0, 2, 12, 158
+"/Users/andrei/Developer/bishub/src/remote/components/icons/audio.tsx", "TypeScript JSX", 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 1, 16
+"/Users/andrei/Developer/bishub/src/remote/components/icons/bible.tsx", "TypeScript JSX", 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 1, 15
+"/Users/andrei/Developer/bishub/src/remote/components/icons/hymns.tsx", "TypeScript JSX", 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 1, 15
+"/Users/andrei/Developer/bishub/src/remote/components/icons/settings.tsx", "TypeScript JSX", 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 1, 15
+"/Users/andrei/Developer/bishub/src/remote/components/icons/video.tsx", "TypeScript JSX", 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 1, 15
+"/Users/andrei/Developer/bishub/src/remote/components/preview/LivePreview.tsx", "TypeScript JSX", 0, 0, 0, 0, 269, 0, 0, 0, 0, 24, 41, 334
+"/Users/andrei/Developer/bishub/src/remote/components/preview/PreviewHeader.tsx", "TypeScript JSX", 0, 0, 0, 0, 49, 0, 0, 0, 0, 2, 6, 57
+"/Users/andrei/Developer/bishub/src/remote/components/preview/PreviewPanel.tsx", "TypeScript JSX", 0, 0, 0, 0, 129, 0, 0, 0, 0, 5, 16, 150
+"/Users/andrei/Developer/bishub/src/remote/components/preview/index.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 1, 10
+"/Users/andrei/Developer/bishub/src/remote/components/preview/usePreviewState.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 67, 0, 0, 6, 16, 89
+"/Users/andrei/Developer/bishub/src/remote/main.tsx", "TypeScript JSX", 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 2, 11
+"/Users/andrei/Developer/bishub/src/remote/pages/AudioLibraryPage.tsx", "TypeScript JSX", 0, 0, 0, 0, 331, 0, 0, 0, 0, 11, 17, 359
+"/Users/andrei/Developer/bishub/src/remote/pages/BiblePage.tsx", "TypeScript JSX", 0, 0, 0, 0, 467, 0, 0, 0, 0, 25, 39, 531
+"/Users/andrei/Developer/bishub/src/remote/pages/HymnsPage.tsx", "TypeScript JSX", 0, 0, 0, 0, 127, 0, 0, 0, 0, 9, 20, 156
+"/Users/andrei/Developer/bishub/src/remote/pages/SettingsPage.tsx", "TypeScript JSX", 0, 0, 0, 0, 469, 0, 0, 0, 0, 18, 39, 526
+"/Users/andrei/Developer/bishub/src/remote/pages/VideoLibraryPage.tsx", "TypeScript JSX", 0, 0, 0, 0, 250, 0, 0, 0, 0, 10, 16, 276
+"/Users/andrei/Developer/bishub/src/remote/useAudioLibrary.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 155, 0, 0, 6, 21, 182
+"/Users/andrei/Developer/bishub/src/remote/useAudioScheduler.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 170, 0, 0, 3, 22, 195
+"/Users/andrei/Developer/bishub/src/remote/useRemoteAPI.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 333, 0, 0, 11, 44, 388
+"/Users/andrei/Developer/bishub/src/remote/useVideoLibrary.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 191, 0, 0, 5, 22, 218
+"/Users/andrei/Developer/bishub/src/shared/audioLibrary.types.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 5, 38
+"/Users/andrei/Developer/bishub/src/shared/audioSchedule.types.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 47, 0, 0, 9, 14, 70
+"/Users/andrei/Developer/bishub/src/shared/bibleParser.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 422, 0, 0, 22, 20, 464
+"/Users/andrei/Developer/bishub/src/shared/i18n.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 552, 0, 0, 18, 19, 589
+"/Users/andrei/Developer/bishub/src/shared/types.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 224, 0, 0, 13, 23, 260
+"/Users/andrei/Developer/bishub/src/shared/videoLibrary.types.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 36, 0, 0, 0, 5, 41
+"/Users/andrei/Developer/bishub/src/styles/index.css", "PostCSS", 0, 0, 0, 0, 0, 63, 0, 0, 0, 9, 14, 86
+"/Users/andrei/Developer/bishub/src/vite-env.d.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 6, 0, 0, 1, 3, 10
+"/Users/andrei/Developer/bishub/tailwind.config.js", "JavaScript", 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 18
+"/Users/andrei/Developer/bishub/tsconfig.json", "JSON with Comments", 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 1, 26
+"/Users/andrei/Developer/bishub/tsconfig.node.json", "JSON", 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 1, 12
+"/Users/andrei/Developer/bishub/vite.config.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 63, 0, 0, 1, 2, 66
+"Total", "-", 22, 161, 18603, 48, 4686, 63, 5365, 42, 1256, 520, 1354, 32120

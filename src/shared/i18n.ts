@@ -55,6 +55,13 @@ export interface Translations {
     present: string;
     presentVerses: string;
     loadedPreview: string;
+    textSearch: string;
+    textSearchHint: string;
+    textSearchPlaceholder: string;
+    searchResults: string;
+    noSearchResults: string;
+    searching: string;
+    minCharsHint: string;
   };
 
   // Settings page
@@ -251,6 +258,13 @@ const ro: Translations = {
     present: "Prezintă",
     presentVerses: "Prezintă versetele",
     loadedPreview: "Încărcat (nu se afișează)",
+    textSearch: "Caută în text",
+    textSearchHint: "Caută cuvinte sau fraze în textul Bibliei",
+    textSearchPlaceholder: "Caută în versete...",
+    searchResults: "Rezultate",
+    noSearchResults: "Niciun rezultat găsit pentru",
+    searching: "Se caută...",
+    minCharsHint: "Introdu cel puțin 3 caractere",
   },
   settings: {
     language: "Limbă",
@@ -434,6 +448,13 @@ const en: Translations = {
     present: "Present",
     presentVerses: "Present Verses",
     loadedPreview: "Loaded (not presenting)",
+    textSearch: "Text Search",
+    textSearchHint: "Search for words or phrases in Bible text",
+    textSearchPlaceholder: "Search in verses...",
+    searchResults: "Results",
+    noSearchResults: "No results found for",
+    searching: "Searching...",
+    minCharsHint: "Enter at least 3 characters",
   },
   settings: {
     language: "Language",

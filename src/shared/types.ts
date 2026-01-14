@@ -105,6 +105,7 @@ export type ServerToClientEvents = {
     books: { id: string; name: string; chapterCount: number }[]
   ) => void;
   bibleChapter: (verses: BibleVerse[]) => void;
+  bibleSearchResults: (results: BibleSearchResult[]) => void;
   // Video Library
   videoLibrary: (videos: VideoItem[]) => void;
   downloadProgress: (progress: DownloadProgress) => void;
@@ -147,6 +148,7 @@ export type ClientToServerEvents = {
     startVerse: number,
     endVerse?: number
   ) => void;
+  searchBibleVerses: (query: string) => void;
   // Video Library
   getVideoLibrary: () => void;
   deleteVideo: (videoId: string) => void;
@@ -247,6 +249,15 @@ export interface BibleBook {
 
 export interface BibleData {
   books: BibleBook[];
+}
+
+export interface BibleSearchResult {
+  bookId: string;
+  bookName: string;
+  chapter: number;
+  verse: number;
+  text: string;
+  score: number;
 }
 
 // Update types

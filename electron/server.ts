@@ -23,6 +23,7 @@ import {
   getBibleBooks,
   getBibleChapter,
   formatBibleChapterForDisplay,
+  searchBibleVerses,
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
@@ -392,6 +393,11 @@ export function createServer(
         }
       }
     );
+
+    socket.on("searchBibleVerses", (query) => {
+      const results = searchBibleVerses(query);
+      socket.emit("bibleSearchResults", results);
+    });
 
     // Video Library
     socket.on("getVideoLibrary", () => {

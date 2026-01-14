@@ -80,8 +80,9 @@ export default function App() {
           api.goIdle();
           break;
         case "F5":
-          // TODO: focus search input
           e.preventDefault();
+          // Dispatch custom event for pages to focus their search inputs
+          window.dispatchEvent(new CustomEvent("focusSearch"));
           break;
       }
     };
@@ -133,6 +134,7 @@ export default function App() {
             getBibleBooks={api.getBibleBooks}
             getBibleChapter={api.getBibleChapter}
             loadBibleVerses={api.loadBibleVerses}
+            searchBibleVerses={api.searchBibleVerses}
             goToSlide={api.goToSlide}
             settings={api.settings}
           />
