@@ -518,6 +518,12 @@ export default function SettingsPage({
               Esc
             </kbd>
           </div>
+          <div className="flex justify-between py-2 border-b border-gray-700">
+            <span className="text-gray-400">{t.settings.focusSearch}</span>
+            <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
+              F5
+            </kbd>
+          </div>
         </div>
       </div>
     </div>
