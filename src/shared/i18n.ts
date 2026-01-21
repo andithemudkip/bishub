@@ -130,6 +130,7 @@ export interface Translations {
     uploading: string;
     invalidUrl: string;
     enterUrl: string;
+    openFileLocation: string;
   };
 
   // Audio library
@@ -161,6 +162,7 @@ export interface Translations {
     importComplete: string;
     importErrors: string;
     noAudioFiles: string;
+    openFileLocation: string;
   };
 
   // Audio scheduling
@@ -330,6 +332,7 @@ const ro: Translations = {
     uploading: "Se încarcă...",
     invalidUrl: "Te rog introdu un URL YouTube valid",
     enterUrl: "Te rog introdu un URL",
+    openFileLocation: "Deschide locația fișierului",
   },
   audioLibrary: {
     addLocalFile: "Adaugă fișier",
@@ -358,6 +361,7 @@ const ro: Translations = {
     importComplete: "Import finalizat",
     importErrors: "{count} fișiere eșuate",
     noAudioFiles: "Niciun fișier audio găsit în folder",
+    openFileLocation: "Deschide locația fișierului",
   },
   audioSchedule: {
     title: "Programare audio",
@@ -521,6 +525,7 @@ const en: Translations = {
     uploading: "Uploading...",
     invalidUrl: "Please enter a valid YouTube URL",
     enterUrl: "Please enter a URL",
+    openFileLocation: "Open file location",
   },
   audioLibrary: {
     addLocalFile: "Add file",
@@ -549,6 +554,7 @@ const en: Translations = {
     importComplete: "Import complete",
     importErrors: "{count} files failed",
     noAudioFiles: "No audio files found in folder",
+    openFileLocation: "Open file location",
   },
   audioSchedule: {
     title: "Audio Scheduling",

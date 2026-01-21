@@ -81,7 +81,9 @@ export default function AudioLibraryPage({
                     d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="hidden xs:inline">{t.audioLibrary.addLocalFile}</span>
+                <span className="hidden sm:inline">
+                  {t.audioLibrary.addLocalFile}
+                </span>
               </button>
               <button
                 onClick={() => library.addLocalAudioDirectory()}
@@ -101,7 +103,9 @@ export default function AudioLibraryPage({
                     d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                   />
                 </svg>
-                <span className="hidden xs:inline">{t.audioLibrary.addFolder}</span>
+                <span className="hidden sm:inline">
+                  {t.audioLibrary.addFolder}
+                </span>
               </button>
             </>
           )}
@@ -161,8 +165,8 @@ export default function AudioLibraryPage({
                 {library.directoryImport.status === "scanning"
                   ? t.audioLibrary.scanningFolder
                   : library.directoryImport.status === "complete"
-                  ? t.audioLibrary.importComplete
-                  : t.audioLibrary.importingFolder}
+                    ? t.audioLibrary.importComplete
+                    : t.audioLibrary.importingFolder}
               </span>
             </div>
             {library.directoryImport.total > 0 && (
@@ -171,7 +175,7 @@ export default function AudioLibraryPage({
                   {t.audioLibrary.importProgress
                     .replace(
                       "{current}",
-                      String(library.directoryImport.current)
+                      String(library.directoryImport.current),
                     )
                     .replace("{total}", String(library.directoryImport.total))}
                   {library.directoryImport.currentFile && (
@@ -196,7 +200,7 @@ export default function AudioLibraryPage({
                   <div className="mt-2 text-xs text-red-400">
                     {t.audioLibrary.importErrors.replace(
                       "{count}",
-                      String(library.directoryImport.errors.length)
+                      String(library.directoryImport.errors.length),
                     )}
                   </div>
                 )}
@@ -232,6 +236,9 @@ export default function AudioLibraryPage({
           onSelect={handleSelectAudio}
           onDelete={library.deleteAudio}
           onRename={library.renameAudio}
+          onOpenFileLocation={(filePath) =>
+            window.electronAPI?.showItemInFolder(filePath)
+          }
           t={t}
         />
       </div>

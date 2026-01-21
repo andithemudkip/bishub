@@ -8,6 +8,7 @@ interface Props {
   onSelect: (audio: AudioItem) => void;
   onDelete: (audioId: string) => void;
   onRename: (audioId: string, newName: string) => void;
+  onOpenFileLocation: (filePath: string) => void;
   t: Translations;
 }
 
@@ -75,6 +76,7 @@ export default function AudioLibraryList({
   onSelect,
   onDelete,
   onRename,
+  onOpenFileLocation,
   t,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -244,6 +246,25 @@ export default function AudioLibraryList({
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => onOpenFileLocation(audio.path)}
+                    className="p-1.5 sm:p-2 hover:bg-gray-500 rounded transition-colors"
+                    title={t.audioLibrary.openFileLocation}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
                       />
                     </svg>
                   </button>

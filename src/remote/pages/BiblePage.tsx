@@ -207,6 +207,7 @@ export default function BiblePage({
       );
       setLoadedContext(null);
       setQuickSearch("");
+      quickSearchInputRef.current?.blur();
       return;
     }
 

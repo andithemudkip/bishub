@@ -158,6 +158,9 @@ const electronAPI = {
     return () => ipcRenderer.removeAllListeners("upload-progress");
   },
 
+  showItemInFolder: (filePath: string): Promise<void> =>
+    ipcRenderer.invoke("show-item-in-folder", filePath),
+
   // Audio Library
   getAudioLibrary: (): Promise<AudioItem[]> =>
     ipcRenderer.invoke("get-audio-library"),

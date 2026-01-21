@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen, dialog, net } from "electron";
+import { app, BrowserWindow, ipcMain, screen, dialog, net, shell } from "electron";
 import os from "os";
 import path from "path";
 import { createServer, closeServer } from "./server";
@@ -370,6 +370,10 @@ function setupIPC() {
   ipcMain.handle("get-video-thumbnail", (_event, videoId: string) => {
     const video = videoLibrary.getById(videoId);
     return video?.thumbnailPath || null;
+  });
+
+  ipcMain.handle("show-item-in-folder", (_event, filePath: string) => {
+    shell.showItemInFolder(filePath);
   });
 
   // Audio Library handlers

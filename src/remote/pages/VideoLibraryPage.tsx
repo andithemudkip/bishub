@@ -31,7 +31,7 @@ export default function VideoLibraryPage({
   const library = useVideoLibrary(loadVideo);
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"library" | "youtube" | "upload">(
-    "library"
+    "library",
   );
 
   const t = getTranslations(settings.language);
@@ -77,10 +77,12 @@ export default function VideoLibraryPage({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                  d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <span className="hidden xs:inline">{t.videoLibrary.addLocalFile}</span>
+              <span className="hidden sm:inline">
+                {t.videoLibrary.addLocalFile}
+              </span>
             </button>
           )}
           <button
@@ -100,7 +102,7 @@ export default function VideoLibraryPage({
             >
               <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
             </svg>
-            <span className="hidden xs:inline">{t.videoLibrary.youtube}</span>
+            <span className="hidden sm:inline">{t.videoLibrary.youtube}</span>
           </button>
           {!library.isElectron && (
             <button
@@ -162,6 +164,9 @@ export default function VideoLibraryPage({
           onSelect={handleSelectVideo}
           onDelete={library.deleteVideo}
           onRename={library.renameVideo}
+          onOpenFileLocation={(filePath) =>
+            window.electronAPI?.showItemInFolder(filePath)
+          }
           t={t}
         />
       </div>
