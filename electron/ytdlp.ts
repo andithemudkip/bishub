@@ -331,3 +331,14 @@ export function getDownloadProgress(
 ): DownloadProgress | null {
   return activeDownloads.get(downloadId)?.progress || null;
 }
+
+export function killAllDownloads(): void {
+  for (const [id, download] of activeDownloads) {
+    try {
+      download.process.kill();
+    } catch (e) {
+      console.error(`Failed to kill download ${id}:`, e);
+    }
+  }
+  activeDownloads.clear();
+}

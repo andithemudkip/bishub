@@ -229,6 +229,13 @@ export class AudioScheduler {
   }
 
   // Cleanup
+  clearAllTimers(): void {
+    for (const timer of this.activeTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.activeTimers.clear();
+  }
+
   cleanupExpiredSchedules(): void {
     const schedules = this.store.get("schedules", []);
     const now = Date.now();

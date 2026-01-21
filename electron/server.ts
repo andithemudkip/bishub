@@ -37,6 +37,10 @@ const __dirname = path.dirname(__filename);
 const VITE_DEV_SERVER_URL =
   process.env.VITE_DEV_SERVER_URL || "http://localhost:5173";
 
+// Track server instances for cleanup
+let httpServerInstance: ReturnType<typeof createHttpServer> | null = null;
+let ioInstance: Server<ClientToServerEvents, ServerToClientEvents> | null = null;
+
 export function createServer(
   stateManager: StateManager,
   windowManager: WindowManager
@@ -52,6 +56,10 @@ export function createServer(
       },
     }
   );
+
+  // Store references for cleanup
+  httpServerInstance = httpServer;
+  ioInstance = io;
 
   const isDev = !electronApp.isPackaged;
   const securityKey = stateManager.getSecurityKey();
@@ -553,4 +561,21 @@ function getLocalIPs(): string[] {
   }
 
   return ips;
+}
+
+export function closeServer(): Promise<void> {
+  return new Promise((resolve) => {
+    if (ioInstance) {
+      ioInstance.close();
+      ioInstance = null;
+    }
+    if (httpServerInstance) {
+      httpServerInstance.close(() => {
+        httpServerInstance = null;
+        resolve();
+      });
+    } else {
+      resolve();
+    }
+  });
 }

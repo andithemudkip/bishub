@@ -124,6 +124,9 @@ export class WindowManager {
       );
     }
 
+    // Maximize the remote window
+    // this.remoteWindow.maximize();
+
     this.remoteWindow.on("closed", () => {
       this.remoteWindow = null;
       // Close display window when remote is closed

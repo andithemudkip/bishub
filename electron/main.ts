@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, screen, dialog, net } from "electron";
 import os from "os";
 import path from "path";
-import { createServer } from "./server";
+import { createServer, closeServer } from "./server";
 import { WindowManager } from "./windowManager";
 import { StateManager } from "./state";
 import { initUpdater, checkForUpdates, quitAndInstall } from "./updater";
@@ -21,7 +21,7 @@ import {
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
-import { startDownload, cancelDownload, getActiveDownloads } from "./ytdlp";
+import { startDownload, cancelDownload, getActiveDownloads, killAllDownloads } from "./ytdlp";
 import type {
   DisplayMode,
   ClockPosition,
@@ -536,7 +536,53 @@ function setupIPC() {
   });
 }
 
-app.whenReady().then(createWindows);
+// Ensure single instance
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    // Focus existing window if user tries to open another instance
+    if (windowManager?.remoteWindow) {
+      if (windowManager.remoteWindow.isMinimized()) {
+        windowManager.remoteWindow.restore();
+      }
+      windowManager.remoteWindow.focus();
+    }
+  });
+
+  app.whenReady().then(createWindows);
+}
+
+// Track whether we're in the process of quitting
+let isQuitting = false;
+
+app.on("before-quit", async (event) => {
+  if (!isQuitting) {
+    isQuitting = true;
+    event.preventDefault();
+
+    console.log("Cleaning up before quit...");
+
+    // Kill all active yt-dlp/ffmpeg downloads
+    killAllDownloads();
+
+    // Clear audio scheduler timers
+    const scheduler = getAudioScheduler();
+    if (scheduler) {
+      scheduler.clearAllTimers();
+    }
+
+    // Close the Express/Socket.io server
+    await closeServer();
+
+    // Small delay to ensure processes are terminated
+    setTimeout(() => {
+      app.quit();
+    }, 500);
+  }
+});
 
 app.on("window-all-closed", () => {
   // Always quit, even on macOS
