@@ -29,8 +29,20 @@ BisHub is a church display application built with Electron + React + TypeScript.
 ### Shared Utilities
 
 - **Use `src/shared/utils.ts`** for common functions — don't duplicate utility logic
-- Available utilities: `getFileUrl`, `formatDuration`, `formatFileSize`, `formatDate`, `removeDiacritics`, `normalizeForSearch`, `findOptimalFontSize`, `getSecurityKeyFromURL`, `updateProgressList`
+- Available utilities: `getFileUrl`, `formatDuration`, `formatFileSize`, `formatDate`, `removeDiacritics`, `normalizeForSearch`, `findOptimalFontSize`, `getSecurityKeyFromURL`, `updateProgressList`, `formatTimeAgo`
 - Electron code imports from `../src/shared/utils`, renderer code uses `@shared/utils`
+
+### UI Design System
+
+- **Use shared UI components** from `src/remote/components/ui/Card.tsx` and `src/remote/components/icons/ui.tsx`
+- **`<Card>`** — standard section container with `compact` prop for tighter padding. Uses `bg-gray-800/50 border border-gray-700/50 rounded-xl`
+- **`<StatusBanner>`** — colored accent banner with `color` prop (blue/green/yellow/red) and optional `onClick`. Uses `rounded-xl` with translucent backgrounds
+- **Icons**: Use `CloseIcon`, `ChevronLeftIcon`, `ChevronRightIcon`, `StopIcon`, `CollapseRightIcon`, `ExpandLeftIcon` from `icons/ui.tsx` — never use ASCII characters (✕, ←, →, ◀, ▶, ■) for UI elements
+- **Buttons**: Use ghost/outline style for actions — `bg-{color}-600/20 text-{color}-400 hover:bg-{color}-600/30 border border-{color}-600/40`. Avoid solid colored backgrounds
+- **Pill groups**: Related buttons grouped in `bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden` containers
+- **Inputs**: Use `bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`
+- **List items**: Use `bg-gray-900/50 border border-gray-700/30 rounded-lg` with `border-blue-500/50 bg-blue-950/20` for selected state
+- **Focus rings**: Use `focus-visible:ring-2` (not `focus:ring-2`) for interactive elements to avoid showing rings on mouse clicks
 
 ## Development Commands
 
@@ -141,10 +153,31 @@ function MyComponent({ settings }) {
 // Shared utilities
 import { formatDuration, getFileUrl, normalizeForSearch } from "@shared/utils";
 
-// Responsive Tailwind classes
-<div className="flex flex-col md:flex-row gap-4">
-  <button className="w-full md:w-auto px-4 py-2">{t.action}</button>
-</div>;
+// UI components
+import { Card, StatusBanner } from "../components/ui/Card";
+import { CloseIcon, ChevronRightIcon } from "../components/icons/ui";
+
+// Section container
+<Card>
+  <h2 className="text-lg font-semibold mb-4">{t.section.title}</h2>
+  {/* content */}
+</Card>
+
+// Ghost button (primary action)
+<button className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40">
+  {t.action}
+</button>
+
+// Destructive ghost button
+<button className="px-3 py-1.5 rounded-lg text-sm bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-600/40">
+  {t.delete}
+</button>
+
+// Pill button group
+<div className="flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden">
+  <button className="px-3 py-2 hover:bg-gray-700 transition-colors">Left</button>
+  <button className="px-3 py-2 hover:bg-gray-700 transition-colors text-blue-400">Right</button>
+</div>
 
 // Progress tracking in hooks (for upload/download progress lists)
 import { updateProgressList } from "@shared/utils";
@@ -169,6 +202,9 @@ setUploads((prev) => updateProgressList(prev, progress, setUploads));
 | `src/display/modes/TextMode.tsx` | Display text rendering with auto font sizing                     |
 | `src/remote/components/preview/LivePreview.tsx` | Scaled preview replica of the display       |
 | `src/remote/components/MediaUploader.tsx` | Unified upload component (video + audio)            |
+| `src/remote/components/ui/Card.tsx` | **Shared Card and StatusBanner components**                |
+| `src/remote/components/icons/ui.tsx` | **Shared SVG icon components (Close, Chevrons, Stop, etc)** |
+| `src/remote/components/bible/*` | Bible page sub-components (SmartSearchBar, BrowseTab, SearchResultsTab, VerseListView) |
 
 ## Tech Stack Details
 
@@ -180,11 +216,13 @@ setUploads((prev) => updateProgressList(prev, progress, setUploads));
 
 ## Keyboard Shortcuts
 
-| Key              | Action          |
-| ---------------- | --------------- |
-| `→` / `PageDown` | Next slide      |
-| `←` / `PageUp`   | Previous slide  |
-| `Escape`         | Go to idle mode |
+| Key              | Action                                              |
+| ---------------- | --------------------------------------------------- |
+| `→` / `PageDown` | Next slide                                          |
+| `←` / `PageUp`   | Previous slide                                      |
+| `Escape`         | Go to idle mode (or back from Bible verse list view) |
+| `Enter`          | Bible: load reference / present highlighted verse    |
+| `F5`             | Focus search input                                   |
 
 ## Build Pipeline
 
