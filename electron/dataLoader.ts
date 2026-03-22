@@ -360,14 +360,15 @@ export function searchBibleVerses(
     }
   }
 
+  // Build book index for canonical ordering
+  const bookIndex = new Map<string, number>();
+  bible.books.forEach((book, i) => bookIndex.set(book.id, i));
+
   // Sort by score descending, then by canonical order
   results.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
-    // Same score: sort by book order, chapter, verse
     if (a.bookId !== b.bookId) {
-      const aIdx = bible.books.findIndex((b) => b.id === a.bookId);
-      const bIdx = bible.books.findIndex((b) => b.id === b.bookId);
-      return aIdx - bIdx;
+      return (bookIndex.get(a.bookId) ?? 0) - (bookIndex.get(b.bookId) ?? 0);
     }
     if (a.chapter !== b.chapter) return a.chapter - b.chapter;
     return a.verse - b.verse;
@@ -381,48 +382,65 @@ function calculateRelevanceScore(
   queryWords: string[],
   normalizedText: string
 ): number {
-  let score = 0;
-
-  // Exact phrase match (highest priority)
+  // Tier 1: Exact phrase match (highest priority)
   if (normalizedText.includes(normalizedQuery)) {
-    score += 100;
-    // Bonus for match at start
-    if (normalizedText.startsWith(normalizedQuery)) {
-      score += 10;
+    let score = 100;
+    // Bonus for match at start of verse
+    if (normalizedText.startsWith(normalizedQuery)) score += 10;
+    // Bonus for shorter verses (more focused match)
+    score += Math.max(0, 5 - Math.floor(normalizedText.length / 50));
+    return score;
+  }
+
+  // Find positions of each query word in the text
+  const textWords = normalizedText.split(/\s+/);
+  const wordPositions: number[] = []; // position of first occurrence of each query word
+  let matchedCount = 0;
+
+  for (const qw of queryWords) {
+    // Try exact word match first, then prefix match
+    let pos = textWords.findIndex((tw) => tw === qw);
+    if (pos === -1) pos = textWords.findIndex((tw) => tw.startsWith(qw));
+    if (pos !== -1) {
+      wordPositions.push(pos);
+      matchedCount++;
     }
   }
 
-  // All words present
-  const allWordsPresent = queryWords.every((word) =>
-    normalizedText.includes(word)
-  );
-  if (allWordsPresent && score === 0) {
-    score += 50;
-  }
+  // Require at least half the query words to match (rounded up)
+  const minRequired = Math.ceil(queryWords.length / 2);
+  if (matchedCount < minRequired) return 0;
 
-  // Partial word matches (word appears as prefix)
-  if (score === 0) {
-    const textWords = normalizedText.split(/\s+/);
-    let matchedWords = 0;
-    for (const queryWord of queryWords) {
-      if (textWords.some((tw) => tw.startsWith(queryWord))) {
-        matchedWords++;
+  const matchRatio = matchedCount / queryWords.length;
+
+  // Tier 2: All words present
+  if (matchedCount === queryWords.length) {
+    let score = 50;
+
+    // Proximity bonus: how close together are the matched words?
+    // Calculate the span (distance between earliest and latest match)
+    const minPos = Math.min(...wordPositions);
+    const maxPos = Math.max(...wordPositions);
+    const span = maxPos - minPos + 1;
+    // Perfect proximity = words are adjacent (span equals word count)
+    // Up to 30 points for proximity
+    const idealSpan = queryWords.length;
+    const proximityScore = Math.max(0, 30 - (span - idealSpan) * 3);
+    score += proximityScore;
+
+    // Order bonus: do words appear in the same order as the query?
+    let inOrder = true;
+    for (let i = 1; i < wordPositions.length; i++) {
+      if (wordPositions[i] <= wordPositions[i - 1]) {
+        inOrder = false;
+        break;
       }
     }
-    if (matchedWords > 0) {
-      score += 25 * (matchedWords / queryWords.length);
-    }
+    if (inOrder) score += 10;
+
+    return score;
   }
 
-  // Position bonus: earlier matches rank higher
-  if (score > 0) {
-    const firstMatchPos = normalizedText.indexOf(queryWords[0]);
-    if (firstMatchPos !== -1) {
-      // Add up to 5 points for matches near the start
-      const positionBonus = Math.max(0, 5 - Math.floor(firstMatchPos / 20));
-      score += positionBonus;
-    }
-  }
-
-  return score;
+  // Tier 3: Partial word matches (at least half the words present)
+  return 15 * matchRatio;
 }

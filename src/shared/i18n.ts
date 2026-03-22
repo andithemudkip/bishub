@@ -40,25 +40,20 @@ export interface Translations {
 
   // Bible page
   bible: {
-    quickSearch: string;
-    quickSearchHint: string;
+    searchPlaceholder: string;
+    go: string;
+    back: string;
     browse: string;
-    book: string;
+    oldTestament: string;
+    newTestament: string;
+    filterBooks: string;
     chapter: string;
-    fromVerse: string;
-    toVerse: string;
-    load: string;
-    loadVerses: string;
-    selectBook: string;
-    couldNotParse: string;
     verse: string;
     tapToJump: string;
-    present: string;
-    presentVerses: string;
-    loadedPreview: string;
-    textSearch: string;
-    textSearchHint: string;
-    textSearchPlaceholder: string;
+    currentlyDisplaying: string;
+    currentlyLoaded: string;
+    viewVerses: string;
+    couldNotParse: string;
     searchResults: string;
     noSearchResults: string;
     searching: string;
@@ -248,26 +243,20 @@ const ro: Translations = {
     chorusPrefix: "R",
   },
   bible: {
-    quickSearch: "Căutare rapidă",
-    quickSearchHint:
-      "Tastează o referință precum: gen 2:16, ps 23:1-6, ioan 3:16, 1imp 1:20",
+    searchPlaceholder: "Tastează o referință sau caută text...",
+    go: "Du-te",
+    back: "Înapoi",
     browse: "Răsfoiește",
-    book: "Carte",
+    oldTestament: "Vechiul Testament",
+    newTestament: "Noul Testament",
+    filterBooks: "Filtrează cărțile...",
     chapter: "Capitol",
-    fromVerse: "De la versetul",
-    toVerse: "La versetul",
-    load: "Încarcă",
-    loadVerses: "Încarcă versetele",
-    selectBook: "Selectează o carte...",
-    couldNotParse: "Nu s-a putut interpreta referința",
     verse: "Versetul",
     tapToJump: "Atinge un verset pentru a sări la el",
-    present: "Prezintă",
-    presentVerses: "Prezintă versetele",
-    loadedPreview: "Încărcat (nu se afișează)",
-    textSearch: "Caută în text",
-    textSearchHint: "Caută cuvinte sau fraze în textul Bibliei",
-    textSearchPlaceholder: "Caută în versete...",
+    currentlyDisplaying: "Se afișează",
+    currentlyLoaded: "Versetele încărcate",
+    viewVerses: "Vezi versetele",
+    couldNotParse: "Nu s-a putut interpreta referința",
     searchResults: "Rezultate",
     noSearchResults: "Niciun rezultat găsit pentru",
     searching: "Se caută...",
@@ -444,26 +433,20 @@ const en: Translations = {
     chorusPrefix: "Ch",
   },
   bible: {
-    quickSearch: "Quick Search",
-    quickSearchHint:
-      "Type a reference like: gen 2:16, ps 23:1-6, john 3:16, 1ki 1:20",
+    searchPlaceholder: "Type a reference or search text...",
+    go: "Go",
+    back: "Back",
     browse: "Browse",
-    book: "Book",
+    oldTestament: "Old Testament",
+    newTestament: "New Testament",
+    filterBooks: "Filter books...",
     chapter: "Chapter",
-    fromVerse: "From verse",
-    toVerse: "To verse",
-    load: "Load",
-    loadVerses: "Load Verses",
-    selectBook: "Select a book...",
-    couldNotParse: "Could not parse reference",
     verse: "Verse",
     tapToJump: "Tap a verse to jump to it",
-    present: "Present",
-    presentVerses: "Present Verses",
-    loadedPreview: "Loaded (not presenting)",
-    textSearch: "Text Search",
-    textSearchHint: "Search for words or phrases in Bible text",
-    textSearchPlaceholder: "Search in verses...",
+    currentlyDisplaying: "Currently displaying",
+    currentlyLoaded: "Currently loaded verses",
+    viewVerses: "View verses",
+    couldNotParse: "Could not parse reference",
     searchResults: "Results",
     noSearchResults: "No results found for",
     searching: "Searching...",
