@@ -96,7 +96,10 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "perMachine": true,
+      "include": "build/installer.nsh"
     },
     "linux": {
       "target": "AppImage",

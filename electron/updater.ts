@@ -75,5 +75,6 @@ export function checkForUpdates() {
 }
 
 export function quitAndInstall() {
-  autoUpdater.quitAndInstall();
+  // Force quit to ensure all file locks are released before the installer runs
+  autoUpdater.quitAndInstall(false, true);
 }
