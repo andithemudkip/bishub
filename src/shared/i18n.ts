@@ -35,6 +35,7 @@ export interface Translations {
     verses: string;
     verse: string;
     chorus: string;
+    chorusPrefix: string;
   };
 
   // Bible page
@@ -244,6 +245,7 @@ const ro: Translations = {
     verses: "strofe",
     verse: "strofă",
     chorus: "refren",
+    chorusPrefix: "R",
   },
   bible: {
     quickSearch: "Căutare rapidă",
@@ -439,6 +441,7 @@ const en: Translations = {
     verses: "verses",
     verse: "verse",
     chorus: "chorus",
+    chorusPrefix: "Ch",
   },
   bible: {
     quickSearch: "Quick Search",

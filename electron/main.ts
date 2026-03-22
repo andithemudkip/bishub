@@ -21,7 +21,7 @@ import {
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
-import { startDownload, cancelDownload, getActiveDownloads, killAllDownloads } from "./ytdlp";
+import { startDownload, cancelDownload, getActiveDownloads, killAllDownloads, checkForBinaryUpdates } from "./ytdlp";
 import type {
   DisplayMode,
   ClockPosition,
@@ -259,7 +259,8 @@ function setupIPC() {
   ipcMain.handle("load-hymn", (_event, hymnNumber: string) => {
     const hymn = getHymnByNumber(hymnNumber);
     if (hymn) {
-      const { title, slides } = formatHymnForDisplay(hymn);
+      const language = stateManager.getSettings().language;
+      const { title, slides } = formatHymnForDisplay(hymn, language);
       stateManager.loadText(title, slides.join("\n\n"), "hymn");
     }
   });
@@ -556,7 +557,11 @@ if (!gotTheLock) {
     }
   });
 
-  app.whenReady().then(createWindows);
+  app.whenReady().then(() => {
+    createWindows();
+    // Check for yt-dlp and quickjs updates in the background
+    checkForBinaryUpdates();
+  });
 }
 
 // Track whether we're in the process of quitting

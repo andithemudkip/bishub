@@ -2,7 +2,7 @@ import { spawn, execSync, ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { app } from "electron";
+import { app, net } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import { getVideoLibrary } from "./videoLibrary";
 import { getFfmpegPath } from "./utils";
@@ -21,34 +21,229 @@ const activeDownloads = new Map<
   { process: ChildProcess; progress: DownloadProgress }
 >();
 
-function getYtdlpPath(): string {
+// --- Binary resolution: prefer updated binaries in userData, fall back to bundled ---
+
+function getUpdatedBinDir(): string {
+  return path.join(app.getPath("userData"), "bin");
+}
+
+function getBundledBinaryPath(name: string): string {
   const platform = process.platform;
-  const isPackaged = app.isPackaged;
+  const isWindows = platform === "win32";
+  const binaryName = isWindows ? `${name}.exe` : name;
 
-  let binaryName: string;
-  switch (platform) {
-    case "win32":
-      binaryName = "yt-dlp.exe";
-      break;
-    case "darwin":
-    case "linux":
-    default:
-      binaryName = "yt-dlp";
-      break;
-  }
-
-  if (isPackaged) {
-    // In packaged app, binary is in resources/bin/
+  if (app.isPackaged) {
     return path.join(process.resourcesPath, "bin", binaryName);
   } else {
-    // In development, binary is in project bin/{os}/
-    const osDir =
-      platform === "darwin"
-        ? "darwin"
-        : platform === "win32"
-        ? "win32"
-        : "linux";
+    const osDir = isWindows ? "win32" : platform === "darwin" ? "darwin" : "linux";
     return path.join(__dirname, "..", "bin", osDir, binaryName);
+  }
+}
+
+function getBinaryPath(name: string): string {
+  const isWindows = process.platform === "win32";
+  const binaryName = isWindows ? `${name}.exe` : name;
+  const updatedPath = path.join(getUpdatedBinDir(), binaryName);
+
+  // Prefer OTA-updated binary if it exists
+  if (fs.existsSync(updatedPath)) {
+    return updatedPath;
+  }
+  return getBundledBinaryPath(name);
+}
+
+function getYtdlpPath(): string {
+  return getBinaryPath("yt-dlp");
+}
+
+function getQjsPath(): string {
+  return getBinaryPath("qjs");
+}
+
+// --- OTA binary updater ---
+
+interface GitHubRelease {
+  tag_name: string;
+  assets: { name: string; browser_download_url: string }[];
+}
+
+async function fetchJSON(url: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const request = net.request(url);
+    let body = "";
+    request.on("response", (response) => {
+      // Follow redirects
+      if (
+        response.statusCode &&
+        response.statusCode >= 300 &&
+        response.statusCode < 400
+      ) {
+        const location = response.headers["location"];
+        const redirectUrl = Array.isArray(location) ? location[0] : location;
+        if (redirectUrl) {
+          fetchJSON(redirectUrl).then(resolve).catch(reject);
+          return;
+        }
+      }
+      response.on("data", (chunk) => (body += chunk.toString()));
+      response.on("end", () => {
+        try {
+          resolve(JSON.parse(body));
+        } catch {
+          reject(new Error("Failed to parse JSON"));
+        }
+      });
+    });
+    request.on("error", reject);
+    request.end();
+  });
+}
+
+async function downloadFile(url: string, destPath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = net.request(url);
+    request.on("response", (response) => {
+      // Follow redirects
+      if (
+        response.statusCode &&
+        response.statusCode >= 300 &&
+        response.statusCode < 400
+      ) {
+        const location = response.headers["location"];
+        const redirectUrl = Array.isArray(location) ? location[0] : location;
+        if (redirectUrl) {
+          downloadFile(redirectUrl, destPath).then(resolve).catch(reject);
+          return;
+        }
+      }
+      const tmpPath = `${destPath}.tmp`;
+      const file = fs.createWriteStream(tmpPath);
+      response.on("data", (chunk) => file.write(chunk));
+      response.on("end", () => {
+        file.end(() => {
+          fs.renameSync(tmpPath, destPath);
+          // Make executable on unix
+          if (process.platform !== "win32") {
+            fs.chmodSync(destPath, 0o755);
+          }
+          resolve();
+        });
+      });
+    });
+    request.on("error", reject);
+    request.end();
+  });
+}
+
+function getVersionFile(): string {
+  return path.join(getUpdatedBinDir(), "versions.json");
+}
+
+function getSavedVersions(): Record<string, string> {
+  try {
+    return JSON.parse(fs.readFileSync(getVersionFile(), "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveVersions(versions: Record<string, string>): void {
+  fs.writeFileSync(getVersionFile(), JSON.stringify(versions, null, 2));
+}
+
+async function updateYtdlp(): Promise<boolean> {
+  try {
+    const release: GitHubRelease = await fetchJSON(
+      "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
+    );
+    const versions = getSavedVersions();
+    if (versions["yt-dlp"] === release.tag_name) return false;
+
+    const platform = process.platform;
+    const arch = process.arch;
+    let assetName: string;
+    if (platform === "win32") {
+      assetName = arch === "arm64" ? "yt-dlp_arm64.exe" : "yt-dlp.exe";
+    } else if (platform === "darwin") {
+      assetName = "yt-dlp_macos";
+    } else {
+      assetName = arch === "arm64" ? "yt-dlp_linux_aarch64" : "yt-dlp_linux";
+    }
+
+    const asset = release.assets.find((a) => a.name === assetName);
+    if (!asset) return false;
+
+    const isWindows = platform === "win32";
+    const destName = isWindows ? "yt-dlp.exe" : "yt-dlp";
+    const destPath = path.join(getUpdatedBinDir(), destName);
+
+    console.log(`[OTA] Updating yt-dlp to ${release.tag_name}...`);
+    await downloadFile(asset.browser_download_url, destPath);
+
+    versions["yt-dlp"] = release.tag_name;
+    saveVersions(versions);
+    console.log(`[OTA] yt-dlp updated to ${release.tag_name}`);
+    return true;
+  } catch (err) {
+    console.warn("[OTA] Failed to update yt-dlp:", err);
+    return false;
+  }
+}
+
+async function updateQjs(): Promise<boolean> {
+  try {
+    const release: GitHubRelease = await fetchJSON(
+      "https://api.github.com/repos/quickjs-ng/quickjs/releases/latest",
+    );
+    const versions = getSavedVersions();
+    if (versions["qjs"] === release.tag_name) return false;
+
+    const platform = process.platform;
+    const arch = process.arch; // "x64", "arm64", etc.
+    let assetName: string;
+    if (platform === "win32") {
+      assetName = arch === "ia32" ? "qjs-windows-x86.exe" : "qjs-windows-x86_64.exe";
+    } else if (platform === "darwin") {
+      assetName = "qjs-darwin";
+    } else {
+      assetName = arch === "arm64" ? "qjs-linux-aarch64" : "qjs-linux-x86_64";
+    }
+
+    const asset = release.assets.find((a) => a.name === assetName);
+    if (!asset) return false;
+
+    const isWindows = platform === "win32";
+    const destName = isWindows ? "qjs.exe" : "qjs";
+    const destPath = path.join(getUpdatedBinDir(), destName);
+
+    console.log(`[OTA] Updating qjs to ${release.tag_name}...`);
+    await downloadFile(asset.browser_download_url, destPath);
+
+    versions["qjs"] = release.tag_name;
+    saveVersions(versions);
+    console.log(`[OTA] qjs updated to ${release.tag_name}`);
+    return true;
+  } catch (err) {
+    console.warn("[OTA] Failed to update qjs:", err);
+    return false;
+  }
+}
+
+/**
+ * Check for and download updated yt-dlp and quickjs binaries.
+ * Safe to call on startup — runs in background, never throws.
+ */
+export async function checkForBinaryUpdates(): Promise<void> {
+  try {
+    // Ensure the updated bin directory exists
+    const binDir = getUpdatedBinDir();
+    if (!fs.existsSync(binDir)) {
+      fs.mkdirSync(binDir, { recursive: true });
+    }
+
+    await Promise.all([updateYtdlp(), updateQjs()]);
+  } catch (err) {
+    console.warn("[OTA] Binary update check failed:", err);
   }
 }
 
@@ -109,6 +304,9 @@ export function startDownload(url: string): DownloadProgress {
     "--progress",
     "--no-playlist",
     "--restrict-filenames",
+    "--no-js-runtimes",
+    "--js-runtimes",
+    `quickjs:${getQjsPath()}`,
   ];
 
   progress.status = "downloading";

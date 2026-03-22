@@ -358,7 +358,8 @@ export function createServer(
     socket.on("loadHymn", (hymnNumber) => {
       const hymn = getHymnByNumber(hymnNumber);
       if (hymn) {
-        const { title, slides } = formatHymnForDisplay(hymn);
+        const language = stateManager.getSettings().language;
+        const { title, slides } = formatHymnForDisplay(hymn, language);
         stateManager.loadText(title, slides.join("\n\n"), "hymn");
       }
     });

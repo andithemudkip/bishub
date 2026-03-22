@@ -10,7 +10,7 @@ import type {
   BibleContext,
   BibleSearchResult,
 } from "../src/shared/types";
-import type { Language } from "../src/shared/i18n";
+import { type Language, getTranslations } from "../src/shared/i18n";
 import { normalizeForSearch } from "../src/shared/utils";
 
 // @ts-ignore
@@ -214,20 +214,25 @@ function pushSlides(slides: string[], text: string): void {
   }
 }
 
-export function formatHymnForDisplay(hymn: Hymn): {
+export function formatHymnForDisplay(
+  hymn: Hymn,
+  language: Language = "ro",
+): {
   title: string;
   slides: string[];
 } {
   const slides: string[] = [];
-  if (hymn.chorus && hymn.chorus.trim()) {
-    hymn.chorus = `R: ${hymn.chorus.trim()}`;
-  }
+  const t = getTranslations(language);
+  const chorus =
+    hymn.chorus && hymn.chorus.trim()
+      ? `${t.hymns.chorusPrefix}: ${hymn.chorus.trim()}`
+      : null;
 
   hymn.verses.forEach((verse, index) => {
     pushSlides(slides, `${index + 1}. ${verse}`);
 
-    if (hymn.chorus && hymn.chorus.trim()) {
-      pushSlides(slides, hymn.chorus);
+    if (chorus) {
+      pushSlides(slides, chorus);
     }
   });
 
