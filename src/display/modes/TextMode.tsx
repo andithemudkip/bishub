@@ -43,8 +43,7 @@ export default function TextMode({ config }: Props) {
 
     // Get available space
     const availableHeight = container.clientHeight - 160; // Reserve space for title and slide indicators
-    // max-w-5xl = 64rem = 1024px, but also respect container width
-    const availableWidth = Math.min(1024, container.clientWidth - 96);
+    const availableWidth = container.clientWidth - 96; // container padding already applied
 
     // For hymns: prevent line wrapping to keep each line on one line
     // For bible: allow wrapping, just fit height
@@ -95,7 +94,7 @@ export default function TextMode({ config }: Props) {
       {/* Main text content */}
       <div
         ref={wrapperRef}
-        className={`w-full max-w-5xl transition-opacity duration-200 ${
+        className={`w-full transition-opacity duration-200 ${
           visible ? "opacity-100" : "opacity-0"
         } ${config.contentType === "bible" ? "text-left" : "text-center"}`}
       >

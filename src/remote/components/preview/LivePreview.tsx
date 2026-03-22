@@ -94,7 +94,7 @@ function ScaledSlide({
 
     const isHymn = contentType === "hymn";
     const availableHeight = VIRTUAL_HEIGHT - 160;
-    const availableWidth = Math.min(1024, VIRTUAL_WIDTH - 96);
+    const availableWidth = VIRTUAL_WIDTH - 96;
 
     let optimalSize: number;
 
@@ -147,7 +147,7 @@ function ScaledSlide({
 
           <div
             ref={wrapperRef}
-            className={`w-full max-w-5xl ${
+            className={`w-full ${
               contentType === "bible" ? "text-left" : "text-center"
             }`}
           >
