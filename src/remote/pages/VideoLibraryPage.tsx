@@ -239,7 +239,7 @@ export default function VideoLibraryPage({
               max={videoState.duration || 100}
               value={videoState.currentTime}
               onChange={handleSeek}
-              className="w-full h-2 sm:h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              className="w-full"
             />
           </div>
 
@@ -263,7 +263,7 @@ export default function VideoLibraryPage({
                 step={0.05}
                 value={videoState.volume}
                 onChange={handleVolume}
-                className="flex-1 h-2 sm:h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                className="flex-1"
               />
               <span className="w-10 sm:w-12 text-right text-gray-400 text-xs sm:text-sm">
                 {Math.round(videoState.volume * 100)}%

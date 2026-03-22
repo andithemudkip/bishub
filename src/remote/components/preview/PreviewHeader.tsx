@@ -9,7 +9,7 @@ interface Props {
   onToggle: () => void;
 }
 
-const PREVIEW_HEIGHT = 150;
+const PREVIEW_HEIGHT = 200;
 
 export default function PreviewHeader({
   state,
@@ -43,7 +43,7 @@ export default function PreviewHeader({
               />
               {/* Tap to collapse hint */}
               <div className="absolute bottom-1 right-1 text-[8px] text-white/30 bg-black/50 px-1 rounded">
-                {t.preview?.tapToCollapse || "Tap to hide"}
+                {t.preview.tapToCollapse}
               </div>
             </div>
           </div>

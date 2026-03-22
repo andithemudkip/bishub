@@ -272,7 +272,7 @@ export default function SettingsPage({
               step="10"
               value={idleState.clockFontSize}
               onChange={handleFontSizeChange}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              className="w-full"
             />
             <div className="flex justify-between text-xs text-gray-500 mt-1">
               <span>50%</span>
@@ -345,7 +345,7 @@ export default function SettingsPage({
                 step={0.05}
                 value={videoVolume}
                 onChange={handleVideoVolumeChange}
-                className="flex-1 h-2 sm:h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                className="flex-1"
               />
               <span className="w-10 sm:w-12 text-right text-gray-400 text-xs sm:text-sm">
                 {Math.round(videoVolume * 100)}%
@@ -373,7 +373,7 @@ export default function SettingsPage({
                 step={0.05}
                 value={audioVolume}
                 onChange={handleAudioVolumeChange}
-                className="flex-1 h-2 sm:h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                className="flex-1"
               />
               <span className="w-10 sm:w-12 text-right text-gray-400 text-xs sm:text-sm">
                 {Math.round(audioVolume * 100)}%

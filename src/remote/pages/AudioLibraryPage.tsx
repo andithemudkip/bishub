@@ -311,7 +311,7 @@ export default function AudioLibraryPage({
               max={audioState.duration || 100}
               value={audioState.currentTime}
               onChange={handleSeek}
-              className="w-full h-2 sm:h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              className="w-full"
             />
           </div>
 
@@ -335,7 +335,7 @@ export default function AudioLibraryPage({
                 step={0.05}
                 value={audioState.volume}
                 onChange={handleVolume}
-                className="flex-1 h-2 sm:h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                className="flex-1"
               />
               <span className="w-10 sm:w-12 text-right text-gray-400 text-xs sm:text-sm">
                 {Math.round(audioState.volume * 100)}%
