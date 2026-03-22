@@ -13,7 +13,9 @@
   {
     "number": "2",
     "chorus": "",
-    "verses": ["Aleluia, Aleluia!\nAmin, Amin!"],
+    "verses": [
+      "Aleluia, Aleluia!\nAmin, Amin!"
+    ],
     "title": "Aleluia! Amin! (canon)"
   },
   {
@@ -1584,7 +1586,7 @@
     "verses": [
       "Caută-n Scriptură, sfânta Scriptură,\nSă afli viaţa în Hristos,\nÎn ea stă dreapta-nvăţătură,\nTot ce e-n ea e de folos!",
       "Caută-n Scriptură, sfânta Scriptură\nŞi drumul mântuirii-l ia,\nFereşte orice cotitură,\nUrmează calea spusă-n ea!",
-      "Caută-n Scriptură, sfânta Scriptură\nŞi drumul mântuirii-l ia,\nFereşte orice cotitură,\nUrmează calea spusă-n ea!"
+      "Caută-n Scriptură, sfânta Scriptură,\nDar fă şi altor cunoscut\nCă-n ea stă dreapta-nvăţătură,\nEa spune tot ce-i de făcut!"
     ],
     "title": "Caută-n Scriptură!"
   },
@@ -2973,7 +2975,9 @@
   {
     "number": "286",
     "chorus": "",
-    "verses": ["Cine vrea smerit să fie\nVa domni în veşnicie!"],
+    "verses": [
+      "Cine vrea smerit să fie\nVa domni în veşnicie!"
+    ],
     "title": "Cine vrea smerit să fie (canon)"
   },
   {
@@ -6784,7 +6788,9 @@
   {
     "number": "651",
     "chorus": "",
-    "verses": ["Când şi cum? \nCând şi cum\nNe-om revedea din \nnou de-acum?"],
+    "verses": [
+      "Când şi cum? \nCând şi cum\nNe-om revedea din \nnou de-acum?"
+    ],
     "title": "Când şi cum? (canon)"
   },
   {
@@ -7427,15 +7433,13 @@
   },
   {
     "number": "713",
-    "chorus": "Eu cunosc un mieluşel \nRătăcit ca vai de el,\nTot umblând în rele căi \nNumai răni şi vânătăi.",
+    "chorus": "Ce să vezi? Acel miel rătăcit\nAm fost eu, dar Domnul m-a iubit;\nŞi degrabă, şi degrabă,\nA venit şi m-a găsit!",
     "verses": [
-      "Ce să vezi? Acel miel rătăcit \nAm fost eu, dar Domnul m-a iubit;\nŞi degrabă, şi degrabă, \nA venit şi m-a găsit!",
-      "Eu cunosc un miel zglobiu:\nRătăcise prin pustiu\nLupii răi l-au alergat... \nCe minune c-a scăpat!",
-      "Ce să vezi? Acel miel rătăcit \nAm fost eu, dar Domnul m-a iubit;\nŞi degrabă, şi degrabă, \nA venit şi m-a găsit!",
-      "Da, un miel cunosc şi eu:\nL-a găsit Păstorul său...\nDin desişul cel spinos \nBlând l-a scos cu braţ vânjos.",
-      "Ce să vezi? Acel miel rătăcit \nAm fost eu, dar Domnul m-a iubit;\nŞi degrabă, şi degrabă, \nA venit şi m-a găsit!",
-      "Eu sunt mielul, cum v-am spus, \nIar Păstorul e Isus!\nLui I-urmez şi mă supun \nCa să merg pe drumul bun.",
-      "Da, da, da! Acel miel blând supus,\nEu voi fi, iubit Păstor, Isus,\nŞi de-acuma tot de Tine\nEu pe veci mă las condus."
+      "Eu cunosc un mieluşel:\nNu-i ascultător defel!\nTot umblând de capul său\nApucase drumul rău...",
+      "Eu cunosc un mieluşel\nRătăcit ca vai de el,\nTot umblând în rele căi\nNumai răni şi vânătăi.",
+      "Eu cunosc un miel zglobiu:\nRătăcise prin pustiu\nLupii răi l-au alergat...\nCe minune c-a scăpat!",
+      "Da, un miel cunosc şi eu:\nL-a găsit Păstorul său...\nDin desişul cel spinos\nBlând l-a scos cu braţ vânjos.",
+      "Eu sunt mielul, cum v-am spus,\nIar Păstorul e Isus!\nLui I-urmez şi mă supun\nCa să merg pe drumul bun."
     ],
     "title": "Eu cunosc un mieluşel"
   },
@@ -8197,7 +8201,7 @@
       "Doamne, Te rog: La tronul Tău, \r\nInima mea Tu să primeşti. \r\nDin ea să scoţi tot ce e rău; \r\n(: Tu s-o sfinţeşti. :)",
       "În ea să pui un spirit nou, \r\nCe să dorească ne-ncetat \r\nCa să ia din Cuvântul Tău \r\n(: Continuu sfat .:)",
       "În chipul Tău de-oi oglindi \r\nPrivirea şi gândirea mea, \r\nAtuncea sigur eu voi fi \r\n(: Că s-ar schimba. :)",
-      "În chipul Tău de-oi oglindi \r\nPrivirea şi gândirea mea, \r\nAtuncea sigur eu voi fi \r\n(: Că s-ar schimba. :)"
+      "De calea rea să mă feresc, \r\nAjută-mi Doamne ne-ncetat, \r\nMereu, mereu, să mă păzesc \r\n(: Să fiu curat :)"
     ],
     "title": "Doamne, Te rog!"
   },
@@ -9190,12 +9194,12 @@
   },
   {
     "number": "885",
-    "chorus": "Fii cu noi, fii cu noi,\r\nCa ’naintea Ta să stăm,\r\nFii cu noi, fii cu noi,\r\nCa ’naintea Ta mereu să stăm!",
+    "chorus": "Fii cu noi, fii cu noi,\nCa-naintea Ta să vieţuim,\nFii cu noi, fii cu noi,\nPentru ceruri pregătiţi să fim!",
     "verses": [
-      "Fii cu noi, fii cu noi,\r\nCa ’naintea Ta să stăm,\r\nFii cu noi, fii cu noi,\r\nCa ’naintea Ta mereu să stăm!",
-      "Fii cu noi, fii cu noi,\r\nCa ’naintea Ta să stăm,\r\nFii cu noi, fii cu noi,\r\nCa ’naintea Ta mereu să stăm!",
-      "Fii cu noi, fii cu noi,\r\nCa ’naintea Ta să stăm,\r\nFii cu noi, fii cu noi,\r\nCa ’naintea Ta mereu să stăm!",
-      "Fii cu noi, fii cu noi,\r\nCa ’naintea Ta să stăm,\r\nFii cu noi, fii cu noi,\r\nCa ’naintea Ta mereu să stăm!"
+      "Doamne, fii cu noi în veci de veci,\nSfatul Tău să ne susţină,\nTurma Ta să se menţină,\nDoamne, fii cu noi în veci de veci!",
+      "Doamne, fii cu noi în veci de veci,\nSub aripa Ta ne ţine,\nŞi ne dă a vieţii pâine,\nDoamne, fii cu noi în veci de veci!",
+      "Doamne, fii cu noi în veci de veci!\nNorii grei de se ridică,\nStând cu Tine nu ni-e frică,\nDoamne, fii cu noi în veci de veci!",
+      "Doamne, fii cu noi în veci de veci,\nDragostea să nu se stingă,\nÎncercări să nu ne-nvingă,\nDoamne, fii cu noi în veci de veci!"
     ],
     "title": "Doamne, fii cu noi în veci de veci!"
   },
