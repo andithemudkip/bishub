@@ -121,6 +121,7 @@ export default function App() {
         return (
           <HymnsPage
             textState={api.state.text}
+            isTextMode={api.state.mode === "text"}
             hymns={api.hymns}
             onLoadHymn={api.loadHymn}
             settings={api.settings}

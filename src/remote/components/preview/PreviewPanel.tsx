@@ -3,6 +3,7 @@ import type { DisplayState, AppSettings } from "../../../shared/types";
 import { getTranslations } from "../../../shared/i18n";
 import LivePreview from "./LivePreview";
 import { MIN_WIDTH } from "./usePreviewState";
+import { CollapseRightIcon, ExpandLeftIcon } from "../icons/ui";
 
 interface Props {
   state: DisplayState;
@@ -101,14 +102,14 @@ export default function PreviewPanel({
           {/* Header with toggle */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700 flex-shrink-0">
             <span className="text-sm text-gray-400">
-              {t.preview?.title || "Preview"}
+              {t.preview.title}
             </span>
             <button
               onClick={onToggle}
               className="text-gray-400 hover:text-white p-1"
-              title={t.preview?.collapse || "Collapse"}
+              title={t.preview.collapse}
             >
-              ▶
+              <CollapseRightIcon />
             </button>
           </div>
 
@@ -139,9 +140,9 @@ export default function PreviewPanel({
         <button
           onClick={onToggle}
           className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800 border border-gray-700 border-r-0 rounded-l-lg px-1 py-4 text-gray-400 hover:text-white hover:bg-gray-700"
-          title={t.preview?.expand || "Show preview"}
+          title={t.preview.expand}
         >
-          ◀
+          <ExpandLeftIcon />
         </button>
       )}
     </div>

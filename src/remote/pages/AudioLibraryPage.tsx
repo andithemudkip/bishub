@@ -8,6 +8,7 @@ import MediaUploader from "../components/MediaUploader";
 import AudioScheduleSection from "../components/AudioScheduleSection";
 import { getTranslations } from "@shared/i18n";
 import { formatDuration } from "@shared/utils";
+import { Card } from "../components/ui/Card";
 
 interface Props {
   audioState: AudioState;
@@ -54,14 +55,14 @@ export default function AudioLibraryPage({
   return (
     <div className="space-y-6 min-w-0 max-w-full">
       {/* Add audio section */}
-      <div className="bg-gray-800 rounded-lg p-3 sm:p-4">
+      <Card compact>
         {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden mb-4">
           {library.isElectron && (
             <>
               <button
                 onClick={() => library.addLocalAudio()}
-                className="px-3 py-2 sm:px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base"
+                className="px-3 py-2.5 sm:px-4 hover:bg-gray-700 active:bg-gray-600 transition-colors flex items-center gap-2 text-sm text-gray-300"
               >
                 <svg
                   className="w-4 h-4 flex-shrink-0"
@@ -83,7 +84,7 @@ export default function AudioLibraryPage({
               <button
                 onClick={() => library.addLocalAudioDirectory()}
                 disabled={!!library.directoryImport}
-                className="px-3 py-2 sm:px-4 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base"
+                className="px-3 py-2.5 sm:px-4 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-2 text-sm text-gray-300"
               >
                 <svg
                   className="w-4 h-4 flex-shrink-0"
@@ -109,10 +110,10 @@ export default function AudioLibraryPage({
               onClick={() =>
                 setActiveTab(activeTab === "upload" ? "library" : "upload")
               }
-              className={`px-3 py-2 sm:px-4 rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base ${
+              className={`px-3 py-2.5 sm:px-4 transition-colors flex items-center gap-2 text-sm ${
                 activeTab === "upload"
-                  ? "bg-blue-600 hover:bg-blue-500"
-                  : "bg-gray-700 hover:bg-gray-600"
+                  ? "bg-gray-700 text-blue-400"
+                  : "text-gray-300 hover:bg-gray-700"
               }`}
             >
               <svg
@@ -217,20 +218,22 @@ export default function AudioLibraryPage({
             activeUploads={library.uploads}
             allowedExtensions={[".mp3", ".wav", ".ogg", ".m4a", ".flac"]}
             maxSizeBytes={500 * 1024 * 1024}
-            maxSizeLabel="500MB"
             labels={{
               uploading: t.audioLibrary.uploading,
               uploadDrop: t.audioLibrary.uploadDrop,
               uploadHint: t.audioLibrary.uploadHint,
               processing: t.audioLibrary.processing,
               complete: t.audioLibrary.complete,
+              invalidType: t.audioLibrary.invalidType,
+              tooLarge: t.audioLibrary.tooLarge,
+              uploadFailed: t.audioLibrary.uploadFailed,
             }}
           />
         )}
-      </div>
+      </Card>
 
       {/* Audio library */}
-      <div className="bg-gray-800 rounded-lg p-3 sm:p-4 overflow-hidden">
+      <Card compact className="overflow-hidden">
         <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
           {t.audioLibrary.library} ({library.audios.length})
         </h3>
@@ -245,11 +248,11 @@ export default function AudioLibraryPage({
           }
           t={t}
         />
-      </div>
+      </Card>
 
       {/* Audio controls - only show when audio is loaded */}
       {audioState.src && (
-        <div className="bg-gray-800 rounded-lg p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <Card className="space-y-4 sm:space-y-6">
           {/* Current audio */}
           <div>
             <div className="text-xs sm:text-sm text-gray-400 mb-1">
@@ -262,47 +265,37 @@ export default function AudioLibraryPage({
 
           {/* Playback controls */}
           <div className="flex gap-2 sm:gap-3">
-            {audioState.playing ? (
-              <button
-                onClick={pauseAudio}
-                className="flex-1 py-3 sm:py-4 bg-yellow-600 hover:bg-yellow-500 rounded-lg transition-colors text-base sm:text-lg font-semibold flex items-center justify-center gap-2"
-              >
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
+            <div className="flex-1 flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden">
+              {audioState.playing ? (
+                <button
+                  onClick={pauseAudio}
+                  className="flex-1 py-3 sm:py-3.5 hover:bg-gray-700 active:bg-gray-600 transition-colors flex items-center justify-center gap-2 text-yellow-400"
                 >
-                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                </svg>
-                <span className="hidden xs:inline">{t.audioLibrary.pause}</span>
-              </button>
-            ) : (
-              <button
-                onClick={playAudio}
-                className="flex-1 py-3 sm:py-4 bg-green-600 hover:bg-green-500 rounded-lg transition-colors text-base sm:text-lg font-semibold flex items-center justify-center gap-2"
-              >
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                  </svg>
+                  <span className="hidden xs:inline text-sm font-medium">{t.audioLibrary.pause}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={playAudio}
+                  className="flex-1 py-3 sm:py-3.5 hover:bg-gray-700 active:bg-gray-600 transition-colors flex items-center justify-center gap-2 text-green-400"
                 >
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                <span className="hidden xs:inline">{t.audioLibrary.play}</span>
-              </button>
-            )}
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  <span className="hidden xs:inline text-sm font-medium">{t.audioLibrary.play}</span>
+                </button>
+              )}
+            </div>
             <button
               onClick={stopAudio}
-              className="py-3 px-3 sm:py-4 sm:px-4 bg-red-600 hover:bg-red-500 rounded-lg transition-colors text-base sm:text-lg font-semibold flex items-center gap-2"
+              className="px-4 py-3 sm:py-3.5 rounded-lg flex items-center gap-2 flex-shrink-0 bg-red-600/20 text-red-400 hover:bg-red-600/30 active:bg-red-600/40 border border-red-600/40 transition-colors"
             >
-              <svg
-                className="w-5 h-5 sm:w-6 sm:h-6"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 6h12v12H6z" />
               </svg>
-              <span className="hidden xs:inline">{t.audioLibrary.stop}</span>
+              <span className="hidden xs:inline text-sm font-medium">{t.audioLibrary.stop}</span>
             </button>
           </div>
 
@@ -349,7 +342,7 @@ export default function AudioLibraryPage({
               </span>
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Audio Scheduling Section */}

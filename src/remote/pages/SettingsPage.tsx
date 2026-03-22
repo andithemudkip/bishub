@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { Card } from "../components/ui/Card";
 import type {
   MonitorInfo,
   AppSettings,
@@ -160,7 +161,7 @@ export default function SettingsPage({
   return (
     <div className="space-y-4 sm:space-y-6 max-w-2xl mx-auto px-2 sm:px-0">
       {/* Language settings */}
-      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+      <Card>
         <h2 className="text-lg font-semibold mb-4">{t.settings.language}</h2>
 
         <div>
@@ -176,11 +177,11 @@ export default function SettingsPage({
             ))}
           </select>
         </div>
-      </div>
+      </Card>
 
       {/* Open on startup - Electron only */}
       {isElectron && (
-        <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+        <Card>
           <label className="flex items-center justify-between cursor-pointer">
             <span className="text-lg font-semibold">
               {t.settings.openOnStartup}
@@ -195,11 +196,11 @@ export default function SettingsPage({
               <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </div>
           </label>
-        </div>
+        </Card>
       )}
 
       {/* Display settings */}
-      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+      <Card>
         <h2 className="text-lg font-semibold mb-4">{t.settings.display}</h2>
 
         <div>
@@ -222,11 +223,11 @@ export default function SettingsPage({
             {t.settings.selectMonitorHint}
           </p>
         </div>
-      </div>
+      </Card>
 
       {/* Idle screen settings - Electron only */}
       {/* {isElectron && ( */}
-      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+      <Card>
         <h2 className="text-lg font-semibold mb-4">{t.settings.idleScreen}</h2>
         <div className="space-y-4 sm:space-y-6">
           {/* Wallpaper */}
@@ -242,14 +243,14 @@ export default function SettingsPage({
                 <div className="flex gap-2">
                   <button
                     onClick={handleSelectWallpaper}
-                    className="flex-1 sm:flex-none px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition-colors"
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-lg text-sm font-medium transition-colors bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40"
                   >
                     {t.settings.selectWallpaper}
                   </button>
                   {idleState.wallpaper && (
                     <button
                       onClick={handleClearWallpaper}
-                      className="flex-1 sm:flex-none px-4 py-3 bg-gray-600 hover:bg-gray-500 rounded-lg text-white transition-colors"
+                      className="flex-1 sm:flex-none px-4 py-2.5 rounded-lg text-sm transition-colors bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700"
                     >
                       {t.settings.clearWallpaper}
                     </button>
@@ -316,10 +317,10 @@ export default function SettingsPage({
             </select>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Volume controls */}
-      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+      <Card>
         <h2 className="text-lg font-semibold mb-4">
           {t.settings.volume || "Volume"}
         </h2>
@@ -380,10 +381,10 @@ export default function SettingsPage({
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Connection info */}
-      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+      <Card>
         <h2 className="text-lg font-semibold mb-4">
           {t.settings.mobileRemote}
         </h2>
@@ -423,10 +424,10 @@ export default function SettingsPage({
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* About */}
-      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+      <Card>
         <h2 className="text-lg font-semibold mb-4">{t.settings.about}</h2>
 
         <div className="space-y-4 text-gray-400">
@@ -446,7 +447,7 @@ export default function SettingsPage({
                   updateStatus.state === "checking" ||
                   updateStatus.state === "downloading"
                 }
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg text-white text-sm transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 {updateStatus.state === "checking"
                   ? t.updates.checkingForUpdates
@@ -475,10 +476,10 @@ export default function SettingsPage({
             <p className="text-sm text-red-400">{updateStatus.error}</p>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* Keyboard shortcuts */}
-      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+      <Card>
         <h2 className="text-lg font-semibold mb-4">
           {t.settings.keyboardShortcuts}
         </h2>
@@ -525,7 +526,7 @@ export default function SettingsPage({
             </kbd>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

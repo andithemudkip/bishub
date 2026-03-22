@@ -3,6 +3,7 @@ import { getTranslations } from "../../../shared/i18n";
 import { normalizeForSearch } from "../../../shared/utils";
 import type { Language } from "../../../shared/i18n";
 import type { BibleBook } from "../../pages/BiblePage";
+import { CloseIcon } from "../icons/ui";
 
 interface Props {
   books: BibleBook[];
@@ -89,7 +90,7 @@ export default function BrowseTab({
             onClick={() => setBookFilter("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
           >
-            ✕
+            <CloseIcon />
           </button>
         )}
       </div>

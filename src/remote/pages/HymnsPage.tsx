@@ -2,9 +2,12 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import type { Hymn, TextState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 import { normalizeForSearch } from "../../shared/utils";
+import { CloseIcon } from "../components/icons/ui";
+import { StatusBanner } from "../components/ui/Card";
 
 interface Props {
   textState: TextState;
+  isTextMode: boolean;
   hymns: Hymn[];
   onLoadHymn: (hymnNumber: string) => void;
   settings: AppSettings;
@@ -12,6 +15,7 @@ interface Props {
 
 export default function HymnsPage({
   textState,
+  isTextMode,
   hymns,
   onLoadHymn,
   settings,
@@ -100,15 +104,15 @@ export default function HymnsPage({
               onClick={() => setSearchQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
             >
-              ✕
+              <CloseIcon />
             </button>
           )}
         </div>
       </div>
 
       {/* Current hymn indicator */}
-      {textState.slides.length > 0 && (
-        <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+      {isTextMode && textState.slides.length > 0 && (
+        <StatusBanner>
           <div className="text-sm text-blue-400 mb-1">
             {t.hymns.nowDisplaying}
           </div>
@@ -117,7 +121,7 @@ export default function HymnsPage({
             {t.hymns.slide} {textState.currentSlide + 1} {t.hymns.of}{" "}
             {textState.slides.length}
           </div>
-        </div>
+        </StatusBanner>
       )}
 
       {/* Hymn list */}
@@ -126,22 +130,24 @@ export default function HymnsPage({
           <button
             key={hymn.number}
             onClick={() => handleSelectHymn(hymn)}
-            className={`text-left p-4 rounded-lg transition-colors ${
+            className={`text-left px-4 py-3 rounded-xl border transition-colors ${
               isCurrentHymn(hymn)
-                ? "bg-blue-600 ring-2 ring-blue-400"
-                : "bg-gray-800 hover:bg-gray-700"
+                ? "border-blue-500/50 bg-blue-950/30"
+                : "border-gray-700/50 bg-gray-800/50 hover:border-gray-600/50 hover:bg-gray-700/50"
             }`}
           >
-            <div className="flex items-baseline gap-3">
-              <span className="text-blue-400 font-mono text-lg font-bold w-12">
+            <div className="flex items-center gap-2">
+              <span className={`font-mono text-sm font-bold ${
+                isCurrentHymn(hymn) ? "text-blue-300" : "text-blue-400"
+              }`}>
                 {hymn.number}
               </span>
-              <span className="text-lg">{hymn.title}</span>
-            </div>
-            <div className="text-sm text-gray-400 mt-1 ml-15">
-              {hymn.verses.length}{" "}
-              {hymn.verses.length === 1 ? t.hymns.verse : t.hymns.verses}
-              {hymn.chorus && ` + ${t.hymns.chorus}`}
+              <span className="text-gray-600">·</span>
+              <span className="font-medium truncate">{hymn.title}</span>
+              <span className="ml-auto text-xs text-gray-500 flex-shrink-0">
+                {hymn.verses.length}{hymn.verses.length === 1 ? ` ${t.hymns.verse}` : ` ${t.hymns.verses}`}
+                {hymn.chorus && ` + ${t.hymns.chorus}`}
+              </span>
             </div>
           </button>
         ))}

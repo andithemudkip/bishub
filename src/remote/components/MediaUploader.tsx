@@ -13,13 +13,15 @@ interface Props {
   activeUploads: UploadItem[];
   allowedExtensions: string[];
   maxSizeBytes: number;
-  maxSizeLabel: string;
   labels: {
     uploading: string;
     uploadDrop: string;
     uploadHint: string;
     processing: string;
     complete: string;
+    invalidType: string;
+    tooLarge: string;
+    uploadFailed: string;
   };
 }
 
@@ -28,7 +30,6 @@ export default function MediaUploader({
   activeUploads,
   allowedExtensions,
   maxSizeBytes,
-  maxSizeLabel,
   labels,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
@@ -39,13 +40,11 @@ export default function MediaUploader({
   const validateFile = (file: File): boolean => {
     const ext = "." + file.name.split(".").pop()?.toLowerCase();
     if (!allowedExtensions.includes(ext)) {
-      setError(
-        `Invalid file type. Allowed: ${allowedExtensions.join(", ")}`,
-      );
+      setError(labels.invalidType);
       return false;
     }
     if (file.size > maxSizeBytes) {
-      setError(`File too large. Maximum size is ${maxSizeLabel}.`);
+      setError(labels.tooLarge);
       return false;
     }
     return true;
@@ -59,7 +58,7 @@ export default function MediaUploader({
     try {
       await onUpload(file);
     } catch (err) {
-      setError("Upload failed. Please try again.");
+      setError(labels.uploadFailed);
     } finally {
       setIsUploading(false);
     }

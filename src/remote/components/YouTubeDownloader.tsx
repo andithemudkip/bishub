@@ -53,11 +53,11 @@ export default function YouTubeDownloader({
           placeholder={t.videoLibrary.youtubeUrl}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 sm:px-4 text-sm sm:text-base focus:outline-none focus:border-red-500"
+          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 sm:px-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
+          className="px-4 py-2 bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-600/40 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base font-medium"
         >
           <svg
             className="w-4 h-4"

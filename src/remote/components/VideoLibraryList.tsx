@@ -101,7 +101,7 @@ export default function VideoLibraryList({
           placeholder={t.videoLibrary.searchPlaceholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 pl-9 sm:px-4 sm:pl-10 text-sm sm:text-base focus:outline-none focus:border-blue-500"
+          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 pl-9 sm:px-4 sm:pl-10 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <svg
           className="absolute left-2.5 sm:left-3 top-2.5 w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
@@ -150,16 +150,16 @@ export default function VideoLibraryList({
           filteredVideos.map((video) => (
             <div
               key={video.id}
-              className={`bg-gray-700 rounded-lg p-2 sm:p-3 cursor-pointer transition-colors overflow-hidden ${
+              className={`bg-gray-900/50 border rounded-lg p-2.5 sm:p-3 cursor-pointer transition-colors overflow-hidden ${
                 selectedVideoId === video.id
-                  ? "ring-2 ring-blue-500"
-                  : "hover:bg-gray-600"
+                  ? "border-blue-500/50 bg-blue-950/20"
+                  : "border-gray-700/30 hover:border-gray-600/50 hover:bg-gray-800/50"
               }`}
               onClick={() => onSelect(video)}
             >
               <div className="flex gap-2 sm:gap-3 min-w-0">
                 {/* Thumbnail */}
-                <div className="w-16 h-10 sm:w-24 sm:h-14 bg-gray-800 rounded flex-shrink-0 flex items-center justify-center overflow-hidden">
+                <div className="w-16 h-10 sm:w-24 sm:h-14 bg-gray-800/50 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
                   {video.thumbnailPath ? (
                     <img
                       src={`/api/videos/thumbnail/${video.id}`}
@@ -205,7 +205,7 @@ export default function VideoLibraryList({
                         if (e.key === "Escape") setEditingId(null);
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full bg-gray-600 border border-gray-500 rounded px-2 py-1 text-xs sm:text-sm focus:outline-none focus:border-blue-500"
+                      className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       autoFocus
                     />
                   ) : (
@@ -236,8 +236,9 @@ export default function VideoLibraryList({
                 >
                   <button
                     onClick={() => handleStartRename(video)}
-                    className="p-1.5 sm:p-2 hover:bg-gray-500 rounded transition-colors"
+                    className="p-2 sm:p-2.5 hover:bg-gray-700 rounded transition-colors"
                     title={t.videoLibrary.rename}
+                    aria-label={t.videoLibrary.rename}
                   >
                     <svg
                       className="w-4 h-4"
@@ -255,8 +256,9 @@ export default function VideoLibraryList({
                   </button>
                   <button
                     onClick={() => onOpenFileLocation(video.path)}
-                    className="p-1.5 sm:p-2 hover:bg-gray-500 rounded transition-colors"
+                    className="p-2 sm:p-2.5 hover:bg-gray-700 rounded transition-colors"
                     title={t.videoLibrary.openFileLocation}
+                    aria-label={t.videoLibrary.openFileLocation}
                   >
                     <svg
                       className="w-4 h-4"
@@ -273,16 +275,16 @@ export default function VideoLibraryList({
                     </svg>
                   </button>
                   {confirmDeleteId === video.id ? (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center bg-gray-800 border border-gray-700/50 rounded-md overflow-hidden">
                       <button
                         onClick={() => handleConfirmDelete(video.id)}
-                        className="px-2 py-1 bg-red-600 hover:bg-red-500 rounded text-xs"
+                        className="px-2.5 py-1.5 text-xs font-medium text-red-400 hover:bg-red-600/20 transition-colors"
                       >
                         {t.videoLibrary.confirmDelete}
                       </button>
                       <button
                         onClick={() => setConfirmDeleteId(null)}
-                        className="px-2 py-1 bg-gray-600 hover:bg-gray-500 rounded text-xs"
+                        className="px-2.5 py-1.5 text-xs text-gray-400 hover:bg-gray-700 transition-colors border-l border-gray-700"
                       >
                         {t.videoLibrary.cancel}
                       </button>
@@ -290,8 +292,9 @@ export default function VideoLibraryList({
                   ) : (
                     <button
                       onClick={() => setConfirmDeleteId(video.id)}
-                      className="p-1.5 sm:p-2 hover:bg-gray-500 rounded transition-colors text-red-400"
+                      className="p-2 sm:p-2.5 hover:bg-gray-500 rounded transition-colors text-red-400"
                       title={t.videoLibrary.delete}
+                      aria-label={t.videoLibrary.delete}
                     >
                       <svg
                         className="w-4 h-4"

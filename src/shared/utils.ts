@@ -73,6 +73,25 @@ export function findOptimalFontSize(
 }
 
 /**
+ * Format a timestamp as a relative time string (e.g. "just now", "5m ago", "2h ago").
+ * Requires the `common` translations object with justNow, minutesAgo, hoursAgo, daysAgo keys.
+ * Templates use {n} as the number placeholder.
+ */
+export function formatTimeAgo(
+  timestamp: number,
+  common: { justNow: string; minutesAgo: string; hoursAgo: string; daysAgo: string }
+): string {
+  const diff = Date.now() - timestamp;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return common.justNow;
+  if (mins < 60) return common.minutesAgo.replace("{n}", String(mins));
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return common.hoursAgo.replace("{n}", String(hours));
+  const days = Math.floor(hours / 24);
+  return common.daysAgo.replace("{n}", String(days));
+}
+
+/**
  * Extract security key from URL query parameter for web remote authentication
  */
 export function getSecurityKeyFromURL(): string | null {

@@ -7,11 +7,38 @@ import type {
 } from "../../shared/types";
 import type { ParsedReference } from "../../shared/bibleParser";
 import { getTranslations } from "../../shared/i18n";
+import { ChevronRightIcon } from "../components/icons/ui";
+import { StatusBanner } from "../components/ui/Card";
 import SmartSearchBar from "../components/bible/SmartSearchBar";
 import SearchResultsTab from "../components/bible/SearchResultsTab";
 import BrowseTab from "../components/bible/BrowseTab";
 import VerseListView from "../components/bible/VerseListView";
 import type { VerseListContext } from "../components/bible/VerseListView";
+
+export interface SearchHistoryEntry {
+  id: string;
+  bookId: string;
+  bookName: string;
+  chapter: number;
+  verse: number;
+  query: string;
+  timestamp: number;
+}
+
+const HISTORY_KEY = "bishub-bible-search-history";
+const MAX_HISTORY = 20;
+
+function loadHistory(): SearchHistoryEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entries: SearchHistoryEntry[]) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(entries));
+}
 
 export interface BibleBook {
   id: string;
@@ -68,6 +95,9 @@ export default function BiblePage({
   const [browseBook, setBrowseBook] = useState<BibleBook | null>(null);
   const [browseChapter, setBrowseChapter] = useState<number>(1);
 
+  // Search history
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>(loadHistory);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const t = getTranslations(settings.language);
 
@@ -96,6 +126,35 @@ export default function BiblePage({
     return () => window.removeEventListener("focusSearch", handleFocusSearch);
   }, [view.type]);
 
+  const addToHistory = useCallback(
+    (bookId: string, bookName: string, chapter: number, verse: number, query: string) => {
+      setSearchHistory((prev) => {
+        // Remove duplicate if same book+chapter+verse
+        const filtered = prev.filter(
+          (e) => !(e.bookId === bookId && e.chapter === chapter && e.verse === verse)
+        );
+        const entry: SearchHistoryEntry = {
+          id: `${bookId}-${chapter}-${verse}-${Date.now()}`,
+          bookId,
+          bookName,
+          chapter,
+          verse,
+          query,
+          timestamp: Date.now(),
+        };
+        const updated = [entry, ...filtered].slice(0, MAX_HISTORY);
+        saveHistory(updated);
+        return updated;
+      });
+    },
+    []
+  );
+
+  const clearHistory = useCallback(() => {
+    setSearchHistory([]);
+    saveHistory([]);
+  }, []);
+
   // Navigate to verse list for a given book/chapter/verse
   // Returns false if the chapter doesn't exist (no verses returned)
   const navigateToVerseList = useCallback(
@@ -107,13 +166,15 @@ export default function BiblePage({
     ): Promise<boolean> => {
       const verses = await getBibleChapter(bookId, chapter);
       if (verses.length === 0) return false;
-      // Clamp highlightVerse to actual range
       const maxVerse = verses[verses.length - 1].verse;
       const clampedVerse = Math.min(highlightVerse, maxVerse);
       setView({
         type: "verseList",
         context: { bookId, bookName, chapter, verses, highlightVerse: clampedVerse },
       });
+      setSearchInput("");
+      setParsedRef(null);
+      setTextSearchResults([]);
       return true;
     },
     [getBibleChapter]
@@ -122,13 +183,15 @@ export default function BiblePage({
   // Handle submitting a parsed reference (Enter or Go button)
   const handleSubmitReference = useCallback(async () => {
     if (!validatedParsedRef) return;
-    await navigateToVerseList(
+    const query = searchInput.trim();
+    const ok = await navigateToVerseList(
       validatedParsedRef.bookId,
       validatedParsedRef.bookName,
       validatedParsedRef.chapter,
       validatedParsedRef.startVerse
     );
-  }, [validatedParsedRef, navigateToVerseList]);
+    if (ok) addToHistory(validatedParsedRef.bookId, validatedParsedRef.bookName, validatedParsedRef.chapter, validatedParsedRef.startVerse, query);
+  }, [validatedParsedRef, navigateToVerseList, searchInput, addToHistory]);
 
   // Handle clicking a text search result
   const handleSearchResultClick = useCallback(
@@ -138,21 +201,24 @@ export default function BiblePage({
       chapter: number,
       verse: number
     ) => {
-      await navigateToVerseList(bookId, bookName, chapter, verse);
+      const query = searchInput.trim();
+      const ok = await navigateToVerseList(bookId, bookName, chapter, verse);
+      if (ok) addToHistory(bookId, bookName, chapter, verse, query);
     },
-    [navigateToVerseList]
+    [navigateToVerseList, searchInput, addToHistory]
   );
 
   // Handle browse Go button
   const handleBrowseGo = useCallback(async () => {
     if (!browseBook) return;
-    await navigateToVerseList(
+    const ok = await navigateToVerseList(
       browseBook.id,
       browseBook.name,
       browseChapter,
       1
     );
-  }, [browseBook, browseChapter, navigateToVerseList]);
+    if (ok) addToHistory(browseBook.id, browseBook.name, browseChapter, 1, `${browseBook.name} ${browseChapter}`);
+  }, [browseBook, browseChapter, navigateToVerseList, addToHistory]);
 
   // Handle "View verses" from currently displaying banner
   const handleViewCurrentVerses = useCallback(async () => {
@@ -200,36 +266,38 @@ export default function BiblePage({
         />
       </div>
 
-      {/* Currently displaying banner */}
+      {/* Currently loaded/displaying banner */}
       {textState.contentType === "bible" && textState.bibleContext && (
-        <button
+        <StatusBanner
+          color={isIdle ? "yellow" : "blue"}
           onClick={handleViewCurrentVerses}
-          className="w-full text-left bg-blue-900/30 border border-blue-700 rounded-lg p-4 hover:bg-blue-900/50 transition-colors"
         >
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-blue-400 mb-0.5">
-                {t.bible.currentlyLoaded}
+              <div className={`text-sm mb-0.5 ${isIdle ? "text-yellow-400" : "text-blue-400"}`}>
+                {isIdle ? t.bible.currentlyLoaded : t.bible.currentlyDisplaying}
               </div>
               <div className="font-semibold">
                 {textState.bibleContext.bookName}{" "}
                 {textState.bibleContext.chapter}
               </div>
-              <div className="text-sm text-gray-400 mt-0.5">
-                {t.bible.verse} {textState.currentSlide + 1} {t.hymns.of}{" "}
-                {textState.slides.length}
-              </div>
+              {!isIdle && (
+                <div className="text-sm text-gray-400 mt-0.5">
+                  {t.bible.verse} {textState.currentSlide + 1} {t.hymns.of}{" "}
+                  {textState.slides.length}
+                </div>
+              )}
             </div>
-            <span className="text-sm text-blue-400 hover:text-blue-300">
-              {t.bible.viewVerses} →
+            <span className={`text-sm flex items-center gap-1 ${isIdle ? "text-yellow-400 hover:text-yellow-300" : "text-blue-400 hover:text-blue-300"}`}>
+              {t.bible.viewVerses} <ChevronRightIcon className="w-4 h-4" />
             </span>
           </div>
-        </button>
+        </StatusBanner>
       )}
 
       {/* Non-Bible content indicator */}
-      {textState.contentType !== "bible" && textState.slides.length > 0 && (
-        <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+      {!isIdle && textState.contentType !== "bible" && textState.slides.length > 0 && (
+        <StatusBanner>
           <div className="text-sm text-blue-400 mb-1">
             {t.hymns.nowDisplaying}
           </div>
@@ -238,7 +306,7 @@ export default function BiblePage({
             {t.hymns.slide} {textState.currentSlide + 1} {t.hymns.of}{" "}
             {textState.slides.length}
           </div>
-        </div>
+        </StatusBanner>
       )}
 
       {/* Tabs */}
@@ -275,6 +343,11 @@ export default function BiblePage({
           isSearching={isSearching}
           onSelectReference={handleSearchResultClick}
           onGoReference={handleSubmitReference}
+          searchHistory={searchHistory}
+          onHistorySelect={(entry) =>
+            navigateToVerseList(entry.bookId, entry.bookName, entry.chapter, entry.verse)
+          }
+          onClearHistory={clearHistory}
           language={settings.language}
         />
       ) : (

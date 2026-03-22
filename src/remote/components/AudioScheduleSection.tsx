@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Card } from "./ui/Card";
 import type { AudioItem } from "../../shared/audioLibrary.types";
 import type {
   AudioSchedule,
@@ -51,7 +52,7 @@ export default function AudioScheduleSection({
   const [showForm, setShowForm] = useState(false);
   const [selectedAudioId, setSelectedAudioId] = useState<string>("");
   const [timeType, setTimeType] = useState<ScheduleTimeType>("relative");
-  const [timeValue, setTimeValue] = useState(""); // HH:MM for absolute, minutes for relative
+  const [timeValue, setTimeValue] = useState("");
   const [presetName, setPresetName] = useState("");
   const [showPresetInput, setShowPresetInput] = useState(false);
 
@@ -84,7 +85,6 @@ export default function AudioScheduleSection({
       relativeMinutes,
     });
 
-    // Reset form
     setTimeValue("");
     setShowForm(false);
   };
@@ -116,7 +116,6 @@ export default function AudioScheduleSection({
       relativeMinutes,
     });
 
-    // Reset
     setPresetName("");
     setShowPresetInput(false);
   };
@@ -140,7 +139,7 @@ export default function AudioScheduleSection({
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-3 sm:p-4 space-y-4">
+    <Card compact className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
@@ -161,7 +160,7 @@ export default function AudioScheduleSection({
         </h3>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-2 sm:px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors text-sm flex items-center gap-1"
+          className="px-2.5 sm:px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 flex items-center gap-1"
         >
           <svg
             className="w-4 h-4 flex-shrink-0"
@@ -182,7 +181,7 @@ export default function AudioScheduleSection({
 
       {/* Schedule Form */}
       {showForm && (
-        <div className="bg-gray-700 rounded-lg p-3 space-y-3">
+        <div className="bg-gray-900/50 border border-gray-700/50 rounded-xl p-3 space-y-3">
           {/* Audio selector */}
           <div>
             <label className="block text-xs text-gray-400 mb-1">
@@ -191,7 +190,7 @@ export default function AudioScheduleSection({
             <select
               value={selectedAudioId}
               onChange={(e) => setSelectedAudioId(e.target.value)}
-              className="w-full bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-sm"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">{t.audioSchedule.selectAudio}</option>
               {audios.map((audio) => (
@@ -203,23 +202,23 @@ export default function AudioScheduleSection({
           </div>
 
           {/* Time type toggle */}
-          <div className="flex gap-2">
+          <div className="flex bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
             <button
               onClick={() => setTimeType("absolute")}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm transition-colors ${
+              className={`flex-1 py-2 px-3 text-sm transition-colors ${
                 timeType === "absolute"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:text-gray-200"
               }`}
             >
               {t.audioSchedule.atTime}
             </button>
             <button
               onClick={() => setTimeType("relative")}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm transition-colors ${
+              className={`flex-1 py-2 px-3 text-sm transition-colors ${
                 timeType === "relative"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:text-gray-200"
               }`}
             >
               {t.audioSchedule.inMinutes}
@@ -239,23 +238,23 @@ export default function AudioScheduleSection({
               onChange={(e) => setTimeValue(e.target.value)}
               min={timeType === "relative" ? 1 : undefined}
               placeholder={timeType === "absolute" ? "10:25" : "15"}
-              className="w-full bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-sm"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
             <button
               onClick={handleSchedule}
               disabled={!selectedAudioId || !timeValue}
-              className="flex-1 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-sm"
+              className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-600/40 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {t.audioSchedule.schedule}
             </button>
             <button
               onClick={() => setShowPresetInput(!showPresetInput)}
               disabled={!selectedAudioId || !timeValue}
-              className="py-2 px-3 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-sm"
+              className="py-2 px-3 rounded-lg text-sm transition-colors bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {t.audioSchedule.saveAsPreset}
             </button>
@@ -269,12 +268,12 @@ export default function AudioScheduleSection({
                 value={presetName}
                 onChange={(e) => setPresetName(e.target.value)}
                 placeholder={t.audioSchedule.presetName}
-                className="flex-1 bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-sm"
+                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 onClick={handleSaveAsPreset}
                 disabled={!presetName.trim()}
-                className="py-2 px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg transition-colors text-sm"
+                className="py-2 px-4 rounded-lg text-sm font-medium transition-colors bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 {t.audioSchedule.saveAsPreset}
               </button>
@@ -289,7 +288,7 @@ export default function AudioScheduleSection({
           <h4 className="text-sm font-medium text-gray-400 mb-2">
             {t.audioSchedule.pendingSchedules}
           </h4>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {pendingSchedules.map((schedule) => (
               <PendingScheduleItem
                 key={schedule.id}
@@ -309,18 +308,18 @@ export default function AudioScheduleSection({
       )}
 
       {/* Presets */}
-      {presets.length > 0 && (
-        <div className="border-t border-gray-700 pt-4">
-          <h4 className="text-sm font-medium text-gray-400 mb-2">
-            {t.audioSchedule.presets}
-          </h4>
-          <div className="space-y-2">
+      <div className="border-t border-gray-700/50 pt-4">
+        <h4 className="text-sm font-medium text-gray-400 mb-2">
+          {t.audioSchedule.presets}
+        </h4>
+        {presets.length > 0 ? (
+          <div className="space-y-1.5">
             {presets.map((preset) => {
               const audioExists = audios.some((a) => a.id === preset.audioId);
               return (
                 <div
                   key={preset.id}
-                  className="flex items-center justify-between bg-gray-700 rounded-lg p-2 sm:p-3"
+                  className="flex items-center justify-between bg-gray-900/50 border border-gray-700/30 rounded-lg p-2.5 sm:p-3"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">
@@ -330,17 +329,17 @@ export default function AudioScheduleSection({
                       {preset.audioName} - {formatPresetTime(preset)}
                     </div>
                   </div>
-                  <div className="flex gap-2 ml-2">
+                  <div className="flex items-center bg-gray-800 border border-gray-700/50 rounded-md overflow-hidden ml-2">
                     <button
                       onClick={() => handleActivatePreset(preset)}
                       disabled={!audioExists}
-                      className="px-2 py-1 bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed rounded text-xs transition-colors"
+                      className="px-2.5 py-1.5 text-xs font-medium text-green-400 hover:bg-green-600/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
                       {t.audioSchedule.activate}
                     </button>
                     <button
                       onClick={() => onDeletePreset(preset.id)}
-                      className="px-2 py-1 bg-red-600 hover:bg-red-500 rounded text-xs transition-colors"
+                      className="px-2.5 py-1.5 text-xs text-red-400 hover:bg-red-600/20 transition-colors border-l border-gray-700"
                     >
                       {t.audioSchedule.delete}
                     </button>
@@ -349,18 +348,11 @@ export default function AudioScheduleSection({
               );
             })}
           </div>
-        </div>
-      )}
-
-      {presets.length === 0 && (
-        <div className="border-t border-gray-700 pt-4">
-          <h4 className="text-sm font-medium text-gray-400 mb-2">
-            {t.audioSchedule.presets}
-          </h4>
+        ) : (
           <p className="text-sm text-gray-500">{t.audioSchedule.noPresets}</p>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -415,7 +407,7 @@ function PendingScheduleItem({
   });
 
   return (
-    <div className="flex items-center justify-between bg-gray-700 rounded-lg p-2 sm:p-3">
+    <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700/30 rounded-lg p-2.5 sm:p-3">
       <div className="flex-1 min-w-0">
         <div className="font-medium text-sm truncate">{schedule.audioName}</div>
         <div className="text-xs text-gray-400">
@@ -426,7 +418,7 @@ function PendingScheduleItem({
         <div className="text-sm font-mono text-blue-400">{countdown}</div>
         <button
           onClick={onCancel}
-          className="px-2 py-1 bg-red-600 hover:bg-red-500 rounded text-xs transition-colors"
+          className="px-2.5 py-1.5 rounded-md text-xs font-medium text-red-400 bg-red-600/20 hover:bg-red-600/30 border border-red-600/40 transition-colors"
         >
           {t.audioSchedule.cancel}
         </button>

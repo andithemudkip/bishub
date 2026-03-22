@@ -4,6 +4,14 @@
 export type Language = "ro" | "en";
 
 export interface Translations {
+  // Common
+  common: {
+    justNow: string;
+    minutesAgo: string;
+    hoursAgo: string;
+    daysAgo: string;
+  };
+
   // Navigation
   nav: {
     hymns: string;
@@ -58,6 +66,8 @@ export interface Translations {
     noSearchResults: string;
     searching: string;
     minCharsHint: string;
+    recentSearches: string;
+    clearHistory: string;
   };
 
   // Settings page
@@ -124,6 +134,9 @@ export interface Translations {
     uploadDrop: string;
     uploadHint: string;
     uploading: string;
+    invalidType: string;
+    tooLarge: string;
+    uploadFailed: string;
     invalidUrl: string;
     enterUrl: string;
     openFileLocation: string;
@@ -151,6 +164,9 @@ export interface Translations {
     uploadDrop: string;
     uploadHint: string;
     uploading: string;
+    invalidType: string;
+    tooLarge: string;
+    uploadFailed: string;
     processing: string;
     complete: string;
     // Directory import
@@ -216,6 +232,12 @@ export interface Translations {
 }
 
 const ro: Translations = {
+  common: {
+    justNow: "acum",
+    minutesAgo: "acum {n} min",
+    hoursAgo: "acum {n} ore",
+    daysAgo: "acum {n} zile",
+  },
   nav: {
     hymns: "Imnuri",
     bible: "Biblie",
@@ -254,13 +276,15 @@ const ro: Translations = {
     verse: "Versetul",
     tapToJump: "Atinge un verset pentru a sări la el",
     currentlyDisplaying: "Se afișează",
-    currentlyLoaded: "Versetele încărcate",
+    currentlyLoaded: "Versete încărcate",
     viewVerses: "Vezi versetele",
     couldNotParse: "Nu s-a putut interpreta referința",
     searchResults: "Rezultate",
     noSearchResults: "Niciun rezultat găsit pentru",
     searching: "Se caută...",
     minCharsHint: "Introdu cel puțin 3 caractere",
+    recentSearches: "Căutări recente",
+    clearHistory: "Șterge istoricul",
   },
   settings: {
     language: "Limbă",
@@ -323,6 +347,9 @@ const ro: Translations = {
     uploadDrop: "Trage fișierul video sau click pentru a naviga",
     uploadHint: "Max 1GB - MP4, WebM, MOV, AVI, MKV",
     uploading: "Se încarcă...",
+    invalidType: "Tip de fișier invalid",
+    tooLarge: "Fișierul este prea mare",
+    uploadFailed: "Încărcarea a eșuat. Te rog încearcă din nou.",
     invalidUrl: "Te rog introdu un URL YouTube valid",
     enterUrl: "Te rog introdu un URL",
     openFileLocation: "Deschide locația fișierului",
@@ -348,6 +375,9 @@ const ro: Translations = {
     uploadDrop: "Trage fișierul audio sau click pentru a naviga",
     uploadHint: "Max 500MB - MP3, WAV, OGG, M4A, FLAC",
     uploading: "Se încarcă...",
+    invalidType: "Tip de fișier invalid",
+    tooLarge: "Fișierul este prea mare",
+    uploadFailed: "Încărcarea a eșuat. Te rog încearcă din nou.",
     processing: "Se procesează...",
     complete: "Finalizat!",
     scanningFolder: "Se scanează folderul...",
@@ -406,6 +436,12 @@ const ro: Translations = {
 };
 
 const en: Translations = {
+  common: {
+    justNow: "just now",
+    minutesAgo: "{n}m ago",
+    hoursAgo: "{n}h ago",
+    daysAgo: "{n}d ago",
+  },
   nav: {
     hymns: "Hymns",
     bible: "Bible",
@@ -451,6 +487,8 @@ const en: Translations = {
     noSearchResults: "No results found for",
     searching: "Searching...",
     minCharsHint: "Enter at least 3 characters",
+    recentSearches: "Recent searches",
+    clearHistory: "Clear history",
   },
   settings: {
     language: "Language",
@@ -513,6 +551,9 @@ const en: Translations = {
     uploadDrop: "Drop video file or click to browse",
     uploadHint: "Max 1GB - MP4, WebM, MOV, AVI, MKV",
     uploading: "Uploading...",
+    invalidType: "Invalid file type",
+    tooLarge: "File is too large",
+    uploadFailed: "Upload failed. Please try again.",
     invalidUrl: "Please enter a valid YouTube URL",
     enterUrl: "Please enter a URL",
     openFileLocation: "Open file location",
@@ -538,6 +579,9 @@ const en: Translations = {
     uploadDrop: "Drop audio file or click to browse",
     uploadHint: "Max 500MB - MP3, WAV, OGG, M4A, FLAC",
     uploading: "Uploading...",
+    invalidType: "Invalid file type",
+    tooLarge: "File is too large",
+    uploadFailed: "Upload failed. Please try again.",
     processing: "Processing...",
     complete: "Complete!",
     scanningFolder: "Scanning folder...",

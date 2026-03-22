@@ -3,6 +3,7 @@ import { parseBibleReference } from "../../../shared/bibleParser";
 import type { ParsedReference } from "../../../shared/bibleParser";
 import type { BibleSearchResult } from "../../../shared/types";
 import { getTranslations } from "../../../shared/i18n";
+import { CloseIcon } from "../icons/ui";
 import type { Language } from "../../../shared/i18n";
 
 interface Props {
@@ -106,7 +107,7 @@ export default function SmartSearchBar({
           onClick={() => onChange("")}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
         >
-          ✕
+          <CloseIcon />
         </button>
       )}
     </div>
