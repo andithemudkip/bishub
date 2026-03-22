@@ -51,6 +51,7 @@ export interface TextState {
 
 export interface VideoState {
   src: string | null;
+  videoId: string | null;
   playing: boolean;
   currentTime: number;
   duration: number;
@@ -125,7 +126,7 @@ export type ClientToServerEvents = {
   nextSlide: () => void;
   prevSlide: () => void;
   goToSlide: (index: number) => void;
-  loadVideo: (src: string) => void;
+  loadVideo: (src: string, videoId?: string) => void;
   playVideo: () => void;
   pauseVideo: () => void;
   stopVideo: () => void;
@@ -197,6 +198,7 @@ export const DEFAULT_STATE: DisplayState = {
   },
   video: {
     src: null,
+    videoId: null,
     playing: false,
     currentTime: 0,
     duration: 0,

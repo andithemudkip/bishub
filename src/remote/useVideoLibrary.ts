@@ -9,14 +9,9 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "../shared/types";
+import { getSecurityKeyFromURL, updateProgressList } from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
-
-// Extract security key from URL query parameter for web remote authentication
-function getSecurityKeyFromURL(): string | null {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("key");
-}
 
 interface VideoLibraryAPI {
   videos: VideoItem[];
@@ -34,7 +29,7 @@ interface VideoLibraryAPI {
 }
 
 export function useVideoLibrary(
-  loadVideo: (src: string) => void
+  loadVideo: (src: string, videoId?: string) => void
 ): VideoLibraryAPI {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [downloads, setDownloads] = useState<DownloadProgress[]>([]);
@@ -52,35 +47,12 @@ export function useVideoLibrary(
       const unsubLibrary = window.electronAPI!.onVideoLibraryUpdate(setVideos);
       const unsubDownload = window.electronAPI!.onDownloadProgress(
         (progress: DownloadProgress) => {
-          setDownloads((prev) => {
-            const index = prev.findIndex((d) => d.id === progress.id);
-            if (progress.status === "complete" || progress.status === "error") {
-              // Remove completed/errored downloads after a delay
-              setTimeout(() => {
-                setDownloads((p) => p.filter((d) => d.id !== progress.id));
-              }, 3000);
-            }
-            if (index === -1) return [...prev, progress];
-            const updated = [...prev];
-            updated[index] = progress;
-            return updated;
-          });
+          setDownloads((prev) => updateProgressList(prev, progress, setDownloads));
         }
       );
       const unsubUpload = window.electronAPI!.onUploadProgress(
         (progress: UploadProgress) => {
-          setUploads((prev) => {
-            const index = prev.findIndex((u) => u.id === progress.id);
-            if (progress.status === "complete" || progress.status === "error") {
-              setTimeout(() => {
-                setUploads((p) => p.filter((u) => u.id !== progress.id));
-              }, 3000);
-            }
-            if (index === -1) return [...prev, progress];
-            const updated = [...prev];
-            updated[index] = progress;
-            return updated;
-          });
+          setUploads((prev) => updateProgressList(prev, progress, setUploads));
         }
       );
 
@@ -103,32 +75,10 @@ export function useVideoLibrary(
 
       socket.on("videoLibrary", setVideos);
       socket.on("downloadProgress", (progress) => {
-        setDownloads((prev) => {
-          const index = prev.findIndex((d) => d.id === progress.id);
-          if (progress.status === "complete" || progress.status === "error") {
-            setTimeout(() => {
-              setDownloads((p) => p.filter((d) => d.id !== progress.id));
-            }, 3000);
-          }
-          if (index === -1) return [...prev, progress];
-          const updated = [...prev];
-          updated[index] = progress;
-          return updated;
-        });
+        setDownloads((prev) => updateProgressList(prev, progress, setDownloads));
       });
       socket.on("uploadProgress", (progress) => {
-        setUploads((prev) => {
-          const index = prev.findIndex((u) => u.id === progress.id);
-          if (progress.status === "complete" || progress.status === "error") {
-            setTimeout(() => {
-              setUploads((p) => p.filter((u) => u.id !== progress.id));
-            }, 3000);
-          }
-          if (index === -1) return [...prev, progress];
-          const updated = [...prev];
-          updated[index] = progress;
-          return updated;
-        });
+        setUploads((prev) => updateProgressList(prev, progress, setUploads));
       });
 
       return () => {
@@ -207,7 +157,7 @@ export function useVideoLibrary(
 
     loadVideoToDisplay: useCallback(
       (video: VideoItem) => {
-        loadVideo(video.path);
+        loadVideo(video.path, video.id);
       },
       [loadVideo]
     ),

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { AudioState, AudioWidgetPosition } from "../../shared/types";
+import { formatDuration, getFileUrl } from "../../shared/utils";
 
 interface Props {
   config: AudioState;
@@ -15,13 +16,6 @@ const WIDGET_POSITION_CLASSES: Record<AudioWidgetPosition, string> = {
   "bottom-right": "bottom-6 right-6",
   center: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
 };
-
-function formatTime(seconds: number): string {
-  if (!isFinite(seconds) || isNaN(seconds)) return "0:00";
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
 
 export default function AudioWidget({ config, position, onTimeUpdate }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -79,13 +73,6 @@ export default function AudioWidget({ config, position, onTimeUpdate }: Props) {
     return null;
   }
 
-  // Convert path to file URL (handles Windows backslashes)
-  const getFileUrl = (filePath: string) => {
-    if (filePath.startsWith("file://")) return filePath;
-    const normalizedPath = filePath.replace(/\\/g, "/");
-    const prefix = normalizedPath.startsWith("/") ? "file://" : "file:///";
-    return `${prefix}${normalizedPath}`;
-  };
   const audioSrc = getFileUrl(config.src);
 
   const positionClass = WIDGET_POSITION_CLASSES[position] || WIDGET_POSITION_CLASSES["bottom-right"];
@@ -109,8 +96,8 @@ export default function AudioWidget({ config, position, onTimeUpdate }: Props) {
 
         {/* Time display */}
         <div className="text-xs text-white/60 flex justify-between">
-          <span>{formatTime(config.currentTime)}</span>
-          <span>{formatTime(config.duration)}</span>
+          <span>{formatDuration(config.currentTime)}</span>
+          <span>{formatDuration(config.duration)}</span>
         </div>
 
         {/* Hidden audio element for playback */}

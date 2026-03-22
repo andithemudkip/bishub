@@ -5,83 +5,14 @@ import { fileURLToPath } from "url";
 import { app } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import { getVideoLibrary } from "./videoLibrary";
+import { getFfmpegPath } from "./utils";
 import type { DownloadProgress } from "../src/shared/videoLibrary.types";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Check if ffmpeg is available - check bundled binary first
-// Uses lazy evaluation to ensure app.isPackaged is correctly set
-let _ffmpegAvailable: boolean | undefined;
-
-function checkFfmpegAvailable(): boolean {
-  const isWindows = process.platform === "win32";
-  const binaryName = isWindows ? "ffmpeg.exe" : "ffmpeg";
-  const isPackaged = app.isPackaged;
-
-  console.log(`checkFfmpegAvailable: isPackaged=${isPackaged}, platform=${process.platform}`);
-
-  // Check for bundled binary first
-  let bundledPath: string;
-  if (isPackaged) {
-    bundledPath = path.join(process.resourcesPath, "bin", binaryName);
-  } else {
-    const osDir = isWindows ? "win32" : process.platform === "darwin" ? "darwin" : "linux";
-    bundledPath = path.join(__dirname, "..", "bin", osDir, binaryName);
-  }
-
-  console.log(`checkFfmpegAvailable: checking bundled path: ${bundledPath}`);
-
-  if (fs.existsSync(bundledPath)) {
-    console.log(`Found bundled ffmpeg at: ${bundledPath}`);
-    return true;
-  }
-
-  console.log(`checkFfmpegAvailable: bundled not found, checking system paths`);
-
-  // Fall back to system paths
-  const paths: string[] = [];
-
-  if (isWindows) {
-    paths.push(
-      binaryName,
-      `C:\\ffmpeg\\bin\\${binaryName}`,
-      `C:\\Program Files\\ffmpeg\\bin\\${binaryName}`,
-      `C:\\Program Files (x86)\\ffmpeg\\bin\\${binaryName}`
-    );
-    const localAppData = process.env.LOCALAPPDATA;
-    if (localAppData) {
-      paths.push(path.join(localAppData, "Microsoft", "WinGet", "Links", binaryName));
-    }
-  } else {
-    paths.push(
-      "ffmpeg",
-      "/opt/homebrew/bin/ffmpeg",
-      "/usr/local/bin/ffmpeg",
-      "/usr/bin/ffmpeg"
-    );
-  }
-
-  for (const ffmpegPath of paths) {
-    try {
-      execSync(`"${ffmpegPath}" -version`, { stdio: "ignore", shell: true });
-      console.log(`Found system ffmpeg at: ${ffmpegPath}`);
-      return true;
-    } catch {
-      // Try next path
-    }
-  }
-
-  console.log(`checkFfmpegAvailable: ffmpeg not found anywhere`);
-  return false;
-}
-
 function isFfmpegAvailable(): boolean {
-  if (_ffmpegAvailable === undefined) {
-    _ffmpegAvailable = checkFfmpegAvailable();
-    console.log(`ffmpeg available: ${_ffmpegAvailable}`);
-  }
-  return _ffmpegAvailable;
+  return getFfmpegPath() !== null;
 }
 
 // Active downloads map

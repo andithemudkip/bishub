@@ -201,9 +201,10 @@ export class StateManager {
   }
 
   // Video mode
-  loadVideo(src: string) {
+  loadVideo(src: string, videoId?: string) {
     this.state.video = {
       src,
+      videoId: videoId ?? null,
       playing: false,
       currentTime: 0,
       duration: 0,
@@ -225,6 +226,7 @@ export class StateManager {
 
   stopVideo() {
     this.state.video.src = null;
+    this.state.video.videoId = null;
     this.state.video.currentTime = 0;
     this.state.video.duration = 0;
     this.goIdle();

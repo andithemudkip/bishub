@@ -9,14 +9,9 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "../shared/types";
+import { getSecurityKeyFromURL, updateProgressList } from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
-
-// Extract security key from URL query parameter for web remote authentication
-function getSecurityKeyFromURL(): string | null {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("key");
-}
 
 interface AudioLibraryAPI {
   audios: AudioItem[];
@@ -51,18 +46,7 @@ export function useAudioLibrary(
       const unsubLibrary = window.electronAPI!.onAudioLibraryUpdate(setAudios);
       const unsubUpload = window.electronAPI!.onAudioUploadProgress(
         (progress: AudioUploadProgress) => {
-          setUploads((prev) => {
-            const index = prev.findIndex((u) => u.id === progress.id);
-            if (progress.status === "complete" || progress.status === "error") {
-              setTimeout(() => {
-                setUploads((p) => p.filter((u) => u.id !== progress.id));
-              }, 3000);
-            }
-            if (index === -1) return [...prev, progress];
-            const updated = [...prev];
-            updated[index] = progress;
-            return updated;
-          });
+          setUploads((prev) => updateProgressList(prev, progress, setUploads));
         }
       );
       const unsubDirImport = window.electronAPI!.onAudioDirectoryImportProgress(
@@ -96,18 +80,7 @@ export function useAudioLibrary(
 
       socket.on("audioLibrary", setAudios);
       socket.on("audioUploadProgress", (progress) => {
-        setUploads((prev) => {
-          const index = prev.findIndex((u) => u.id === progress.id);
-          if (progress.status === "complete" || progress.status === "error") {
-            setTimeout(() => {
-              setUploads((p) => p.filter((u) => u.id !== progress.id));
-            }, 3000);
-          }
-          if (index === -1) return [...prev, progress];
-          const updated = [...prev];
-          updated[index] = progress;
-          return updated;
-        });
+        setUploads((prev) => updateProgressList(prev, progress, setUploads));
       });
 
       return () => {

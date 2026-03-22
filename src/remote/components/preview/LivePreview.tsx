@@ -1,9 +1,15 @@
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import type { DisplayState, AppSettings } from "../../../shared/types";
 import { getTranslations, type Language } from "../../../shared/i18n";
+import { formatDuration, findOptimalFontSize } from "../../../shared/utils";
 
-const MAX_PREVIEW_FONT = 32;
-const MIN_PREVIEW_FONT = 6;
+// Virtual resolution matching a typical display (used for scaled-down preview)
+const VIRTUAL_WIDTH = 1920;
+const VIRTUAL_HEIGHT = 1080;
+
+// Must match TextMode.tsx constants
+const MAX_FONT_SIZE = 120;
+const MIN_FONT_SIZE = 24;
 
 interface Props {
   state: DisplayState;
@@ -38,114 +44,143 @@ export default function LivePreview({
   return null;
 }
 
-// Reusable component for auto-scaling text
-function SlideText({
+/**
+ * Renders a single slide at virtual (1920×1080) resolution with the exact same
+ * structure and styling as TextMode.tsx, then scales it down to fit the preview.
+ */
+function ScaledSlide({
   content,
-  align,
-  label,
-  className = "",
+  title,
+  contentType,
+  slides,
+  currentSlide,
 }: {
   content: string;
-  align: "left" | "center";
-  label?: string;
-  className?: string;
+  title: string;
+  contentType: string;
+  slides: string[];
+  currentSlide: number;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
-  const [fontSize, setFontSize] = useState(12);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [scale, setScale] = useState(0);
+  const [fontSize, setFontSize] = useState(MAX_FONT_SIZE);
 
-  // Watch for container resize
+  // Track preview container size to compute scale
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const el = outerRef.current;
+    if (!el) return;
 
-    // Capture initial size immediately
-    setContainerSize({
-      width: container.clientWidth,
-      height: container.clientHeight,
-    });
+    const update = () => {
+      const s = Math.min(
+        el.clientWidth / VIRTUAL_WIDTH,
+        el.clientHeight / VIRTUAL_HEIGHT,
+      );
+      setScale(s);
+    };
+    update();
 
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setContainerSize({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        });
-      }
-    });
-
-    observer.observe(container);
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  // Calculate optimal font size when text or container changes
+  // Compute font size using TextMode's exact algorithm at virtual resolution
   useLayoutEffect(() => {
-    const textEl = textRef.current;
-    if (!textEl || !content) return;
+    const wrapper = wrapperRef.current;
+    const text = textRef.current;
+    if (!wrapper || !text || !content || scale === 0) return;
 
-    // Use captured dimensions - subtract label height estimate if label exists
-    const labelHeight = label ? 20 : 0;
-    const availableHeight = containerSize.height - labelHeight;
-    const availableWidth = containerSize.width;
+    const isHymn = contentType === "hymn";
+    const availableHeight = VIRTUAL_HEIGHT - 160;
+    const availableWidth = Math.min(1024, VIRTUAL_WIDTH - 96);
 
-    if (availableHeight <= 0 || availableWidth <= 0) return;
+    let optimalSize: number;
 
-    // Binary search for optimal font size
-    let min = MIN_PREVIEW_FONT;
-    let max = MAX_PREVIEW_FONT;
-    let optimalSize = MIN_PREVIEW_FONT;
+    if (isHymn) {
+      const origMaxWidth = wrapper.style.maxWidth;
+      const origWidth = wrapper.style.width;
+      wrapper.style.maxWidth = "none";
+      wrapper.style.width = "max-content";
+      text.style.whiteSpace = "pre";
 
-    while (min <= max) {
-      const mid = Math.floor((min + max) / 2);
-      textEl.style.fontSize = `${mid}px`;
+      optimalSize = findOptimalFontSize(MIN_FONT_SIZE, MAX_FONT_SIZE, (size) => {
+        text.style.fontSize = `${size}px`;
+        return text.scrollHeight <= availableHeight && text.scrollWidth <= availableWidth;
+      });
 
-      const fits =
-        textEl.scrollHeight <= availableHeight &&
-        textEl.scrollWidth <= availableWidth;
+      wrapper.style.maxWidth = origMaxWidth;
+      wrapper.style.width = origWidth;
+      text.style.whiteSpace = "pre-line";
+    } else {
+      text.style.whiteSpace = "pre-line";
 
-      if (fits) {
-        optimalSize = mid;
-        min = mid + 1;
-      } else {
-        max = mid - 1;
-      }
+      optimalSize = findOptimalFontSize(MIN_FONT_SIZE, MAX_FONT_SIZE, (size) => {
+        text.style.fontSize = `${size}px`;
+        return text.scrollHeight <= availableHeight;
+      });
     }
 
-    setFontSize(Math.max(MIN_PREVIEW_FONT, optimalSize));
-  }, [content, containerSize, label]);
+    setFontSize(optimalSize);
+  }, [content, contentType, scale]);
 
   return (
-    <div
-      ref={containerRef}
-      className={`w-full h-full flex flex-col ${className}`}
-    >
-      {label && (
-        <div className="flex-shrink-0 text-[10px] text-white/30 uppercase tracking-widest text-center h-[20px] flex items-center justify-center select-none hidden md:flex">
-          {label}
-        </div>
-      )}
+    <div ref={outerRef} className="w-full h-full overflow-hidden relative">
       <div
-        className={`flex-1 min-h-0 w-full flex items-center overflow-hidden ${
-          align === "left" ? "justify-start" : "justify-center"
-        }`}
+        style={{
+          width: VIRTUAL_WIDTH,
+          height: VIRTUAL_HEIGHT,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
       >
-        <p
-          ref={textRef}
-          className={`text-white leading-snug whitespace-pre-line ${
-            align === "left" ? "text-left" : "text-center"
-          }`}
-          style={{ fontSize: `${fontSize}px` }}
-        >
-          {content}
-        </p>
+        {/* Exact replica of TextMode's render output */}
+        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-12">
+          {title && (
+            <div className="absolute top-8 left-0 right-0 text-center">
+              <h1 className="text-3xl font-light text-white/60 tracking-wide">
+                {title}
+              </h1>
+            </div>
+          )}
+
+          <div
+            ref={wrapperRef}
+            className={`w-full max-w-5xl ${
+              contentType === "bible" ? "text-left" : "text-center"
+            }`}
+          >
+            <p
+              ref={textRef}
+              style={{ fontSize: `${fontSize}px` }}
+              className="font-display leading-relaxed text-white whitespace-pre-line"
+            >
+              {content}
+            </p>
+          </div>
+
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2">
+            {slides.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === currentSlide ? "bg-white w-6" : "bg-white/30"
+                }`}
+              />
+            ))}
+          </div>
+
+          <div className="absolute bottom-8 right-8 text-white/40 text-lg">
+            {currentSlide + 1} / {slides.length}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-// Text mode preview with dynamic font scaling
+// Text mode preview — renders a scaled-down replica of the real display
 function TextPreview({
   state,
   settings,
@@ -156,64 +191,54 @@ function TextPreview({
   showLabels: boolean;
 }) {
   const { text } = state;
-  const currentSlide = text.slides[text.currentSlide] || "";
-  const nextSlide = text.slides[text.currentSlide + 1] || "";
-  const align = text.contentType === "bible" ? "left" : "center";
+  const currentSlideContent = text.slides[text.currentSlide] || "";
+  const nextSlideContent = text.slides[text.currentSlide + 1] || "";
   const t = getTranslations(settings.language);
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-b from-gray-900 to-black p-1 md:p-2 overflow-hidden">
-      {/* Title - fixed height */}
-      {text.title && (
-        <div className="block md:hidden flex-shrink-0 text-[10px] text-white/50 mb-1 truncate w-full text-center">
-          {text.title}
-        </div>
-      )}
-
-      {/* Main content area */}
-      <div className="flex-1 min-h-0 flex flex-col gap-2">
-        {/* Current Slide */}
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      {/* Current Slide */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        {showLabels && (
+          <div className="flex-shrink-0 text-[10px] text-white/30 uppercase tracking-widest text-center h-[20px] flex items-center justify-center select-none hidden md:flex">
+            {t.preview?.current || "Current"}
+          </div>
+        )}
         <div className="flex-1 min-h-0">
-          <SlideText
-            content={currentSlide}
-            align={align}
-            label={showLabels ? t.preview?.current || "Current" : undefined}
+          <ScaledSlide
+            content={currentSlideContent}
+            title={text.title}
+            contentType={text.contentType}
+            slides={text.slides}
+            currentSlide={text.currentSlide}
           />
         </div>
+      </div>
 
-        {/* Next Slide (Desktop Only) */}
-        <div className="hidden md:flex flex-1 min-h-0 border-t border-white/10 pt-2">
-          {nextSlide ? (
-            <SlideText
-              content={nextSlide}
-              align={align}
-              label={showLabels ? t.preview?.next || "Next" : undefined}
-              className="opacity-70"
-            />
+      {/* Next Slide (Desktop Only) */}
+      <div className="hidden md:flex flex-1 min-h-0 flex-col border-t border-white/10 pt-1">
+        {showLabels && (
+          <div className="flex-shrink-0 text-[10px] text-white/30 uppercase tracking-widest text-center h-[20px] flex items-center justify-center select-none">
+            {t.preview?.next || "Next"}
+          </div>
+        )}
+        <div className="flex-1 min-h-0">
+          {nextSlideContent ? (
+            <div className="w-full h-full opacity-70">
+              <ScaledSlide
+                content={nextSlideContent}
+                title={text.title}
+                contentType={text.contentType}
+                slides={text.slides}
+                currentSlide={text.currentSlide + 1}
+              />
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-white/20 text-xs italic">
               {t.preview?.endOfSlides || "End of slides"}
             </div>
           )}
         </div>
-      </div>
-
-      {/* Slide indicator - fixed height */}
-      <div className="flex-shrink-0 flex items-center justify-center gap-1 mt-1 h-4">
-        {text.slides.length <= 10 ? (
-          text.slides.map((_, index) => (
-            <div
-              key={index}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${
-                index === text.currentSlide ? "bg-white w-3" : "bg-white/30"
-              }`}
-            />
-          ))
-        ) : (
-          <span className="text-[10px] text-white/50">
-            {text.currentSlide + 1} / {text.slides.length}
-          </span>
-        )}
       </div>
     </div>
   );
@@ -268,13 +293,53 @@ function IdlePreview({
           🖼
         </div>
       )}
+      {/* Audio overlay (mirrors the real AudioWidget) */}
+      <AudioOverlay audio={state.audio} />
     </div>
   );
 }
 
-// Video mode preview - static preview (no actual video playback in web context)
+// Miniature audio widget overlay (mirrors AudioWidget on the real display)
+function AudioOverlay({ audio }: { audio: DisplayState["audio"] }) {
+  if (!audio.src) return null;
+
+  const progress =
+    audio.duration > 0 ? (audio.currentTime / audio.duration) * 100 : 0;
+
+  return (
+    <div className="absolute bottom-2 right-2 z-10 bg-black/60 backdrop-blur-sm rounded px-2 py-1 max-w-[60%]">
+      <div className="flex items-center gap-1.5">
+        <span className="text-[8px] text-white/70 flex-shrink-0">
+          {audio.playing ? "♫" : "❚❚"}
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="text-[7px] text-white/60 truncate">
+            {audio.name || "Audio"}
+          </div>
+          <div className="h-[3px] bg-white/20 rounded-full overflow-hidden mt-0.5">
+            <div
+              className="h-full bg-white/70 rounded-full transition-all duration-200"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+        <span className="text-[7px] text-white/40 flex-shrink-0 tabular-nums">
+          {formatDuration(audio.currentTime)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Video mode preview — shows thumbnail or streams video when available
 function VideoPreview({ state }: { state: DisplayState }) {
   const { video } = state;
+  const [thumbError, setThumbError] = useState(false);
+
+  // Reset thumb error when video changes
+  useEffect(() => {
+    setThumbError(false);
+  }, [video.videoId, video.src]);
 
   if (!video.src) {
     return (
@@ -284,49 +349,78 @@ function VideoPreview({ state }: { state: DisplayState }) {
     );
   }
 
-  // Extract filename from path
   const filename =
     video.src
       .split("/")
       .pop()
       ?.replace(/\.[^/.]+$/, "") || "Video";
 
-  // Progress percentage
   const progress =
     video.duration > 0 ? (video.currentTime / video.duration) * 100 : 0;
 
-  // Format time
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  const thumbnailUrl = video.videoId
+    ? `/api/videos/thumbnail/${video.videoId}`
+    : null;
 
   return (
-    <div className="w-full h-full bg-black flex flex-col relative">
-      {/* Video placeholder with play state */}
-      <div className="flex-1 flex flex-col items-center justify-center">
-        {/* Large play/pause icon */}
-        <div className="text-4xl text-white/80 mb-2">
-          {video.playing ? "▶" : "❚❚"}
-        </div>
-        {/* Video name */}
-        <div className="text-[10px] text-white/60 px-2 text-center truncate max-w-full">
-          {filename}
-        </div>
-      </div>
-
-      {/* Time display */}
-      <div className="absolute bottom-3 left-0 right-0 text-center text-[10px] text-white/50">
-        {formatTime(video.currentTime)} / {formatTime(video.duration)}
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-1.5 bg-gray-700 flex-shrink-0">
-        <div
-          className="h-full bg-blue-500 transition-all duration-300"
-          style={{ width: `${progress}%` }}
+    <div className="w-full h-full bg-black flex flex-col relative overflow-hidden">
+      {/* Thumbnail background */}
+      {thumbnailUrl && !thumbError && (
+        <img
+          src={thumbnailUrl}
+          alt=""
+          className="absolute inset-0 w-full h-full object-contain"
+          onError={() => setThumbError(true)}
         />
+      )}
+
+      {/* Overlay with controls info */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-1 px-3 relative z-10">
+        {/* Play/pause indicator — only show prominently when paused or no thumbnail */}
+        <div
+          className={`flex items-center justify-center rounded-full ${
+            thumbnailUrl && !thumbError
+              ? "bg-black/50 w-8 h-8"
+              : ""
+          }`}
+        >
+          <svg
+            className={`${thumbnailUrl && !thumbError ? "w-4 h-4" : "w-5 h-5"} text-white/80`}
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            {video.playing ? (
+              <path d="M8 5v14l11-7z" />
+            ) : (
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            )}
+          </svg>
+        </div>
+
+        {/* Filename — show below if no thumbnail */}
+        {(!thumbnailUrl || thumbError) && (
+          <span className="text-[10px] text-white/50 truncate max-w-[90%]">
+            {filename}
+          </span>
+        )}
+      </div>
+
+      {/* Bottom bar with time and progress */}
+      <div className="relative z-10 flex-shrink-0">
+        <div className="flex items-center justify-between px-2 py-0.5 bg-gradient-to-t from-black/80 to-transparent">
+          <span className="text-[9px] text-white/60 tabular-nums">
+            {formatDuration(video.currentTime)}
+          </span>
+          <span className="text-[9px] text-white/60 tabular-nums">
+            {formatDuration(video.duration)}
+          </span>
+        </div>
+        <div className="h-1 bg-gray-800">
+          <div
+            className="h-full bg-blue-500 transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
     </div>
   );

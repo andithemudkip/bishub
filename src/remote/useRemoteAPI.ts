@@ -14,14 +14,9 @@ import type {
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
+import { getSecurityKeyFromURL } from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
-
-// Extract security key from URL query parameter for web remote authentication
-function getSecurityKeyFromURL(): string | null {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("key");
-}
 
 interface RemoteAPI {
   state: DisplayState;
@@ -35,7 +30,7 @@ interface RemoteAPI {
   nextSlide: () => void;
   prevSlide: () => void;
   goToSlide: (index: number) => void;
-  loadVideo: (src: string) => void;
+  loadVideo: (src: string, videoId?: string) => void;
   playVideo: () => void;
   pauseVideo: () => void;
   stopVideo: () => void;
@@ -201,9 +196,9 @@ export function useRemoteAPI(): RemoteAPI {
     ),
 
     loadVideo: useCallback(
-      (src) => {
-        if (isElectron) window.electronAPI!.loadVideo(src);
-        else socketRef.current?.emit("loadVideo", src);
+      (src, videoId?) => {
+        if (isElectron) window.electronAPI!.loadVideo(src, videoId);
+        else socketRef.current?.emit("loadVideo", src, videoId);
       },
       [isElectron]
     ),

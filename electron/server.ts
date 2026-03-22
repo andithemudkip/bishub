@@ -131,27 +131,34 @@ export function createServer(
     res.json({ ips, port: stateManager.getSettings().serverPort });
   });
 
+  // Helper to create multer upload middleware
+  const createUploadMiddleware = (
+    destDir: string,
+    allowedTypes: string[],
+    maxSizeBytes: number,
+  ) =>
+    multer({
+      storage: multer.diskStorage({
+        destination: destDir,
+        filename: (_req, file, cb) => {
+          const ext = path.extname(file.originalname);
+          cb(null, `${uuidv4()}${ext}`);
+        },
+      }),
+      limits: { fileSize: maxSizeBytes },
+      fileFilter: (_req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase();
+        cb(null, allowedTypes.includes(ext));
+      },
+    });
+
   // Video Library setup
   const videoLibrary = getVideoLibrary();
-
-  // Configure multer for video uploads (1GB limit)
-  const upload = multer({
-    storage: multer.diskStorage({
-      destination: videoLibrary.getVideosDir(),
-      filename: (_req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        cb(null, `${uuidv4()}${ext}`);
-      },
-    }),
-    limits: {
-      fileSize: 1024 * 1024 * 1024, // 1GB
-    },
-    fileFilter: (_req, file, cb) => {
-      const allowedTypes = [".mp4", ".webm", ".mov", ".avi", ".mkv"];
-      const ext = path.extname(file.originalname).toLowerCase();
-      cb(null, allowedTypes.includes(ext));
-    },
-  });
+  const upload = createUploadMiddleware(
+    videoLibrary.getVideosDir(),
+    [".mp4", ".webm", ".mov", ".avi", ".mkv"],
+    1024 * 1024 * 1024, // 1GB
+  );
 
   // Video upload endpoint
   app.post("/api/videos/upload", upload.single("video"), async (req, res) => {
@@ -215,24 +222,11 @@ export function createServer(
   // Audio Library setup
   const audioLibrary = getAudioLibrary();
 
-  // Configure multer for audio uploads (500MB limit)
-  const audioUpload = multer({
-    storage: multer.diskStorage({
-      destination: audioLibrary.getAudiosDir(),
-      filename: (_req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        cb(null, `${uuidv4()}${ext}`);
-      },
-    }),
-    limits: {
-      fileSize: 500 * 1024 * 1024, // 500MB
-    },
-    fileFilter: (_req, file, cb) => {
-      const allowedTypes = [".mp3", ".wav", ".ogg", ".m4a", ".flac"];
-      const ext = path.extname(file.originalname).toLowerCase();
-      cb(null, allowedTypes.includes(ext));
-    },
-  });
+  const audioUpload = createUploadMiddleware(
+    audioLibrary.getAudiosDir(),
+    [".mp3", ".wav", ".ogg", ".m4a", ".flac"],
+    500 * 1024 * 1024, // 500MB
+  );
 
   // Audio upload endpoint
   app.post(
@@ -319,8 +313,8 @@ export function createServer(
     });
 
     // Video mode
-    socket.on("loadVideo", (src) => {
-      stateManager.loadVideo(src);
+    socket.on("loadVideo", (src, videoId) => {
+      stateManager.loadVideo(src, videoId);
     });
 
     socket.on("playVideo", () => {

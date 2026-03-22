@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import type { TextState } from "../../shared/types";
+import { findOptimalFontSize } from "../../shared/utils";
 
 interface Props {
   config: TextState;
@@ -45,13 +46,10 @@ export default function TextMode({ config }: Props) {
     // max-w-5xl = 64rem = 1024px, but also respect container width
     const availableWidth = Math.min(1024, container.clientWidth - 96);
 
-    // Binary search for optimal font size
-    let min = MIN_FONT_SIZE;
-    let max = MAX_FONT_SIZE;
-    let optimalSize = MIN_FONT_SIZE;
-
     // For hymns: prevent line wrapping to keep each line on one line
     // For bible: allow wrapping, just fit height
+    let optimalSize: number;
+
     if (isHymn) {
       const origMaxWidth = wrapper.style.maxWidth;
       const origWidth = wrapper.style.width;
@@ -59,21 +57,10 @@ export default function TextMode({ config }: Props) {
       wrapper.style.width = "max-content";
       text.style.whiteSpace = "pre";
 
-      while (min <= max) {
-        const mid = Math.floor((min + max) / 2);
-        text.style.fontSize = `${mid}px`;
-
-        const fits =
-          text.scrollHeight <= availableHeight &&
-          text.scrollWidth <= availableWidth;
-
-        if (fits) {
-          optimalSize = mid;
-          min = mid + 1;
-        } else {
-          max = mid - 1;
-        }
-      }
+      optimalSize = findOptimalFontSize(MIN_FONT_SIZE, MAX_FONT_SIZE, (size) => {
+        text.style.fontSize = `${size}px`;
+        return text.scrollHeight <= availableHeight && text.scrollWidth <= availableWidth;
+      });
 
       wrapper.style.maxWidth = origMaxWidth;
       wrapper.style.width = origWidth;
@@ -82,19 +69,10 @@ export default function TextMode({ config }: Props) {
       // Bible/custom: allow wrapping, just constrain to height
       text.style.whiteSpace = "pre-line";
 
-      while (min <= max) {
-        const mid = Math.floor((min + max) / 2);
-        text.style.fontSize = `${mid}px`;
-
-        const fits = text.scrollHeight <= availableHeight;
-
-        if (fits) {
-          optimalSize = mid;
-          min = mid + 1;
-        } else {
-          max = mid - 1;
-        }
-      }
+      optimalSize = findOptimalFontSize(MIN_FONT_SIZE, MAX_FONT_SIZE, (size) => {
+        text.style.fontSize = `${size}px`;
+        return text.scrollHeight <= availableHeight;
+      });
     }
 
     setFontSize(optimalSize);
@@ -117,7 +95,7 @@ export default function TextMode({ config }: Props) {
       {/* Main text content */}
       <div
         ref={wrapperRef}
-        className={`w-full max-w-5xl transition-opacity duration-300 ${
+        className={`w-full max-w-5xl transition-opacity duration-200 ${
           visible ? "opacity-100" : "opacity-0"
         } ${config.contentType === "bible" ? "text-left" : "text-center"}`}
       >

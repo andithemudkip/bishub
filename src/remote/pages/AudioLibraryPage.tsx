@@ -4,9 +4,10 @@ import type { AudioItem } from "../../shared/audioLibrary.types";
 import { useAudioLibrary } from "../useAudioLibrary";
 import { useAudioScheduler } from "../useAudioScheduler";
 import AudioLibraryList from "../components/AudioLibraryList";
-import AudioUploader from "../components/AudioUploader";
+import MediaUploader from "../components/MediaUploader";
 import AudioScheduleSection from "../components/AudioScheduleSection";
 import { getTranslations } from "@shared/i18n";
+import { formatDuration } from "@shared/utils";
 
 interface Props {
   audioState: AudioState;
@@ -48,12 +49,6 @@ export default function AudioLibraryPage({
 
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAudioVolume(Number(e.target.value));
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -217,10 +212,19 @@ export default function AudioLibraryPage({
 
         {/* File uploader (web remote only) */}
         {activeTab === "upload" && !library.isElectron && (
-          <AudioUploader
+          <MediaUploader
             onUpload={library.uploadAudio}
             activeUploads={library.uploads}
-            t={t}
+            allowedExtensions={[".mp3", ".wav", ".ogg", ".m4a", ".flac"]}
+            maxSizeBytes={500 * 1024 * 1024}
+            maxSizeLabel="500MB"
+            labels={{
+              uploading: t.audioLibrary.uploading,
+              uploadDrop: t.audioLibrary.uploadDrop,
+              uploadHint: t.audioLibrary.uploadHint,
+              processing: t.audioLibrary.processing,
+              complete: t.audioLibrary.complete,
+            }}
           />
         )}
       </div>
@@ -305,8 +309,8 @@ export default function AudioLibraryPage({
           {/* Progress bar */}
           <div>
             <div className="flex justify-between text-xs sm:text-sm text-gray-400 mb-2">
-              <span>{formatTime(audioState.currentTime)}</span>
-              <span>{formatTime(audioState.duration)}</span>
+              <span>{formatDuration(audioState.currentTime)}</span>
+              <span>{formatDuration(audioState.duration)}</span>
             </div>
             <input
               type="range"

@@ -155,6 +155,8 @@ export interface Translations {
     uploadDrop: string;
     uploadHint: string;
     uploading: string;
+    processing: string;
+    complete: string;
     // Directory import
     scanningFolder: string;
     importingFolder: string;
@@ -355,6 +357,8 @@ const ro: Translations = {
     uploadDrop: "Trage fișierul audio sau click pentru a naviga",
     uploadHint: "Max 500MB - MP3, WAV, OGG, M4A, FLAC",
     uploading: "Se încarcă...",
+    processing: "Se procesează...",
+    complete: "Finalizat!",
     scanningFolder: "Se scanează folderul...",
     importingFolder: "Se importă folderul...",
     importProgress: "{current} din {total} fișiere",
@@ -548,6 +552,8 @@ const en: Translations = {
     uploadDrop: "Drop audio file or click to browse",
     uploadHint: "Max 500MB - MP3, WAV, OGG, M4A, FLAC",
     uploading: "Uploading...",
+    processing: "Processing...",
+    complete: "Complete!",
     scanningFolder: "Scanning folder...",
     importingFolder: "Importing folder...",
     importProgress: "{current} of {total} files",

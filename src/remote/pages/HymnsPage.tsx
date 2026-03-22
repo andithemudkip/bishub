@@ -1,22 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { Hymn, TextState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
+import { normalizeForSearch } from "../../shared/utils";
 
 interface Props {
   textState: TextState;
   hymns: Hymn[];
   onLoadHymn: (hymnNumber: string) => void;
   settings: AppSettings;
-}
-
-// Remove diacritics from text (ă->a, ș->s, ț->t, î->i, â->a, etc.)
-function removeDiacritics(text: string): string {
-  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
-// Normalize text for searching
-function normalizeForSearch(text: string): string {
-  return removeDiacritics(text.toLowerCase().trim());
 }
 
 export default function HymnsPage({

@@ -4,12 +4,13 @@ import type { VideoItem } from "../../shared/videoLibrary.types";
 import { useVideoLibrary } from "../useVideoLibrary";
 import VideoLibraryList from "../components/VideoLibraryList";
 import YouTubeDownloader from "../components/YouTubeDownloader";
-import VideoUploader from "../components/VideoUploader";
+import MediaUploader from "../components/MediaUploader";
 import { getTranslations } from "@shared/i18n";
+import { formatDuration } from "@shared/utils";
 
 interface Props {
   videoState: VideoState;
-  loadVideo: (src: string) => void;
+  loadVideo: (src: string, videoId?: string) => void;
   playVideo: () => void;
   pauseVideo: () => void;
   stopVideo: () => void;
@@ -48,12 +49,6 @@ export default function VideoLibraryPage({
 
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVolume(Number(e.target.value));
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -145,10 +140,19 @@ export default function VideoLibraryPage({
 
         {/* File uploader (web remote only) */}
         {activeTab === "upload" && !library.isElectron && (
-          <VideoUploader
+          <MediaUploader
             onUpload={library.uploadVideo}
             activeUploads={library.uploads}
-            t={t}
+            allowedExtensions={[".mp4", ".webm", ".mov", ".avi", ".mkv"]}
+            maxSizeBytes={1024 * 1024 * 1024}
+            maxSizeLabel="1GB"
+            labels={{
+              uploading: t.videoLibrary.uploading,
+              uploadDrop: t.videoLibrary.uploadDrop,
+              uploadHint: t.videoLibrary.uploadHint,
+              processing: t.videoLibrary.processing,
+              complete: t.videoLibrary.complete,
+            }}
           />
         )}
       </div>
@@ -233,8 +237,8 @@ export default function VideoLibraryPage({
           {/* Progress bar */}
           <div>
             <div className="flex justify-between text-xs sm:text-sm text-gray-400 mb-2">
-              <span>{formatTime(videoState.currentTime)}</span>
-              <span>{formatTime(videoState.duration)}</span>
+              <span>{formatDuration(videoState.currentTime)}</span>
+              <span>{formatDuration(videoState.duration)}</span>
             </div>
             <input
               type="range"

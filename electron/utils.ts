@@ -109,3 +109,26 @@ export function getFfprobePath(): string | null {
   }
   return _ffprobePath;
 }
+
+/**
+ * Extract media duration in seconds using ffprobe. Returns null if unavailable.
+ */
+export function extractDurationWithFfprobe(
+  filePath: string,
+): Promise<number | null> {
+  const ffprobePath = getFfprobePath();
+  if (!ffprobePath) return Promise.resolve(null);
+
+  return new Promise((resolve) => {
+    const cmd = `"${ffprobePath}" -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`;
+    exec(cmd, (error, stdout) => {
+      if (error) {
+        console.error("Duration extraction failed:", error.message);
+        resolve(null);
+        return;
+      }
+      const duration = parseFloat(stdout.trim());
+      resolve(!isNaN(duration) && duration > 0 ? duration : null);
+    });
+  });
+}

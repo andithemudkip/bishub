@@ -11,6 +11,7 @@ import type {
   BibleSearchResult,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
+import { normalizeForSearch } from "../src/shared/utils";
 
 // @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
@@ -201,6 +202,18 @@ export function getBibleVerses(
   return verses.filter((v) => v.verse >= startVerse && v.verse <= end);
 }
 
+// Push text as one or two slides, splitting at the midpoint if >= 8 lines
+function pushSlides(slides: string[], text: string): void {
+  const lines = text.split(/\r?\n/);
+  if (lines.length >= 8) {
+    const mid = Math.ceil(lines.length / 2);
+    slides.push(lines.slice(0, mid).join("\n"));
+    slides.push(lines.slice(mid).join("\n"));
+  } else {
+    slides.push(text);
+  }
+}
+
 export function formatHymnForDisplay(hymn: Hymn): {
   title: string;
   slides: string[];
@@ -211,23 +224,10 @@ export function formatHymnForDisplay(hymn: Hymn): {
   }
 
   hymn.verses.forEach((verse, index) => {
-    // Split verse into lines
-    verse = `${index + 1}. ${verse}`; // Prepend verse number
-    const lines = verse.split(/\r?\n/);
-    if (lines.length >= 8) {
-      // Split into two slides, roughly in half
-      const mid = Math.ceil(lines.length / 2);
-      const firstSlide = lines.slice(0, mid).join("\n");
-      const secondSlide = lines.slice(mid).join("\n");
-      slides.push(firstSlide);
-      slides.push(secondSlide);
-    } else {
-      slides.push(verse);
-    }
+    pushSlides(slides, `${index + 1}. ${verse}`);
 
-    // Add chorus after each verse if it exists
     if (hymn.chorus && hymn.chorus.trim()) {
-      slides.push(hymn.chorus);
+      pushSlides(slides, hymn.chorus);
     }
   });
 
@@ -280,13 +280,6 @@ export function formatBibleChapterForDisplay(
   };
 }
 
-// Remove diacritics for search matching (ă→a, â→a, î→i, ș→s, ț→t)
-function normalizeForSearch(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-}
 
 // Cache for normalized verse text
 const normalizedBibleCache = new Map<Language, Map<string, string>>();

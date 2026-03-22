@@ -1,16 +1,36 @@
 import { useState, useRef } from "react";
-import type { UploadProgress } from "../../shared/videoLibrary.types";
-import type { Translations } from "../../shared/i18n";
+
+interface UploadItem {
+  id: string;
+  filename: string;
+  status: "uploading" | "processing" | "complete" | "error";
+  progress: number;
+  error?: string;
+}
 
 interface Props {
   onUpload: (file: File) => Promise<void>;
-  activeUploads: UploadProgress[];
-  t: Translations;
+  activeUploads: UploadItem[];
+  allowedExtensions: string[];
+  maxSizeBytes: number;
+  maxSizeLabel: string;
+  labels: {
+    uploading: string;
+    uploadDrop: string;
+    uploadHint: string;
+    processing: string;
+    complete: string;
+  };
 }
 
-const ALLOWED_EXTENSIONS = [".mp4", ".webm", ".mov", ".avi", ".mkv"];
-
-export default function VideoUploader({ onUpload, activeUploads, t }: Props) {
+export default function MediaUploader({
+  onUpload,
+  activeUploads,
+  allowedExtensions,
+  maxSizeBytes,
+  maxSizeLabel,
+  labels,
+}: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -18,13 +38,14 @@ export default function VideoUploader({ onUpload, activeUploads, t }: Props) {
 
   const validateFile = (file: File): boolean => {
     const ext = "." + file.name.split(".").pop()?.toLowerCase();
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      setError(`Invalid file type. Allowed: ${ALLOWED_EXTENSIONS.join(", ")}`);
+    if (!allowedExtensions.includes(ext)) {
+      setError(
+        `Invalid file type. Allowed: ${allowedExtensions.join(", ")}`,
+      );
       return false;
     }
-    // 1GB limit
-    if (file.size > 1024 * 1024 * 1024) {
-      setError("File too large. Maximum size is 1GB.");
+    if (file.size > maxSizeBytes) {
+      setError(`File too large. Maximum size is ${maxSizeLabel}.`);
       return false;
     }
     return true;
@@ -84,18 +105,28 @@ export default function VideoUploader({ onUpload, activeUploads, t }: Props) {
         <input
           ref={fileInputRef}
           type="file"
-          accept={ALLOWED_EXTENSIONS.join(",")}
+          accept={allowedExtensions.join(",")}
           onChange={handleFileSelect}
           className="hidden"
         />
-        <svg className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+        <svg
+          className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+          />
         </svg>
         <div className="text-gray-300 text-sm sm:text-base">
-          {isUploading ? t.videoLibrary.uploading : t.videoLibrary.uploadDrop}
+          {isUploading ? labels.uploading : labels.uploadDrop}
         </div>
         <div className="text-xs sm:text-sm text-gray-500 mt-1">
-          {t.videoLibrary.uploadHint}
+          {labels.uploadHint}
         </div>
       </div>
 
@@ -113,13 +144,10 @@ export default function VideoUploader({ onUpload, activeUploads, t }: Props) {
                 <div className="flex-1 min-w-0">
                   <div className="text-sm truncate">{upload.filename}</div>
                   <div className="text-xs text-gray-400">
-                    {upload.status === "uploading" && t.videoLibrary.uploading}
-                    {upload.status === "processing" &&
-                      t.videoLibrary.processing}
+                    {upload.status === "uploading" && labels.uploading}
+                    {upload.status === "processing" && labels.processing}
                     {upload.status === "complete" && (
-                      <span className="text-green-400">
-                        {t.videoLibrary.complete}
-                      </span>
+                      <span className="text-green-400">{labels.complete}</span>
                     )}
                     {upload.status === "error" && (
                       <span className="text-red-400">{upload.error}</span>

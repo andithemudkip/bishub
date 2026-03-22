@@ -10,7 +10,7 @@ import type {
   DownloadProgress,
   UploadProgress,
 } from "../src/shared/videoLibrary.types";
-import { getFfmpegPath, getFfprobePath } from "./utils";
+import { getFfmpegPath, extractDurationWithFfprobe } from "./utils";
 interface VideoLibrarySchema {
   videos: VideoItem[];
   version: number;
@@ -179,37 +179,16 @@ export class VideoLibraryManager {
   }
 
   private async extractDuration(video: VideoItem): Promise<void> {
-    const ffprobePath = getFfprobePath();
-    if (!ffprobePath) {
-      console.warn("Cannot extract duration: ffprobe not available");
-      return;
+    const duration = await extractDurationWithFfprobe(video.path);
+    if (duration !== null) {
+      const videos = this.store.get("videos", []);
+      const index = videos.findIndex((v) => v.id === video.id);
+      if (index !== -1) {
+        videos[index].duration = duration;
+        this.store.set("videos", videos);
+        this.notifyLibraryChange();
+      }
     }
-
-    return new Promise((resolve) => {
-      // Use ffprobe to get duration in seconds
-      const cmd = `"${ffprobePath}" -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${video.path}"`;
-
-      exec(cmd, (error, stdout) => {
-        if (error) {
-          console.error("Duration extraction failed:", error.message);
-          resolve();
-          return;
-        }
-
-        const duration = parseFloat(stdout.trim());
-        if (!isNaN(duration) && duration > 0) {
-          // Update video with duration
-          const videos = this.store.get("videos", []);
-          const index = videos.findIndex((v) => v.id === video.id);
-          if (index !== -1) {
-            videos[index].duration = duration;
-            this.store.set("videos", videos);
-            this.notifyLibraryChange();
-          }
-        }
-        resolve();
-      });
-    });
   }
 
   async deleteVideo(id: string): Promise<boolean> {

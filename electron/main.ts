@@ -148,8 +148,8 @@ function setupIPC() {
     stateManager.goToSlide(index);
   });
 
-  ipcMain.handle("load-video", (_event, src: string) => {
-    stateManager.loadVideo(src);
+  ipcMain.handle("load-video", (_event, src: string, videoId?: string) => {
+    stateManager.loadVideo(src, videoId);
   });
 
   ipcMain.handle("play-video", () => {

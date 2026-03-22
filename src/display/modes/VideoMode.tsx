@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { VideoState } from "../../shared/types";
+import { getFileUrl } from "../../shared/utils";
 
 interface Props {
   config: VideoState;
@@ -71,13 +72,6 @@ export default function VideoMode({ config, onTimeUpdate }: Props) {
     );
   }
 
-  // Convert path to file URL (handles Windows backslashes)
-  const getFileUrl = (filePath: string) => {
-    if (filePath.startsWith("file://")) return filePath;
-    const normalizedPath = filePath.replace(/\\/g, "/");
-    const prefix = normalizedPath.startsWith("/") ? "file://" : "file:///";
-    return `${prefix}${normalizedPath}`;
-  };
   const videoSrc = getFileUrl(config.src);
 
   return (

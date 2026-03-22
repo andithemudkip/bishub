@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { VideoItem } from "../../shared/videoLibrary.types";
 import type { Translations } from "../../shared/i18n";
+import { formatFileSize, formatDuration, formatDate } from "../../shared/utils";
 
 interface Props {
   videos: VideoItem[];
@@ -10,26 +11,6 @@ interface Props {
   onRename: (videoId: string, newName: string) => void;
   onOpenFileLocation: (filePath: string) => void;
   t: Translations;
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
-
-function formatDuration(seconds: number | null): string {
-  if (seconds === null) return "--:--";
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
-
-function formatDate(timestamp: number): string {
-  const date = new Date(timestamp);
-  return date.toLocaleDateString();
 }
 
 function SourceIcon({ source }: { source: VideoItem["source"] }) {

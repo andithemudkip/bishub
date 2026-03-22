@@ -10,13 +10,9 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "../shared/types";
+import { getSecurityKeyFromURL } from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
-
-function getSecurityKeyFromURL(): string | null {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("key");
-}
 
 interface AudioSchedulerAPI {
   schedules: AudioSchedule[];
@@ -58,6 +54,13 @@ export function useAudioScheduler(): AudioSchedulerAPI {
   const socketRef = useRef<SocketType | null>(null);
   const isElectron = !!window.electronAPI;
 
+  const handleScheduleEvent = useCallback((event: ScheduleEvent) => {
+    setRecentEvents((prev) => [event, ...prev].slice(0, 10));
+    setTimeout(() => {
+      setRecentEvents((prev) => prev.filter((e) => e !== event));
+    }, 5000);
+  }, []);
+
   useEffect(() => {
     if (isElectron) {
       // Use Electron IPC
@@ -67,18 +70,8 @@ export function useAudioScheduler(): AudioSchedulerAPI {
       const unsubSchedules =
         window.electronAPI!.onAudioSchedulesUpdate(setSchedules);
       const unsubPresets = window.electronAPI!.onAudioPresetsUpdate(setPresets);
-      const unsubEvent = window.electronAPI!.onAudioScheduleEvent(
-        (event: ScheduleEvent) => {
-          setRecentEvents((prev) => {
-            const updated = [event, ...prev].slice(0, 10); // Keep last 10 events
-            return updated;
-          });
-          // Auto-remove events after 5 seconds
-          setTimeout(() => {
-            setRecentEvents((prev) => prev.filter((e) => e !== event));
-          }, 5000);
-        }
-      );
+      const unsubEvent =
+        window.electronAPI!.onAudioScheduleEvent(handleScheduleEvent);
 
       return () => {
         unsubSchedules();
@@ -100,21 +93,13 @@ export function useAudioScheduler(): AudioSchedulerAPI {
 
       socket.on("audioSchedules", setSchedules);
       socket.on("audioPresets", setPresets);
-      socket.on("audioScheduleEvent", (event) => {
-        setRecentEvents((prev) => {
-          const updated = [event, ...prev].slice(0, 10);
-          return updated;
-        });
-        setTimeout(() => {
-          setRecentEvents((prev) => prev.filter((e) => e !== event));
-        }, 5000);
-      });
+      socket.on("audioScheduleEvent", handleScheduleEvent);
 
       return () => {
         socket.disconnect();
       };
     }
-  }, [isElectron]);
+  }, [isElectron, handleScheduleEvent]);
 
   const pendingSchedules = schedules.filter((s) => s.status === "pending");
 

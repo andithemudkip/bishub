@@ -1,5 +1,4 @@
 import { app } from "electron";
-import { execSync, exec } from "child_process";
 import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
@@ -11,7 +10,7 @@ import type {
   DirectoryImportProgress,
 } from "../src/shared/audioLibrary.types";
 
-import { getFfprobePath } from "./utils";
+import { extractDurationWithFfprobe } from "./utils";
 interface AudioLibrarySchema {
   audios: AudioItem[];
   version: number;
@@ -274,43 +273,16 @@ export class AudioLibraryManager {
   }
 
   private async extractDuration(audio: AudioItem): Promise<void> {
-    const ffprobePath = getFfprobePath();
-
-    if (!ffprobePath) {
-      console.warn(
-        "[AudioLibrary] Cannot extract duration: ffprobe not available"
-      );
-      return;
+    const duration = await extractDurationWithFfprobe(audio.path);
+    if (duration !== null) {
+      const audios = this.store.get("audios", []);
+      const index = audios.findIndex((a) => a.id === audio.id);
+      if (index !== -1) {
+        audios[index].duration = duration;
+        this.store.set("audios", audios);
+        this.notifyLibraryChange();
+      }
     }
-
-    return new Promise((resolve) => {
-      // Use ffprobe to get duration in seconds
-      const cmd = `"${ffprobePath}" -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${audio.path}"`;
-
-      exec(cmd, (error, stdout) => {
-        if (error) {
-          console.error(
-            "[AudioLibrary] Duration extraction failed:",
-            error.message
-          );
-          resolve();
-          return;
-        }
-
-        const duration = parseFloat(stdout.trim());
-        if (!isNaN(duration) && duration > 0) {
-          // Update audio with duration
-          const audios = this.store.get("audios", []);
-          const index = audios.findIndex((a) => a.id === audio.id);
-          if (index !== -1) {
-            audios[index].duration = duration;
-            this.store.set("audios", audios);
-            this.notifyLibraryChange();
-          }
-        }
-        resolve();
-      });
-    });
   }
 
   async deleteAudio(id: string): Promise<boolean> {

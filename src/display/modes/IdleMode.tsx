@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { IdleState, ClockPosition, AudioState } from "../../shared/types";
 import type { Language } from "../../shared/i18n";
+import { getFileUrl } from "../../shared/utils";
 import AudioWidget from "../components/AudioWidget";
 
 interface Props {
@@ -64,14 +65,6 @@ export default function IdleMode({ config, language, audioState, onAudioTimeUpda
     });
   };
 
-  // Convert file path to proper file:// URL (handles Windows backslashes)
-  const getFileUrl = (filePath: string) => {
-    // Replace backslashes with forward slashes for Windows paths
-    const normalizedPath = filePath.replace(/\\/g, "/");
-    // Windows paths need file:/// (three slashes), Unix paths need file://
-    const prefix = normalizedPath.startsWith("/") ? "file://" : "file:///";
-    return `${prefix}${normalizedPath}`;
-  };
 
   const backgroundStyle = config.wallpaper
     ? {

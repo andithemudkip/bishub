@@ -53,8 +53,8 @@ const electronAPI = {
   goToSlide: (index: number): Promise<void> =>
     ipcRenderer.invoke("go-to-slide", index),
 
-  loadVideo: (src: string): Promise<void> =>
-    ipcRenderer.invoke("load-video", src),
+  loadVideo: (src: string, videoId?: string): Promise<void> =>
+    ipcRenderer.invoke("load-video", src, videoId),
   playVideo: (): Promise<void> => ipcRenderer.invoke("play-video"),
   pauseVideo: (): Promise<void> => ipcRenderer.invoke("pause-video"),
   stopVideo: (): Promise<void> => ipcRenderer.invoke("stop-video"),
