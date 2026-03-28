@@ -1,5 +1,9 @@
 !macro customInit
-  ; Close running instances of BisHub before installing
+  ; Kill running instances so files aren't locked during install
   nsExec::ExecToLog 'taskkill /F /IM "BisHub.exe"'
+  nsExec::ExecToLog 'taskkill /F /IM "ffmpeg.exe"'
+  nsExec::ExecToLog 'taskkill /F /IM "ffprobe.exe"'
+  nsExec::ExecToLog 'taskkill /F /IM "yt-dlp.exe"'
+  nsExec::ExecToLog 'taskkill /F /IM "qjs.exe"'
   Sleep 1000
 !macroend
