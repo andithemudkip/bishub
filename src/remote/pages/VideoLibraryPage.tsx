@@ -7,6 +7,7 @@ import YouTubeDownloader from "../components/YouTubeDownloader";
 import MediaUploader from "../components/MediaUploader";
 import StickyPlaybackBar from "../components/StickyPlaybackBar";
 import { getTranslations } from "@shared/i18n";
+import { formatFileSize } from "@shared/utils";
 import { Card } from "../components/ui/Card";
 
 interface Props {
@@ -161,6 +162,11 @@ export default function VideoLibraryPage({
         <Card compact className="overflow-hidden">
           <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
             {t.videoLibrary.library} ({library.videos.length})
+            {library.videos.length > 0 && (
+              <span className="text-xs sm:text-sm font-normal text-gray-500 ml-2">
+                {formatFileSize(library.videos.reduce((sum, v) => sum + v.fileSize, 0))}
+              </span>
+            )}
           </h3>
           <VideoLibraryList
             videos={library.videos}

@@ -12,6 +12,10 @@ import type {
   CreateScheduleParams,
   CreatePresetParams,
 } from "./audioSchedule.types";
+import type {
+  TransferItem,
+  TransferUploadProgress,
+} from "./transfer.types";
 
 export type DisplayMode = "idle" | "text" | "video";
 
@@ -118,6 +122,9 @@ export type ServerToClientEvents = {
   audioSchedules: (schedules: AudioSchedule[]) => void;
   audioPresets: (presets: AudioSchedulePreset[]) => void;
   audioScheduleEvent: (event: ScheduleEvent) => void;
+  // File Transfers
+  transfers: (transfers: TransferItem[]) => void;
+  transferUploadProgress: (progress: TransferUploadProgress) => void;
 };
 
 export type ClientToServerEvents = {
@@ -174,6 +181,8 @@ export type ClientToServerEvents = {
   createAudioPreset: (params: CreatePresetParams) => void;
   activateAudioPreset: (presetId: string, audioPath: string) => void;
   deleteAudioPreset: (presetId: string) => void;
+  // File Transfers
+  getTransfers: () => void;
   // Idle
   setClockFontSize: (size: number) => void;
   setClockPosition: (position: ClockPosition) => void;

@@ -38,10 +38,12 @@ export default function MediaUploader({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): boolean => {
-    const ext = "." + file.name.split(".").pop()?.toLowerCase();
-    if (!allowedExtensions.includes(ext)) {
-      setError(labels.invalidType);
-      return false;
+    if (allowedExtensions.length > 0) {
+      const ext = "." + file.name.split(".").pop()?.toLowerCase();
+      if (!allowedExtensions.includes(ext)) {
+        setError(labels.invalidType);
+        return false;
+      }
     }
     if (file.size > maxSizeBytes) {
       setError(labels.tooLarge);

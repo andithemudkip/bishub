@@ -28,6 +28,7 @@ import {
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { getAudioScheduler } from "./audioScheduler";
+import { getTransferManager } from "./transferManager";
 import { startDownload, cancelDownload } from "./ytdlp";
 
 // @ts-ignore
@@ -46,6 +47,7 @@ export function createServer(
   windowManager: WindowManager
 ) {
   const app = express();
+  app.use(express.json());
   const httpServer = createHttpServer(app);
   const io = new Server<ClientToServerEvents, ServerToClientEvents>(
     httpServer,
@@ -277,6 +279,91 @@ export function createServer(
     io.emit("audioUploadProgress", progress);
   });
 
+  // File Transfers setup
+  const transferManager = getTransferManager();
+
+  const transferUpload = multer({
+    storage: multer.diskStorage({
+      destination: transferManager.getTransfersDir(),
+      filename: (_req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `${uuidv4()}${ext}`);
+      },
+    }),
+    limits: { fileSize: 2 * 1024 * 1024 * 1024 }, // 2GB
+  });
+
+  app.post(
+    "/api/transfers/upload",
+    transferUpload.single("file"),
+    (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        const originalName = req.file.originalname;
+        const transfer = transferManager.addTransfer(
+          req.file.path,
+          originalName,
+          req.file.size
+        );
+
+        res.json({ transfer, status: "complete" });
+      } catch (error) {
+        console.error("Transfer upload error:", error);
+        res.status(500).json({ error: "Upload failed" });
+      }
+    }
+  );
+
+  app.post("/api/transfers/delete", (req, res) => {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: "Missing id" });
+    const ok = transferManager.deleteTransfer(id);
+    res.json({ success: ok });
+  });
+
+  app.post("/api/transfers/add-to-video", async (req, res) => {
+    try {
+      const { id } = req.body;
+      const transfer = transferManager.getById(id);
+      if (!transfer) return res.status(404).json({ error: "Transfer not found" });
+
+      const video = await videoLibrary.addVideo(transfer.path, "upload", {
+        name: transfer.name,
+        copyToLibrary: true,
+      });
+      transferManager.markAddedToLibrary(id, "video");
+      res.json({ video });
+    } catch (error) {
+      console.error("Add to video error:", error);
+      res.status(500).json({ error: "Failed to add to video library" });
+    }
+  });
+
+  app.post("/api/transfers/add-to-audio", async (req, res) => {
+    try {
+      const { id } = req.body;
+      const transfer = transferManager.getById(id);
+      if (!transfer) return res.status(404).json({ error: "Transfer not found" });
+
+      const audio = await audioLibrary.addAudio(transfer.path, "upload", {
+        name: transfer.name,
+        copyToLibrary: true,
+      });
+      transferManager.markAddedToLibrary(id, "audio");
+      res.json({ audio });
+    } catch (error) {
+      console.error("Add to audio error:", error);
+      res.status(500).json({ error: "Failed to add to audio library" });
+    }
+  });
+
+  transferManager.onTransfersChange((transfers) => {
+    io.emit("transfers", transfers);
+  });
+
   // Socket.io connection handling
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
@@ -493,6 +580,11 @@ export function createServer(
 
     socket.on("deleteAudioPreset", (presetId) => {
       getAudioScheduler()?.deletePreset(presetId);
+    });
+
+    // File Transfers
+    socket.on("getTransfers", () => {
+      socket.emit("transfers", transferManager.getAll());
     });
 
     // Idle

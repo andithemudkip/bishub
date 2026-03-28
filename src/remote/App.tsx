@@ -7,6 +7,7 @@ import HymnsPage from "./pages/HymnsPage";
 import BiblePage from "./pages/BiblePage";
 import VideoLibraryPage from "./pages/VideoLibraryPage";
 import AudioLibraryPage from "./pages/AudioLibraryPage";
+import TransferPage from "./pages/TransferPage";
 import SettingsPage from "./pages/SettingsPage";
 import { useRemoteAPI } from "./useRemoteAPI";
 
@@ -114,7 +115,7 @@ export default function App() {
   }, [api]);
 
   const renderPage = (
-    page: "hymns" | "bible" | "video" | "audio" | "settings"
+    page: "hymns" | "bible" | "video" | "audio" | "transfer" | "settings"
   ) => {
     switch (page) {
       case "hymns":
@@ -166,6 +167,8 @@ export default function App() {
             settings={api.settings}
           />
         );
+      case "transfer":
+        return <TransferPage settings={api.settings} />;
       case "settings":
         return (
           <SettingsPage

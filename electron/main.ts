@@ -20,6 +20,7 @@ import {
 } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
+import { getTransferManager } from "./transferManager";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import { startDownload, cancelDownload, getActiveDownloads, killAllDownloads, checkForBinaryUpdates } from "./ytdlp";
 import type {
@@ -538,6 +539,45 @@ function setupIPC() {
 
   ipcMain.handle("delete-audio-preset", (_event, presetId: string) => {
     return getAudioScheduler()?.deletePreset(presetId);
+  });
+
+  // File Transfers
+  const transferManager = getTransferManager();
+
+  transferManager.onTransfersChange((transfers) => {
+    windowManager.broadcastToAll("transfers-update", transfers);
+  });
+
+  ipcMain.handle("get-transfers", () => {
+    return transferManager.getAll();
+  });
+
+  ipcMain.handle("delete-transfer", (_event, id: string) => {
+    return transferManager.deleteTransfer(id);
+  });
+
+  ipcMain.handle("add-transfer-to-video", async (_event, id: string) => {
+    const transfer = transferManager.getById(id);
+    if (!transfer) return null;
+    const videoLibrary = getVideoLibrary();
+    const video = await videoLibrary.addVideo(transfer.path, "upload", {
+      name: transfer.name,
+      copyToLibrary: true,
+    });
+    transferManager.markAddedToLibrary(id, "video");
+    return video;
+  });
+
+  ipcMain.handle("add-transfer-to-audio", async (_event, id: string) => {
+    const transfer = transferManager.getById(id);
+    if (!transfer) return null;
+    const audioLibrary = getAudioLibrary();
+    const audio = await audioLibrary.addAudio(transfer.path, "upload", {
+      name: transfer.name,
+      copyToLibrary: true,
+    });
+    transferManager.markAddedToLibrary(id, "audio");
+    return audio;
   });
 }
 

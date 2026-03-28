@@ -6,10 +6,11 @@ import { HymnsIcon } from "./icons/hymns";
 import { BibleIcon } from "./icons/bible";
 import { VideoIcon } from "./icons/video";
 import { AudioIcon } from "./icons/audio";
+import { TransferIcon } from "./icons/transfer";
 import { SettingsIcon } from "./icons/settings";
 import { ChevronLeftIcon, ChevronRightIcon, StopIcon } from "./icons/ui";
 
-type Page = "hymns" | "bible" | "video" | "audio" | "settings";
+type Page = "hymns" | "bible" | "video" | "audio" | "transfer" | "settings";
 
 interface Props {
   children: (page: Page) => React.ReactNode;
@@ -25,6 +26,7 @@ const NAV_ICONS: Record<Page, React.ReactNode> = {
   bible: <BibleIcon className="w-6 h-6" />,
   video: <VideoIcon className="w-6 h-6" />,
   audio: <AudioIcon className="w-6 h-6" />,
+  transfer: <TransferIcon className="w-6 h-6" />,
   settings: <SettingsIcon className="w-6 h-6" />,
 };
 
@@ -63,6 +65,11 @@ export default function Layout({
       { id: "bible" as Page, label: t.nav.bible, icon: NAV_ICONS.bible },
       { id: "video" as Page, label: t.nav.video, icon: NAV_ICONS.video },
       { id: "audio" as Page, label: t.nav.audio, icon: NAV_ICONS.audio },
+      {
+        id: "transfer" as Page,
+        label: t.nav.transfer,
+        icon: NAV_ICONS.transfer,
+      },
       {
         id: "settings" as Page,
         label: t.nav.settings,

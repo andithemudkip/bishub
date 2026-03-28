@@ -25,6 +25,7 @@ import type {
   CreateScheduleParams,
   CreatePresetParams,
 } from "../src/shared/audioSchedule.types";
+import type { TransferItem } from "../src/shared/transfer.types";
 
 const electronAPI = {
   getState: (): Promise<DisplayState> => ipcRenderer.invoke("get-state"),
@@ -261,6 +262,23 @@ const electronAPI = {
       (_event: any, event: ScheduleEvent) => callback(event)
     );
     return () => ipcRenderer.removeAllListeners("audio-schedule-event");
+  },
+
+  // File Transfers
+  getTransfers: (): Promise<TransferItem[]> =>
+    ipcRenderer.invoke("get-transfers"),
+  deleteTransfer: (id: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-transfer", id),
+  addTransferToVideo: (id: string): Promise<any> =>
+    ipcRenderer.invoke("add-transfer-to-video", id),
+  addTransferToAudio: (id: string): Promise<any> =>
+    ipcRenderer.invoke("add-transfer-to-audio", id),
+  onTransfersUpdate: (callback: (transfers: TransferItem[]) => void) => {
+    ipcRenderer.on(
+      "transfers-update",
+      (_event: any, transfers: TransferItem[]) => callback(transfers)
+    );
+    return () => ipcRenderer.removeAllListeners("transfers-update");
   },
 
   onStateUpdate: (callback: (state: DisplayState) => void) => {

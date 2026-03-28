@@ -18,6 +18,7 @@ export interface Translations {
     bible: string;
     video: string;
     audio: string;
+    transfer: string;
     settings: string;
   };
 
@@ -208,6 +209,25 @@ export interface Translations {
     expired: string;
   };
 
+  // File Transfers
+  transfer: {
+    uploadDrop: string;
+    uploadHint: string;
+    noFiles: string;
+    noFilesHint: string;
+    addToVideo: string;
+    addToAudio: string;
+    openInExplorer: string;
+    delete: string;
+    confirmDelete: string;
+    uploading: string;
+    complete: string;
+    uploadFailed: string;
+    addedToVideo: string;
+    addedToAudio: string;
+    files: string;
+  };
+
   // Preview panel
   preview: {
     title: string;
@@ -245,6 +265,7 @@ const ro: Translations = {
     bible: "Biblie",
     video: "Video",
     audio: "Audio",
+    transfer: "Transfer",
     settings: "Setări",
   },
   header: {
@@ -417,6 +438,23 @@ const ro: Translations = {
     triggered: "Redat",
     expired: "Expirat",
   },
+  transfer: {
+    uploadDrop: "Trage fișiere aici sau apasă pentru a selecta",
+    uploadHint: "Orice tip de fișier, max 2GB",
+    noFiles: "Niciun fișier transferat",
+    noFilesHint: "Deschide această pagină pe telefon pentru a trimite fișiere",
+    addToVideo: "Adaugă la video",
+    addToAudio: "Adaugă la audio",
+    openInExplorer: "Deschide în explorer",
+    delete: "Șterge",
+    confirmDelete: "Sigur vrei să ștergi acest fișier?",
+    uploading: "Se încarcă...",
+    complete: "Complet!",
+    uploadFailed: "Încărcarea a eșuat",
+    addedToVideo: "Adăugat în biblioteca video",
+    addedToAudio: "Adăugat în biblioteca audio",
+    files: "Fișiere",
+  },
   preview: {
     title: "Previzualizare",
     collapse: "Ascunde",
@@ -451,6 +489,7 @@ const en: Translations = {
     bible: "Bible",
     video: "Video",
     audio: "Audio",
+    transfer: "Transfer",
     settings: "Settings",
   },
   header: {
@@ -622,6 +661,23 @@ const en: Translations = {
     skippedNotIdle: "Skipped (not in idle mode)",
     triggered: "Played",
     expired: "Expired",
+  },
+  transfer: {
+    uploadDrop: "Drag files here or tap to select",
+    uploadHint: "Any file type, max 2GB",
+    noFiles: "No transferred files",
+    noFilesHint: "Open this page on your phone to upload files",
+    addToVideo: "Add to video",
+    addToAudio: "Add to audio",
+    openInExplorer: "Open in explorer",
+    delete: "Delete",
+    confirmDelete: "Are you sure you want to delete this file?",
+    uploading: "Uploading...",
+    complete: "Complete!",
+    uploadFailed: "Upload failed",
+    addedToVideo: "Added to video library",
+    addedToAudio: "Added to audio library",
+    files: "Files",
   },
   preview: {
     title: "Preview",
