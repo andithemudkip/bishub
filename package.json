@@ -4,6 +4,7 @@
   "type": "module",
   "description": "Church display application with remote control",
   "main": "dist-electron/main.js",
+  "author": "Andrei Cracanau",
   "scripts": {
     "build:preload": "esbuild electron/preload.ts --bundle --platform=node --outfile=dist-electron/preload.js --external:electron --format=cjs",
     "dev": "npm run build:preload && vite",
