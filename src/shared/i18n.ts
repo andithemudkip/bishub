@@ -177,6 +177,8 @@ export interface Translations {
     importErrors: string;
     noAudioFiles: string;
     openFileLocation: string;
+    libraryTab: string;
+    scheduleTab: string;
   };
 
   // Audio scheduling
@@ -387,6 +389,8 @@ const ro: Translations = {
     importErrors: "{count} fișiere eșuate",
     noAudioFiles: "Niciun fișier audio găsit în folder",
     openFileLocation: "Deschide locația fișierului",
+    libraryTab: "Bibliotecă",
+    scheduleTab: "Programare",
   },
   audioSchedule: {
     title: "Programare audio",
@@ -591,6 +595,8 @@ const en: Translations = {
     importErrors: "{count} files failed",
     noAudioFiles: "No audio files found in folder",
     openFileLocation: "Open file location",
+    libraryTab: "Library",
+    scheduleTab: "Schedule",
   },
   audioSchedule: {
     title: "Audio Scheduling",
