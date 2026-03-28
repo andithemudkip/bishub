@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useFocusSearch } from "../hooks/useFocusSearch";
 import type {
   BibleVerse,
   BibleSearchResult,
@@ -115,16 +116,11 @@ export default function BiblePage({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // F5 focus event
-  useEffect(() => {
-    const handleFocusSearch = () => {
-      if (view.type === "verseList") {
-        setView({ type: "search" });
-      }
-      searchInputRef.current?.focus();
-    };
-    window.addEventListener("focusSearch", handleFocusSearch);
-    return () => window.removeEventListener("focusSearch", handleFocusSearch);
-  }, [view.type]);
+  useFocusSearch(searchInputRef, () => {
+    if (view.type === "verseList") {
+      setView({ type: "search" });
+    }
+  });
 
   const addToHistory = useCallback(
     (bookId: string, bookName: string, chapter: number, verse: number, query: string) => {

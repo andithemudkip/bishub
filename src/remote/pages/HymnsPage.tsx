@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useFocusSearch } from "../hooks/useFocusSearch";
 import type { Hymn, TextState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 import { normalizeForSearch } from "../../shared/utils";
@@ -26,14 +27,8 @@ export default function HymnsPage({
 
   const t = getTranslations(settings.language);
 
-  // Listen for F5 focus event
-  useEffect(() => {
-    const handleFocusSearch = () => {
-      searchInputRef.current?.focus();
-    };
-    window.addEventListener("focusSearch", handleFocusSearch);
-    return () => window.removeEventListener("focusSearch", handleFocusSearch);
-  }, []);
+  // F5 focus event
+  useFocusSearch(searchInputRef);
 
   // Pre-compute normalized titles for faster searching
   const hymnsWithNormalizedTitles = useMemo(() => {

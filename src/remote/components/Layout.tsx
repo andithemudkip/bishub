@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import type { DisplayState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
+import { PAGE_ORDER } from "../../shared/shortcuts";
+import { useShortcut } from "../hooks/useShortcut";
 import { PreviewPanel, PreviewHeader, usePreviewState } from "./preview";
 import { HymnsIcon } from "./icons/hymns";
 import { BibleIcon } from "./icons/bible";
@@ -77,6 +79,19 @@ export default function Layout({
       },
     ],
     [t]
+  );
+
+  // Cmd/Ctrl + 1-6 to switch pages
+  useShortcut(
+    "switchPage",
+    (e) => {
+      const index = parseInt(e.key) - 1;
+      if (index >= 0 && index < PAGE_ORDER.length) {
+        e.preventDefault();
+        setCurrentPage(PAGE_ORDER[index]);
+      }
+    },
+    { mod: true, ignoreInputs: false }
   );
 
   // Update sidebar state when switching between mobile/desktop

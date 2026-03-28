@@ -15,6 +15,7 @@ import {
   AVAILABLE_LANGUAGES,
   type Language,
 } from "../../shared/i18n";
+import { SHORTCUTS } from "../../shared/shortcuts";
 
 interface Props {
   monitors: MonitorInfo[];
@@ -485,46 +486,43 @@ export default function SettingsPage({
         </h2>
 
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between py-2 border-b border-gray-700">
-            <span className="text-gray-400">{t.settings.nextSlide}</span>
-            <div className="flex gap-1">
-              <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-                →
-              </kbd>
-              <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-                ↓
-              </kbd>
-              <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-                PgDn
-              </kbd>
+          {Object.values(SHORTCUTS).map((shortcut) => (
+            <div
+              key={shortcut.display.join(",")}
+              className="flex justify-between py-2 border-b border-gray-700"
+            >
+              <span className="text-gray-400">{shortcut.label(t)}</span>
+              <div className="flex items-center gap-1">
+                {"mod" in shortcut && shortcut.mod ? (
+                  <>
+                    <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
+                      {navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}
+                    </kbd>
+                    <span className="text-gray-500">+</span>
+                    {shortcut.display.map((key) => (
+                      <kbd
+                        key={key}
+                        className="px-2 py-1 bg-gray-700 rounded text-gray-300"
+                      >
+                        {key}
+                      </kbd>
+                    ))}
+                  </>
+                ) : (
+                  shortcut.display.map((key, i) => (
+                    <span key={key} className="flex items-center gap-1">
+                      {i > 0 && (
+                        <span className="text-gray-500">/</span>
+                      )}
+                      <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
+                        {key}
+                      </kbd>
+                    </span>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-          <div className="flex justify-between py-2 border-b border-gray-700">
-            <span className="text-gray-400">{t.settings.previousSlide}</span>
-            <div className="flex gap-1">
-              <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-                ←
-              </kbd>
-              <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-                ↑
-              </kbd>
-              <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-                PgUp
-              </kbd>
-            </div>
-          </div>
-          <div className="flex justify-between py-2 border-b border-gray-700">
-            <span className="text-gray-400">{t.settings.goToIdle}</span>
-            <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-              Esc
-            </kbd>
-          </div>
-          <div className="flex justify-between py-2 border-b border-gray-700">
-            <span className="text-gray-400">{t.settings.focusSearch}</span>
-            <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-              F5
-            </kbd>
-          </div>
+          ))}
         </div>
       </Card>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState } from "react";
 import type { UpdateStatus } from "../shared/types";
 import { getTranslations } from "../shared/i18n";
+import { useShortcut } from "./hooks/useShortcut";
 import UpdateBanner from "./components/UpdateBanner";
 import Layout from "./components/Layout";
 import HymnsPage from "./pages/HymnsPage";
@@ -54,44 +55,28 @@ export default function App() {
   }, []);
 
   // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLSelectElement
-      ) {
-        return; // Don't handle shortcuts when typing in inputs
-      }
+  useShortcut(
+    "nextSlide",
+    (e) => {
+      if (api.state.mode === "text") e.preventDefault();
+      handleNextSlide();
+    }
+  );
 
-      switch (e.key) {
-        case "ArrowRight":
-        case "ArrowDown":
-        case "PageDown":
-          // Prevent scroll when presenting
-          if (api.state.mode === "text") e.preventDefault();
-          handleNextSlide();
-          break;
-        case "ArrowLeft":
-        case "ArrowUp":
-        case "PageUp":
-          // Prevent scroll when presenting
-          if (api.state.mode === "text") e.preventDefault();
-          api.prevSlide();
-          break;
-        case "Escape":
-          api.goIdle();
-          break;
-        case "F5":
-          e.preventDefault();
-          // Dispatch custom event for pages to focus their search inputs
-          window.dispatchEvent(new CustomEvent("focusSearch"));
-          break;
-      }
-    };
+  useShortcut(
+    "prevSlide",
+    (e) => {
+      if (api.state.mode === "text") e.preventDefault();
+      api.prevSlide();
+    }
+  );
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [api.state]);
+  useShortcut("goIdle", () => api.goIdle());
+
+  useShortcut("focusSearch", (e) => {
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent("focusSearch"));
+  });
 
   const handleGoIdle = useCallback(() => {
     api.goIdle();

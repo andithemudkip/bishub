@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import type { BibleVerse, TextState } from "../../../shared/types";
 import { getTranslations } from "../../../shared/i18n";
 import type { Language } from "../../../shared/i18n";
+import { useShortcut } from "../../hooks/useShortcut";
 
 interface VerseListContext {
   bookId: string;
@@ -84,25 +85,27 @@ export default function VerseListView({
     }
   };
 
-  // Keyboard shortcuts: Enter presents, Escape goes back
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter") {
-        loadBibleVerses(
-          context.bookId,
-          context.bookName,
-          context.chapter,
-          context.highlightVerse
-        );
-      } else if (e.key === "Escape") {
-        e.stopImmediatePropagation();
-        onBack();
-      }
-    };
-    // Use capture phase so Escape is intercepted before the global goIdle handler
-    window.addEventListener("keydown", handleKeyDown, true);
-    return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [context, loadBibleVerses, onBack]);
+  // Enter presents the highlighted verse
+  useShortcut(
+    ["Enter"],
+    () =>
+      loadBibleVerses(
+        context.bookId,
+        context.bookName,
+        context.chapter,
+        context.highlightVerse
+      )
+  );
+
+  // Escape goes back (capture phase intercepts before the global goIdle handler)
+  useShortcut(
+    ["Escape"],
+    (e) => {
+      e.stopImmediatePropagation();
+      onBack();
+    },
+    { capture: true }
+  );
 
   return (
     <div className="max-w-2xl mx-auto">

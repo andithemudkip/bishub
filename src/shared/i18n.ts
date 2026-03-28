@@ -92,6 +92,7 @@ export interface Translations {
     securityKeyHint: string;
     openOnStartup: string;
     focusSearch: string;
+    switchPage: string;
     // Idle screen settings
     idleScreen: string;
     wallpaper: string;
@@ -336,6 +337,7 @@ const ro: Translations = {
     goToIdle: "Întrerupe afișarea",
     volume: "Volum",
     focusSearch: "Focalizează câmpul de căutare",
+    switchPage: "Schimbă pagina",
     // Idle screen settings
     idleScreen: "Ecran de așteptare",
     wallpaper: "Fundal",
@@ -568,6 +570,7 @@ const en: Translations = {
     goToIdle: "Go to idle",
     volume: "Volume",
     focusSearch: "Focus search input",
+    switchPage: "Switch page",
     // Idle screen settings
     idleScreen: "Idle Screen",
     wallpaper: "Wallpaper",
