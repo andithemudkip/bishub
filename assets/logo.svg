@@ -1,48 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B82F6"/>
-      <stop offset="100%" stop-color="#1D4ED8"/>
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
     </linearGradient>
   </defs>
 
   <!-- Rounded square background -->
   <rect x="32" y="32" width="448" height="448" rx="96" ry="96" fill="url(#bg)"/>
 
-  <!-- Open book shape — left page -->
-  <path d="
-    M 256 200
-    Q 210 190 160 210
-    L 160 350
-    Q 210 330 256 340
-    Z
-  " fill="#DBEAFE" opacity="0.9"/>
-
-  <!-- Open book shape — right page -->
-  <path d="
-    M 256 200
-    Q 302 190 352 210
-    L 352 350
-    Q 302 330 256 340
-    Z
-  " fill="#BFDBFE" opacity="0.9"/>
-
   <!-- Beam of light projecting upward from the book -->
   <path d="
-    M 230 200
-    L 190 120
-    L 322 120
-    L 282 200
+    M 216 185
+    L 160 80
+    L 352 80
+    L 296 185
     Z
-  " fill="#93C5FD" opacity="0.35"/>
+  " fill="#BFDBFE" opacity="0.4"/>
 
   <!-- Brighter inner beam -->
   <path d="
-    M 242 200
-    L 220 140
-    L 292 140
-    L 270 200
+    M 232 185
+    L 200 110
+    L 312 110
+    L 280 185
     Z
-  " fill="#93C5FD" opacity="0.25"/>
+  " fill="#DBEAFE" opacity="0.3"/>
+
+  <!-- Open book shape — left page -->
+  <path d="
+    M 256 185
+    Q 196 172 120 198
+    L 120 380
+    Q 196 354 256 368
+    Z
+  " fill="#EFF6FF"/>
+
+  <!-- Open book shape — right page -->
+  <path d="
+    M 256 185
+    Q 316 172 392 198
+    L 392 380
+    Q 316 354 256 368
+    Z
+  " fill="#DBEAFE"/>
 
 </svg>
