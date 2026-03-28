@@ -9,7 +9,7 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "../shared/types";
-import { getSecurityKeyFromURL, updateProgressList } from "../shared/utils";
+import { getSecurityKeyFromURL, getApiUrl, updateProgressList } from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
@@ -136,7 +136,7 @@ export function useAudioLibrary(
       formData.append("audio", file);
       formData.append("name", file.name.replace(/\.[^.]+$/, ""));
 
-      await fetch("/api/audio/upload", {
+      await fetch(getApiUrl("/api/audio/upload"), {
         method: "POST",
         body: formData,
       });

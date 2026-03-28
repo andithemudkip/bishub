@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { VideoItem } from "../../shared/videoLibrary.types";
 import type { Translations } from "../../shared/i18n";
-import { formatFileSize, formatDuration, formatDate } from "../../shared/utils";
+import { formatFileSize, formatDuration, formatDate, getApiUrl } from "../../shared/utils";
 
 interface Props {
   videos: VideoItem[];
@@ -162,7 +162,7 @@ export default function VideoLibraryList({
                 <div className="w-16 h-10 sm:w-24 sm:h-14 bg-gray-800/50 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
                   {video.thumbnailPath ? (
                     <img
-                      src={`/api/videos/thumbnail/${video.id}`}
+                      src={getApiUrl(`/api/videos/thumbnail/${video.id}`)}
                       alt=""
                       className="w-full h-full object-cover"
                       onError={(e) => {

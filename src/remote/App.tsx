@@ -9,6 +9,7 @@ import VideoLibraryPage from "./pages/VideoLibraryPage";
 import AudioLibraryPage from "./pages/AudioLibraryPage";
 import TransferPage from "./pages/TransferPage";
 import SettingsPage from "./pages/SettingsPage";
+import AccessDeniedPage from "./pages/AccessDeniedPage";
 import { useRemoteAPI } from "./useRemoteAPI";
 
 export default function App() {
@@ -193,6 +194,10 @@ export default function App() {
         return null;
     }
   };
+
+  if (api.authError) {
+    return <AccessDeniedPage failed={api.authFailed} onConnect={api.reconnectWithKey} />;
+  }
 
   return (
     <>

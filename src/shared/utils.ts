@@ -100,6 +100,16 @@ export function getSecurityKeyFromURL(): string | null {
 }
 
 /**
+ * Build an authenticated API URL. Appends the security key when available.
+ */
+export function getApiUrl(path: string): string {
+  const key = getSecurityKeyFromURL();
+  if (!key) return path;
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}key=${key}`;
+}
+
+/**
  * Update a progress list: upsert by id, auto-remove completed/errored items after a delay.
  */
 export function updateProgressList<T extends { id: string; status: string }>(

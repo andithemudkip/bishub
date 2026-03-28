@@ -9,7 +9,7 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "../shared/types";
-import { getSecurityKeyFromURL, updateProgressList } from "../shared/utils";
+import { getSecurityKeyFromURL, getApiUrl, updateProgressList } from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
@@ -149,7 +149,7 @@ export function useVideoLibrary(
       formData.append("video", file);
       formData.append("name", file.name.replace(/\.[^.]+$/, ""));
 
-      await fetch("/api/videos/upload", {
+      await fetch(getApiUrl("/api/videos/upload"), {
         method: "POST",
         body: formData,
       });

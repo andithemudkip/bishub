@@ -5,7 +5,7 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "../shared/types";
-import { getSecurityKeyFromURL, updateProgressList } from "../shared/utils";
+import { getSecurityKeyFromURL, getApiUrl, updateProgressList } from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
@@ -62,7 +62,7 @@ export function useTransfers(): TransferAPI {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/transfers/upload", {
+      const res = await fetch(getApiUrl("/api/transfers/upload"), {
         method: "POST",
         body: formData,
       });
@@ -76,7 +76,7 @@ export function useTransfers(): TransferAPI {
       if (window.electronAPI) {
         return window.electronAPI.deleteTransfer(id);
       }
-      const res = await fetch("/api/transfers/delete", {
+      const res = await fetch(getApiUrl("/api/transfers/delete"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
@@ -89,7 +89,7 @@ export function useTransfers(): TransferAPI {
         const result = await window.electronAPI.addTransferToVideo(id);
         return !!result;
       }
-      const res = await fetch("/api/transfers/add-to-video", {
+      const res = await fetch(getApiUrl("/api/transfers/add-to-video"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
@@ -102,7 +102,7 @@ export function useTransfers(): TransferAPI {
         const result = await window.electronAPI.addTransferToAudio(id);
         return !!result;
       }
-      const res = await fetch("/api/transfers/add-to-audio", {
+      const res = await fetch(getApiUrl("/api/transfers/add-to-audio"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),

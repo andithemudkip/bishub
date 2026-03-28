@@ -239,6 +239,16 @@ export interface Translations {
     endOfSlides: string;
   };
 
+  // Auth
+  auth: {
+    accessDenied: string;
+    invalidKeyMessage: string;
+    securityKeyLabel: string;
+    securityKeyPlaceholder: string;
+    connect: string;
+    connectionFailed: string;
+  };
+
   // Updates
   updates: {
     updateAvailable: string;
@@ -475,6 +485,14 @@ const ro: Translations = {
     checkForUpdates: "Verifică actualizări",
     newVersion: "Versiune nouă",
   },
+  auth: {
+    accessDenied: "Acces refuzat",
+    invalidKeyMessage: "Cheia de securitate lipsește sau este invalidă. Introdu cheia corectă pentru a te conecta.",
+    securityKeyLabel: "Cheie de securitate",
+    securityKeyPlaceholder: "Introdu cheia de securitate",
+    connect: "Conectare",
+    connectionFailed: "Conectarea a eșuat. Verifică cheia și încearcă din nou.",
+  },
 };
 
 const en: Translations = {
@@ -698,6 +716,14 @@ const en: Translations = {
     upToDate: "You're up to date",
     checkForUpdates: "Check for updates",
     newVersion: "New version",
+  },
+  auth: {
+    accessDenied: "Access Denied",
+    invalidKeyMessage: "The security key is missing or invalid. Enter the correct key to connect.",
+    securityKeyLabel: "Security Key",
+    securityKeyPlaceholder: "Enter security key",
+    connect: "Connect",
+    connectionFailed: "Connection failed. Check the key and try again.",
   },
 };
 

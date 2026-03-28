@@ -113,7 +113,8 @@ export class WindowManager {
     });
 
     if (isDev && VITE_DEV_SERVER_URL) {
-      await this.remoteWindow.loadURL(`${VITE_DEV_SERVER_URL}/remote.html`);
+      const securityKey = this.stateManager.getSecurityKey();
+      await this.remoteWindow.loadURL(`${VITE_DEV_SERVER_URL}/remote.html?key=${securityKey}`);
       this.remoteWindow.webContents.openDevTools();
     } else {
       // Load via HTTP server so relative API URLs work correctly

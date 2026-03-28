@@ -24,6 +24,9 @@ interface RemoteAPI {
   monitors: MonitorInfo[];
   hymns: Hymn[];
   isConnected: boolean;
+  authError: boolean;
+  authFailed: boolean;
+  reconnectWithKey: (key: string) => void;
   // Actions
   setMode: (mode: "idle" | "text" | "video") => void;
   loadText: (title: string, content: string) => void;
@@ -77,6 +80,8 @@ export function useRemoteAPI(): RemoteAPI {
     { id: string; name: string; chapterCount: number }[]
   >([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [authError, setAuthError] = useState(false);
+  const authAttempted = useRef(false);
 
   const socketRef = useRef<SocketType | null>(null);
   const bibleBooksCb = useRef<
@@ -107,52 +112,74 @@ export function useRemoteAPI(): RemoteAPI {
         unsubSettings();
       };
     } else {
-      // Use Socket.io with security key authentication
-      const securityKey = getSecurityKeyFromURL();
-      const socket: SocketType = io({
-        auth: { key: securityKey },
-      });
-      socketRef.current = socket;
-
-      socket.on("connect", () => {
-        setIsConnected(true);
-        socket.emit("getHymns");
-        socket.emit("getBibleBooks");
-      });
-
-      socket.on("disconnect", () => {
-        setIsConnected(false);
-      });
-
-      socket.on("stateUpdate", setState);
-      socket.on("settingsUpdate", setSettings);
-      socket.on("monitors", setMonitors);
-      socket.on("hymns", setHymns);
-      socket.on("bibleBooks", (books) => {
-        setBibleBooks(books);
-        if (bibleBooksCb.current) {
-          bibleBooksCb.current(books);
-          bibleBooksCb.current = null;
-        }
-      });
-      socket.on("bibleChapter", (verses) => {
-        if (bibleChapterCb.current) {
-          bibleChapterCb.current(verses);
-          bibleChapterCb.current = null;
-        }
-      });
-      socket.on("bibleSearchResults", (results) => {
-        if (bibleSearchCb.current) {
-          bibleSearchCb.current(results);
-          bibleSearchCb.current = null;
-        }
-      });
+      connectSocket(getSecurityKeyFromURL());
 
       return () => {
-        socket.disconnect();
+        socketRef.current?.disconnect();
       };
     }
   }, [isElectron]);
+
+  function connectSocket(key: string | null) {
+    if (socketRef.current) {
+      socketRef.current.removeAllListeners();
+      socketRef.current.disconnect();
+    }
+
+    setAuthError(false);
+    const socket: SocketType = io({ auth: { key } });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      setIsConnected(true);
+      setAuthError(false);
+      socket.emit("getHymns");
+      socket.emit("getBibleBooks");
+    });
+
+    socket.on("disconnect", () => {
+      setIsConnected(false);
+    });
+
+    socket.on("connect_error", (err) => {
+      if (err.message === "Invalid security key") {
+        setAuthError(true);
+        socket.disconnect();
+      }
+    });
+
+    socket.on("stateUpdate", setState);
+    socket.on("settingsUpdate", setSettings);
+    socket.on("monitors", setMonitors);
+    socket.on("hymns", setHymns);
+    socket.on("bibleBooks", (books) => {
+      setBibleBooks(books);
+      if (bibleBooksCb.current) {
+        bibleBooksCb.current(books);
+        bibleBooksCb.current = null;
+      }
+    });
+    socket.on("bibleChapter", (verses) => {
+      if (bibleChapterCb.current) {
+        bibleChapterCb.current(verses);
+        bibleChapterCb.current = null;
+      }
+    });
+    socket.on("bibleSearchResults", (results) => {
+      if (bibleSearchCb.current) {
+        bibleSearchCb.current(results);
+        bibleSearchCb.current = null;
+      }
+    });
+  }
+
+  const reconnectWithKey = useCallback((key: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("key", key);
+    window.history.replaceState({}, "", url.toString());
+    authAttempted.current = true;
+    connectSocket(key);
+  }, []);
 
   const api: RemoteAPI = {
     state,
@@ -160,6 +187,9 @@ export function useRemoteAPI(): RemoteAPI {
     monitors,
     hymns,
     isConnected,
+    authError,
+    authFailed: authError && authAttempted.current,
+    reconnectWithKey,
 
     setMode: useCallback(
       (mode) => {

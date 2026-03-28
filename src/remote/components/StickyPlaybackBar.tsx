@@ -40,7 +40,7 @@ export default function StickyPlaybackBar({
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium truncate">{trackName}</div>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0 w-16 sm:w-28">
+        <div className="flex items-center gap-1.5 flex-shrink-0 w-32 sm:w-28">
           <svg
             className="w-3.5 h-3.5 text-gray-500 flex-shrink-0"
             fill="currentColor"

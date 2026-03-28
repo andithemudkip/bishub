@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import type { DisplayState, AppSettings } from "../../../shared/types";
 import { getTranslations, type Language } from "../../../shared/i18n";
-import { formatDuration, findOptimalFontSize } from "../../../shared/utils";
+import { formatDuration, findOptimalFontSize, getApiUrl } from "../../../shared/utils";
 
 // Virtual resolution matching a typical display (used for scaled-down preview)
 const VIRTUAL_WIDTH = 1920;
@@ -359,7 +359,7 @@ function VideoPreview({ state }: { state: DisplayState }) {
     video.duration > 0 ? (video.currentTime / video.duration) * 100 : 0;
 
   const thumbnailUrl = video.videoId
-    ? `/api/videos/thumbnail/${video.videoId}`
+    ? getApiUrl(`/api/videos/thumbnail/${video.videoId}`)
     : null;
 
   return (

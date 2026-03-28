@@ -127,6 +127,9 @@ export function createServer(
     });
   }
 
+  // Apply security key validation to all API routes
+  app.use("/api", validateSecurityKey);
+
   // API endpoint to get local IP addresses
   app.get("/api/ip", (_req, res) => {
     const ips = getLocalIPs();
