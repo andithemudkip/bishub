@@ -19,6 +19,15 @@ import {
   type Language,
 } from "../../shared/i18n";
 import { SHORTCUTS } from "../../shared/shortcuts";
+import { getTranslationsByLanguage } from "../../shared/bibleTranslations";
+import { BibleTranslationPicker } from "../components/ui/BibleTranslationPicker";
+
+interface BibleDownloadStatus {
+  translationId: string;
+  status: "downloading" | "ready" | "error";
+  progress?: number;
+  error?: string;
+}
 
 interface Props {
   monitors: MonitorInfo[];
@@ -27,6 +36,9 @@ interface Props {
   videoVolume: number;
   audioVolume: number;
   onSetLanguage: (language: Language) => void;
+  onSetBibleTranslation: (translationId: string) => void;
+  bibleDownloadStatus: BibleDownloadStatus | null;
+  downloadedTranslations: string[];
   onSetWallpaper: (selectNew?: boolean) => Promise<string | null>;
   onSetClockFontSize: (size: number) => void;
   onSetClockPosition: (position: ClockPosition) => void;
@@ -45,6 +57,9 @@ export default function SettingsPage({
   videoVolume,
   audioVolume,
   onSetLanguage,
+  onSetBibleTranslation,
+  bibleDownloadStatus,
+  downloadedTranslations,
   onSetWallpaper,
   onSetClockFontSize,
   onSetClockPosition,
@@ -82,6 +97,8 @@ export default function SettingsPage({
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onSetLanguage(e.target.value as Language);
   };
+
+  const translationGroups = getTranslationsByLanguage();
 
   const handleSelectWallpaper = async () => {
     await onSetWallpaper(true);
@@ -146,6 +163,26 @@ export default function SettingsPage({
             ))}
           </Select>
         </div>
+      </Card>
+
+      {/* Bible Translation */}
+      <Card>
+        <h2 className="text-lg font-semibold mb-4">
+          {t.settings.bibleTranslation}
+        </h2>
+        <BibleTranslationPicker
+          value={settings.bibleTranslation}
+          downloadedIds={downloadedTranslations}
+          downloadStatus={bibleDownloadStatus}
+          onChange={onSetBibleTranslation}
+          translations={translationGroups}
+        />
+        {bibleDownloadStatus &&
+          bibleDownloadStatus.status === "error" && (
+            <div className="mt-2 text-sm text-red-400">
+              {t.settings.bibleDownloadError}
+            </div>
+          )}
       </Card>
 
       {/* Open on startup - Electron only */}

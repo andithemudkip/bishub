@@ -57,6 +57,14 @@ interface RemoteAPI {
     endVerse?: number
   ) => void;
   searchBibleVerses: (query: string) => Promise<BibleSearchResult[]>;
+  setBibleTranslation: (translationId: string) => void;
+  bibleDownloadStatus: {
+    translationId: string;
+    status: "downloading" | "ready" | "error";
+    progress?: number;
+    error?: string;
+  } | null;
+  downloadedTranslations: string[];
   // Audio
   loadAudio: (src: string, name: string) => void;
   playAudio: () => void;
@@ -81,6 +89,8 @@ export function useRemoteAPI(): RemoteAPI {
   >([]);
   const [isConnected, setIsConnected] = useState(false);
   const [authError, setAuthError] = useState(false);
+  const [bibleDownloadStatus, setBibleDownloadStatus] = useState<RemoteAPI["bibleDownloadStatus"]>(null);
+  const [downloadedTranslations, setDownloadedTranslations] = useState<string[]>(["ron-rccv"]);
   const authAttempted = useRef(false);
 
   const socketRef = useRef<SocketType | null>(null);
@@ -102,6 +112,7 @@ export function useRemoteAPI(): RemoteAPI {
       window.electronAPI!.getSettings().then(setSettings);
       window.electronAPI!.getMonitors().then(setMonitors);
       window.electronAPI!.getHymns().then(setHymns);
+      window.electronAPI!.getDownloadedTranslations().then(setDownloadedTranslations);
 
       const unsubState = window.electronAPI!.onStateUpdate(setState);
       const unsubSettings = window.electronAPI!.onSettingsUpdate(setSettings);
@@ -135,6 +146,7 @@ export function useRemoteAPI(): RemoteAPI {
       setAuthError(false);
       socket.emit("getHymns");
       socket.emit("getBibleBooks");
+      socket.emit("getDownloadedTranslations");
     });
 
     socket.on("disconnect", () => {
@@ -171,6 +183,10 @@ export function useRemoteAPI(): RemoteAPI {
         bibleSearchCb.current = null;
       }
     });
+    socket.on("bibleTranslationStatus", (status) => {
+      setBibleDownloadStatus(status);
+    });
+    socket.on("downloadedTranslations", setDownloadedTranslations);
   }
 
   const reconnectWithKey = useCallback((key: string) => {
@@ -355,6 +371,31 @@ export function useRemoteAPI(): RemoteAPI {
       },
       [isElectron]
     ),
+
+    setBibleTranslation: useCallback(
+      (translationId: string) => {
+        // Clear cached books so getBibleBooks re-fetches for new translation
+        setBibleBooks([]);
+        if (isElectron) {
+          setBibleDownloadStatus({ translationId, status: "downloading", progress: 0 });
+          window.electronAPI!.setBibleTranslation(translationId).then((result: { status: string; error?: string }) => {
+            setBibleDownloadStatus(
+              result.status === "ready"
+                ? { translationId, status: "ready" }
+                : { translationId, status: "error", error: result.error }
+            );
+            // Refresh downloaded list
+            window.electronAPI!.getDownloadedTranslations().then(setDownloadedTranslations);
+          });
+        } else {
+          socketRef.current?.emit("setBibleTranslation", translationId);
+        }
+      },
+      [isElectron]
+    ),
+
+    bibleDownloadStatus,
+    downloadedTranslations,
 
     // Audio
     loadAudio: useCallback(

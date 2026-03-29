@@ -110,10 +110,10 @@ export default function BiblePage({
     return parsedRef;
   }, [parsedRef, books]);
 
-  // Load books on mount
+  // Load books on mount and when translation changes
   useEffect(() => {
     getBibleBooks().then(setBooks);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [settings.bibleTranslation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // F5 focus event
   useFocusSearch(searchInputRef, () => {
@@ -258,6 +258,7 @@ export default function BiblePage({
           onSubmitReference={handleSubmitReference}
           searchBibleVerses={searchBibleVerses}
           language={settings.language}
+          books={books}
           inputRef={searchInputRef}
         />
       </div>

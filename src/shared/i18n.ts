@@ -108,6 +108,9 @@ export interface Translations {
     positionBottomRight: string;
     positionCenter: string;
     audioWidgetPosition: string;
+    bibleTranslation: string;
+    downloadingBible: string;
+    bibleDownloadError: string;
     displayTip: string;
     idleScreenTip: string;
     mobileRemoteTip: string;
@@ -363,6 +366,9 @@ const ro: Translations = {
     positionBottomRight: "Dreapta jos",
     positionCenter: "Centru",
     audioWidgetPosition: "Poziție widget audio",
+    bibleTranslation: "Traducere Biblie",
+    downloadingBible: "Se descarcă traducerea...",
+    bibleDownloadError: "Descărcarea a eșuat",
     securityKey: "Cheie de securitate:",
     securityKeyHint: "Necesară pentru a conecta alte dispozitive la această sesiune",
     openOnStartup: "Deschide la pornirea sistemului",
@@ -614,6 +620,9 @@ const en: Translations = {
     positionBottomRight: "Bottom right",
     positionCenter: "Center",
     audioWidgetPosition: "Audio widget position",
+    bibleTranslation: "Bible Translation",
+    downloadingBible: "Downloading translation...",
+    bibleDownloadError: "Download failed",
     securityKey: "Security Key:",
     securityKeyHint: "Required to connect other devices to this session",
     openOnStartup: "Open on system startup",

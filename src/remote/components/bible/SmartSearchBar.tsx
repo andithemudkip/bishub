@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react";
-import { parseBibleReference } from "../../../shared/bibleParser";
-import type { ParsedReference } from "../../../shared/bibleParser";
+import {
+  parseBibleReference,
+  parseBibleReferenceWithBooks,
+} from "../../../shared/bibleParser";
+import type { ParsedReference, DynamicBookInfo } from "../../../shared/bibleParser";
 import type { BibleSearchResult } from "../../../shared/types";
 import { getTranslations } from "../../../shared/i18n";
 import { CloseIcon } from "../icons/ui";
@@ -15,6 +18,7 @@ interface Props {
   onSubmitReference: () => void;
   searchBibleVerses: (query: string) => Promise<BibleSearchResult[]>;
   language: Language;
+  books: DynamicBookInfo[];
   inputRef: React.RefObject<HTMLInputElement>;
 }
 
@@ -29,6 +33,7 @@ export default function SmartSearchBar({
   onSubmitReference,
   searchBibleVerses,
   language,
+  books,
   inputRef,
 }: Props) {
   const t = getTranslations(language);
@@ -39,7 +44,11 @@ export default function SmartSearchBar({
 
   // Parse reference and trigger text search on input change
   useEffect(() => {
-    const parsed = parseBibleReference(value, language);
+    // Use dynamic book names from the loaded translation when available,
+    // fall back to hardcoded RO/EN book names
+    const parsed = books.length > 0
+      ? parseBibleReferenceWithBooks(value, books)
+      : parseBibleReference(value, language);
 
     // Only notify parent if parsed result actually changed
     if (parsed?.bookId !== lastParsedRef.current?.bookId ||
@@ -83,7 +92,7 @@ export default function SmartSearchBar({
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [value, language]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [value, language, books]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && lastParsedRef.current) {

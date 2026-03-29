@@ -118,6 +118,12 @@ const electronAPI = {
     ),
   searchBibleVerses: (query: string): Promise<BibleSearchResult[]> =>
     ipcRenderer.invoke("search-bible-verses", query),
+  setBibleTranslation: (
+    translationId: string
+  ): Promise<{ status: string; error?: string }> =>
+    ipcRenderer.invoke("set-bible-translation", translationId),
+  getDownloadedTranslations: (): Promise<string[]> =>
+    ipcRenderer.invoke("get-downloaded-translations"),
 
   // Video Library
   getVideoLibrary: (): Promise<VideoItem[]> =>

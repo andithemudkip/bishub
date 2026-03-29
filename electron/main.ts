@@ -18,6 +18,12 @@ import {
   loadBible,
   searchBibleVerses,
 } from "./dataLoader";
+import {
+  isTranslationDownloaded,
+  downloadTranslation,
+  getDownloadedTranslationIds,
+} from "./bibleManager";
+import { getTranslationById } from "../src/shared/bibleTranslations";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { getTransferManager } from "./transferManager";
@@ -268,13 +274,15 @@ function setupIPC() {
 
   // Bible handlers
   ipcMain.handle("get-bible-books", () => {
-    return getBibleBooks();
+    const translationId = stateManager.getSettings().bibleTranslation;
+    return getBibleBooks(translationId);
   });
 
   ipcMain.handle(
     "get-bible-chapter",
     (_event, bookId: string, chapter: number) => {
-      return getBibleChapter(bookId, chapter);
+      const translationId = stateManager.getSettings().bibleTranslation;
+      return getBibleChapter(bookId, chapter, translationId);
     }
   );
 
@@ -288,8 +296,8 @@ function setupIPC() {
       startVerse: number,
       _endVerse?: number
     ) => {
-      // Load entire chapter, starting at the requested verse
-      const allVerses = getBibleChapter(bookId, chapter);
+      const translationId = stateManager.getSettings().bibleTranslation;
+      const allVerses = getBibleChapter(bookId, chapter, translationId);
       if (allVerses.length > 0) {
         const { title, slides, startIndex, bibleContext } =
           formatBibleChapterForDisplay(
@@ -305,7 +313,31 @@ function setupIPC() {
   );
 
   ipcMain.handle("search-bible-verses", (_event, query: string) => {
-    return searchBibleVerses(query);
+    const translationId = stateManager.getSettings().bibleTranslation;
+    return searchBibleVerses(query, translationId);
+  });
+
+  ipcMain.handle(
+    "set-bible-translation",
+    async (_event, translationId: string) => {
+      const info = getTranslationById(translationId);
+      if (!info) return { status: "error", error: "Unknown translation" };
+
+      if (!isTranslationDownloaded(translationId)) {
+        try {
+          await downloadTranslation(translationId);
+        } catch (err) {
+          return { status: "error", error: String(err) };
+        }
+      }
+
+      stateManager.setBibleTranslation(translationId);
+      return { status: "ready" };
+    }
+  );
+
+  ipcMain.handle("get-downloaded-translations", () => {
+    return getDownloadedTranslationIds();
   });
 
   // Video Library handlers

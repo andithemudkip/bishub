@@ -461,3 +461,51 @@ export function getBookSuggestions(
     )
     .slice(0, 10);
 }
+
+// ── Dynamic book name parsing (for downloaded translations) ──────────────────
+
+export interface DynamicBookInfo {
+  id: string;
+  name: string;
+}
+
+/**
+ * Parse a Bible reference using dynamic book names from the loaded translation.
+ * Matches against book name (prefix), book ID, and common abbreviations.
+ */
+export function parseBibleReferenceWithBooks(
+  input: string,
+  books: DynamicBookInfo[]
+): ParsedReference | null {
+  const normalized = input.toLowerCase().trim();
+  if (!normalized) return null;
+
+  const match = normalized.match(/^(.+?)\s*(\d+)(?::(\d+)(?:-(\d+))?)?$/);
+  if (!match) return null;
+
+  const [, bookPart, chapterStr, startVerseStr, endVerseStr] = match;
+  const bookSearch = bookPart.trim();
+
+  // Find book: exact name match, prefix match, or ID match
+  const book = books.find(
+    (b) =>
+      b.name.toLowerCase() === bookSearch ||
+      b.id.toLowerCase() === bookSearch
+  ) || books.find(
+    (b) => b.name.toLowerCase().startsWith(bookSearch)
+  );
+
+  if (!book) return null;
+
+  const chapter = parseInt(chapterStr, 10);
+  const startVerse = startVerseStr ? parseInt(startVerseStr, 10) : 1;
+  const endVerse = endVerseStr ? parseInt(endVerseStr, 10) : startVerse;
+
+  return {
+    bookId: book.id,
+    bookName: book.name,
+    chapter,
+    startVerse,
+    endVerse: Math.max(startVerse, endVerse),
+  };
+}

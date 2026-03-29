@@ -25,6 +25,12 @@ import {
   formatBibleChapterForDisplay,
   searchBibleVerses,
 } from "./dataLoader";
+import {
+  isTranslationDownloaded,
+  downloadTranslation,
+  getDownloadedTranslationIds,
+} from "./bibleManager";
+import { getTranslationById } from "../src/shared/bibleTranslations";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { getAudioScheduler } from "./audioScheduler";
@@ -460,18 +466,20 @@ export function createServer(
 
     // Bible
     socket.on("getBibleBooks", () => {
-      socket.emit("bibleBooks", getBibleBooks());
+      const translationId = stateManager.getSettings().bibleTranslation;
+      socket.emit("bibleBooks", getBibleBooks(translationId));
     });
 
     socket.on("getBibleChapter", (bookId, chapter) => {
-      socket.emit("bibleChapter", getBibleChapter(bookId, chapter));
+      const translationId = stateManager.getSettings().bibleTranslation;
+      socket.emit("bibleChapter", getBibleChapter(bookId, chapter, translationId));
     });
 
     socket.on(
       "loadBibleVerses",
       (bookId, bookName, chapter, startVerse, _endVerse) => {
-        // Load entire chapter, starting at the requested verse
-        const allVerses = getBibleChapter(bookId, chapter);
+        const translationId = stateManager.getSettings().bibleTranslation;
+        const allVerses = getBibleChapter(bookId, chapter, translationId);
         if (allVerses.length > 0) {
           const { title, slides, startIndex, bibleContext } =
             formatBibleChapterForDisplay(
@@ -492,8 +500,52 @@ export function createServer(
     );
 
     socket.on("searchBibleVerses", (query) => {
-      const results = searchBibleVerses(query);
+      const translationId = stateManager.getSettings().bibleTranslation;
+      const results = searchBibleVerses(query, translationId);
       socket.emit("bibleSearchResults", results);
+    });
+
+    socket.on("setBibleTranslation", async (translationId) => {
+      const info = getTranslationById(translationId);
+      if (!info) return;
+
+      if (!isTranslationDownloaded(translationId)) {
+        socket.emit("bibleTranslationStatus", {
+          translationId,
+          status: "downloading",
+          progress: 0,
+        });
+        try {
+          await downloadTranslation(translationId, (progress) => {
+            socket.emit("bibleTranslationStatus", {
+              translationId,
+              status: "downloading",
+              progress,
+            });
+          });
+        } catch (err) {
+          socket.emit("bibleTranslationStatus", {
+            translationId,
+            status: "error",
+            error: String(err),
+          });
+          return;
+        }
+      }
+
+      stateManager.setBibleTranslation(translationId);
+      socket.emit("bibleTranslationStatus", {
+        translationId,
+        status: "ready",
+      });
+      // Send updated books for the new translation
+      socket.emit("bibleBooks", getBibleBooks(translationId));
+      // Send updated downloaded list
+      socket.emit("downloadedTranslations", getDownloadedTranslationIds());
+    });
+
+    socket.on("getDownloadedTranslations", () => {
+      socket.emit("downloadedTranslations", getDownloadedTranslationIds());
     });
 
     // Video Library

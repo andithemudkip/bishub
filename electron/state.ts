@@ -267,6 +267,11 @@ export class StateManager {
     this.notifySettingsChange();
   }
 
+  setBibleTranslation(translationId: string) {
+    this.settings.bibleTranslation = translationId;
+    this.notifySettingsChange();
+  }
+
   setOpenOnStartup(openOnStartup: boolean) {
     this.settings.openOnStartup = openOnStartup;
     this.notifySettingsChange();

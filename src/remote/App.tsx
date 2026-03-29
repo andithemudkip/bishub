@@ -170,6 +170,9 @@ export default function App() {
             videoVolume={api.state.video.volume}
             audioVolume={api.state.audio.volume}
             onSetLanguage={api.setLanguage}
+            onSetBibleTranslation={api.setBibleTranslation}
+            bibleDownloadStatus={api.bibleDownloadStatus}
+            downloadedTranslations={api.downloadedTranslations}
             onSetWallpaper={api.setIdleWallpaper}
             onSetClockFontSize={api.setClockFontSize}
             onSetClockPosition={api.setClockPosition}

@@ -12,6 +12,8 @@ import type {
 } from "../src/shared/types";
 import { type Language, getTranslations } from "../src/shared/i18n";
 import { normalizeForSearch } from "../src/shared/utils";
+import { DEFAULT_TRANSLATION_ID } from "../src/shared/bibleTranslations";
+import { loadTranslation } from "./bibleManager";
 
 // @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
@@ -25,8 +27,8 @@ function getAssetsPath(): string {
 }
 
 // Get language-specific asset path with fallback to default
-// Future: assets/{language}/hymns.json, assets/{language}/bible.xml
-// Current: assets/hymns.json, assets/bible.xml (Romanian only)
+// Future: assets/{language}/hymns.json
+// Current: assets/hymns.json (Romanian only)
 function getLanguageAssetPath(language: Language, filename: string): string {
   const assetsPath = getAssetsPath();
 
@@ -42,7 +44,6 @@ function getLanguageAssetPath(language: Language, filename: string): string {
 
 // Cache structure to support multiple languages
 const hymnsCache = new Map<Language, Hymn[]>();
-const bibleCache = new Map<Language, BibleData>();
 
 export function loadHymns(language: Language = "ro"): Hymn[] {
   if (hymnsCache.has(language)) return hymnsCache.get(language)!;
@@ -78,98 +79,16 @@ export function searchHymns(query: string, language: Language = "ro"): Hymn[] {
     .slice(0, 20); // Limit results
 }
 
-export function loadBible(language: Language = "ro"): BibleData {
-  if (bibleCache.has(language)) return bibleCache.get(language)!;
-
-  const biblePath = getLanguageAssetPath(language, "bible.xml");
-  try {
-    const xml = fs.readFileSync(biblePath, "utf-8");
-    const bible = parseBibleXML(xml);
-    bibleCache.set(language, bible);
-    return bible;
-  } catch (error) {
-    console.error(`Failed to load bible for ${language}:`, error);
-    return { books: [] };
-  }
+export function loadBible(translationId: string = DEFAULT_TRANSLATION_ID): BibleData {
+  return loadTranslation(translationId) || { books: [] };
 }
 
-function parseBibleXML(xml: string): BibleData {
-  const books: BibleBook[] = [];
-
-  // Match each book
-  const bookRegex = /<book id="([^"]+)">([\s\S]*?)(?=<book |<\/usfx>)/g;
-  let bookMatch;
-
-  while ((bookMatch = bookRegex.exec(xml)) !== null) {
-    const bookId = bookMatch[1];
-    const bookContent = bookMatch[2];
-
-    // Get book name from <h> tag
-    const nameMatch = bookContent.match(/<h>([^<]+)<\/h>/);
-    const bookName = nameMatch ? nameMatch[1].trim() : bookId;
-
-    const chapters: BibleChapter[] = [];
-
-    // Split by chapters
-    const chapterRegex = /<c id="(\d+)"[^>]*\/>([\s\S]*?)(?=<c id="|$)/g;
-    let chapterMatch;
-
-    while ((chapterMatch = chapterRegex.exec(bookContent)) !== null) {
-      const chapterNum = parseInt(chapterMatch[1], 10);
-      const chapterContent = chapterMatch[2];
-
-      const verses: BibleVerse[] = [];
-
-      // Extract verses
-      const verseRegex =
-        /<v id="(\d+)"[^>]*\/>([\s\S]*?)(?=<v id="|<c id="|<\/p>|$)/g;
-      let verseMatch;
-
-      while ((verseMatch = verseRegex.exec(chapterContent)) !== null) {
-        const verseNum = parseInt(verseMatch[1], 10);
-        let verseText = verseMatch[2];
-
-        // Clean up the verse text - remove XML tags and extra whitespace
-        verseText = verseText
-          .replace(/<[^>]+>/g, "")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        if (verseText) {
-          verses.push({
-            chapter: chapterNum,
-            verse: verseNum,
-            text: verseText,
-          });
-        }
-      }
-
-      if (verses.length > 0) {
-        chapters.push({
-          number: chapterNum,
-          verses,
-        });
-      }
-    }
-
-    if (chapters.length > 0) {
-      books.push({
-        id: bookId,
-        name: bookName,
-        chapters,
-      });
-    }
-  }
-
-  return { books };
-}
-
-export function getBibleBooks(language: Language = "ro"): {
+export function getBibleBooks(translationId: string = DEFAULT_TRANSLATION_ID): {
   id: string;
   name: string;
   chapterCount: number;
 }[] {
-  const bible = loadBible(language);
+  const bible = loadBible(translationId);
   return bible.books.map((b) => ({
     id: b.id,
     name: b.name,
@@ -180,9 +99,9 @@ export function getBibleBooks(language: Language = "ro"): {
 export function getBibleChapter(
   bookId: string,
   chapter: number,
-  language: Language = "ro"
+  translationId: string = DEFAULT_TRANSLATION_ID
 ): BibleVerse[] {
-  const bible = loadBible(language);
+  const bible = loadBible(translationId);
   const book = bible.books.find((b) => b.id === bookId);
   if (!book) return [];
 
@@ -195,9 +114,9 @@ export function getBibleVerses(
   chapter: number,
   startVerse: number,
   endVerse?: number,
-  language: Language = "ro"
+  translationId: string = DEFAULT_TRANSLATION_ID
 ): BibleVerse[] {
-  const verses = getBibleChapter(bookId, chapter, language);
+  const verses = getBibleChapter(bookId, chapter, translationId);
   const end = endVerse || startVerse;
   return verses.filter((v) => v.verse >= startVerse && v.verse <= end);
 }
@@ -287,35 +206,35 @@ export function formatBibleChapterForDisplay(
 
 
 // Cache for normalized verse text
-const normalizedBibleCache = new Map<Language, Map<string, string>>();
+const normalizedBibleCache = new Map<string, Map<string, string>>();
 
 function getNormalizedVerse(
   bookId: string,
   chapter: number,
   verse: number,
   text: string,
-  language: Language
+  translationId: string
 ): string {
-  let langCache = normalizedBibleCache.get(language);
-  if (!langCache) {
-    langCache = new Map();
-    normalizedBibleCache.set(language, langCache);
+  let cache = normalizedBibleCache.get(translationId);
+  if (!cache) {
+    cache = new Map();
+    normalizedBibleCache.set(translationId, cache);
   }
 
   const key = `${bookId}:${chapter}:${verse}`;
-  let normalized = langCache.get(key);
+  let normalized = cache.get(key);
   if (!normalized) {
     normalized = normalizeForSearch(text);
-    langCache.set(key, normalized);
+    cache.set(key, normalized);
   }
   return normalized;
 }
 
 export function searchBibleVerses(
   query: string,
-  language: Language = "ro"
+  translationId: string = DEFAULT_TRANSLATION_ID
 ): BibleSearchResult[] {
-  const bible = loadBible(language);
+  const bible = loadBible(translationId);
   const normalizedQuery = normalizeForSearch(query.trim());
 
   if (normalizedQuery.length < 3) {
@@ -337,7 +256,7 @@ export function searchBibleVerses(
           chapter.number,
           verse.verse,
           verse.text,
-          language
+          translationId
         );
 
         const score = calculateRelevanceScore(

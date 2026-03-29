@@ -95,6 +95,7 @@ export interface AppSettings {
   displayMonitor: number;
   serverPort: number;
   language: Language;
+  bibleTranslation: string;
   volume: number;
   audioVolume: number;
   openOnStartup: boolean;
@@ -111,6 +112,8 @@ export type ServerToClientEvents = {
   ) => void;
   bibleChapter: (verses: BibleVerse[]) => void;
   bibleSearchResults: (results: BibleSearchResult[]) => void;
+  bibleTranslationStatus: (status: { translationId: string; status: "downloading" | "ready" | "error"; progress?: number; error?: string }) => void;
+  downloadedTranslations: (ids: string[]) => void;
   // Video Library
   videoLibrary: (videos: VideoItem[]) => void;
   downloadProgress: (progress: DownloadProgress) => void;
@@ -157,6 +160,8 @@ export type ClientToServerEvents = {
     endVerse?: number
   ) => void;
   searchBibleVerses: (query: string) => void;
+  setBibleTranslation: (translationId: string) => void;
+  getDownloadedTranslations: () => void;
   // Video Library
   getVideoLibrary: () => void;
   deleteVideo: (videoId: string) => void;
@@ -227,6 +232,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   displayMonitor: -1, // -1 means auto-detect secondary
   serverPort: 3847,
   language: "ro",
+  bibleTranslation: "ron-rccv",
   volume: 1,
   audioVolume: 1,
   openOnStartup: false,
