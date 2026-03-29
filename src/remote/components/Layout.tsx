@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import type { DisplayState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 import { PAGE_ORDER } from "../../shared/shortcuts";
@@ -10,7 +10,7 @@ import { VideoIcon } from "./icons/video";
 import { AudioIcon } from "./icons/audio";
 import { TransferIcon } from "./icons/transfer";
 import { SettingsIcon } from "./icons/settings";
-import { ChevronLeftIcon, ChevronRightIcon, StopIcon } from "./icons/ui";
+import { ChevronLeftIcon, ChevronRightIcon, StopIcon, MoreIcon } from "./icons/ui";
 
 type Page = "hymns" | "bible" | "video" | "audio" | "transfer" | "settings";
 
@@ -56,6 +56,8 @@ export default function Layout({
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState<Page>("hymns");
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
 
   const preview = usePreviewState({ mode: state.mode, isMobile });
 
@@ -80,6 +82,27 @@ export default function Layout({
     ],
     [t]
   );
+
+  const MOBILE_PRIMARY_COUNT = 4;
+  const primaryNavItems = navItems.slice(0, MOBILE_PRIMARY_COUNT);
+  const overflowNavItems = navItems.slice(MOBILE_PRIMARY_COUNT);
+  const isOverflowPage = overflowNavItems.some((item) => item.id === currentPage);
+
+  // Close more menu when clicking outside
+  useEffect(() => {
+    if (!moreMenuOpen) return;
+    const handleOutside = (e: MouseEvent | TouchEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setMoreMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
+  }, [moreMenuOpen]);
 
   // Cmd/Ctrl + 1-6 to switch pages
   useShortcut(
@@ -256,21 +279,59 @@ export default function Layout({
       </div>
 
       {/* Bottom navigation - mobile only */}
-      <nav className="md:hidden flex-shrink-0 bg-gray-900 border-t border-gray-800 flex safe-area-pb">
-        {navItems.map((item) => (
+      <nav className="md:hidden flex-shrink-0 bg-gray-900 border-t border-gray-800 safe-area-pb">
+        <div className="flex relative" ref={moreMenuRef}>
+          {primaryNavItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => { setCurrentPage(item.id); setMoreMenuOpen(false); }}
+              className={`flex-1 py-2.5 flex flex-col items-center gap-1 transition-colors ${
+                currentPage === item.id
+                  ? "text-blue-400"
+                  : "text-gray-500 active:text-gray-300"
+              }`}
+            >
+              <span>{item.icon}</span>
+              <span className={`text-xs ${currentPage === item.id ? "font-medium" : ""}`}>{item.label}</span>
+            </button>
+          ))}
+
+          {/* More button */}
           <button
-            key={item.id}
-            onClick={() => setCurrentPage(item.id)}
+            onClick={() => setMoreMenuOpen(!moreMenuOpen)}
             className={`flex-1 py-2.5 flex flex-col items-center gap-1 transition-colors ${
-              currentPage === item.id
+              isOverflowPage || moreMenuOpen
                 ? "text-blue-400"
                 : "text-gray-500 active:text-gray-300"
             }`}
           >
-            <span>{item.icon}</span>
-            <span className={`text-xs ${currentPage === item.id ? "font-medium" : ""}`}>{item.label}</span>
+            <MoreIcon className="w-6 h-6" />
+            <span className={`text-xs ${isOverflowPage ? "font-medium" : ""}`}>{t.nav.more}</span>
           </button>
-        ))}
+
+          {/* More menu backdrop + popup */}
+          {moreMenuOpen && (
+            <>
+            <div className="fixed inset-0 bg-black/40 z-10" style={{ bottom: moreMenuRef.current?.offsetHeight ?? 0 }} onClick={() => setMoreMenuOpen(false)} />
+            <div className="absolute bottom-full right-0 mb-2 mr-2 bg-gray-800 border border-gray-700 rounded-xl shadow-lg overflow-hidden min-w-48 z-20">
+              {overflowNavItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => { setCurrentPage(item.id); setMoreMenuOpen(false); }}
+                  className={`w-full px-4 py-3 flex items-center gap-3 transition-colors ${
+                    currentPage === item.id
+                      ? "bg-blue-600/20 text-blue-400"
+                      : "text-gray-300 active:bg-gray-700"
+                  }`}
+                >
+                  <span>{item.icon}</span>
+                  <span className="text-sm">{item.label}</span>
+                </button>
+              ))}
+            </div>
+            </>
+          )}
+        </div>
       </nav>
     </div>
   );

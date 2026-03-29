@@ -20,6 +20,7 @@ export interface Translations {
     audio: string;
     transfer: string;
     settings: string;
+    more: string;
   };
 
   // Header controls
@@ -287,6 +288,7 @@ const ro: Translations = {
     audio: "Audio",
     transfer: "Transfer",
     settings: "Setări",
+    more: "Mai mult",
   },
   header: {
     goIdle: "Întrerupe",
@@ -537,6 +539,7 @@ const en: Translations = {
     audio: "Audio",
     transfer: "Transfer",
     settings: "Settings",
+    more: "More",
   },
   header: {
     goIdle: "Go Idle",
