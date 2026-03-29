@@ -1,5 +1,6 @@
 import type { UpdateStatus } from "../../shared/types";
 import type { Translations } from "../../shared/i18n";
+import { CloseIcon } from "./icons/ui";
 
 interface Props {
   status: UpdateStatus;
@@ -8,13 +9,21 @@ interface Props {
   onDismiss: () => void;
 }
 
+const stateStyles = {
+  available:
+    "bg-blue-950/40 border-blue-800/50 text-blue-200",
+  downloading:
+    "bg-blue-950/40 border-blue-800/50 text-blue-200",
+  ready:
+    "bg-green-950/40 border-green-800/50 text-green-200",
+};
+
 export default function UpdateBanner({
   status,
   t,
   onInstall,
   onDismiss,
 }: Props) {
-  // Don't show banner for idle, checking, or error states
   if (
     status.state === "idle" ||
     status.state === "checking" ||
@@ -26,27 +35,22 @@ export default function UpdateBanner({
   const isReady = status.state === "ready";
   const isDownloading = status.state === "downloading";
   const isAvailable = status.state === "available";
+  const styles = stateStyles[status.state];
 
   return (
     <div
-      className={`flex items-center justify-between gap-3 px-4 py-2 text-sm ${
-        isReady
-          ? "bg-green-600"
-          : isDownloading
-          ? "bg-blue-600"
-          : "bg-purple-600"
-      }`}
+      className={`flex items-center justify-between gap-3 px-4 py-2.5 text-sm border-b ${styles}`}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {isDownloading && (
           <>
-            <div className="flex-shrink-0 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="flex-shrink-0 w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
             <span className="truncate">
               {t.updates.updateDownloading} {status.progress}%
             </span>
-            <div className="hidden sm:block flex-1 max-w-32 h-1.5 bg-white/30 rounded-full overflow-hidden">
+            <div className="hidden sm:block flex-1 max-w-32 h-1.5 bg-blue-900/50 rounded-full overflow-hidden">
               <div
-                className="h-full bg-white rounded-full transition-all duration-300"
+                className="h-full bg-blue-400 rounded-full transition-all duration-300"
                 style={{ width: `${status.progress || 0}%` }}
               />
             </div>
@@ -70,7 +74,7 @@ export default function UpdateBanner({
         {isReady && (
           <button
             onClick={onInstall}
-            className="px-3 py-1 bg-white text-green-700 font-medium rounded hover:bg-green-100 transition-colors"
+            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-600/40 transition-colors"
           >
             {t.updates.restartToUpdate}
           </button>
@@ -79,10 +83,10 @@ export default function UpdateBanner({
         {!isDownloading && (
           <button
             onClick={onDismiss}
-            className="p-1 hover:bg-white/20 rounded transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-700/50 text-gray-400 hover:text-gray-200 transition-colors"
             aria-label="Dismiss"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <CloseIcon />
           </button>
         )}
       </div>

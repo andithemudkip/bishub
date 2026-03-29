@@ -101,6 +101,9 @@
       "allowToChangeInstallationDirectory": true,
       "allowElevation": true,
       "perMachine": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "BisHub",
       "include": "build/installer.nsh"
     },
     "linux": {

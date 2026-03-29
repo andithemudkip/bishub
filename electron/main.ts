@@ -607,7 +607,7 @@ if (!gotTheLock) {
 // Track whether we're in the process of quitting
 let isQuitting = false;
 
-app.on("before-quit", async (event) => {
+app.on("before-quit", (event) => {
   if (!isQuitting) {
     isQuitting = true;
     event.preventDefault();
@@ -623,13 +623,18 @@ app.on("before-quit", async (event) => {
       scheduler.clearAllTimers();
     }
 
-    // Close the Express/Socket.io server
-    await closeServer();
-
-    // Small delay to ensure processes are terminated, then force exit
-    setTimeout(() => {
-      app.exit(0);
-    }, 500);
+    // Close the Express/Socket.io server, then force exit
+    // Hard timeout ensures we always exit even if server.close() hangs
+    const forceExit = setTimeout(() => app.exit(0), 2000);
+    closeServer()
+      .then(() => {
+        clearTimeout(forceExit);
+        app.exit(0);
+      })
+      .catch(() => {
+        clearTimeout(forceExit);
+        app.exit(0);
+      });
   }
 });
 

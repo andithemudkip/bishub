@@ -656,6 +656,7 @@ function getLocalIPs(): string[] {
 export function closeServer(): Promise<void> {
   return new Promise((resolve) => {
     if (ioInstance) {
+      ioInstance.disconnectSockets(true);
       ioInstance.close();
       ioInstance = null;
     }
