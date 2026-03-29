@@ -626,9 +626,9 @@ app.on("before-quit", async (event) => {
     // Close the Express/Socket.io server
     await closeServer();
 
-    // Small delay to ensure processes are terminated
+    // Small delay to ensure processes are terminated, then force exit
     setTimeout(() => {
-      app.quit();
+      app.exit(0);
     }, 500);
   }
 });
