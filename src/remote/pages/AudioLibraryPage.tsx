@@ -10,6 +10,7 @@ import StickyPlaybackBar from "../components/StickyPlaybackBar";
 import { getTranslations } from "@shared/i18n";
 import { formatFileSize } from "@shared/utils";
 import { Card } from "../components/ui/Card";
+import { renderTip } from "../components/ui/renderTip";
 
 
 interface Props {
@@ -78,9 +79,9 @@ export default function AudioLibraryPage({
         {pageTab === "library" && (
           <>
             {/* Add audio section */}
-            <Card compact>
+            <Card compact tip={renderTip(t.audioLibrary.addTip)}>
               {/* Toolbar */}
-              <div className="flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden mb-4">
+              <div className={`flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden mr-8 ${library.directoryImport || (uploadMode && !library.isElectron) ? "mb-4" : ""}`}>
                 {library.isElectron && (
                   <>
                     <button

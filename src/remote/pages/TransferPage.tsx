@@ -5,6 +5,7 @@ import MediaUploader from "../components/MediaUploader";
 import { getTranslations } from "@shared/i18n";
 import { formatFileSize, formatDate } from "@shared/utils";
 import { Card } from "../components/ui/Card";
+import { renderTip } from "../components/ui/renderTip";
 
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".avi", ".mkv"];
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a", ".flac"];
@@ -34,7 +35,7 @@ export default function TransferPage({ settings }: Props) {
     <div className="min-w-0 max-w-full space-y-4 sm:space-y-6">
       {/* Upload area — web remotes only */}
       {!api.isElectron && (
-        <Card compact>
+        <Card compact tip={renderTip(t.transfer.uploadTip)}>
           <MediaUploader
             onUpload={api.uploadFile}
             activeUploads={api.uploads}
@@ -55,7 +56,7 @@ export default function TransferPage({ settings }: Props) {
       )}
 
       {/* Transferred files */}
-      <Card compact>
+      <Card compact tip={renderTip(t.transfer.filesTip)}>
         <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
           {t.transfer.files} ({api.transfers.length})
           {api.transfers.length > 0 && (

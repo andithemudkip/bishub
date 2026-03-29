@@ -9,6 +9,7 @@ import StickyPlaybackBar from "../components/StickyPlaybackBar";
 import { getTranslations } from "@shared/i18n";
 import { formatFileSize } from "@shared/utils";
 import { Card } from "../components/ui/Card";
+import { renderTip } from "../components/ui/renderTip";
 
 interface Props {
   videoState: VideoState;
@@ -49,9 +50,9 @@ export default function VideoLibraryPage({
     <div className="min-w-0 max-w-full min-h-full flex flex-col">
       <div className="space-y-4 sm:space-y-6 mb-4">
         {/* Add video section */}
-        <Card compact>
+        <Card compact tip={renderTip(t.videoLibrary.addTip)}>
           {/* Tabs */}
-          <div className="flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden mb-4">
+          <div className={`flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden mr-8 ${activeTab !== "library" ? "mb-4" : ""}`}>
             {library.isElectron && (
               <button
                 onClick={() => library.addLocalVideo()}

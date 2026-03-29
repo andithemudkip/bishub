@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card } from "./ui/Card";
+import { renderTip } from "./ui/renderTip";
 import type { AudioItem } from "../../shared/audioLibrary.types";
 import type {
   AudioSchedule,
@@ -139,7 +140,7 @@ export default function AudioScheduleSection({
   };
 
   return (
-    <Card compact className="space-y-4">
+    <Card compact className="space-y-4" tip={renderTip(t.audioSchedule.tip)}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">

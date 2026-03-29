@@ -107,6 +107,10 @@ export interface Translations {
     positionBottomRight: string;
     positionCenter: string;
     audioWidgetPosition: string;
+    displayTip: string;
+    idleScreenTip: string;
+    mobileRemoteTip: string;
+    keyboardShortcutsTip: string;
   };
 
   // Video library
@@ -142,6 +146,7 @@ export interface Translations {
     invalidUrl: string;
     enterUrl: string;
     openFileLocation: string;
+    addTip: string;
   };
 
   // Audio library
@@ -179,6 +184,7 @@ export interface Translations {
     importErrors: string;
     noAudioFiles: string;
     openFileLocation: string;
+    addTip: string;
     libraryTab: string;
     scheduleTab: string;
   };
@@ -208,6 +214,7 @@ export interface Translations {
     skippedNotIdle: string;
     triggered: string;
     expired: string;
+    tip: string;
   };
 
   // File Transfers
@@ -227,6 +234,8 @@ export interface Translations {
     addedToVideo: string;
     addedToAudio: string;
     files: string;
+    uploadTip: string;
+    filesTip: string;
   };
 
   // Preview panel
@@ -355,6 +364,14 @@ const ro: Translations = {
     securityKey: "Cheie de securitate:",
     securityKeyHint: "Introdu această cheie dacă accesezi de pe un desktop",
     openOnStartup: "Deschide la pornirea sistemului",
+    displayTip:
+      "Alege pe ce monitor se afișează conținutul proiectat. **Auto** folosește al doilea monitor dacă este conectat. Selectează manual dacă detectarea automată alege monitorul greșit.",
+    idleScreenTip:
+      "Ecranul de așteptare apare pe proiecție când nu se prezintă nimic. Poți seta o **imagine de fundal**, ajusta **ceasul** și poziționa **widgetul audio**.",
+    mobileRemoteTip:
+      "Controlează proiecția de pe telefon. Asigură-te că telefonul este pe **aceeași rețea WiFi**, apoi scanează codul QR sau tastează adresa URL în browser.",
+    keyboardShortcutsTip:
+      "Aceste scurtături funcționează în fereastra de control. Folosește **tastele săgeți** pentru a naviga între slide-uri.",
   },
   videoLibrary: {
     addLocalFile: "Adaugă fișier",
@@ -388,6 +405,8 @@ const ro: Translations = {
     invalidUrl: "Te rog introdu un URL YouTube valid",
     enterUrl: "Te rog introdu un URL",
     openFileLocation: "Deschide locația fișierului",
+    addTip:
+      "**Adaugă fișier** alege un video de pe acest calculator. **YouTube** descarcă un video de la un link. **Încarcă** trimite un video de pe telefon sau alt dispozitiv.",
   },
   audioLibrary: {
     addLocalFile: "Adaugă fișier",
@@ -422,6 +441,8 @@ const ro: Translations = {
     importErrors: "{count} fișiere eșuate",
     noAudioFiles: "Niciun fișier audio găsit în folder",
     openFileLocation: "Deschide locația fișierului",
+    addTip:
+      "**Adaugă fișier** alege un fișier audio de pe acest calculator. **Adaugă folder** importă toate fișierele audio dintr-un folder. **Încarcă** trimite audio de pe telefon sau alt dispozitiv.",
     libraryTab: "Bibliotecă",
     scheduleTab: "Programare",
   },
@@ -449,6 +470,7 @@ const ro: Translations = {
     skippedNotIdle: "Omis (nu e în modul inactiv)",
     triggered: "Redat",
     expired: "Expirat",
+    tip: "Programează redarea audio automat la o anumită oră sau după un număr de minute. Audio-ul se redă doar când ecranul este **inactiv**. Salvează programări ca **presetări** pentru reutilizare rapidă.",
   },
   transfer: {
     uploadDrop: "Trage fișiere aici sau apasă pentru a selecta",
@@ -466,6 +488,10 @@ const ro: Translations = {
     addedToVideo: "Adăugat în biblioteca video",
     addedToAudio: "Adăugat în biblioteca audio",
     files: "Fișiere",
+    uploadTip:
+      "Trage fișiere aici sau apasă pentru a selecta. Fișierele încărcate sunt păstrate temporar până le muți în biblioteca **video** sau **audio**.",
+    filesTip:
+      "Aici poți trimite fișiere de pe **telefon** sau din **browser** către calculatorul principal. Adăugarea într-o bibliotecă **copiază** fișierul — originalul rămâne aici și ocupă spațiu. După ce l-ai adăugat la **video** sau **audio**, poți să-l **ștergi** în siguranță de aici.",
   },
   preview: {
     title: "Previzualizare",
@@ -588,6 +614,14 @@ const en: Translations = {
     securityKey: "Security Key:",
     securityKeyHint: "Enter this key if accessing from a desktop",
     openOnStartup: "Open on system startup",
+    displayTip:
+      "Choose which monitor shows the projected content. **Auto** uses the second monitor if connected. Pick a specific monitor if auto-detection chooses the wrong one.",
+    idleScreenTip:
+      "The idle screen is what's shown on the projection when nothing is being presented. You can set a **background image**, adjust the **clock**, and position the **audio widget**.",
+    mobileRemoteTip:
+      "Control the projection from your phone. Make sure your phone is on the **same WiFi network**, then scan the QR code or type the URL into your browser.",
+    keyboardShortcutsTip:
+      "These shortcuts work in the remote control window. Use **arrow keys** to navigate between slides.",
   },
   videoLibrary: {
     addLocalFile: "Add file",
@@ -621,6 +655,8 @@ const en: Translations = {
     invalidUrl: "Please enter a valid YouTube URL",
     enterUrl: "Please enter a URL",
     openFileLocation: "Open file location",
+    addTip:
+      "**Add file** picks a video from this computer. **YouTube** downloads a video from a link. **Upload** sends a video from your phone or another device.",
   },
   audioLibrary: {
     addLocalFile: "Add file",
@@ -655,6 +691,8 @@ const en: Translations = {
     importErrors: "{count} files failed",
     noAudioFiles: "No audio files found in folder",
     openFileLocation: "Open file location",
+    addTip:
+      "**Add file** picks an audio file from this computer. **Add folder** imports all audio files from a folder at once. **Upload** sends audio from your phone or another device.",
     libraryTab: "Library",
     scheduleTab: "Schedule",
   },
@@ -682,6 +720,7 @@ const en: Translations = {
     skippedNotIdle: "Skipped (not in idle mode)",
     triggered: "Played",
     expired: "Expired",
+    tip: "Schedule audio to play automatically at a set time or after a number of minutes. Audio only plays when the display is **idle**. Save schedules as **presets** for quick reuse.",
   },
   transfer: {
     uploadDrop: "Drag files here or tap to select",
@@ -699,6 +738,10 @@ const en: Translations = {
     addedToVideo: "Added to video library",
     addedToAudio: "Added to audio library",
     files: "Files",
+    uploadTip:
+      "Drag files here or tap to browse. Uploaded files are held in a temporary area until you move them to the **video** or **audio** library.",
+    filesTip:
+      "Transfer files from your **phone** or **browser** to the main computer here. Adding to a library **copies** the file — the original stays here and still takes up space. Once added to **video** or **audio**, you can safely **delete** it from here.",
   },
   preview: {
     title: "Preview",

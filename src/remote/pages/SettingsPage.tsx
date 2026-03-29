@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Card } from "../components/ui/Card";
+import { Select } from "../components/ui/Select";
+import { PositionPicker } from "../components/ui/PositionPicker";
+import { renderTip } from "../components/ui/renderTip";
 import type {
   MonitorInfo,
   AppSettings,
@@ -34,22 +37,6 @@ interface Props {
   updateStatus: UpdateStatus;
   onCheckForUpdates: () => void;
 }
-
-const CLOCK_POSITIONS: ClockPosition[] = [
-  "center",
-  "top-left",
-  "top-right",
-  "bottom-left",
-  "bottom-right",
-];
-
-const AUDIO_WIDGET_POSITIONS: AudioWidgetPosition[] = [
-  "center",
-  "top-left",
-  "top-right",
-  "bottom-left",
-  "bottom-right",
-];
 
 export default function SettingsPage({
   monitors,
@@ -108,14 +95,12 @@ export default function SettingsPage({
     onSetClockFontSize(Number(e.target.value));
   };
 
-  const handlePositionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onSetClockPosition(e.target.value as ClockPosition);
+  const handlePositionChange = (position: ClockPosition) => {
+    onSetClockPosition(position);
   };
 
-  const handleAudioWidgetPositionChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    onSetAudioWidgetPosition(e.target.value as AudioWidgetPosition);
+  const handleAudioWidgetPositionChange = (position: AudioWidgetPosition) => {
+    onSetAudioWidgetPosition(position);
   };
 
   const handleVideoVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,23 +119,6 @@ export default function SettingsPage({
     await window.electronAPI?.setOpenOnStartup(newValue);
   };
 
-  const getPositionLabel = (position: ClockPosition): string => {
-    switch (position) {
-      case "top-left":
-        return t.settings.positionTopLeft;
-      case "top-right":
-        return t.settings.positionTopRight;
-      case "bottom-left":
-        return t.settings.positionBottomLeft;
-      case "bottom-right":
-        return t.settings.positionBottomRight;
-      case "center":
-        return t.settings.positionCenter;
-      default:
-        return position;
-    }
-  };
-
   const getWallpaperFilename = (path: string | null): string => {
     if (!path) return t.settings.noWallpaper;
     const parts = path.split(/[/\\]/);
@@ -166,17 +134,16 @@ export default function SettingsPage({
         <h2 className="text-lg font-semibold mb-4">{t.settings.language}</h2>
 
         <div>
-          <select
+          <Select
             value={settings.language}
             onChange={handleLanguageChange}
-            className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {AVAILABLE_LANGUAGES.map((lang) => (
               <option key={lang} value={lang}>
                 {LANGUAGE_NAMES[lang]}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </Card>
 
@@ -201,17 +168,16 @@ export default function SettingsPage({
       )}
 
       {/* Display settings */}
-      <Card>
+      <Card tip={renderTip(t.settings.displayTip)}>
         <h2 className="text-lg font-semibold mb-4">{t.settings.display}</h2>
 
         <div>
           <label className="text-sm text-gray-400 block mb-2">
             {t.settings.displayMonitor}
           </label>
-          <select
+          <Select
             value={settings.displayMonitor}
             onChange={handleMonitorChange}
-            className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value={-1}>{t.settings.autoSecondary}</option>
             {monitors.map((monitor) => (
@@ -219,7 +185,7 @@ export default function SettingsPage({
                 {monitor.name} ({monitor.bounds.width}x{monitor.bounds.height})
               </option>
             ))}
-          </select>
+          </Select>
           <p className="text-sm text-gray-500 mt-2">
             {t.settings.selectMonitorHint}
           </p>
@@ -228,7 +194,7 @@ export default function SettingsPage({
 
       {/* Idle screen settings - Electron only */}
       {/* {isElectron && ( */}
-      <Card>
+      <Card tip={renderTip(t.settings.idleScreenTip)}>
         <h2 className="text-lg font-semibold mb-4">{t.settings.idleScreen}</h2>
         <div className="space-y-4 sm:space-y-6">
           {/* Wallpaper */}
@@ -282,40 +248,18 @@ export default function SettingsPage({
             </div>
           </div>
 
-          {/* Clock position */}
-          <div>
-            <label className="text-sm text-gray-400 block mb-2">
-              {t.settings.clockPosition}
-            </label>
-            <select
+          {/* Clock and audio widget positions */}
+          <div className="flex flex-wrap items-end gap-4 sm:gap-8">
+            <PositionPicker
               value={idleState.clockPosition}
               onChange={handlePositionChange}
-              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {CLOCK_POSITIONS.map((pos) => (
-                <option key={pos} value={pos}>
-                  {getPositionLabel(pos)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Audio widget position */}
-          <div>
-            <label className="text-sm text-gray-400 block mb-2">
-              {t.settings.audioWidgetPosition}
-            </label>
-            <select
+              label={t.settings.clockPosition}
+            />
+            <PositionPicker
               value={idleState.audioWidgetPosition}
               onChange={handleAudioWidgetPositionChange}
-              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {AUDIO_WIDGET_POSITIONS.map((pos) => (
-                <option key={pos} value={pos}>
-                  {getPositionLabel(pos)}
-                </option>
-              ))}
-            </select>
+              label={t.settings.audioWidgetPosition}
+            />
           </div>
         </div>
       </Card>
@@ -385,7 +329,7 @@ export default function SettingsPage({
       </Card>
 
       {/* Connection info */}
-      <Card>
+      <Card tip={renderTip(t.settings.mobileRemoteTip)}>
         <h2 className="text-lg font-semibold mb-4">
           {t.settings.mobileRemote}
         </h2>
@@ -480,7 +424,7 @@ export default function SettingsPage({
       </Card>
 
       {/* Keyboard shortcuts */}
-      <Card>
+      <Card tip={renderTip(t.settings.keyboardShortcutsTip)}>
         <h2 className="text-lg font-semibold mb-4">
           {t.settings.keyboardShortcuts}
         </h2>
