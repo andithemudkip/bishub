@@ -246,7 +246,7 @@ export default function BiblePage({
 
   // Search view
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-2xl mx-auto w-full">
       {/* Smart search bar — sticky */}
       <div className="sticky -top-4 bg-gray-900 pt-4 pb-3 -mx-4 px-4 z-10">
         <SmartSearchBar

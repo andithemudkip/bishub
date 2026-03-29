@@ -125,7 +125,8 @@ export default function SettingsPage({
     return parts[parts.length - 1] || t.settings.noWallpaper;
   };
 
-  const remoteURL = `http://${localIP}:${settings.serverPort}/remote?key=${securityKey}`;
+  const port = isElectron ? settings.serverPort : window.location.port;
+  const remoteURL = `http://${localIP}:${port}/remote?key=${securityKey}`;
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-2xl mx-auto px-2 sm:px-0">
@@ -341,33 +342,29 @@ export default function SettingsPage({
           </div>
 
           {/* URL */}
-          {isElectron && (
-            <div className="text-center">
-              <div className="text-sm text-gray-400 mb-1">
-                {t.settings.scanOrVisit}
-              </div>
-              <div className="font-mono text-lg text-blue-400">{remoteURL}</div>
+          <div className="text-center">
+            <div className="text-sm text-gray-400 mb-1">
+              {t.settings.scanOrVisit}
             </div>
-          )}
+            <div className="font-mono text-sm sm:text-lg text-blue-400 break-all">{remoteURL}</div>
+          </div>
 
           <p className="text-sm text-gray-500 text-center">
             {t.settings.sameWifi}
           </p>
 
-          {/* Security Key Display - Electron only */}
-          {isElectron && (
-            <div className="text-center mt-4 pt-4 border-t border-gray-700 w-full">
-              <div className="text-sm text-gray-400 mb-1">
-                {t.settings.securityKey}
-              </div>
-              <div className="font-mono text-2xl font-bold text-green-400 tracking-widest">
-                {securityKey}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {t.settings.securityKeyHint}
-              </p>
+          {/* Security Key Display */}
+          <div className="text-center mt-4 pt-4 border-t border-gray-700 w-full">
+            <div className="text-sm text-gray-400 mb-1">
+              {t.settings.securityKey}
             </div>
-          )}
+            <div className="font-mono text-2xl font-bold text-green-400 tracking-widest">
+              {securityKey}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              {t.settings.securityKeyHint}
+            </p>
+          </div>
         </div>
       </Card>
 

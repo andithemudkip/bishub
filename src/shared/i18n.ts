@@ -362,7 +362,7 @@ const ro: Translations = {
     positionCenter: "Centru",
     audioWidgetPosition: "Poziție widget audio",
     securityKey: "Cheie de securitate:",
-    securityKeyHint: "Introdu această cheie dacă accesezi de pe un desktop",
+    securityKeyHint: "Necesară pentru a conecta alte dispozitive la această sesiune",
     openOnStartup: "Deschide la pornirea sistemului",
     displayTip:
       "Alege pe ce monitor se afișează conținutul proiectat. **Auto** folosește al doilea monitor dacă este conectat. Selectează manual dacă detectarea automată alege monitorul greșit.",
@@ -612,7 +612,7 @@ const en: Translations = {
     positionCenter: "Center",
     audioWidgetPosition: "Audio widget position",
     securityKey: "Security Key:",
-    securityKeyHint: "Enter this key if accessing from a desktop",
+    securityKeyHint: "Required to connect other devices to this session",
     openOnStartup: "Open on system startup",
     displayTip:
       "Choose which monitor shows the projected content. **Auto** uses the second monitor if connected. Pick a specific monitor if auto-detection chooses the wrong one.",

@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState } from "react";
 import type { UpdateStatus } from "../shared/types";
 import { getTranslations } from "../shared/i18n";
+import { getApiUrl } from "../shared/utils";
 import { useShortcut } from "./hooks/useShortcut";
 import UpdateBanner from "./components/UpdateBanner";
 import Layout from "./components/Layout";
@@ -39,6 +40,11 @@ export default function App() {
       );
 
       return cleanup;
+    } else {
+      fetch(getApiUrl("/api/version"))
+        .then((res) => res.json())
+        .then((data) => setAppVersion(data.version))
+        .catch(() => {});
     }
   }, []);
 

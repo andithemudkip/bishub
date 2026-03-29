@@ -136,6 +136,10 @@ export function createServer(
     res.json({ ips, port: stateManager.getSettings().serverPort });
   });
 
+  app.get("/api/version", (_req, res) => {
+    res.json({ version: electronApp.getVersion() });
+  });
+
   // Helper to create multer upload middleware
   const createUploadMiddleware = (
     destDir: string,

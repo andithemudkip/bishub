@@ -32,15 +32,17 @@ export default function TransferPage({ settings }: Props) {
   };
 
   return (
-    <div className="min-w-0 max-w-full space-y-4 sm:space-y-6">
+    <div className="min-w-0 max-w-2xl mx-auto w-full space-y-4 sm:space-y-6">
       {/* Upload area — web remotes only */}
       {!api.isElectron && (
-        <Card compact tip={renderTip(t.transfer.uploadTip)}>
+        <Card compact>
           <MediaUploader
             onUpload={api.uploadFile}
             activeUploads={api.uploads}
             allowedExtensions={[]}
             maxSizeBytes={2 * 1024 * 1024 * 1024}
+            uploadUrl="/api/transfers/upload"
+            uploadFieldName="file"
             labels={{
               uploading: t.transfer.uploading,
               uploadDrop: t.transfer.uploadDrop,

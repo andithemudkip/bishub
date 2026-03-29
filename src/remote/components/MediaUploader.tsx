@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { uploadWithProgress, getApiUrl } from "@shared/utils";
 
 interface UploadItem {
   id: string;
@@ -13,6 +14,12 @@ interface Props {
   activeUploads: UploadItem[];
   allowedExtensions: string[];
   maxSizeBytes: number;
+  /** The API endpoint to POST the file to (enables upload progress tracking) */
+  uploadUrl?: string;
+  /** The form field name for the file (default: "file") */
+  uploadFieldName?: string;
+  /** Extra form fields to include in the upload */
+  uploadExtraFields?: Record<string, string>;
   labels: {
     uploading: string;
     uploadDrop: string;
@@ -30,11 +37,16 @@ export default function MediaUploader({
   activeUploads,
   allowedExtensions,
   maxSizeBytes,
+  uploadUrl,
+  uploadFieldName = "file",
+  uploadExtraFields,
   labels,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadFilename, setUploadFilename] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): boolean => {
@@ -57,12 +69,35 @@ export default function MediaUploader({
     if (!validateFile(file)) return;
 
     setIsUploading(true);
+    setUploadProgress(0);
+    setUploadFilename(file.name);
     try {
-      await onUpload(file);
+      if (uploadUrl) {
+        const formData = new FormData();
+        formData.append(uploadFieldName, file);
+        if (uploadExtraFields) {
+          for (const [key, value] of Object.entries(uploadExtraFields)) {
+            formData.append(key, value);
+          }
+        }
+        // Use name field derived from filename if not explicitly provided
+        if (!uploadExtraFields?.name) {
+          formData.append("name", file.name.replace(/\.[^.]+$/, ""));
+        }
+        await uploadWithProgress(
+          getApiUrl(uploadUrl),
+          formData,
+          setUploadProgress,
+        );
+      } else {
+        await onUpload(file);
+      }
     } catch (err) {
       setError(labels.uploadFailed);
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
+      setUploadFilename("");
     }
   };
 
@@ -133,7 +168,27 @@ export default function MediaUploader({
 
       {error && <div className="text-red-400 text-sm">{error}</div>}
 
-      {/* Active uploads */}
+      {/* Client-side upload progress */}
+      {isUploading && uploadUrl && (
+        <div className="bg-gray-700 rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="text-sm truncate">{uploadFilename}</div>
+              <div className="text-xs text-gray-400">
+                {labels.uploading} {uploadProgress}%
+              </div>
+            </div>
+          </div>
+          <div className="h-1.5 bg-gray-600 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-500 transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Server-side processing progress */}
       {activeUploads.length > 0 && (
         <div className="space-y-2">
           {activeUploads.map((upload) => (

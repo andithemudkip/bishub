@@ -110,6 +110,40 @@ export function getApiUrl(path: string): string {
 }
 
 /**
+ * Upload a file with progress tracking via XMLHttpRequest.
+ * Returns a promise that resolves when the upload completes.
+ */
+export function uploadWithProgress(
+  url: string,
+  formData: FormData,
+  onProgress: (percent: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        reject(new Error("Upload failed"));
+      }
+    });
+
+    xhr.addEventListener("error", () => reject(new Error("Upload failed")));
+    xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
+
+    xhr.send(formData);
+  });
+}
+
+/**
  * Update a progress list: upsert by id, auto-remove completed/errored items after a delay.
  */
 export function updateProgressList<T extends { id: string; status: string }>(

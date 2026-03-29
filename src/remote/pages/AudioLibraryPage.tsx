@@ -49,7 +49,7 @@ export default function AudioLibraryPage({
   };
 
   return (
-    <div className="min-w-0 max-w-full min-h-full flex flex-col">
+    <div className="min-w-0 max-w-2xl mx-auto w-full min-h-full flex flex-col">
       <div className="space-y-4 sm:space-y-6 mb-4">
         {/* Tabs — Library / Schedule */}
         <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
@@ -101,7 +101,7 @@ export default function AudioLibraryPage({
                           d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
                       </svg>
-                      <span className="hidden sm:inline">
+                      <span>
                         {t.audioLibrary.addLocalFile}
                       </span>
                     </button>
@@ -123,7 +123,7 @@ export default function AudioLibraryPage({
                           d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                         />
                       </svg>
-                      <span className="hidden sm:inline">
+                      <span>
                         {t.audioLibrary.addFolder}
                       </span>
                     </button>
@@ -151,7 +151,7 @@ export default function AudioLibraryPage({
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
                       />
                     </svg>
-                    <span className="hidden sm:inline">
+                    <span>
                       {t.audioLibrary.upload}
                     </span>
                   </button>
@@ -245,6 +245,8 @@ export default function AudioLibraryPage({
                   activeUploads={library.uploads}
                   allowedExtensions={[".mp3", ".wav", ".ogg", ".m4a", ".flac"]}
                   maxSizeBytes={500 * 1024 * 1024}
+                  uploadUrl="/api/audio/upload"
+                  uploadFieldName="audio"
                   labels={{
                     uploading: t.audioLibrary.uploading,
                     uploadDrop: t.audioLibrary.uploadDrop,
