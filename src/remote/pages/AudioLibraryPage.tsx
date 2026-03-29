@@ -49,8 +49,8 @@ export default function AudioLibraryPage({
   };
 
   return (
-    <div className="min-w-0 max-w-2xl mx-auto w-full min-h-full flex flex-col">
-      <div className="space-y-4 sm:space-y-6 mb-4">
+    <div className="min-w-0 w-full min-h-full flex flex-col">
+      <div className="max-w-2xl mx-auto w-full space-y-4 sm:space-y-6 mb-4">
         {/* Tabs — Library / Schedule */}
         <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
           <button

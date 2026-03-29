@@ -47,8 +47,8 @@ export default function VideoLibraryPage({
   };
 
   return (
-    <div className="min-w-0 max-w-2xl mx-auto w-full min-h-full flex flex-col">
-      <div className="space-y-4 sm:space-y-6 mb-4">
+    <div className="min-w-0 w-full min-h-full flex flex-col">
+      <div className="max-w-2xl mx-auto w-full space-y-4 sm:space-y-6 mb-4">
         {/* Add video section */}
         <Card compact tip={renderTip(t.videoLibrary.addTip)}>
           {/* Tabs */}
