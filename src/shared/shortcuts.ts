@@ -33,8 +33,8 @@ export const SHORTCUTS = {
     label: (t: Translations) => t.settings.focusSearch,
   },
   switchPage: {
-    keys: ["1", "2", "3", "4", "5", "6"],
-    display: ["1–6"],
+    keys: ["1", "2", "3", "4", "5", "6", "7"],
+    display: ["1–7"],
     mod: true,
     label: (t: Translations) => t.settings.switchPage,
   },
@@ -48,6 +48,7 @@ export const PAGE_ORDER = [
   "bible",
   "video",
   "audio",
+  "images",
   "transfer",
   "settings",
 ] as const;

@@ -8,6 +8,7 @@ export interface TransferItem {
   extension: string;
   addedToVideo?: boolean;
   addedToAudio?: boolean;
+  addedToImage?: boolean;
 }
 
 export interface TransferUploadProgress {

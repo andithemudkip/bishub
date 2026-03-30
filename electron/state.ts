@@ -32,6 +32,7 @@ export class StateManager {
   private settingsListeners: SettingsChangeCallback[] = [];
   private settingsStore: Store<SettingsSchema>;
   private securityKey: string;
+  private autoAdvanceTimer: NodeJS.Timeout | null = null;
 
   constructor() {
     // Generate random security key for web remote authentication
@@ -44,6 +45,7 @@ export class StateManager {
       text: { ...DEFAULT_STATE.text, slides: [] },
       video: { ...DEFAULT_STATE.video },
       audio: { ...DEFAULT_STATE.audio },
+      image: { ...DEFAULT_STATE.image, slideshowImages: [] },
     };
 
     // Initialize settings store
@@ -136,6 +138,7 @@ export class StateManager {
   goIdle() {
     this.state.mode = "idle";
     this.state.video.playing = false;
+    this.clearAutoAdvanceTimer();
     this.notifyStateChange();
   }
 
@@ -365,5 +368,143 @@ export class StateManager {
     this.state.idle.audioWidgetPosition = position;
     this.persistIdleSettings();
     this.notifyStateChange();
+  }
+
+  // Image mode
+  loadImage(src: string, imageId: string) {
+    this.clearAutoAdvanceTimer();
+    this.state.image = {
+      src,
+      imageId,
+      slideshowId: null,
+      slideshowImages: [],
+      currentIndex: 0,
+      autoAdvance: false,
+      autoAdvanceInterval: 5000,
+      loop: false,
+      fit: "fill",
+    };
+    this.state.mode = "image";
+    this.notifyStateChange();
+  }
+
+  loadSlideshow(
+    images: { src: string; imageId: string }[],
+    slideshowId: string,
+    settings: {
+      autoAdvance: boolean;
+      autoAdvanceInterval: number;
+      loop: boolean;
+      fit: "fill" | "fit";
+    }
+  ) {
+    this.clearAutoAdvanceTimer();
+    if (images.length === 0) return;
+
+    this.state.image = {
+      src: images[0].src,
+      imageId: images[0].imageId,
+      slideshowId,
+      slideshowImages: images,
+      currentIndex: 0,
+      autoAdvance: settings.autoAdvance,
+      autoAdvanceInterval: settings.autoAdvanceInterval,
+      loop: settings.loop,
+      fit: settings.fit,
+    };
+    this.state.mode = "image";
+    this.notifyStateChange();
+
+    if (settings.autoAdvance) {
+      this.startAutoAdvanceTimer();
+    }
+  }
+
+  nextImage() {
+    const { image } = this.state;
+    if (image.slideshowImages.length === 0) return;
+
+    if (image.currentIndex < image.slideshowImages.length - 1) {
+      image.currentIndex++;
+    } else if (image.loop) {
+      image.currentIndex = 0;
+    } else {
+      this.clearAutoAdvanceTimer();
+      return;
+    }
+
+    image.src = image.slideshowImages[image.currentIndex].src;
+    image.imageId = image.slideshowImages[image.currentIndex].imageId;
+    this.notifyStateChange();
+  }
+
+  prevImage() {
+    const { image } = this.state;
+    if (image.slideshowImages.length === 0) return;
+
+    if (image.currentIndex > 0) {
+      image.currentIndex--;
+    } else if (image.loop) {
+      image.currentIndex = image.slideshowImages.length - 1;
+    } else {
+      return;
+    }
+
+    image.src = image.slideshowImages[image.currentIndex].src;
+    image.imageId = image.slideshowImages[image.currentIndex].imageId;
+    this.notifyStateChange();
+  }
+
+  goToImage(index: number) {
+    const { image } = this.state;
+    if (index >= 0 && index < image.slideshowImages.length) {
+      image.currentIndex = index;
+      image.src = image.slideshowImages[index].src;
+      image.imageId = image.slideshowImages[index].imageId;
+      this.notifyStateChange();
+    }
+  }
+
+  setImageAutoAdvance(enabled: boolean) {
+    this.state.image.autoAdvance = enabled;
+    if (enabled) {
+      this.startAutoAdvanceTimer();
+    } else {
+      this.clearAutoAdvanceTimer();
+    }
+    this.notifyStateChange();
+  }
+
+  setImageFit(fit: "fill" | "fit") {
+    this.state.image.fit = fit;
+    this.notifyStateChange();
+  }
+
+  setImageLoop(loop: boolean) {
+    this.state.image.loop = loop;
+    this.notifyStateChange();
+  }
+
+  setImageAutoAdvanceInterval(intervalMs: number) {
+    this.state.image.autoAdvanceInterval = intervalMs;
+    // Restart timer with new interval if auto-advance is active
+    if (this.state.image.autoAdvance) {
+      this.startAutoAdvanceTimer();
+    }
+    this.notifyStateChange();
+  }
+
+  private startAutoAdvanceTimer() {
+    this.clearAutoAdvanceTimer();
+    this.autoAdvanceTimer = setInterval(() => {
+      this.nextImage();
+    }, this.state.image.autoAdvanceInterval);
+  }
+
+  private clearAutoAdvanceTimer() {
+    if (this.autoAdvanceTimer) {
+      clearInterval(this.autoAdvanceTimer);
+      this.autoAdvanceTimer = null;
+    }
   }
 }

@@ -6,13 +6,14 @@ import { useShortcut } from "../hooks/useShortcut";
 import { PreviewPanel, PreviewHeader, usePreviewState } from "./preview";
 import { HymnsIcon } from "./icons/hymns";
 import { BibleIcon } from "./icons/bible";
+import { ImageIcon } from "./icons/image";
 import { VideoIcon } from "./icons/video";
 import { AudioIcon } from "./icons/audio";
 import { TransferIcon } from "./icons/transfer";
 import { SettingsIcon } from "./icons/settings";
-import { ChevronLeftIcon, ChevronRightIcon, StopIcon, MoreIcon } from "./icons/ui";
+import { ChevronLeftIcon, ChevronRightIcon, StopIcon, MoreIcon, FitFillIcon, FitContainIcon } from "./icons/ui";
 
-type Page = "hymns" | "bible" | "video" | "audio" | "transfer" | "settings";
+type Page = "hymns" | "bible" | "images" | "video" | "audio" | "transfer" | "settings";
 
 interface Props {
   children: (page: Page) => React.ReactNode;
@@ -21,11 +22,15 @@ interface Props {
   onGoIdle: () => void;
   onNextSlide: () => void;
   onPrevSlide: () => void;
+  onNextImage: () => void;
+  onPrevImage: () => void;
+  onSetImageFit: (fit: "fill" | "fit") => void;
 }
 
 const NAV_ICONS: Record<Page, React.ReactNode> = {
   hymns: <HymnsIcon className="w-6 h-6" />,
   bible: <BibleIcon className="w-6 h-6" />,
+  images: <ImageIcon className="w-6 h-6" />,
   video: <VideoIcon className="w-6 h-6" />,
   audio: <AudioIcon className="w-6 h-6" />,
   transfer: <TransferIcon className="w-6 h-6" />,
@@ -52,6 +57,9 @@ export default function Layout({
   onGoIdle,
   onNextSlide,
   onPrevSlide,
+  onNextImage,
+  onPrevImage,
+  onSetImageFit,
 }: Props) {
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState<Page>("hymns");
@@ -69,6 +77,7 @@ export default function Layout({
       { id: "bible" as Page, label: t.nav.bible, icon: NAV_ICONS.bible },
       { id: "video" as Page, label: t.nav.video, icon: NAV_ICONS.video },
       { id: "audio" as Page, label: t.nav.audio, icon: NAV_ICONS.audio },
+      { id: "images" as Page, label: t.nav.images, icon: NAV_ICONS.images },
       {
         id: "transfer" as Page,
         label: t.nav.transfer,
@@ -134,6 +143,11 @@ export default function Layout({
         return state.video.playing
           ? t.status.playingVideo
           : t.status.videoPaused;
+      case "image":
+        if (state.image.slideshowImages.length > 1) {
+          return `${t.status.presentingSlideshow} (${state.image.currentIndex + 1}/${state.image.slideshowImages.length})`;
+        }
+        return t.status.presentingImage;
       default:
         return "";
     }
@@ -187,6 +201,8 @@ export default function Layout({
                   ? "bg-gray-600"
                   : state.mode === "text"
                   ? "bg-blue-400"
+                  : state.mode === "image"
+                  ? "bg-purple-400"
                   : "bg-green-400"
               }`}
             />
@@ -239,6 +255,55 @@ export default function Layout({
                   className="px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 transition-colors flex items-center justify-center text-blue-400"
                 >
                   <ChevronRightIcon className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            {state.mode === "image" && state.image.slideshowImages.length > 1 && (
+              <div className="flex items-center bg-gray-800/50 border border-gray-700/50 rounded-lg overflow-hidden">
+                <button
+                  onClick={onPrevImage}
+                  disabled={state.image.currentIndex === 0 && !state.image.loop}
+                  className="px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                >
+                  <ChevronLeftIcon className="w-4 h-4" />
+                </button>
+                <span className="text-xs text-gray-400 px-2 whitespace-nowrap tabular-nums border-x border-gray-700/50">
+                  {state.image.currentIndex + 1} / {state.image.slideshowImages.length}
+                </span>
+                <button
+                  onClick={onNextImage}
+                  disabled={state.image.currentIndex === state.image.slideshowImages.length - 1 && !state.image.loop}
+                  className="px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center text-blue-400"
+                >
+                  <ChevronRightIcon className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            {state.mode === "image" && (
+              <div className="flex items-center bg-gray-800/50 border border-gray-700/50 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => onSetImageFit("fill")}
+                  className={`px-2.5 py-2.5 sm:px-2.5 sm:py-1.5 transition-colors flex items-center justify-center ${
+                    state.image.fit === "fill"
+                      ? "text-blue-400 bg-blue-600/20"
+                      : "text-gray-400 hover:bg-gray-700"
+                  }`}
+                  title={t.imageLibrary.fitFill}
+                >
+                  <FitFillIcon className="w-4 h-4 sm:hidden" />
+                  <span className="hidden sm:inline text-xs">{t.imageLibrary.fitFill}</span>
+                </button>
+                <button
+                  onClick={() => onSetImageFit("fit")}
+                  className={`px-2.5 py-2.5 sm:px-2.5 sm:py-1.5 transition-colors flex items-center justify-center ${
+                    state.image.fit === "fit"
+                      ? "text-blue-400 bg-blue-600/20"
+                      : "text-gray-400 hover:bg-gray-700"
+                  }`}
+                  title={t.imageLibrary.fitContain}
+                >
+                  <FitContainIcon className="w-4 h-4 sm:hidden" />
+                  <span className="hidden sm:inline text-xs">{t.imageLibrary.fitContain}</span>
                 </button>
               </div>
             )}

@@ -16,8 +16,13 @@ import type {
   TransferItem,
   TransferUploadProgress,
 } from "./transfer.types";
+import type {
+  ImageItem,
+  Slideshow,
+  ImageUploadProgress,
+} from "./imageLibrary.types";
 
-export type DisplayMode = "idle" | "text" | "video";
+export type DisplayMode = "idle" | "text" | "video" | "image";
 
 export type ClockPosition =
   | "top-left"
@@ -71,12 +76,25 @@ export interface AudioState {
   volume: number;
 }
 
+export interface ImageState {
+  src: string | null;
+  imageId: string | null;
+  slideshowId: string | null;
+  slideshowImages: { src: string; imageId: string }[];
+  currentIndex: number;
+  autoAdvance: boolean;
+  autoAdvanceInterval: number; // ms
+  loop: boolean;
+  fit: "fill" | "fit";
+}
+
 export interface DisplayState {
   mode: DisplayMode;
   idle: IdleState;
   text: TextState;
   video: VideoState;
   audio: AudioState;
+  image: ImageState;
 }
 
 export interface MonitorInfo {
@@ -125,6 +143,10 @@ export type ServerToClientEvents = {
   audioSchedules: (schedules: AudioSchedule[]) => void;
   audioPresets: (presets: AudioSchedulePreset[]) => void;
   audioScheduleEvent: (event: ScheduleEvent) => void;
+  // Image Library
+  imageLibrary: (images: ImageItem[]) => void;
+  slideshows: (slideshows: Slideshow[]) => void;
+  imageUploadProgress: (progress: ImageUploadProgress) => void;
   // File Transfers
   transfers: (transfers: TransferItem[]) => void;
   transferUploadProgress: (progress: TransferUploadProgress) => void;
@@ -186,6 +208,32 @@ export type ClientToServerEvents = {
   createAudioPreset: (params: CreatePresetParams) => void;
   activateAudioPreset: (presetId: string, audioPath: string) => void;
   deleteAudioPreset: (presetId: string) => void;
+  // Image Library
+  getImageLibrary: () => void;
+  getSlideshows: () => void;
+  deleteImage: (imageId: string) => void;
+  renameImage: (imageId: string, newName: string) => void;
+  createSlideshow: (name: string, imageIds: string[]) => void;
+  updateSlideshow: (
+    slideshowId: string,
+    updates: Partial<Omit<Slideshow, "id" | "createdAt">>
+  ) => void;
+  deleteSlideshow: (slideshowId: string) => void;
+  addImagesToSlideshow: (slideshowId: string, imageIds: string[]) => void;
+  removeImageFromSlideshow: (imageId: string) => void;
+  reorderSlideshowImages: (
+    slideshowId: string,
+    orderedImageIds: string[]
+  ) => void;
+  loadImage: (src: string, imageId: string) => void;
+  loadSlideshow: (slideshowId: string) => void;
+  nextImage: () => void;
+  prevImage: () => void;
+  goToImage: (index: number) => void;
+  setImageAutoAdvance: (enabled: boolean) => void;
+  setImageFit: (fit: "fill" | "fit") => void;
+  setImageLoop: (loop: boolean) => void;
+  setImageAutoAdvanceInterval: (intervalMs: number) => void;
   // File Transfers
   getTransfers: () => void;
   // Idle
@@ -225,6 +273,17 @@ export const DEFAULT_STATE: DisplayState = {
     currentTime: 0,
     duration: 0,
     volume: 1,
+  },
+  image: {
+    src: null,
+    imageId: null,
+    slideshowId: null,
+    slideshowImages: [],
+    currentIndex: 0,
+    autoAdvance: false,
+    autoAdvanceInterval: 5000,
+    loop: false,
+    fit: "fill",
   },
 };
 

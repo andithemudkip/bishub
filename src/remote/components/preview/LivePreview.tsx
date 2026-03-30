@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import type { DisplayState, AppSettings } from "../../../shared/types";
 import { getTranslations, type Language } from "../../../shared/i18n";
 import { formatDuration, findOptimalFontSize, getApiUrl } from "../../../shared/utils";
+import { ImageIcon } from "../icons/image";
 
 // Virtual resolution matching a typical display (used for scaled-down preview)
 const VIRTUAL_WIDTH = 1920;
@@ -39,6 +40,10 @@ export default function LivePreview({
 
   if (state.mode === "video") {
     return <VideoPreview state={state} />;
+  }
+
+  if (state.mode === "image") {
+    return <ImagePreview state={state} />;
   }
 
   return null;
@@ -422,6 +427,56 @@ function VideoPreview({ state }: { state: DisplayState }) {
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+// Image mode preview
+function ImagePreview({ state }: { state: DisplayState }) {
+  const { image } = state;
+  const [thumbError, setThumbError] = useState(false);
+
+  useEffect(() => {
+    setThumbError(false);
+  }, [image.imageId]);
+
+  if (!image.src) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-black">
+        <span className="text-white/50 text-xs">No image</span>
+      </div>
+    );
+  }
+
+  const isSlideshow = image.slideshowImages.length > 1;
+  const imageUrl = image.imageId
+    ? getApiUrl(`/api/images/thumbnail/${image.imageId}`)
+    : null;
+
+  return (
+    <div className="w-full h-full bg-black relative overflow-hidden">
+      {imageUrl && !thumbError ? (
+        <img
+          src={imageUrl}
+          alt=""
+          className="absolute inset-0 w-full h-full"
+          style={{ objectFit: image.fit === "fill" ? "cover" : "contain" }}
+          onError={() => setThumbError(true)}
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <ImageIcon className="w-8 h-8 text-white/30" />
+        </div>
+      )}
+
+      {/* Slide counter */}
+      {isSlideshow && (
+        <div className="absolute bottom-1.5 right-1.5 bg-black/60 px-1.5 rounded z-10 flex items-center h-5">
+          <span className="text-[9px] text-white/80 tabular-nums">
+            {image.currentIndex + 1} / {image.slideshowImages.length}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

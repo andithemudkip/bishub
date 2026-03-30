@@ -28,7 +28,7 @@ interface RemoteAPI {
   authFailed: boolean;
   reconnectWithKey: (key: string) => void;
   // Actions
-  setMode: (mode: "idle" | "text" | "video") => void;
+  setMode: (mode: "idle" | "text" | "video" | "image") => void;
   loadText: (title: string, content: string) => void;
   nextSlide: () => void;
   prevSlide: () => void;
@@ -72,6 +72,16 @@ interface RemoteAPI {
   stopAudio: () => void;
   seekAudio: (time: number) => void;
   setAudioVolume: (volume: number) => void;
+  // Image
+  loadImage: (src: string, imageId: string) => void;
+  loadSlideshow: (slideshowId: string) => void;
+  nextImage: () => void;
+  prevImage: () => void;
+  goToImage: (index: number) => void;
+  setImageAutoAdvance: (enabled: boolean) => void;
+  setImageFit: (fit: "fill" | "fit") => void;
+  setImageLoop: (loop: boolean) => void;
+  setImageAutoAdvanceInterval: (intervalMs: number) => void;
   // Idle screen settings (Electron only)
   setIdleWallpaper: (selectNew?: boolean) => Promise<string | null>;
   setClockFontSize: (size: number) => void;
@@ -433,6 +443,73 @@ export function useRemoteAPI(): RemoteAPI {
       (volume) => {
         if (isElectron) window.electronAPI!.setAudioVolume(volume);
         else socketRef.current?.emit("setAudioVolume", volume);
+      },
+      [isElectron]
+    ),
+
+    // Image
+    loadImage: useCallback(
+      (src, imageId) => {
+        if (isElectron) window.electronAPI!.loadImageToDisplay(src, imageId);
+        else socketRef.current?.emit("loadImage", src, imageId);
+      },
+      [isElectron]
+    ),
+
+    loadSlideshow: useCallback(
+      (slideshowId) => {
+        if (isElectron) window.electronAPI!.loadSlideshowToDisplay(slideshowId);
+        else socketRef.current?.emit("loadSlideshow", slideshowId);
+      },
+      [isElectron]
+    ),
+
+    nextImage: useCallback(() => {
+      if (isElectron) window.electronAPI!.nextImage();
+      else socketRef.current?.emit("nextImage");
+    }, [isElectron]),
+
+    prevImage: useCallback(() => {
+      if (isElectron) window.electronAPI!.prevImage();
+      else socketRef.current?.emit("prevImage");
+    }, [isElectron]),
+
+    goToImage: useCallback(
+      (index) => {
+        if (isElectron) window.electronAPI!.goToImage(index);
+        else socketRef.current?.emit("goToImage", index);
+      },
+      [isElectron]
+    ),
+
+    setImageAutoAdvance: useCallback(
+      (enabled) => {
+        if (isElectron) window.electronAPI!.setImageAutoAdvance(enabled);
+        else socketRef.current?.emit("setImageAutoAdvance", enabled);
+      },
+      [isElectron]
+    ),
+
+    setImageFit: useCallback(
+      (fit) => {
+        if (isElectron) window.electronAPI!.setImageFit(fit);
+        else socketRef.current?.emit("setImageFit", fit);
+      },
+      [isElectron]
+    ),
+
+    setImageLoop: useCallback(
+      (loop) => {
+        if (isElectron) window.electronAPI!.setImageLoop(loop);
+        else socketRef.current?.emit("setImageLoop", loop);
+      },
+      [isElectron]
+    ),
+
+    setImageAutoAdvanceInterval: useCallback(
+      (intervalMs) => {
+        if (isElectron) window.electronAPI!.setImageAutoAdvanceInterval(intervalMs);
+        else socketRef.current?.emit("setImageAutoAdvanceInterval", intervalMs);
       },
       [isElectron]
     ),

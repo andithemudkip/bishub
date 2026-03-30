@@ -9,6 +9,7 @@ import { renderTip } from "../components/ui/renderTip";
 
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".avi", ".mkv"];
 const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a", ".flac"];
+const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff"];
 
 interface Props {
   settings: AppSettings;
@@ -29,6 +30,10 @@ export default function TransferPage({ settings }: Props) {
 
   const handleAddToAudio = async (transfer: TransferItem) => {
     await api.addToAudioLibrary(transfer.id);
+  };
+
+  const handleAddToImage = async (transfer: TransferItem) => {
+    await api.addToImageLibrary(transfer.id);
   };
 
   return (
@@ -85,6 +90,7 @@ export default function TransferPage({ settings }: Props) {
                 onDelete={handleDelete}
                 onAddToVideo={handleAddToVideo}
                 onAddToAudio={handleAddToAudio}
+                onAddToImage={handleAddToImage}
                 t={t}
               />
             ))}
@@ -101,6 +107,7 @@ function TransferFileItem({
   onDelete,
   onAddToVideo,
   onAddToAudio,
+  onAddToImage,
   t,
 }: {
   transfer: TransferItem;
@@ -108,10 +115,12 @@ function TransferFileItem({
   onDelete: (t: TransferItem) => void;
   onAddToVideo: (t: TransferItem) => void;
   onAddToAudio: (t: TransferItem) => void;
+  onAddToImage: (t: TransferItem) => void;
   t: ReturnType<typeof getTranslations>;
 }) {
   const isVideo = VIDEO_EXTENSIONS.includes(transfer.extension);
   const isAudio = AUDIO_EXTENSIONS.includes(transfer.extension);
+  const isImage = IMAGE_EXTENSIONS.includes(transfer.extension);
 
   return (
     <div className="bg-gray-900/50 border border-gray-700/30 rounded-lg p-2.5 sm:p-3">
@@ -160,6 +169,19 @@ function TransferFileItem({
             }`}
           >
             {transfer.addedToAudio ? t.transfer.addedToAudio : t.transfer.addToAudio}
+          </button>
+        )}
+        {isImage && (
+          <button
+            onClick={() => onAddToImage(transfer)}
+            disabled={transfer.addedToImage}
+            className={`px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
+              transfer.addedToImage
+                ? "bg-green-600/10 text-green-500/60 border-green-600/30 cursor-default"
+                : "bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border-blue-600/40"
+            }`}
+          >
+            {transfer.addedToImage ? t.transfer.addedToImages : t.transfer.addToImages}
           </button>
         )}
         {isElectron && (

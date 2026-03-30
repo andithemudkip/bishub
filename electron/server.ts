@@ -33,6 +33,8 @@ import {
 import { getTranslationById } from "../src/shared/bibleTranslations";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
+import { getImageLibrary } from "./imageLibrary";
+import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
 import { startDownload, cancelDownload } from "./ytdlp";
@@ -292,6 +294,74 @@ export function createServer(
     io.emit("audioUploadProgress", progress);
   });
 
+  // Image Library setup
+  const imageLibrary = getImageLibrary();
+
+  const imageUpload = createUploadMiddleware(
+    imageLibrary.getImagesDir(),
+    IMAGE_EXTENSIONS,
+    100 * 1024 * 1024, // 100MB
+  );
+
+  app.post(
+    "/api/images/upload",
+    imageUpload.single("image"),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: "No image file uploaded" });
+        }
+
+        const originalName =
+          req.body.name ||
+          path.basename(
+            req.file.originalname,
+            path.extname(req.file.originalname)
+          );
+
+        const image = await imageLibrary.addImage(req.file.path, "upload", {
+          name: originalName,
+          copyToLibrary: false,
+        });
+
+        res.json({ image, status: "complete" });
+      } catch (error) {
+        console.error("Image upload error:", error);
+        res.status(500).json({ error: "Upload failed" });
+      }
+    }
+  );
+
+  app.get("/api/images/thumbnail/:id", (req, res) => {
+    const image = imageLibrary.getById(req.params.id);
+    if (image?.thumbnailPath && fs.existsSync(image.thumbnailPath)) {
+      res.sendFile(image.thumbnailPath);
+    } else {
+      res.status(404).send("Thumbnail not found");
+    }
+  });
+
+  app.get("/api/images/file/:id", (req, res) => {
+    const image = imageLibrary.getById(req.params.id);
+    if (image && fs.existsSync(image.path)) {
+      res.sendFile(image.path);
+    } else {
+      res.status(404).send("Image not found");
+    }
+  });
+
+  imageLibrary.onLibraryChange((images) => {
+    io.emit("imageLibrary", images);
+  });
+
+  imageLibrary.onSlideshowsChange((slideshows) => {
+    io.emit("slideshows", slideshows);
+  });
+
+  imageLibrary.onUploadProgress((progress) => {
+    io.emit("imageUploadProgress", progress);
+  });
+
   // File Transfers setup
   const transferManager = getTransferManager();
 
@@ -370,6 +440,24 @@ export function createServer(
     } catch (error) {
       console.error("Add to audio error:", error);
       res.status(500).json({ error: "Failed to add to audio library" });
+    }
+  });
+
+  app.post("/api/transfers/add-to-image", async (req, res) => {
+    try {
+      const { id } = req.body;
+      const transfer = transferManager.getById(id);
+      if (!transfer) return res.status(404).json({ error: "Transfer not found" });
+
+      const image = await imageLibrary.addImage(transfer.path, "upload", {
+        name: transfer.name,
+        copyToLibrary: true,
+      });
+      transferManager.markAddedToLibrary(id, "image");
+      res.json({ image });
+    } catch (error) {
+      console.error("Add to image error:", error);
+      res.status(500).json({ error: "Failed to add to image library" });
     }
   });
 
@@ -640,6 +728,85 @@ export function createServer(
 
     socket.on("deleteAudioPreset", (presetId) => {
       getAudioScheduler()?.deletePreset(presetId);
+    });
+
+    // Image Library
+    socket.on("getImageLibrary", () => {
+      socket.emit("imageLibrary", imageLibrary.getAll());
+    });
+
+    socket.on("getSlideshows", () => {
+      socket.emit("slideshows", imageLibrary.getAllSlideshows());
+    });
+
+    socket.on("deleteImage", async (imageId) => {
+      await imageLibrary.deleteImage(imageId);
+    });
+
+    socket.on("renameImage", (imageId, newName) => {
+      imageLibrary.renameImage(imageId, newName);
+    });
+
+    socket.on("createSlideshow", (name, imageIds) => {
+      imageLibrary.createSlideshow(name, imageIds);
+    });
+
+    socket.on("updateSlideshow", (slideshowId, updates) => {
+      imageLibrary.updateSlideshow(slideshowId, updates);
+    });
+
+    socket.on("deleteSlideshow", (slideshowId) => {
+      imageLibrary.deleteSlideshow(slideshowId);
+    });
+
+    socket.on("addImagesToSlideshow", (slideshowId, imageIds) => {
+      imageLibrary.addImagesToSlideshow(slideshowId, imageIds);
+    });
+
+    socket.on("removeImageFromSlideshow", (imageId) => {
+      imageLibrary.removeImageFromSlideshow(imageId);
+    });
+
+    socket.on("reorderSlideshowImages", (slideshowId, orderedImageIds) => {
+      imageLibrary.reorderSlideshowImages(slideshowId, orderedImageIds);
+    });
+
+    // Image presentation
+    socket.on("loadImage", (src, imageId) => {
+      stateManager.loadImage(src, imageId);
+    });
+
+    socket.on("loadSlideshow", (slideshowId) => {
+      const data = imageLibrary.getSlideshowPresentationData(slideshowId);
+      if (data) stateManager.loadSlideshow(data.images, data.slideshowId, data.settings);
+    });
+
+    socket.on("nextImage", () => {
+      stateManager.nextImage();
+    });
+
+    socket.on("prevImage", () => {
+      stateManager.prevImage();
+    });
+
+    socket.on("goToImage", (index) => {
+      stateManager.goToImage(index);
+    });
+
+    socket.on("setImageAutoAdvance", (enabled) => {
+      stateManager.setImageAutoAdvance(enabled);
+    });
+
+    socket.on("setImageFit", (fit) => {
+      stateManager.setImageFit(fit);
+    });
+
+    socket.on("setImageLoop", (loop) => {
+      stateManager.setImageLoop(loop);
+    });
+
+    socket.on("setImageAutoAdvanceInterval", (intervalMs) => {
+      stateManager.setImageAutoAdvanceInterval(intervalMs);
     });
 
     // File Transfers

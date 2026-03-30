@@ -26,6 +26,8 @@ import {
 import { getTranslationById } from "../src/shared/bibleTranslations";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
+import { getImageLibrary } from "./imageLibrary";
+import { IMAGE_EXTENSIONS_NO_DOT } from "../src/shared/imageLibrary.types";
 import { getTransferManager } from "./transferManager";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import { startDownload, cancelDownload, getActiveDownloads, killAllDownloads, checkForBinaryUpdates } from "./ytdlp";
@@ -574,6 +576,152 @@ function setupIPC() {
     return getAudioScheduler()?.deletePreset(presetId);
   });
 
+  // Image Library handlers
+  const imageLibrary = getImageLibrary();
+
+  imageLibrary.validateLibrary();
+
+  imageLibrary.onLibraryChange((images) => {
+    windowManager.broadcastToAll("image-library-update", images);
+  });
+
+  imageLibrary.onSlideshowsChange((slideshows) => {
+    windowManager.broadcastToAll("slideshows-update", slideshows);
+  });
+
+  imageLibrary.onUploadProgress((progress) => {
+    windowManager.broadcastToAll("image-upload-progress", progress);
+  });
+
+  ipcMain.handle("get-image-library", () => {
+    return imageLibrary.getAll();
+  });
+
+  ipcMain.handle("get-slideshows", () => {
+    return imageLibrary.getAllSlideshows();
+  });
+
+  ipcMain.handle("add-local-image", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters: [
+        {
+          name: "Images",
+          extensions: IMAGE_EXTENSIONS_NO_DOT,
+        },
+      ],
+    });
+
+    if (result.filePaths[0]) {
+      return imageLibrary.addImage(result.filePaths[0], "local");
+    }
+    return null;
+  });
+
+  ipcMain.handle("add-local-images", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile", "multiSelections"],
+      filters: [
+        {
+          name: "Images",
+          extensions: IMAGE_EXTENSIONS_NO_DOT,
+        },
+      ],
+    });
+
+    if (result.filePaths.length > 0) {
+      const images = [];
+      for (const filePath of result.filePaths) {
+        const image = await imageLibrary.addImage(filePath, "local");
+        images.push(image);
+      }
+      return images;
+    }
+    return [];
+  });
+
+  ipcMain.handle("delete-image", async (_event, imageId: string) => {
+    return imageLibrary.deleteImage(imageId);
+  });
+
+  ipcMain.handle("rename-image", (_event, imageId: string, newName: string) => {
+    return imageLibrary.renameImage(imageId, newName);
+  });
+
+  ipcMain.handle(
+    "create-slideshow",
+    (_event, name: string, imageIds: string[]) => {
+      return imageLibrary.createSlideshow(name, imageIds);
+    }
+  );
+
+  ipcMain.handle(
+    "update-slideshow",
+    (_event, slideshowId: string, updates: Record<string, unknown>) => {
+      return imageLibrary.updateSlideshow(slideshowId, updates);
+    }
+  );
+
+  ipcMain.handle("delete-slideshow", (_event, slideshowId: string) => {
+    return imageLibrary.deleteSlideshow(slideshowId);
+  });
+
+  ipcMain.handle(
+    "add-images-to-slideshow",
+    (_event, slideshowId: string, imageIds: string[]) => {
+      imageLibrary.addImagesToSlideshow(slideshowId, imageIds);
+    }
+  );
+
+  ipcMain.handle("remove-image-from-slideshow", (_event, imageId: string) => {
+    imageLibrary.removeImageFromSlideshow(imageId);
+  });
+
+  ipcMain.handle(
+    "reorder-slideshow-images",
+    (_event, slideshowId: string, orderedImageIds: string[]) => {
+      imageLibrary.reorderSlideshowImages(slideshowId, orderedImageIds);
+    }
+  );
+
+  // Image presentation
+  ipcMain.handle("load-image", (_event, src: string, imageId: string) => {
+    stateManager.loadImage(src, imageId);
+  });
+
+  ipcMain.handle("load-slideshow", (_event, slideshowId: string) => {
+    const data = imageLibrary.getSlideshowPresentationData(slideshowId);
+    if (data) stateManager.loadSlideshow(data.images, data.slideshowId, data.settings);
+  });
+
+  ipcMain.handle("next-image", () => {
+    stateManager.nextImage();
+  });
+
+  ipcMain.handle("prev-image", () => {
+    stateManager.prevImage();
+  });
+
+  ipcMain.handle("go-to-image", (_event, index: number) => {
+    stateManager.goToImage(index);
+  });
+
+  ipcMain.handle("set-image-auto-advance", (_event, enabled: boolean) => {
+    stateManager.setImageAutoAdvance(enabled);
+  });
+
+  ipcMain.handle("set-image-fit", (_event, fit: "fill" | "fit") => {
+    stateManager.setImageFit(fit);
+  });
+
+  ipcMain.handle("set-image-loop", (_event, loop: boolean) => {
+    stateManager.setImageLoop(loop);
+  });
+
+  ipcMain.handle("set-image-auto-advance-interval", (_event, intervalMs: number) => {
+    stateManager.setImageAutoAdvanceInterval(intervalMs);
+  });
+
   // File Transfers
   const transferManager = getTransferManager();
 
@@ -611,6 +759,18 @@ function setupIPC() {
     });
     transferManager.markAddedToLibrary(id, "audio");
     return audio;
+  });
+
+  ipcMain.handle("add-transfer-to-image", async (_event, id: string) => {
+    const transfer = transferManager.getById(id);
+    if (!transfer) return null;
+    const imageLibrary = getImageLibrary();
+    const image = await imageLibrary.addImage(transfer.path, "upload", {
+      name: transfer.name,
+      copyToLibrary: true,
+    });
+    transferManager.markAddedToLibrary(id, "image");
+    return image;
   });
 }
 

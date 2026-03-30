@@ -16,6 +16,7 @@ export interface Translations {
   nav: {
     hymns: string;
     bible: string;
+    images: string;
     video: string;
     audio: string;
     transfer: string;
@@ -33,6 +34,8 @@ export interface Translations {
     idle: string;
     playingVideo: string;
     videoPaused: string;
+    presentingImage: string;
+    presentingSlideshow: string;
   };
 
   // Hymns page
@@ -222,6 +225,60 @@ export interface Translations {
     tip: string;
   };
 
+  // Image Library
+  imageLibrary: {
+    addLocalFile: string;
+    addLocalFiles: string;
+    upload: string;
+    searchPlaceholder: string;
+    noImages: string;
+    noImagesHint: string;
+    noResults: string;
+    present: string;
+    rename: string;
+    delete: string;
+    confirmDelete: string;
+    cancel: string;
+    uploadDrop: string;
+    uploadHint: string;
+    uploading: string;
+    processing: string;
+    complete: string;
+    invalidType: string;
+    tooLarge: string;
+    uploadFailed: string;
+    openFileLocation: string;
+    addTip: string;
+    // Slideshow
+    slideshow: string;
+    createSlideshow: string;
+    slideshowName: string;
+    enterName: string;
+    deleteSlideshow: string;
+    deleteSlideshowHint: string;
+    addImages: string;
+    removeFromSlideshow: string;
+    imagesCount: string;
+    // Slideshow settings
+    autoAdvance: string;
+    interval: string;
+    seconds: string;
+    loop: string;
+    fit: string;
+    fitFill: string;
+    fitContain: string;
+    // Multi-select
+    selectMode: string;
+    selectedCount: string;
+    // Upload prompt
+    addAsIndividual: string;
+    addAsSlideshow: string;
+    multipleImagesPrompt: string;
+    confirmBulkDelete: string;
+    emptySlideshowLabel: string;
+    emptySlideshowHint: string;
+  };
+
   // File Transfers
   transfer: {
     uploadDrop: string;
@@ -230,6 +287,7 @@ export interface Translations {
     noFilesHint: string;
     addToVideo: string;
     addToAudio: string;
+    addToImages: string;
     openInExplorer: string;
     delete: string;
     confirmDelete: string;
@@ -238,6 +296,7 @@ export interface Translations {
     uploadFailed: string;
     addedToVideo: string;
     addedToAudio: string;
+    addedToImages: string;
     files: string;
     uploadTip: string;
     filesTip: string;
@@ -288,6 +347,7 @@ const ro: Translations = {
   nav: {
     hymns: "Imnuri",
     bible: "Biblie",
+    images: "Imagini",
     video: "Video",
     audio: "Audio",
     transfer: "Transfer",
@@ -301,6 +361,8 @@ const ro: Translations = {
     idle: "Inactiv",
     playingVideo: "Redare video",
     videoPaused: "Video în pauză",
+    presentingImage: "Afișare imagine",
+    presentingSlideshow: "Prezentare",
   },
   hymns: {
     searchPlaceholder: "Caută după număr sau titlu...",
@@ -482,6 +544,55 @@ const ro: Translations = {
     expired: "Expirat",
     tip: "Programează redarea audio automat la o anumită oră sau după un număr de minute. Audio-ul se redă doar când ecranul este **inactiv**. Salvează programări ca **presetări** pentru reutilizare rapidă.",
   },
+  imageLibrary: {
+    addLocalFile: "Adaugă fișier",
+    addLocalFiles: "Adaugă fișiere",
+    upload: "Încarcă",
+    searchPlaceholder: "Caută imagini...",
+    noImages: "Nicio imagine în bibliotecă",
+    noImagesHint: "Adaugă imagini folosind butoanele de mai sus",
+    noResults: "Niciun rezultat găsit",
+    present: "Prezintă",
+    rename: "Redenumește",
+    delete: "Șterge",
+    confirmDelete: "Șterge",
+    cancel: "Anulează",
+    uploadDrop: "Trage imagini sau click pentru a naviga",
+    uploadHint: "Max 100MB - JPG, PNG, GIF, WebP",
+    uploading: "Se încarcă...",
+    processing: "Se procesează...",
+    complete: "Finalizat!",
+    invalidType: "Tip de fișier invalid",
+    tooLarge: "Fișierul este prea mare",
+    uploadFailed: "Încărcarea a eșuat. Te rog încearcă din nou.",
+    openFileLocation: "Deschide locația fișierului",
+    addTip:
+      "**Adaugă fișier** alege o imagine de pe acest calculator. **Încarcă** trimite o imagine de pe telefon sau alt dispozitiv.",
+    slideshow: "Prezentare",
+    createSlideshow: "Crează prezentare",
+    slideshowName: "Nume prezentare",
+    enterName: "Introdu un nume...",
+    deleteSlideshow: "Șterge prezentarea",
+    deleteSlideshowHint: "Imaginile nu vor fi șterse",
+    addImages: "Adaugă imagini",
+    removeFromSlideshow: "Scoate din prezentare",
+    imagesCount: "{count} imagini",
+    autoAdvance: "Avansare automată",
+    interval: "Interval",
+    seconds: "secunde",
+    loop: "Repetare",
+    fit: "Încadrare",
+    fitFill: "Umple",
+    fitContain: "Încadrează",
+    selectMode: "Selectare",
+    selectedCount: "{count} selectate",
+    addAsIndividual: "Adaugă individual",
+    addAsSlideshow: "Crează prezentare",
+    multipleImagesPrompt: "Adaugă ca imagini individuale sau crează o prezentare?",
+    confirmBulkDelete: "Confirmă ștergerea",
+    emptySlideshowLabel: "Goală",
+    emptySlideshowHint: "Această prezentare nu conține imagini",
+  },
   transfer: {
     uploadDrop: "Trage fișiere aici sau apasă pentru a selecta",
     uploadHint: "Orice tip de fișier, max 2GB",
@@ -489,6 +600,7 @@ const ro: Translations = {
     noFilesHint: "Deschide această pagină pe telefon pentru a trimite fișiere",
     addToVideo: "Adaugă la video",
     addToAudio: "Adaugă la audio",
+    addToImages: "Adaugă la imagini",
     openInExplorer: "Deschide în explorer",
     delete: "Șterge",
     confirmDelete: "Sigur vrei să ștergi acest fișier?",
@@ -497,6 +609,7 @@ const ro: Translations = {
     uploadFailed: "Încărcarea a eșuat",
     addedToVideo: "Adăugat în biblioteca video",
     addedToAudio: "Adăugat în biblioteca audio",
+    addedToImages: "Adăugat în biblioteca de imagini",
     files: "Fișiere",
     uploadTip:
       "Trage fișiere aici sau apasă pentru a selecta. Fișierele încărcate sunt păstrate temporar până le muți în biblioteca **video** sau **audio**.",
@@ -543,6 +656,7 @@ const en: Translations = {
   nav: {
     hymns: "Hymns",
     bible: "Bible",
+    images: "Images",
     video: "Video",
     audio: "Audio",
     transfer: "Transfer",
@@ -556,6 +670,8 @@ const en: Translations = {
     idle: "Idle",
     playingVideo: "Playing video",
     videoPaused: "Video paused",
+    presentingImage: "Presenting image",
+    presentingSlideshow: "Slideshow",
   },
   hymns: {
     searchPlaceholder: "Search by number or title...",
@@ -737,6 +853,55 @@ const en: Translations = {
     expired: "Expired",
     tip: "Schedule audio to play automatically at a set time or after a number of minutes. Audio only plays when the display is **idle**. Save schedules as **presets** for quick reuse.",
   },
+  imageLibrary: {
+    addLocalFile: "Add file",
+    addLocalFiles: "Add files",
+    upload: "Upload",
+    searchPlaceholder: "Search images...",
+    noImages: "No images in library",
+    noImagesHint: "Add images using the buttons above",
+    noResults: "No results found",
+    present: "Present",
+    rename: "Rename",
+    delete: "Delete",
+    confirmDelete: "Delete",
+    cancel: "Cancel",
+    uploadDrop: "Drop images or click to browse",
+    uploadHint: "Max 100MB - JPG, PNG, GIF, WebP",
+    uploading: "Uploading...",
+    processing: "Processing...",
+    complete: "Complete!",
+    invalidType: "Invalid file type",
+    tooLarge: "File is too large",
+    uploadFailed: "Upload failed. Please try again.",
+    openFileLocation: "Open file location",
+    addTip:
+      "**Add file** picks an image from this computer. **Upload** sends an image from your phone or another device.",
+    slideshow: "Slideshow",
+    createSlideshow: "Create slideshow",
+    slideshowName: "Slideshow name",
+    enterName: "Enter a name...",
+    deleteSlideshow: "Delete slideshow",
+    deleteSlideshowHint: "Images will not be deleted",
+    addImages: "Add images",
+    removeFromSlideshow: "Remove from slideshow",
+    imagesCount: "{count} images",
+    autoAdvance: "Auto-advance",
+    interval: "Interval",
+    seconds: "seconds",
+    loop: "Loop",
+    fit: "Fit",
+    fitFill: "Fill",
+    fitContain: "Contain",
+    selectMode: "Select",
+    selectedCount: "{count} selected",
+    addAsIndividual: "Add individually",
+    addAsSlideshow: "Create slideshow",
+    multipleImagesPrompt: "Add as individual images or create a slideshow?",
+    confirmBulkDelete: "Confirm delete",
+    emptySlideshowLabel: "Empty",
+    emptySlideshowHint: "This slideshow has no images",
+  },
   transfer: {
     uploadDrop: "Drag files here or tap to select",
     uploadHint: "Any file type, max 2GB",
@@ -744,6 +909,7 @@ const en: Translations = {
     noFilesHint: "Open this page on your phone to upload files",
     addToVideo: "Add to video",
     addToAudio: "Add to audio",
+    addToImages: "Add to images",
     openInExplorer: "Open in explorer",
     delete: "Delete",
     confirmDelete: "Are you sure you want to delete this file?",
@@ -752,6 +918,7 @@ const en: Translations = {
     uploadFailed: "Upload failed",
     addedToVideo: "Added to video library",
     addedToAudio: "Added to audio library",
+    addedToImages: "Added to image library",
     files: "Files",
     uploadTip:
       "Drag files here or tap to browse. Uploaded files are held in a temporary area until you move them to the **video** or **audio** library.",

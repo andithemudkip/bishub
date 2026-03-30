@@ -4,6 +4,7 @@ import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
 import IdleMode from "./modes/IdleMode";
 import TextMode from "./modes/TextMode";
 import VideoMode from "./modes/VideoMode";
+import ImageMode from "./modes/ImageMode";
 
 declare global {
   interface Window {
@@ -61,6 +62,7 @@ export default function App() {
       {state.mode === "video" && (
         <VideoMode config={state.video} onTimeUpdate={handleVideoTimeUpdate} />
       )}
+      {state.mode === "image" && <ImageMode config={state.image} />}
     </div>
   );
 }

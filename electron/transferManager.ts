@@ -106,13 +106,14 @@ export class TransferManager {
     return true;
   }
 
-  markAddedToLibrary(id: string, library: "video" | "audio"): boolean {
+  markAddedToLibrary(id: string, library: "video" | "audio" | "image"): boolean {
     const transfers = this.store.get("transfers", []);
     const transfer = transfers.find((t) => t.id === id);
     if (!transfer) return false;
 
     if (library === "video") transfer.addedToVideo = true;
-    else transfer.addedToAudio = true;
+    else if (library === "audio") transfer.addedToAudio = true;
+    else transfer.addedToImage = true;
 
     this.store.set("transfers", transfers);
     this.notifyChange();

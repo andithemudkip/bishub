@@ -17,6 +17,7 @@ interface TransferAPI {
   deleteTransfer: (id: string) => Promise<boolean>;
   addToVideoLibrary: (id: string) => Promise<boolean>;
   addToAudioLibrary: (id: string) => Promise<boolean>;
+  addToImageLibrary: (id: string) => Promise<boolean>;
 }
 
 export function useTransfers(): TransferAPI {
@@ -103,6 +104,19 @@ export function useTransfers(): TransferAPI {
         return !!result;
       }
       const res = await fetch(getApiUrl("/api/transfers/add-to-audio"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      return res.ok;
+    }, []),
+
+    addToImageLibrary: useCallback(async (id: string) => {
+      if (window.electronAPI) {
+        const result = await window.electronAPI.addTransferToImage(id);
+        return !!result;
+      }
+      const res = await fetch(getApiUrl("/api/transfers/add-to-image"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),

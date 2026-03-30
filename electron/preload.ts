@@ -26,6 +26,11 @@ import type {
   CreatePresetParams,
 } from "../src/shared/audioSchedule.types";
 import type { TransferItem } from "../src/shared/transfer.types";
+import type {
+  ImageItem,
+  Slideshow,
+  ImageUploadProgress,
+} from "../src/shared/imageLibrary.types";
 
 const electronAPI = {
   getState: (): Promise<DisplayState> => ipcRenderer.invoke("get-state"),
@@ -270,6 +275,86 @@ const electronAPI = {
     return () => ipcRenderer.removeAllListeners("audio-schedule-event");
   },
 
+  // Image Library
+  getImageLibrary: (): Promise<ImageItem[]> =>
+    ipcRenderer.invoke("get-image-library"),
+  getSlideshows: (): Promise<Slideshow[]> =>
+    ipcRenderer.invoke("get-slideshows"),
+  addLocalImage: (): Promise<ImageItem | null> =>
+    ipcRenderer.invoke("add-local-image"),
+  addLocalImages: (): Promise<ImageItem[]> =>
+    ipcRenderer.invoke("add-local-images"),
+  deleteImage: (imageId: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-image", imageId),
+  renameImage: (imageId: string, newName: string): Promise<ImageItem | null> =>
+    ipcRenderer.invoke("rename-image", imageId, newName),
+  createSlideshow: (
+    name: string,
+    imageIds: string[]
+  ): Promise<Slideshow | null> =>
+    ipcRenderer.invoke("create-slideshow", name, imageIds),
+  updateSlideshow: (
+    slideshowId: string,
+    updates: Partial<Omit<Slideshow, "id" | "createdAt">>
+  ): Promise<Slideshow | null> =>
+    ipcRenderer.invoke("update-slideshow", slideshowId, updates),
+  deleteSlideshow: (slideshowId: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-slideshow", slideshowId),
+  addImagesToSlideshow: (
+    slideshowId: string,
+    imageIds: string[]
+  ): Promise<void> =>
+    ipcRenderer.invoke("add-images-to-slideshow", slideshowId, imageIds),
+  removeImageFromSlideshow: (imageId: string): Promise<void> =>
+    ipcRenderer.invoke("remove-image-from-slideshow", imageId),
+  reorderSlideshowImages: (
+    slideshowId: string,
+    orderedImageIds: string[]
+  ): Promise<void> =>
+    ipcRenderer.invoke("reorder-slideshow-images", slideshowId, orderedImageIds),
+  loadImageToDisplay: (src: string, imageId: string): Promise<void> =>
+    ipcRenderer.invoke("load-image", src, imageId),
+  loadSlideshowToDisplay: (slideshowId: string): Promise<void> =>
+    ipcRenderer.invoke("load-slideshow", slideshowId),
+  nextImage: (): Promise<void> => ipcRenderer.invoke("next-image"),
+  prevImage: (): Promise<void> => ipcRenderer.invoke("prev-image"),
+  goToImage: (index: number): Promise<void> =>
+    ipcRenderer.invoke("go-to-image", index),
+  setImageAutoAdvance: (enabled: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-image-auto-advance", enabled),
+  setImageFit: (fit: "fill" | "fit"): Promise<void> =>
+    ipcRenderer.invoke("set-image-fit", fit),
+  setImageLoop: (loop: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-image-loop", loop),
+  setImageAutoAdvanceInterval: (intervalMs: number): Promise<void> =>
+    ipcRenderer.invoke("set-image-auto-advance-interval", intervalMs),
+
+  onImageLibraryUpdate: (callback: (images: ImageItem[]) => void) => {
+    ipcRenderer.on(
+      "image-library-update",
+      (_event: any, images: ImageItem[]) => callback(images)
+    );
+    return () => ipcRenderer.removeAllListeners("image-library-update");
+  },
+
+  onSlideshowsUpdate: (callback: (slideshows: Slideshow[]) => void) => {
+    ipcRenderer.on(
+      "slideshows-update",
+      (_event: any, slideshows: Slideshow[]) => callback(slideshows)
+    );
+    return () => ipcRenderer.removeAllListeners("slideshows-update");
+  },
+
+  onImageUploadProgress: (
+    callback: (progress: ImageUploadProgress) => void
+  ) => {
+    ipcRenderer.on(
+      "image-upload-progress",
+      (_event: any, progress: ImageUploadProgress) => callback(progress)
+    );
+    return () => ipcRenderer.removeAllListeners("image-upload-progress");
+  },
+
   // File Transfers
   getTransfers: (): Promise<TransferItem[]> =>
     ipcRenderer.invoke("get-transfers"),
@@ -279,6 +364,8 @@ const electronAPI = {
     ipcRenderer.invoke("add-transfer-to-video", id),
   addTransferToAudio: (id: string): Promise<any> =>
     ipcRenderer.invoke("add-transfer-to-audio", id),
+  addTransferToImage: (id: string): Promise<any> =>
+    ipcRenderer.invoke("add-transfer-to-image", id),
   onTransfersUpdate: (callback: (transfers: TransferItem[]) => void) => {
     ipcRenderer.on(
       "transfers-update",

@@ -7,6 +7,7 @@ import UpdateBanner from "./components/UpdateBanner";
 import Layout from "./components/Layout";
 import HymnsPage from "./pages/HymnsPage";
 import BiblePage from "./pages/BiblePage";
+import ImageLibraryPage from "./pages/ImageLibraryPage";
 import VideoLibraryPage from "./pages/VideoLibraryPage";
 import AudioLibraryPage from "./pages/AudioLibraryPage";
 import TransferPage from "./pages/TransferPage";
@@ -64,16 +65,24 @@ export default function App() {
   useShortcut(
     "nextSlide",
     (e) => {
-      if (api.state.mode === "text") e.preventDefault();
-      handleNextSlide();
+      if (api.state.mode === "text" || api.state.mode === "image") e.preventDefault();
+      if (api.state.mode === "image") {
+        api.nextImage();
+      } else {
+        handleNextSlide();
+      }
     }
   );
 
   useShortcut(
     "prevSlide",
     (e) => {
-      if (api.state.mode === "text") e.preventDefault();
-      api.prevSlide();
+      if (api.state.mode === "text" || api.state.mode === "image") e.preventDefault();
+      if (api.state.mode === "image") {
+        api.prevImage();
+      } else {
+        api.prevSlide();
+      }
     }
   );
 
@@ -107,7 +116,7 @@ export default function App() {
   }, [api]);
 
   const renderPage = (
-    page: "hymns" | "bible" | "video" | "audio" | "transfer" | "settings"
+    page: "hymns" | "bible" | "images" | "video" | "audio" | "transfer" | "settings"
   ) => {
     switch (page) {
       case "hymns":
@@ -130,6 +139,19 @@ export default function App() {
             loadBibleVerses={api.loadBibleVerses}
             searchBibleVerses={api.searchBibleVerses}
             goToSlide={api.goToSlide}
+            settings={api.settings}
+          />
+        );
+      case "images":
+        return (
+          <ImageLibraryPage
+            imageState={api.state.image}
+            loadImage={api.loadImage}
+            loadSlideshow={api.loadSlideshow}
+            setImageAutoAdvance={api.setImageAutoAdvance}
+            setImageFit={api.setImageFit}
+            setImageLoop={api.setImageLoop}
+            setImageAutoAdvanceInterval={api.setImageAutoAdvanceInterval}
             settings={api.settings}
           />
         );
@@ -209,6 +231,9 @@ export default function App() {
         onGoIdle={handleGoIdle}
         onNextSlide={handleNextSlide}
         onPrevSlide={handlePrevSlide}
+        onNextImage={api.nextImage}
+        onPrevImage={api.prevImage}
+        onSetImageFit={api.setImageFit}
       >
         {renderPage}
       </Layout>
