@@ -70,6 +70,7 @@ export interface Translations {
     minCharsHint: string;
     recentSearches: string;
     clearHistory: string;
+    examples: string;
   };
 
   // Settings page
@@ -333,6 +334,7 @@ const ro: Translations = {
     minCharsHint: "Introdu cel puțin 3 caractere",
     recentSearches: "Căutări recente",
     clearHistory: "Șterge istoricul",
+    examples: "Exemple",
   },
   settings: {
     language: "Limbă",
@@ -587,6 +589,7 @@ const en: Translations = {
     minCharsHint: "Enter at least 3 characters",
     recentSearches: "Recent searches",
     clearHistory: "Clear history",
+    examples: "Examples",
   },
   settings: {
     language: "Language",

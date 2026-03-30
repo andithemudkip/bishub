@@ -100,24 +100,44 @@ export default function SmartSearchBar({
     }
   };
 
+  const examples = language === "ro"
+    ? ["Ioan 3:16", "Ps 23", "Gen 1:1-3", "Rom 8:28"]
+    : ["John 3:16", "Ps 23", "Gen 1:1-3", "Rom 8:28"];
+
   return (
-    <div className="relative">
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={t.bible.searchPlaceholder}
-        className="w-full px-4 py-3 pr-10 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      {value && (
-        <button
-          onClick={() => onChange("")}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-        >
-          <CloseIcon />
-        </button>
+    <div>
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={t.bible.searchPlaceholder}
+          className="w-full px-4 py-3 pr-10 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {value && (
+          <button
+            onClick={() => onChange("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+          >
+            <CloseIcon />
+          </button>
+        )}
+      </div>
+      {!value && (
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          <span className="text-xs text-gray-500">{t.bible.examples}:</span>
+          {examples.map((ex) => (
+            <button
+              key={ex}
+              onClick={() => onChange(ex)}
+              className="px-2 py-0.5 text-xs rounded bg-gray-800/70 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700/50 transition-colors"
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );
