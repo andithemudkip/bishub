@@ -8,6 +8,7 @@ import type {
 } from "../../shared/types";
 import type { ParsedReference } from "../../shared/bibleParser";
 import { getTranslations } from "../../shared/i18n";
+import { getTranslationById } from "../../shared/bibleTranslations";
 import { ChevronRightIcon } from "../components/icons/ui";
 import { StatusBanner } from "../components/ui/Card";
 import SmartSearchBar from "../components/bible/SmartSearchBar";
@@ -101,6 +102,7 @@ export default function BiblePage({
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const t = getTranslations(settings.language);
+  const currentTranslation = getTranslationById(settings.bibleTranslation);
 
   // Validate parsedRef against actual book data (chapter must exist)
   const validatedParsedRef = useMemo(() => {
@@ -249,6 +251,11 @@ export default function BiblePage({
     <div className="space-y-4 max-w-2xl mx-auto w-full">
       {/* Smart search bar — sticky */}
       <div className="sticky -top-4 bg-gray-900 pt-4 pb-3 -mx-4 px-4 z-10">
+        {currentTranslation && (
+          <p className="text-xs text-gray-500 mb-1.5">
+            {t.settings.bibleTranslation}: {currentTranslation.name} ({currentTranslation.shortName})
+          </p>
+        )}
         <SmartSearchBar
           value={searchInput}
           onChange={setSearchInput}

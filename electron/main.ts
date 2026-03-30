@@ -305,7 +305,8 @@ function setupIPC() {
             bookName,
             chapter,
             allVerses,
-            startVerse
+            startVerse,
+            translationId
           );
         stateManager.loadBibleChapter(title, slides, startIndex, bibleContext);
       }

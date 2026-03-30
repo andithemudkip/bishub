@@ -487,7 +487,8 @@ export function createServer(
               bookName,
               chapter,
               allVerses,
-              startVerse
+              startVerse,
+              translationId
             );
           stateManager.loadBibleChapter(
             title,

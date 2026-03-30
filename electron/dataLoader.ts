@@ -12,7 +12,7 @@ import type {
 } from "../src/shared/types";
 import { type Language, getTranslations } from "../src/shared/i18n";
 import { normalizeForSearch } from "../src/shared/utils";
-import { DEFAULT_TRANSLATION_ID } from "../src/shared/bibleTranslations";
+import { DEFAULT_TRANSLATION_ID, getTranslationById } from "../src/shared/bibleTranslations";
 import { loadTranslation } from "./bibleManager";
 
 // @ts-ignore
@@ -185,14 +185,19 @@ export function formatBibleChapterForDisplay(
   bookName: string,
   chapter: number,
   allVerses: BibleVerse[],
-  startAtVerse: number = 1
+  startAtVerse: number = 1,
+  translationId?: string
 ): {
   title: string;
   slides: string[];
   startIndex: number;
   bibleContext: BibleContext;
 } {
-  const title = `${bookName} ${chapter}`;
+  const translation = translationId ? getTranslationById(translationId) : undefined;
+  const translationLabel = translation?.shortName;
+  const title = translationLabel
+    ? `${bookName} ${chapter} (${translationLabel})`
+    : `${bookName} ${chapter}`;
   const slides = allVerses.map((v) => `${v.verse}. ${v.text}`);
   const startIndex = allVerses.findIndex((v) => v.verse === startAtVerse);
 
