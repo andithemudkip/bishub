@@ -49,6 +49,9 @@ export interface Translations {
     verse: string;
     chorus: string;
     chorusPrefix: string;
+    nowPlaying: string;
+    switchToStatic: string;
+    switchToSynced: string;
   };
 
   // Bible page
@@ -96,6 +99,7 @@ export interface Translations {
     securityKey: string;
     securityKeyHint: string;
     openOnStartup: string;
+    syncedLyrics: string;
     focusSearch: string;
     switchPage: string;
     // Idle screen settings
@@ -374,6 +378,9 @@ const ro: Translations = {
     verse: "strofă",
     chorus: "refren",
     chorusPrefix: "R",
+    nowPlaying: "Redare:",
+    switchToStatic: "Text simplu",
+    switchToSynced: "Sincronizat",
   },
   bible: {
     searchPlaceholder: "Tastează o referință sau caută text...",
@@ -436,6 +443,7 @@ const ro: Translations = {
     securityKey: "Cheie de securitate:",
     securityKeyHint: "Necesară pentru a conecta alte dispozitive la această sesiune",
     openOnStartup: "Deschide la pornirea sistemului",
+    syncedLyrics: "Versuri sincronizate",
     displayTip:
       "Alege pe ce monitor se afișează conținutul proiectat. **Auto** folosește al doilea monitor dacă este conectat. Selectează manual dacă detectarea automată alege monitorul greșit.",
     idleScreenTip:
@@ -683,6 +691,9 @@ const en: Translations = {
     verse: "verse",
     chorus: "chorus",
     chorusPrefix: "Ch",
+    nowPlaying: "Now playing:",
+    switchToStatic: "Static",
+    switchToSynced: "Synced",
   },
   bible: {
     searchPlaceholder: "Type a reference or search text...",
@@ -745,6 +756,7 @@ const en: Translations = {
     securityKey: "Security Key:",
     securityKeyHint: "Required to connect other devices to this session",
     openOnStartup: "Open on system startup",
+    syncedLyrics: "Synced lyrics",
     displayTip:
       "Choose which monitor shows the projected content. **Auto** uses the second monitor if connected. Pick a specific monitor if auto-detection chooses the wrong one.",
     idleScreenTip:

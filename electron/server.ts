@@ -20,6 +20,9 @@ import {
   loadHymns,
   getHymnByNumber,
   formatHymnForDisplay,
+  hymnHasSyncedLyrics,
+  loadHymnTTML,
+  getHymnAudioPath,
   getBibleBooks,
   getBibleChapter,
   formatBibleChapterForDisplay,
@@ -538,16 +541,30 @@ export function createServer(
       stateManager.setLanguage(language);
     });
 
+    socket.on("setSyncedLyrics", (enabled: boolean) => {
+      stateManager.setSyncedLyrics(enabled);
+    });
+
     // Hymns
     socket.on("getHymns", () => {
       socket.emit("hymns", loadHymns());
     });
 
-    socket.on("loadHymn", (hymnNumber) => {
+    socket.on("loadHymn", (hymnNumber, synced?) => {
       const hymn = getHymnByNumber(hymnNumber);
       if (hymn) {
         const language = stateManager.getSettings().language;
         const { title, slides } = formatHymnForDisplay(hymn, language);
+
+        const useSynced = synced ?? stateManager.getSettings().syncedLyrics;
+        if (useSynced && hymnHasSyncedLyrics(hymnNumber)) {
+          const ttml = loadHymnTTML(hymnNumber);
+          const audioPath = getHymnAudioPath(hymnNumber);
+          if (ttml && audioPath) {
+            stateManager.loadSyncedHymn(title, slides, ttml, audioPath);
+            return;
+          }
+        }
         stateManager.loadText(title, slides.join("\n\n"), "hymn");
       }
     });

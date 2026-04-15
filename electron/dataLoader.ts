@@ -12,6 +12,7 @@ import type {
 } from "../src/shared/types";
 import { type Language, getTranslations } from "../src/shared/i18n";
 import { normalizeForSearch } from "../src/shared/utils";
+import { parseTTML, type ParsedTTML } from "../src/shared/ttmlParser";
 import { DEFAULT_TRANSLATION_ID, getTranslationById } from "../src/shared/bibleTranslations";
 import { loadTranslation } from "./bibleManager";
 
@@ -52,6 +53,10 @@ export function loadHymns(language: Language = "ro"): Hymn[] {
   try {
     const data = fs.readFileSync(hymnsPath, "utf-8");
     const hymns = JSON.parse(data) as Hymn[];
+    // Annotate each hymn with synced lyrics availability
+    for (const hymn of hymns) {
+      hymn.hasSyncedLyrics = hymnHasSyncedLyrics(hymn.number);
+    }
     hymnsCache.set(language, hymns);
     return hymns;
   } catch (error) {
@@ -66,6 +71,34 @@ export function getHymnByNumber(
 ): Hymn | null {
   const hymns = loadHymns(language);
   return hymns.find((h) => h.number === number) || null;
+}
+
+// Synced lyrics (TTML + MP3) support
+function getHymnAssetPath(number: string, ext: string): string {
+  const padded = number.padStart(3, "0");
+  return path.join(getAssetsPath(), "hymns", `${padded}.${ext}`);
+}
+
+export function hymnHasSyncedLyrics(number: string): boolean {
+  return (
+    fs.existsSync(getHymnAssetPath(number, "ttml")) &&
+    fs.existsSync(getHymnAssetPath(number, "mp3"))
+  );
+}
+
+export function loadHymnTTML(number: string): ParsedTTML | null {
+  const ttmlPath = getHymnAssetPath(number, "ttml");
+  try {
+    const xml = fs.readFileSync(ttmlPath, "utf-8");
+    return parseTTML(xml);
+  } catch {
+    return null;
+  }
+}
+
+export function getHymnAudioPath(number: string): string | null {
+  const mp3Path = getHymnAssetPath(number, "mp3");
+  return fs.existsSync(mp3Path) ? mp3Path : null;
 }
 
 export function searchHymns(query: string, language: Language = "ro"): Hymn[] {

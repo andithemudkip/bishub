@@ -7,6 +7,8 @@ import type {
   TextContentType,
   BibleContext,
 } from "../src/shared/types";
+import type { ParsedTTML } from "../src/shared/ttmlParser";
+import { buildScreenGroups, getActiveScreen } from "../src/shared/ttmlParser";
 import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
 import Store from "electron-store";
@@ -33,6 +35,7 @@ export class StateManager {
   private settingsStore: Store<SettingsSchema>;
   private securityKey: string;
   private autoAdvanceTimer: NodeJS.Timeout | null = null;
+  private cachedScreenGroups: number[][] = [];
 
   constructor() {
     // Generate random security key for web remote authentication
@@ -127,8 +130,13 @@ export class StateManager {
 
   // Mode control
   setMode(mode: DisplayMode) {
-    // Stop audio when leaving idle mode
-    if (mode !== "idle" && this.state.audio.playing) {
+    const isSyncedHymn = !!this.state.text.syncedLyrics;
+    // Stop synced hymn audio when leaving text mode
+    if (isSyncedHymn && mode !== "text" && this.state.audio.src) {
+      this.stopAudio();
+    }
+    // Stop standalone audio when leaving idle mode
+    if (!isSyncedHymn && mode !== "idle" && this.state.audio.playing) {
       this.stopAudio();
     }
     this.state.mode = mode;
@@ -136,6 +144,12 @@ export class StateManager {
   }
 
   goIdle() {
+    // Stop synced hymn audio when going idle
+    if (this.state.text.syncedLyrics && this.state.audio.src) {
+      this.stopAudio();
+    }
+    this.state.text.syncedLyrics = undefined;
+    this.cachedScreenGroups = [];
     this.state.mode = "idle";
     this.state.video.playing = false;
     this.clearAutoAdvanceTimer();
@@ -148,7 +162,12 @@ export class StateManager {
     content: string,
     contentType: TextContentType = "custom"
   ) {
-    // Split content into slides by double newlines or --- markers
+    // Stop synced hymn audio when switching to static text
+    if (this.state.text.syncedLyrics && this.state.audio.src) {
+      this.stopAudio();
+    }
+    this.cachedScreenGroups = [];
+
     const slides = content
       .split(/\n\n+|---+/)
       .map((s) => s.trim())
@@ -161,6 +180,34 @@ export class StateManager {
       contentType,
       bibleContext: undefined,
     };
+    this.state.mode = "text";
+    this.notifyStateChange();
+  }
+
+  loadSyncedHymn(
+    title: string,
+    slides: string[],
+    syncedLyrics: ParsedTTML,
+    audioPath: string
+  ) {
+    this.state.text = {
+      title,
+      slides,
+      currentSlide: 0,
+      contentType: "hymn",
+      bibleContext: undefined,
+      syncedLyrics,
+    };
+    // Load audio without switching to idle mode
+    this.state.audio = {
+      src: audioPath,
+      name: title,
+      playing: true,
+      currentTime: 0,
+      duration: 0,
+      volume: this.state.audio.volume,
+    };
+    this.cachedScreenGroups = buildScreenGroups(slides, syncedLyrics.lines.length);
     this.state.mode = "text";
     this.notifyStateChange();
   }
@@ -182,7 +229,28 @@ export class StateManager {
     this.notifyStateChange();
   }
 
+  private getScreenGroups() {
+    return this.cachedScreenGroups;
+  }
+
+  // Get the time at the end of a screen's last word
+  private getScreenEndTime(groups: number[][], screenIndex: number) {
+    const lines = this.state.text.syncedLyrics!.lines;
+    const lastLineIdx = groups[screenIndex][groups[screenIndex].length - 1];
+    const lastLine = lines[lastLineIdx];
+    return lastLine.words[lastLine.words.length - 1].end;
+  }
+
   nextSlide() {
+    if (this.state.text.syncedLyrics) {
+      const groups = this.getScreenGroups();
+      const current = getActiveScreen(groups, this.state.text.syncedLyrics!.lines, this.state.audio.currentTime);
+      if (current < groups.length - 1) {
+        // Seek to end of current screen's last word — lets people hear the bridge
+        this.seekAudio(this.getScreenEndTime(groups, current));
+      }
+      return;
+    }
     if (this.state.text.currentSlide < this.state.text.slides.length - 1) {
       this.state.text.currentSlide++;
       this.notifyStateChange();
@@ -190,6 +258,18 @@ export class StateManager {
   }
 
   prevSlide() {
+    if (this.state.text.syncedLyrics) {
+      const groups = this.getScreenGroups();
+      const current = getActiveScreen(groups, this.state.text.syncedLyrics!.lines, this.state.audio.currentTime);
+      if (current > 0) {
+        // Seek to end of the screen before the previous one, so prev screen plays from its intro
+        const target = current - 1;
+        this.seekAudio(target > 0 ? this.getScreenEndTime(groups, target - 1) : 0);
+      } else {
+        this.seekAudio(0);
+      }
+      return;
+    }
     if (this.state.text.currentSlide > 0) {
       this.state.text.currentSlide--;
       this.notifyStateChange();
@@ -267,6 +347,11 @@ export class StateManager {
 
   setLanguage(language: Language) {
     this.settings.language = language;
+    this.notifySettingsChange();
+  }
+
+  setSyncedLyrics(enabled: boolean) {
+    this.settings.syncedLyrics = enabled;
     this.notifySettingsChange();
   }
 
@@ -361,6 +446,16 @@ export class StateManager {
   updateAudioTime(time: number, duration: number) {
     this.state.audio.currentTime = time;
     this.state.audio.duration = duration;
+    if (this.state.text.syncedLyrics) {
+      // Go idle when synced hymn audio finishes
+      if (duration > 0 && time >= duration) {
+        this.goIdle();
+        return;
+      }
+      const groups = this.getScreenGroups();
+      const screen = getActiveScreen(groups, this.state.text.syncedLyrics!.lines, this.state.audio.currentTime);
+      this.state.text.currentSlide = screen;
+    }
     this.notifyStateChange();
   }
 

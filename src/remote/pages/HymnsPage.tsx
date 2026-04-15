@@ -1,17 +1,21 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useFocusSearch } from "../hooks/useFocusSearch";
-import type { Hymn, TextState, AppSettings } from "../../shared/types";
+import type { Hymn, TextState, AudioState, AppSettings } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
-import { normalizeForSearch } from "../../shared/utils";
-import { CloseIcon } from "../components/icons/ui";
+import { normalizeForSearch, formatDuration } from "../../shared/utils";
+import { CloseIcon, PlayIcon, PauseIcon, MusicNoteIcon } from "../components/icons/ui";
 import { StatusBanner } from "../components/ui/Card";
 
 interface Props {
   textState: TextState;
   isTextMode: boolean;
   hymns: Hymn[];
-  onLoadHymn: (hymnNumber: string) => void;
+  onLoadHymn: (hymnNumber: string, synced?: boolean) => void;
   settings: AppSettings;
+  audioState: AudioState;
+  onPlayAudio: () => void;
+  onPauseAudio: () => void;
+  onSeekAudio: (time: number) => void;
 }
 
 export default function HymnsPage({
@@ -20,6 +24,10 @@ export default function HymnsPage({
   hymns,
   onLoadHymn,
   settings,
+  audioState,
+  onPlayAudio,
+  onPauseAudio,
+  onSeekAudio,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
@@ -80,6 +88,23 @@ export default function HymnsPage({
     return textState.title.startsWith(`${hymn.number}.`);
   };
 
+  const isSynced = !!textState.syncedLyrics;
+  // Extract hymn number from title (e.g., "1. Title" → "1")
+  const currentHymnNumber = textState.title.split(".")[0]?.trim() ?? "";
+  const currentHymnHasSynced = hymns.find(
+    (h) => h.number === currentHymnNumber
+  )?.hasSyncedLyrics;
+  const progress =
+    audioState.duration > 0
+      ? (audioState.currentTime / audioState.duration) * 100
+      : 0;
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    onSeekAudio(percent * audioState.duration);
+  };
+
   return (
     <div className="space-y-4 max-w-2xl mx-auto w-full">
       {/* Search */}
@@ -106,15 +131,76 @@ export default function HymnsPage({
       </div>
 
       {/* Current hymn indicator */}
-      {isTextMode && textState.slides.length > 0 && (
+      {isTextMode && textState.slides.length > 0 && !isSynced && (
         <StatusBanner>
-          <div className="text-sm text-blue-400 mb-1">
-            {t.hymns.nowDisplaying}
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-blue-400 mb-1">
+                {t.hymns.nowDisplaying}
+              </div>
+              <div className="font-semibold">{textState.title}</div>
+              <div className="text-sm text-gray-400 mt-1">
+                {t.hymns.slide} {textState.currentSlide + 1} {t.hymns.of}{" "}
+                {textState.slides.length}
+              </div>
+            </div>
+            {currentHymnHasSynced && (
+              <button
+                onClick={() => onLoadHymn(currentHymnNumber, true)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-600/40"
+              >
+                {t.hymns.switchToSynced}
+              </button>
+            )}
           </div>
-          <div className="font-semibold">{textState.title}</div>
-          <div className="text-sm text-gray-400 mt-1">
-            {t.hymns.slide} {textState.currentSlide + 1} {t.hymns.of}{" "}
-            {textState.slides.length}
+        </StatusBanner>
+      )}
+
+      {/* Synced hymn playback controls */}
+      {isTextMode && isSynced && (
+        <StatusBanner color="green">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-green-400 mb-1">
+                {t.hymns.nowPlaying}
+              </div>
+              <div className="font-semibold">{textState.title}</div>
+            </div>
+            <button
+              onClick={() => onLoadHymn(currentHymnNumber, false)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-600/20 text-gray-400 hover:bg-gray-600/30 border border-gray-600/40"
+            >
+              {t.hymns.switchToStatic}
+            </button>
+          </div>
+
+          {/* Progress bar */}
+          <div
+            className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden cursor-pointer"
+            onClick={handleProgressClick}
+          >
+            <div
+              className="h-full bg-green-400/80 rounded-full transition-all duration-200"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          {/* Time + controls */}
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs text-gray-400">
+              {formatDuration(audioState.currentTime)}
+            </span>
+
+            <button
+              onClick={audioState.playing ? onPauseAudio : onPlayAudio}
+              className="px-4 py-1.5 rounded-lg text-sm font-medium bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-600/40"
+            >
+              {audioState.playing ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
+            </button>
+
+            <span className="text-xs text-gray-400">
+              {formatDuration(audioState.duration)}
+            </span>
           </div>
         </StatusBanner>
       )}
@@ -139,9 +225,17 @@ export default function HymnsPage({
               </span>
               <span className="text-gray-600">·</span>
               <span className="font-medium truncate">{hymn.title}</span>
-              <span className="ml-auto text-xs text-gray-500 flex-shrink-0">
-                {hymn.verses.length}{hymn.verses.length === 1 ? ` ${t.hymns.verse}` : ` ${t.hymns.verses}`}
-                {hymn.chorus && ` + ${t.hymns.chorus}`}
+              <span className="ml-auto flex items-center gap-2 flex-shrink-0">
+                <span className="text-xs text-gray-500">
+                  {hymn.verses.length}{hymn.verses.length === 1 ? ` ${t.hymns.verse}` : ` ${t.hymns.verses}`}
+                  {hymn.chorus && ` + ${t.hymns.chorus}`}
+                </span>
+                {hymn.hasSyncedLyrics && (
+                  <>
+                    <span className="text-gray-600">·</span>
+                    <MusicNoteIcon className="w-3.5 h-3.5 text-gray-500" />
+                  </>
+                )}
               </span>
             </div>
           </button>

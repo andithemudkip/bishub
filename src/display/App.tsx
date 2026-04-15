@@ -3,8 +3,10 @@ import type { DisplayState, AppSettings } from "../shared/types";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
 import IdleMode from "./modes/IdleMode";
 import TextMode from "./modes/TextMode";
+import KaraokeMode from "./modes/KaraokeMode";
 import VideoMode from "./modes/VideoMode";
 import ImageMode from "./modes/ImageMode";
+import AudioPlayer from "./components/AudioPlayer";
 
 declare global {
   interface Window {
@@ -55,14 +57,20 @@ export default function App() {
           config={state.idle}
           language={settings.language}
           audioState={state.audio}
-          onAudioTimeUpdate={handleAudioTimeUpdate}
         />
       )}
-      {state.mode === "text" && <TextMode config={state.text} />}
+      {state.mode === "text" && (
+        state.text.syncedLyrics
+          ? <KaraokeMode config={state.text} audioState={state.audio} />
+          : <TextMode config={state.text} />
+      )}
       {state.mode === "video" && (
         <VideoMode config={state.video} onTimeUpdate={handleVideoTimeUpdate} />
       )}
       {state.mode === "image" && <ImageMode config={state.image} />}
+
+      {/* Audio player always rendered so playback works in any mode */}
+      <AudioPlayer config={state.audio} onTimeUpdate={handleAudioTimeUpdate} />
     </div>
   );
 }

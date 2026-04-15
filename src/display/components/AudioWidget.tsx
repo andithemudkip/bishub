@@ -1,11 +1,9 @@
-import { useEffect, useRef } from "react";
 import type { AudioState, AudioWidgetPosition } from "../../shared/types";
-import { formatDuration, getFileUrl } from "../../shared/utils";
+import { formatDuration } from "../../shared/utils";
 
 interface Props {
   config: AudioState;
   position: AudioWidgetPosition;
-  onTimeUpdate: (time: number, duration: number) => void;
 }
 
 // Position classes for the audio widget container
@@ -17,63 +15,8 @@ const WIDGET_POSITION_CLASSES: Record<AudioWidgetPosition, string> = {
   center: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
 };
 
-export default function AudioWidget({ config, position, onTimeUpdate }: Props) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const lastSeekedTime = useRef<number | null>(null);
-
-  // Handle play/pause
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !config.src) return;
-
-    if (config.playing) {
-      audio.play().catch((e) => {
-        console.error("[AudioWidget] Play error:", e);
-      });
-    } else {
-      audio.pause();
-    }
-  }, [config.playing, config.src]);
-
-  // Handle volume changes
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.volume = config.volume;
-  }, [config.volume]);
-
-  // Handle seeking from remote
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    // Only seek if the difference is significant
-    const diff = Math.abs(audio.currentTime - config.currentTime);
-    if (diff > 1 && lastSeekedTime.current !== config.currentTime) {
-      audio.currentTime = config.currentTime;
-      lastSeekedTime.current = config.currentTime;
-    }
-  }, [config.currentTime]);
-
-  const handleTimeUpdate = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    onTimeUpdate(audio.currentTime, audio.duration || 0);
-  };
-
-  const handleEnded = () => {
-    // Report final state when audio ends
-    const audio = audioRef.current;
-    if (!audio) return;
-    onTimeUpdate(audio.duration || 0, audio.duration || 0);
-  };
-
-  // Don't render if no audio is loaded
-  if (!config.src) {
-    return null;
-  }
-
-  const audioSrc = getFileUrl(config.src);
+export default function AudioWidget({ config, position }: Props) {
+  if (!config.src) return null;
 
   const positionClass = WIDGET_POSITION_CLASSES[position] || WIDGET_POSITION_CLASSES["bottom-right"];
   const progress = config.duration > 0 ? (config.currentTime / config.duration) * 100 : 0;
@@ -99,15 +42,6 @@ export default function AudioWidget({ config, position, onTimeUpdate }: Props) {
           <span>{formatDuration(config.currentTime)}</span>
           <span>{formatDuration(config.duration)}</span>
         </div>
-
-        {/* Hidden audio element for playback */}
-        <audio
-          ref={audioRef}
-          src={audioSrc}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleTimeUpdate}
-          onEnded={handleEnded}
-        />
       </div>
     </div>
   );

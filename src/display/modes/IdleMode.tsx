@@ -8,7 +8,6 @@ interface Props {
   config: IdleState;
   language: Language;
   audioState: AudioState;
-  onAudioTimeUpdate: (time: number, duration: number) => void;
 }
 
 // Map language to locale
@@ -35,7 +34,7 @@ const TEXT_ALIGN_CLASSES: Record<ClockPosition, string> = {
   center: "text-center",
 };
 
-export default function IdleMode({ config, language, audioState, onAudioTimeUpdate }: Props) {
+export default function IdleMode({ config, language, audioState }: Props) {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -117,7 +116,6 @@ export default function IdleMode({ config, language, audioState, onAudioTimeUpda
         <AudioWidget
           config={audioState}
           position={config.audioWidgetPosition}
-          onTimeUpdate={onAudioTimeUpdate}
         />
       )}
     </div>

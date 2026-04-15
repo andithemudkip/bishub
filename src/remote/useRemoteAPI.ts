@@ -41,9 +41,10 @@ interface RemoteAPI {
   setVolume: (volume: number) => void;
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;
+  setSyncedLyrics: (enabled: boolean) => void;
   goIdle: () => void;
   // Hymns
-  loadHymn: (hymnNumber: string) => void;
+  loadHymn: (hymnNumber: string, synced?: boolean) => void;
   // Bible
   getBibleBooks: () => Promise<
     { id: string; name: string; chapterCount: number }[]
@@ -306,15 +307,23 @@ export function useRemoteAPI(): RemoteAPI {
       [isElectron]
     ),
 
+    setSyncedLyrics: useCallback(
+      (enabled: boolean) => {
+        if (isElectron) window.electronAPI!.setSyncedLyrics(enabled);
+        else socketRef.current?.emit("setSyncedLyrics", enabled);
+      },
+      [isElectron]
+    ),
+
     goIdle: useCallback(() => {
       if (isElectron) window.electronAPI!.goIdle();
       else socketRef.current?.emit("goIdle");
     }, [isElectron]),
 
     loadHymn: useCallback(
-      (hymnNumber) => {
-        if (isElectron) window.electronAPI!.loadHymn(hymnNumber);
-        else socketRef.current?.emit("loadHymn", hymnNumber);
+      (hymnNumber, synced?) => {
+        if (isElectron) window.electronAPI!.loadHymn(hymnNumber, synced);
+        else socketRef.current?.emit("loadHymn", hymnNumber, synced);
       },
       [isElectron]
     ),

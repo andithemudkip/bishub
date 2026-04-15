@@ -21,6 +21,7 @@ import type {
   Slideshow,
   ImageUploadProgress,
 } from "./imageLibrary.types";
+import type { ParsedTTML } from "./ttmlParser";
 
 export type DisplayMode = "idle" | "text" | "video" | "image";
 
@@ -56,6 +57,7 @@ export interface TextState {
   currentSlide: number;
   contentType: TextContentType;
   bibleContext?: BibleContext;
+  syncedLyrics?: ParsedTTML;
 }
 
 export interface VideoState {
@@ -117,6 +119,7 @@ export interface AppSettings {
   volume: number;
   audioVolume: number;
   openOnStartup: boolean;
+  syncedLyrics: boolean;
 }
 
 // Socket.io event types
@@ -166,11 +169,12 @@ export type ClientToServerEvents = {
   setVolume: (volume: number) => void;
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;
+  setSyncedLyrics: (enabled: boolean) => void;
   getMonitors: () => void;
   goIdle: () => void;
   // Hymns
   getHymns: () => void;
-  loadHymn: (hymnNumber: string) => void;
+  loadHymn: (hymnNumber: string, synced?: boolean) => void;
   // Bible
   getBibleBooks: () => void;
   getBibleChapter: (bookId: string, chapter: number) => void;
@@ -295,6 +299,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   volume: 1,
   audioVolume: 1,
   openOnStartup: false,
+  syncedLyrics: true,
 };
 
 // Hymn types
@@ -303,6 +308,7 @@ export interface Hymn {
   title: string;
   chorus: string;
   verses: string[];
+  hasSyncedLyrics?: boolean;
 }
 
 // Bible types

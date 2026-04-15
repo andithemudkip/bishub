@@ -73,6 +73,8 @@ const electronAPI = {
     ipcRenderer.invoke("set-display-monitor", monitorId),
   setLanguage: (language: string): Promise<void> =>
     ipcRenderer.invoke("set-language", language),
+  setSyncedLyrics: (enabled: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-synced-lyrics", enabled),
   setOpenOnStartup: (openOnStartup: boolean): Promise<void> =>
     ipcRenderer.invoke("set-open-on-startup", openOnStartup),
   getOpenOnStartup: (): Promise<boolean> =>
@@ -97,8 +99,8 @@ const electronAPI = {
   getHymns: (): Promise<Hymn[]> => ipcRenderer.invoke("get-hymns"),
   searchHymns: (query: string): Promise<Hymn[]> =>
     ipcRenderer.invoke("search-hymns", query),
-  loadHymn: (hymnNumber: string): Promise<void> =>
-    ipcRenderer.invoke("load-hymn", hymnNumber),
+  loadHymn: (hymnNumber: string, synced?: boolean): Promise<void> =>
+    ipcRenderer.invoke("load-hymn", hymnNumber, synced),
 
   // Bible
   getBibleBooks: (): Promise<

@@ -45,6 +45,7 @@ interface Props {
   onSetAudioWidgetPosition: (position: AudioWidgetPosition) => void;
   onSetVolume: (volume: number) => void;
   onSetAudioVolume: (volume: number) => void;
+  onSetSyncedLyrics: (enabled: boolean) => void;
   appVersion: string;
   updateStatus: UpdateStatus;
   onCheckForUpdates: () => void;
@@ -66,6 +67,7 @@ export default function SettingsPage({
   onSetAudioWidgetPosition,
   onSetVolume,
   onSetAudioVolume,
+  onSetSyncedLyrics,
   appVersion,
   updateStatus,
   onCheckForUpdates,
@@ -204,6 +206,24 @@ export default function SettingsPage({
           </label>
         </Card>
       )}
+
+      {/* Synced lyrics toggle */}
+      <Card>
+        <label className="flex items-center justify-between cursor-pointer">
+          <span className="text-lg font-semibold">
+            {t.settings.syncedLyrics}
+          </span>
+          <div className="relative">
+            <input
+              type="checkbox"
+              checked={settings.syncedLyrics}
+              onChange={(e) => onSetSyncedLyrics(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </div>
+        </label>
+      </Card>
 
       {/* Display settings */}
       <Card tip={renderTip(t.settings.displayTip)}>

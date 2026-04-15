@@ -10,6 +10,9 @@ import {
   searchHymns,
   getHymnByNumber,
   formatHymnForDisplay,
+  hymnHasSyncedLyrics,
+  loadHymnTTML,
+  getHymnAudioPath,
   getBibleBooks,
   getBibleChapter,
   getBibleVerses,
@@ -189,6 +192,10 @@ function setupIPC() {
     stateManager.setLanguage(language);
   });
 
+  ipcMain.handle("set-synced-lyrics", (_event, enabled: boolean) => {
+    stateManager.setSyncedLyrics(enabled);
+  });
+
   ipcMain.handle("set-open-on-startup", (_event, openOnStartup: boolean) => {
     stateManager.setOpenOnStartup(openOnStartup);
 
@@ -265,11 +272,21 @@ function setupIPC() {
     return searchHymns(query);
   });
 
-  ipcMain.handle("load-hymn", (_event, hymnNumber: string) => {
+  ipcMain.handle("load-hymn", (_event, hymnNumber: string, synced?: boolean) => {
     const hymn = getHymnByNumber(hymnNumber);
     if (hymn) {
       const language = stateManager.getSettings().language;
       const { title, slides } = formatHymnForDisplay(hymn, language);
+
+      const useSynced = synced ?? stateManager.getSettings().syncedLyrics;
+      if (useSynced && hymnHasSyncedLyrics(hymnNumber)) {
+        const ttml = loadHymnTTML(hymnNumber);
+        const audioPath = getHymnAudioPath(hymnNumber);
+        if (ttml && audioPath) {
+          stateManager.loadSyncedHymn(title, slides, ttml, audioPath);
+          return;
+        }
+      }
       stateManager.loadText(title, slides.join("\n\n"), "hymn");
     }
   });

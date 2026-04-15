@@ -127,6 +127,10 @@ export default function App() {
             hymns={api.hymns}
             onLoadHymn={api.loadHymn}
             settings={api.settings}
+            audioState={api.state.audio}
+            onPlayAudio={api.playAudio}
+            onPauseAudio={api.pauseAudio}
+            onSeekAudio={api.seekAudio}
           />
         );
       case "bible":
@@ -201,6 +205,7 @@ export default function App() {
             onSetAudioWidgetPosition={api.setAudioWidgetPosition}
             onSetVolume={api.setVolume}
             onSetAudioVolume={api.setAudioVolume}
+            onSetSyncedLyrics={api.setSyncedLyrics}
             appVersion={appVersion}
             updateStatus={updateStatus}
             onCheckForUpdates={handleCheckForUpdates}

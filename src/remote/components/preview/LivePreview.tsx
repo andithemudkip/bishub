@@ -203,7 +203,7 @@ function TextPreview({
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
       {/* Current Slide */}
-      <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex-1 min-h-0 flex flex-col relative">
         {showLabels && (
           <div className="flex-shrink-0 text-[10px] text-white/30 uppercase tracking-widest text-center h-[20px] flex items-center justify-center select-none hidden md:flex">
             {t.preview?.current || "Current"}
