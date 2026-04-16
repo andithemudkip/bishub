@@ -8,11 +8,7 @@ import { initUpdater, checkForUpdates, quitAndInstall } from "./updater";
 import {
   loadHymns,
   searchHymns,
-  getHymnByNumber,
-  formatHymnForDisplay,
-  hymnHasSyncedLyrics,
-  loadHymnTTML,
-  getHymnAudioPath,
+  resolveHymnDisplay,
   getBibleBooks,
   getBibleChapter,
   getBibleVerses,
@@ -21,6 +17,17 @@ import {
   loadBible,
   searchBibleVerses,
 } from "./dataLoader";
+import {
+  downloadMP3,
+  downloadAllMissingMP3s,
+  cancelMP3Download,
+  cancelAllMP3Downloads,
+  clearMP3Cache,
+  getMP3CacheStats,
+  onMP3DownloadProgress,
+  onHymnAssetsUpdated,
+  checkForHymnAssetUpdates,
+} from "./hymnAssets";
 import {
   isTranslationDownloaded,
   downloadTranslation,
@@ -273,22 +280,55 @@ function setupIPC() {
   });
 
   ipcMain.handle("load-hymn", (_event, hymnNumber: string, synced?: boolean) => {
-    const hymn = getHymnByNumber(hymnNumber);
-    if (hymn) {
-      const language = stateManager.getSettings().language;
-      const { title, slides } = formatHymnForDisplay(hymn, language);
-
-      const useSynced = synced ?? stateManager.getSettings().syncedLyrics;
-      if (useSynced && hymnHasSyncedLyrics(hymnNumber)) {
-        const ttml = loadHymnTTML(hymnNumber);
-        const audioPath = getHymnAudioPath(hymnNumber);
-        if (ttml && audioPath) {
-          stateManager.loadSyncedHymn(title, slides, ttml, audioPath);
-          return;
-        }
-      }
-      stateManager.loadText(title, slides.join("\n\n"), "hymn");
+    const useSynced = synced ?? stateManager.getSettings().syncedLyrics;
+    const language = stateManager.getSettings().language;
+    const resolved = resolveHymnDisplay(hymnNumber, useSynced, language);
+    if (!resolved) return;
+    if (resolved.kind === "synced") {
+      stateManager.loadSyncedHymn(
+        resolved.title,
+        resolved.slides,
+        resolved.ttml,
+        resolved.audioPath,
+      );
+    } else {
+      stateManager.loadText(resolved.title, resolved.slides.join("\n\n"), "hymn");
     }
+  });
+
+  onMP3DownloadProgress((progress) => {
+    windowManager.broadcastToAll("hymn-mp3-download-progress", progress);
+  });
+
+  onHymnAssetsUpdated(() => {
+    const language = stateManager.getSettings().language;
+    windowManager.broadcastToAll("hymns-update", loadHymns(language));
+    windowManager.broadcastToAll(
+      "hymn-mp3-cache-stats",
+      getMP3CacheStats(),
+    );
+  });
+
+  ipcMain.handle("download-hymn-mp3", (_event, hymnNumber: string) => {
+    return downloadMP3(hymnNumber);
+  });
+  ipcMain.handle("download-all-hymn-mp3s", () => {
+    return downloadAllMissingMP3s();
+  });
+  ipcMain.handle("cancel-hymn-mp3-download", (_event, hymnNumber: string) => {
+    cancelMP3Download(hymnNumber);
+  });
+  ipcMain.handle("cancel-all-hymn-mp3-downloads", () => {
+    cancelAllMP3Downloads();
+  });
+  ipcMain.handle("clear-hymn-mp3-cache", () => {
+    clearMP3Cache();
+  });
+  ipcMain.handle("get-hymn-mp3-cache-stats", () => {
+    return getMP3CacheStats();
+  });
+  ipcMain.handle("set-karaoke-banner-dismissed", (_event, dismissed: boolean) => {
+    stateManager.setKaraokeBannerDismissed(dismissed);
   });
 
   // Bible handlers
@@ -809,8 +849,8 @@ if (!gotTheLock) {
 
   app.whenReady().then(() => {
     createWindows();
-    // Check for yt-dlp and quickjs updates in the background
     checkForBinaryUpdates();
+    checkForHymnAssetUpdates();
   });
 }
 

@@ -115,9 +115,9 @@ export default function App() {
     api.prevSlide();
   }, [api]);
 
-  const renderPage = (
-    page: "hymns" | "bible" | "images" | "video" | "audio" | "transfer" | "settings"
-  ) => {
+  type Page = "hymns" | "bible" | "images" | "video" | "audio" | "transfer" | "settings";
+
+  const renderPage = (page: Page, navigateTo: (page: Page) => void) => {
     switch (page) {
       case "hymns":
         return (
@@ -131,6 +131,11 @@ export default function App() {
             onPlayAudio={api.playAudio}
             onPauseAudio={api.pauseAudio}
             onSeekAudio={api.seekAudio}
+            mp3Downloads={api.mp3Downloads}
+            mp3CacheStats={api.mp3CacheStats}
+            onDownloadHymnMP3={api.downloadHymnMP3}
+            onDismissKaraokeBanner={() => api.setKaraokeBannerDismissed(true)}
+            onOpenKaraokeSettings={() => navigateTo("settings")}
           />
         );
       case "bible":
@@ -209,6 +214,11 @@ export default function App() {
             appVersion={appVersion}
             updateStatus={updateStatus}
             onCheckForUpdates={handleCheckForUpdates}
+            mp3CacheStats={api.mp3CacheStats}
+            mp3Downloads={api.mp3Downloads}
+            onDownloadAllHymnMP3s={api.downloadAllHymnMP3s}
+            onCancelAllHymnMP3Downloads={api.cancelAllHymnMP3Downloads}
+            onClearHymnMP3Cache={api.clearHymnMP3Cache}
           />
         );
       default:

@@ -15,6 +15,12 @@ import { normalizeForSearch } from "../src/shared/utils";
 import { parseTTML, type ParsedTTML } from "../src/shared/ttmlParser";
 import { DEFAULT_TRANSLATION_ID, getTranslationById } from "../src/shared/bibleTranslations";
 import { loadTranslation } from "./bibleManager";
+import {
+  downloadMP3,
+  getHymnTTMLContent,
+  getMP3Path,
+  getSyncedAvailability,
+} from "./hymnAssets";
 
 // @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
@@ -43,26 +49,27 @@ function getLanguageAssetPath(language: Language, filename: string): string {
   return path.join(assetsPath, filename);
 }
 
-// Cache structure to support multiple languages
-const hymnsCache = new Map<Language, Hymn[]>();
+// Raw list cached per language. Per-call re-annotation with availability
+// state is cheap (in-memory Set lookups in hymnAssets) and reflects MP3s
+// that finished downloading since the previous call.
+const hymnsRawCache = new Map<Language, Hymn[]>();
 
 export function loadHymns(language: Language = "ro"): Hymn[] {
-  if (hymnsCache.has(language)) return hymnsCache.get(language)!;
-
-  const hymnsPath = getLanguageAssetPath(language, "hymns.json");
-  try {
-    const data = fs.readFileSync(hymnsPath, "utf-8");
-    const hymns = JSON.parse(data) as Hymn[];
-    // Annotate each hymn with synced lyrics availability
-    for (const hymn of hymns) {
-      hymn.hasSyncedLyrics = hymnHasSyncedLyrics(hymn.number);
+  let raw = hymnsRawCache.get(language);
+  if (!raw) {
+    const hymnsPath = getLanguageAssetPath(language, "hymns.json");
+    try {
+      raw = JSON.parse(fs.readFileSync(hymnsPath, "utf-8")) as Hymn[];
+      hymnsRawCache.set(language, raw);
+    } catch (error) {
+      console.error(`Failed to load hymns for ${language}:`, error);
+      return [];
     }
-    hymnsCache.set(language, hymns);
-    return hymns;
-  } catch (error) {
-    console.error(`Failed to load hymns for ${language}:`, error);
-    return [];
   }
+  return raw.map((hymn) => ({
+    ...hymn,
+    syncedAvailability: getSyncedAvailability(hymn.number),
+  }));
 }
 
 export function getHymnByNumber(
@@ -73,23 +80,10 @@ export function getHymnByNumber(
   return hymns.find((h) => h.number === number) || null;
 }
 
-// Synced lyrics (TTML + MP3) support
-function getHymnAssetPath(number: string, ext: string): string {
-  const padded = number.padStart(3, "0");
-  return path.join(getAssetsPath(), "hymns", `${padded}.${ext}`);
-}
-
-export function hymnHasSyncedLyrics(number: string): boolean {
-  return (
-    fs.existsSync(getHymnAssetPath(number, "ttml")) &&
-    fs.existsSync(getHymnAssetPath(number, "mp3"))
-  );
-}
-
 export function loadHymnTTML(number: string): ParsedTTML | null {
-  const ttmlPath = getHymnAssetPath(number, "ttml");
+  const xml = getHymnTTMLContent(number);
+  if (!xml) return null;
   try {
-    const xml = fs.readFileSync(ttmlPath, "utf-8");
     return parseTTML(xml);
   } catch {
     return null;
@@ -97,8 +91,46 @@ export function loadHymnTTML(number: string): ParsedTTML | null {
 }
 
 export function getHymnAudioPath(number: string): string | null {
-  const mp3Path = getHymnAssetPath(number, "mp3");
-  return fs.existsSync(mp3Path) ? mp3Path : null;
+  return getMP3Path(number);
+}
+
+export type ResolvedHymn =
+  | {
+      kind: "synced";
+      title: string;
+      slides: string[];
+      ttml: ParsedTTML;
+      audioPath: string;
+    }
+  | { kind: "static"; title: string; slides: string[] };
+
+/**
+ * Resolve a hymn for playback: prefer synced karaoke when available, otherwise
+ * fall back to static slides. When TTML exists but the MP3 isn't cached yet,
+ * fire a background download so karaoke is available next time.
+ */
+export function resolveHymnDisplay(
+  hymnNumber: string,
+  syncedPreferred: boolean,
+  language: Language,
+): ResolvedHymn | null {
+  const hymn = getHymnByNumber(hymnNumber, language);
+  if (!hymn) return null;
+  const { title, slides } = formatHymnForDisplay(hymn, language);
+
+  if (syncedPreferred) {
+    const availability = getSyncedAvailability(hymnNumber);
+    if (availability === "cached") {
+      const ttml = loadHymnTTML(hymnNumber);
+      const audioPath = getHymnAudioPath(hymnNumber);
+      if (ttml && audioPath) {
+        return { kind: "synced", title, slides, ttml, audioPath };
+      }
+    } else if (availability === "ttml-only") {
+      downloadMP3(hymnNumber).catch(() => {});
+    }
+  }
+  return { kind: "static", title, slides };
 }
 
 export function searchHymns(query: string, language: Language = "ro"): Hymn[] {

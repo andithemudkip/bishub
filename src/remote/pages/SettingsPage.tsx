@@ -11,7 +11,11 @@ import type {
   ClockPosition,
   AudioWidgetPosition,
   UpdateStatus,
+  MP3CacheStats,
+  MP3DownloadProgress,
 } from "../../shared/types";
+import { formatFileSize } from "../../shared/utils";
+import { CheckIcon } from "../components/icons/ui";
 import {
   getTranslations,
   LANGUAGE_NAMES,
@@ -49,6 +53,11 @@ interface Props {
   appVersion: string;
   updateStatus: UpdateStatus;
   onCheckForUpdates: () => void;
+  mp3CacheStats: MP3CacheStats;
+  mp3Downloads: MP3DownloadProgress[];
+  onDownloadAllHymnMP3s: () => void;
+  onCancelAllHymnMP3Downloads: () => void;
+  onClearHymnMP3Cache: () => void;
 }
 
 export default function SettingsPage({
@@ -71,11 +80,26 @@ export default function SettingsPage({
   appVersion,
   updateStatus,
   onCheckForUpdates,
+  mp3CacheStats,
+  mp3Downloads,
+  onDownloadAllHymnMP3s,
+  onCancelAllHymnMP3Downloads,
+  onClearHymnMP3Cache,
 }: Props) {
   const [localIP, setLocalIP] = useState<string>("...");
   const [securityKey, setSecurityKey] = useState<string>("...");
   const [openOnStartup, setOpenOnStartup] = useState<boolean>(false);
+  const [confirmClearCache, setConfirmClearCache] = useState(false);
   const t = getTranslations(settings.language);
+
+  const isMP3DownloadInFlight = mp3Downloads.some(
+    (d) => d.status === "downloading" || d.status === "queued",
+  );
+  const missingMP3Count = Math.max(
+    0,
+    mp3CacheStats.availableCount - mp3CacheStats.count,
+  );
+  const estimatedDownloadBytes = missingMP3Count * 4 * 1024 * 1024;
   const isElectron = !!window.electronAPI;
 
   useEffect(() => {
@@ -207,13 +231,19 @@ export default function SettingsPage({
         </Card>
       )}
 
-      {/* Synced lyrics toggle */}
       <Card>
-        <label className="flex items-center justify-between cursor-pointer">
-          <span className="text-lg font-semibold">
-            {t.settings.syncedLyrics}
-          </span>
-          <div className="relative">
+        <h2 className="text-lg font-semibold mb-4">
+          {t.karaoke.sectionTitle}
+        </h2>
+
+        <label className="flex items-start justify-between cursor-pointer gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="font-medium">{t.karaoke.defaultToggleLabel}</div>
+            <p className="text-sm text-gray-400 mt-1">
+              {t.karaoke.defaultToggleHint}
+            </p>
+          </div>
+          <div className="relative flex-shrink-0 mt-1">
             <input
               type="checkbox"
               checked={settings.syncedLyrics}
@@ -223,6 +253,128 @@ export default function SettingsPage({
             <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
           </div>
         </label>
+
+        {mp3CacheStats.availableCount > 0 && (
+          <div className="mt-6 pt-4 border-t border-gray-700/50">
+            <div className="text-sm text-gray-300 mb-3">
+              {t.karaoke.cacheStats
+                .replace("{count}", String(mp3CacheStats.count))
+                .replace("{total}", String(mp3CacheStats.availableCount))
+                .replace("{size}", formatFileSize(mp3CacheStats.sizeBytes))}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+            {missingMP3Count > 0 && !isMP3DownloadInFlight && (
+              <button
+                onClick={() => {
+                  const msg = t.karaoke.downloadAllConfirm.replace(
+                    "{size}",
+                    formatFileSize(estimatedDownloadBytes),
+                  );
+                  if (window.confirm(msg)) {
+                    onDownloadAllHymnMP3s();
+                  }
+                }}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40"
+              >
+                {t.karaoke.downloadAll}
+              </button>
+            )}
+            {isMP3DownloadInFlight && (
+              <button
+                onClick={onCancelAllHymnMP3Downloads}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 border border-gray-600/40"
+              >
+                {t.karaoke.cancelAll}
+              </button>
+            )}
+            {mp3CacheStats.count > 0 && !isMP3DownloadInFlight && (
+              <>
+                {!confirmClearCache ? (
+                  <button
+                    onClick={() => setConfirmClearCache(true)}
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-600/40"
+                  >
+                    {t.karaoke.clearCache}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-300">
+                      {t.karaoke.clearCacheConfirm}
+                    </span>
+                    <button
+                      onClick={() => {
+                        onClearHymnMP3Cache();
+                        setConfirmClearCache(false);
+                      }}
+                      className="px-3 py-1 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-600/40"
+                    >
+                      {t.karaoke.clearCache}
+                    </button>
+                    <button
+                      onClick={() => setConfirmClearCache(false)}
+                      className="px-3 py-1 rounded-lg bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 border border-gray-600/40"
+                    >
+                      {t.karaoke.cancelDownload}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {mp3Downloads.length > 0 && (
+            <div className="mt-4 space-y-1 max-h-64 overflow-y-auto pr-2">
+              {mp3Downloads
+                .slice()
+                .sort((a, b) => a.hymnNumber.localeCompare(b.hymnNumber))
+                .map((d) => {
+                  const pct =
+                    d.bytesTotal > 0
+                      ? Math.min(
+                          100,
+                          (d.bytesDownloaded / d.bytesTotal) * 100,
+                        )
+                      : 0;
+                  const isDone = d.status === "complete";
+                  const isError = d.status === "error";
+                  return (
+                    <div
+                      key={d.id}
+                      className="flex items-center gap-3 text-xs"
+                    >
+                      <span className="font-mono w-10 text-gray-400">
+                        {d.hymnNumber}
+                      </span>
+                      <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all ${
+                            isError
+                              ? "bg-red-400"
+                              : isDone
+                                ? "bg-green-400"
+                                : "bg-blue-400/80"
+                          }`}
+                          style={{
+                            width: isDone || isError ? "100%" : `${pct}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="w-20 text-right text-gray-500 flex items-center justify-end">
+                        {d.status === "queued" && t.karaoke.statusQueued}
+                        {isError && t.karaoke.errorDownload}
+                        {isDone && (
+                          <CheckIcon className="w-3.5 h-3.5 text-green-400" />
+                        )}
+                        {d.status === "downloading" && `${Math.round(pct)}%`}
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+          </div>
+        )}
       </Card>
 
       {/* Display settings */}

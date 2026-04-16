@@ -355,6 +355,11 @@ export class StateManager {
     this.notifySettingsChange();
   }
 
+  setKaraokeBannerDismissed(dismissed: boolean) {
+    this.settings.karaokeBannerDismissed = dismissed;
+    this.notifySettingsChange();
+  }
+
   setBibleTranslation(translationId: string) {
     this.settings.bibleTranslation = translationId;
     this.notifySettingsChange();

@@ -120,6 +120,30 @@ export interface AppSettings {
   audioVolume: number;
   openOnStartup: boolean;
   syncedLyrics: boolean;
+  karaokeBannerDismissed: boolean;
+}
+
+export type SyncedAvailability = "none" | "ttml-only" | "cached";
+
+export type MP3DownloadStatus =
+  | "queued"
+  | "downloading"
+  | "complete"
+  | "error";
+
+export interface MP3DownloadProgress {
+  id: string; // hymn number, for updateProgressList compatibility
+  hymnNumber: string;
+  bytesDownloaded: number;
+  bytesTotal: number;
+  status: MP3DownloadStatus;
+  error?: string;
+}
+
+export interface MP3CacheStats {
+  count: number;
+  sizeBytes: number;
+  availableCount: number;
 }
 
 // Socket.io event types
@@ -153,6 +177,9 @@ export type ServerToClientEvents = {
   // File Transfers
   transfers: (transfers: TransferItem[]) => void;
   transferUploadProgress: (progress: TransferUploadProgress) => void;
+  // Hymn karaoke MP3 downloads
+  mp3DownloadProgress: (progress: MP3DownloadProgress) => void;
+  mp3CacheStats: (stats: MP3CacheStats) => void;
 };
 
 export type ClientToServerEvents = {
@@ -244,6 +271,14 @@ export type ClientToServerEvents = {
   setClockFontSize: (size: number) => void;
   setClockPosition: (position: ClockPosition) => void;
   setAudioWidgetPosition: (position: AudioWidgetPosition) => void;
+  // Hymn karaoke MP3 cache
+  downloadHymnMP3: (hymnNumber: string) => void;
+  downloadAllHymnMP3s: () => void;
+  cancelHymnMP3Download: (hymnNumber: string) => void;
+  cancelAllHymnMP3Downloads: () => void;
+  clearHymnMP3Cache: () => void;
+  getHymnMP3CacheStats: () => void;
+  setKaraokeBannerDismissed: (dismissed: boolean) => void;
 };
 
 export const DEFAULT_STATE: DisplayState = {
@@ -300,6 +335,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   audioVolume: 1,
   openOnStartup: false,
   syncedLyrics: true,
+  karaokeBannerDismissed: false,
 };
 
 // Hymn types
@@ -308,7 +344,7 @@ export interface Hymn {
   title: string;
   chorus: string;
   verses: string[];
-  hasSyncedLyrics?: boolean;
+  syncedAvailability?: SyncedAvailability;
 }
 
 // Bible types

@@ -11,10 +11,12 @@ import type {
   ClientToServerEvents,
   ClockPosition,
   AudioWidgetPosition,
+  MP3DownloadProgress,
+  MP3CacheStats,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
-import { getSecurityKeyFromURL } from "../shared/utils";
+import { getSecurityKeyFromURL, updateProgressList } from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
@@ -88,6 +90,15 @@ interface RemoteAPI {
   setClockFontSize: (size: number) => void;
   setClockPosition: (position: ClockPosition) => void;
   setAudioWidgetPosition: (position: AudioWidgetPosition) => void;
+  // Hymn karaoke MP3 cache
+  mp3Downloads: MP3DownloadProgress[];
+  mp3CacheStats: MP3CacheStats;
+  downloadHymnMP3: (hymnNumber: string) => void;
+  downloadAllHymnMP3s: () => void;
+  cancelHymnMP3Download: (hymnNumber: string) => void;
+  cancelAllHymnMP3Downloads: () => void;
+  clearHymnMP3Cache: () => void;
+  setKaraokeBannerDismissed: (dismissed: boolean) => void;
 }
 
 export function useRemoteAPI(): RemoteAPI {
@@ -102,7 +113,17 @@ export function useRemoteAPI(): RemoteAPI {
   const [authError, setAuthError] = useState(false);
   const [bibleDownloadStatus, setBibleDownloadStatus] = useState<RemoteAPI["bibleDownloadStatus"]>(null);
   const [downloadedTranslations, setDownloadedTranslations] = useState<string[]>(["ron-rccv"]);
+  const [mp3Downloads, setMp3Downloads] = useState<MP3DownloadProgress[]>([]);
+  const [mp3CacheStats, setMp3CacheStats] = useState<MP3CacheStats>({
+    count: 0,
+    sizeBytes: 0,
+    availableCount: 0,
+  });
   const authAttempted = useRef(false);
+
+  const handleMP3Progress = useCallback((progress: MP3DownloadProgress) => {
+    setMp3Downloads((prev) => updateProgressList(prev, progress, setMp3Downloads));
+  }, []);
 
   const socketRef = useRef<SocketType | null>(null);
   const bibleBooksCb = useRef<
@@ -127,11 +148,20 @@ export function useRemoteAPI(): RemoteAPI {
 
       const unsubState = window.electronAPI!.onStateUpdate(setState);
       const unsubSettings = window.electronAPI!.onSettingsUpdate(setSettings);
+      const unsubHymns = window.electronAPI!.onHymnsUpdate(setHymns);
+      const unsubMP3Progress =
+        window.electronAPI!.onHymnMP3DownloadProgress(handleMP3Progress);
+      const unsubMP3Stats =
+        window.electronAPI!.onHymnMP3CacheStats(setMp3CacheStats);
+      window.electronAPI!.getHymnMP3CacheStats().then(setMp3CacheStats);
       setIsConnected(true);
 
       return () => {
         unsubState();
         unsubSettings();
+        unsubHymns();
+        unsubMP3Progress();
+        unsubMP3Stats();
       };
     } else {
       connectSocket(getSecurityKeyFromURL());
@@ -198,6 +228,9 @@ export function useRemoteAPI(): RemoteAPI {
       setBibleDownloadStatus(status);
     });
     socket.on("downloadedTranslations", setDownloadedTranslations);
+    socket.on("mp3DownloadProgress", handleMP3Progress);
+    socket.on("mp3CacheStats", setMp3CacheStats);
+    socket.emit("getHymnMP3CacheStats");
   }
 
   const reconnectWithKey = useCallback((key: string) => {
@@ -554,6 +587,49 @@ export function useRemoteAPI(): RemoteAPI {
       (position: AudioWidgetPosition) => {
         if (isElectron) window.electronAPI!.setAudioWidgetPosition(position);
         else socketRef.current?.emit("setAudioWidgetPosition", position);
+      },
+      [isElectron]
+    ),
+
+    // Hymn karaoke MP3 cache
+    mp3Downloads,
+    mp3CacheStats,
+
+    downloadHymnMP3: useCallback(
+      (hymnNumber: string) => {
+        if (isElectron) window.electronAPI!.downloadHymnMP3(hymnNumber);
+        else socketRef.current?.emit("downloadHymnMP3", hymnNumber);
+      },
+      [isElectron]
+    ),
+
+    downloadAllHymnMP3s: useCallback(() => {
+      if (isElectron) window.electronAPI!.downloadAllHymnMP3s();
+      else socketRef.current?.emit("downloadAllHymnMP3s");
+    }, [isElectron]),
+
+    cancelHymnMP3Download: useCallback(
+      (hymnNumber: string) => {
+        if (isElectron) window.electronAPI!.cancelHymnMP3Download(hymnNumber);
+        else socketRef.current?.emit("cancelHymnMP3Download", hymnNumber);
+      },
+      [isElectron]
+    ),
+
+    cancelAllHymnMP3Downloads: useCallback(() => {
+      if (isElectron) window.electronAPI!.cancelAllHymnMP3Downloads();
+      else socketRef.current?.emit("cancelAllHymnMP3Downloads");
+    }, [isElectron]),
+
+    clearHymnMP3Cache: useCallback(() => {
+      if (isElectron) window.electronAPI!.clearHymnMP3Cache();
+      else socketRef.current?.emit("clearHymnMP3Cache");
+    }, [isElectron]),
+
+    setKaraokeBannerDismissed: useCallback(
+      (dismissed: boolean) => {
+        if (isElectron) window.electronAPI!.setKaraokeBannerDismissed(dismissed);
+        else socketRef.current?.emit("setKaraokeBannerDismissed", dismissed);
       },
       [isElectron]
     ),

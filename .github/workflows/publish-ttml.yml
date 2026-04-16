@@ -1,0 +1,39 @@
+name: Publish TTML lyrics bundle
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "assets/hymns/**.ttml"
+      - "scripts/build-ttml-bundle.js"
+      - "scripts/upload-assets.js"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload TTML bundle to S3
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          BISHUB_ASSETS_BUCKET: ${{ secrets.BISHUB_ASSETS_BUCKET }}
+        run: npm run upload-assets -- --ttml

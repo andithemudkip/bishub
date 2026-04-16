@@ -7,6 +7,8 @@ import type {
   BibleVerse,
   BibleSearchResult,
   UpdateStatus,
+  MP3DownloadProgress,
+  MP3CacheStats,
 } from "../src/shared/types";
 import type {
   VideoItem,
@@ -101,6 +103,46 @@ const electronAPI = {
     ipcRenderer.invoke("search-hymns", query),
   loadHymn: (hymnNumber: string, synced?: boolean): Promise<void> =>
     ipcRenderer.invoke("load-hymn", hymnNumber, synced),
+
+  // Hymn karaoke MP3 cache
+  downloadHymnMP3: (hymnNumber: string): Promise<void> =>
+    ipcRenderer.invoke("download-hymn-mp3", hymnNumber),
+  downloadAllHymnMP3s: (): Promise<void> =>
+    ipcRenderer.invoke("download-all-hymn-mp3s"),
+  cancelHymnMP3Download: (hymnNumber: string): Promise<void> =>
+    ipcRenderer.invoke("cancel-hymn-mp3-download", hymnNumber),
+  cancelAllHymnMP3Downloads: (): Promise<void> =>
+    ipcRenderer.invoke("cancel-all-hymn-mp3-downloads"),
+  clearHymnMP3Cache: (): Promise<void> =>
+    ipcRenderer.invoke("clear-hymn-mp3-cache"),
+  getHymnMP3CacheStats: (): Promise<MP3CacheStats> =>
+    ipcRenderer.invoke("get-hymn-mp3-cache-stats"),
+  setKaraokeBannerDismissed: (dismissed: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-karaoke-banner-dismissed", dismissed),
+
+  onHymnMP3DownloadProgress: (
+    callback: (progress: MP3DownloadProgress) => void,
+  ) => {
+    ipcRenderer.on(
+      "hymn-mp3-download-progress",
+      (_event: any, progress: MP3DownloadProgress) => callback(progress),
+    );
+    return () =>
+      ipcRenderer.removeAllListeners("hymn-mp3-download-progress");
+  },
+  onHymnMP3CacheStats: (callback: (stats: MP3CacheStats) => void) => {
+    ipcRenderer.on(
+      "hymn-mp3-cache-stats",
+      (_event: any, stats: MP3CacheStats) => callback(stats),
+    );
+    return () => ipcRenderer.removeAllListeners("hymn-mp3-cache-stats");
+  },
+  onHymnsUpdate: (callback: (hymns: Hymn[]) => void) => {
+    ipcRenderer.on("hymns-update", (_event: any, hymns: Hymn[]) =>
+      callback(hymns),
+    );
+    return () => ipcRenderer.removeAllListeners("hymns-update");
+  },
 
   // Bible
   getBibleBooks: (): Promise<

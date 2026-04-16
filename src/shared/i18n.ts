@@ -54,6 +54,28 @@ export interface Translations {
     switchToSynced: string;
   };
 
+  // Karaoke audio (TTML + MP3)
+  karaoke: {
+    sectionTitle: string;
+    defaultToggleLabel: string;
+    defaultToggleHint: string;
+    cacheStats: string; // {count}, {total}, {size}
+    downloadAll: string;
+    downloadAllConfirm: string; // {size}
+    downloading: string;
+    cancelAll: string;
+    clearCache: string;
+    clearCacheConfirm: string;
+    bannerText: string;
+    bannerDismiss: string;
+    bannerOpenSettings: string;
+    downloadButton: string;
+    cancelDownload: string;
+    errorDownload: string;
+    errorDiskSpace: string;
+    statusQueued: string;
+  };
+
   // Bible page
   bible: {
     searchPlaceholder: string;
@@ -99,7 +121,6 @@ export interface Translations {
     securityKey: string;
     securityKeyHint: string;
     openOnStartup: string;
-    syncedLyrics: string;
     focusSearch: string;
     switchPage: string;
     // Idle screen settings
@@ -382,6 +403,28 @@ const ro: Translations = {
     switchToStatic: "Text simplu",
     switchToSynced: "Sincronizat",
   },
+  karaoke: {
+    sectionTitle: "Lirică sincronizată",
+    defaultToggleLabel: "Activată implicit",
+    defaultToggleHint:
+      "Imnurile cu lirică sincronizată și instrumental descărcat vor porni implicit cu lirica sincronizată. Poți comuta între lirică sincronizată și text simplu pentru fiecare imn în bara de redare.",
+    cacheStats: "{count} din {total} instrumentale descărcate · {size}",
+    downloadAll: "Descarcă tot",
+    downloadAllConfirm: "Descarcă {size}? Asta poate dura câteva minute.",
+    downloading: "Se descarcă...",
+    cancelAll: "Anulează tot",
+    clearCache: "Șterge cache-ul",
+    clearCacheConfirm: "Sigur ștergi toate instrumentalele descărcate?",
+    bannerText:
+      "Instrumentale disponibile pentru imnurile sincronizate.",
+    bannerDismiss: "Ascunde",
+    bannerOpenSettings: "Deschide setările",
+    downloadButton: "Descarcă",
+    cancelDownload: "Anulează",
+    errorDownload: "Descărcare eșuată",
+    errorDiskSpace: "Spațiu insuficient pe disc",
+    statusQueued: "În așteptare",
+  },
   bible: {
     searchPlaceholder: "Tastează o referință sau caută text...",
     go: "Du-te",
@@ -443,7 +486,6 @@ const ro: Translations = {
     securityKey: "Cheie de securitate:",
     securityKeyHint: "Necesară pentru a conecta alte dispozitive la această sesiune",
     openOnStartup: "Deschide la pornirea sistemului",
-    syncedLyrics: "Versuri sincronizate",
     displayTip:
       "Alege pe ce monitor se afișează conținutul proiectat. **Auto** folosește al doilea monitor dacă este conectat. Selectează manual dacă detectarea automată alege monitorul greșit.",
     idleScreenTip:
@@ -695,6 +737,30 @@ const en: Translations = {
     switchToStatic: "Static",
     switchToSynced: "Synced",
   },
+  karaoke: {
+    sectionTitle: "Synced lyrics",
+    defaultToggleLabel: "Enabled by default",
+    defaultToggleHint:
+      "Hymns with synced lyrics and a downloaded instrumental will start in synced mode by default. You can switch between synced lyrics and static text per hymn from the playback bar.",
+    cacheStats: "{count} of {total} instrumentals downloaded · {size}",
+    downloadAll: "Download all",
+    downloadAllConfirm:
+      "Download {size}? This may take a few minutes.",
+    downloading: "Downloading...",
+    cancelAll: "Cancel all",
+    clearCache: "Clear cache",
+    clearCacheConfirm:
+      "Delete all downloaded instrumentals?",
+    bannerText:
+      "Instrumentals available for synced hymns.",
+    bannerDismiss: "Dismiss",
+    bannerOpenSettings: "Open settings",
+    downloadButton: "Download",
+    cancelDownload: "Cancel",
+    errorDownload: "Download failed",
+    errorDiskSpace: "Insufficient disk space",
+    statusQueued: "Queued",
+  },
   bible: {
     searchPlaceholder: "Type a reference or search text...",
     go: "Go",
@@ -756,7 +822,6 @@ const en: Translations = {
     securityKey: "Security Key:",
     securityKeyHint: "Required to connect other devices to this session",
     openOnStartup: "Open on system startup",
-    syncedLyrics: "Synced lyrics",
     displayTip:
       "Choose which monitor shows the projected content. **Auto** uses the second monitor if connected. Pick a specific monitor if auto-detection chooses the wrong one.",
     idleScreenTip:

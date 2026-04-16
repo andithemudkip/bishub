@@ -27,3 +27,9 @@ npm-debug.log*
 
 # Plans
 docs/PLAN_*.md
+
+# Generated build artifacts
+assets/hymns-ttml.json
+
+# Local-only sources for asset upload
+mp3-source/

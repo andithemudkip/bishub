@@ -2,10 +2,11 @@ import { spawn, execSync, ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { app, net } from "electron";
+import { app } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import { getVideoLibrary } from "./videoLibrary";
 import { getFfmpegPath } from "./utils";
+import { fetchJSON, downloadFile } from "./otaUtils";
 import type { DownloadProgress } from "../src/shared/videoLibrary.types";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -67,74 +68,6 @@ interface GitHubRelease {
   assets: { name: string; browser_download_url: string }[];
 }
 
-async function fetchJSON(url: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const request = net.request(url);
-    let body = "";
-    request.on("response", (response) => {
-      // Follow redirects
-      if (
-        response.statusCode &&
-        response.statusCode >= 300 &&
-        response.statusCode < 400
-      ) {
-        const location = response.headers["location"];
-        const redirectUrl = Array.isArray(location) ? location[0] : location;
-        if (redirectUrl) {
-          fetchJSON(redirectUrl).then(resolve).catch(reject);
-          return;
-        }
-      }
-      response.on("data", (chunk) => (body += chunk.toString()));
-      response.on("end", () => {
-        try {
-          resolve(JSON.parse(body));
-        } catch {
-          reject(new Error("Failed to parse JSON"));
-        }
-      });
-    });
-    request.on("error", reject);
-    request.end();
-  });
-}
-
-async function downloadFile(url: string, destPath: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const request = net.request(url);
-    request.on("response", (response) => {
-      // Follow redirects
-      if (
-        response.statusCode &&
-        response.statusCode >= 300 &&
-        response.statusCode < 400
-      ) {
-        const location = response.headers["location"];
-        const redirectUrl = Array.isArray(location) ? location[0] : location;
-        if (redirectUrl) {
-          downloadFile(redirectUrl, destPath).then(resolve).catch(reject);
-          return;
-        }
-      }
-      const tmpPath = `${destPath}.tmp`;
-      const file = fs.createWriteStream(tmpPath);
-      response.on("data", (chunk) => file.write(chunk));
-      response.on("end", () => {
-        file.end(() => {
-          fs.renameSync(tmpPath, destPath);
-          // Make executable on unix
-          if (process.platform !== "win32") {
-            fs.chmodSync(destPath, 0o755);
-          }
-          resolve();
-        });
-      });
-    });
-    request.on("error", reject);
-    request.end();
-  });
-}
-
 function getVersionFile(): string {
   return path.join(getUpdatedBinDir(), "versions.json");
 }
@@ -178,7 +111,7 @@ async function updateYtdlp(): Promise<boolean> {
     const destPath = path.join(getUpdatedBinDir(), destName);
 
     console.log(`[OTA] Updating yt-dlp to ${release.tag_name}...`);
-    await downloadFile(asset.browser_download_url, destPath);
+    await downloadFile(asset.browser_download_url, destPath, { executable: true });
 
     versions["yt-dlp"] = release.tag_name;
     saveVersions(versions);
@@ -217,7 +150,7 @@ async function updateQjs(): Promise<boolean> {
     const destPath = path.join(getUpdatedBinDir(), destName);
 
     console.log(`[OTA] Updating qjs to ${release.tag_name}...`);
-    await downloadFile(asset.browser_download_url, destPath);
+    await downloadFile(asset.browser_download_url, destPath, { executable: true });
 
     versions["qjs"] = release.tag_name;
     saveVersions(versions);

@@ -18,16 +18,22 @@ import type {
 import type { Language } from "../src/shared/i18n";
 import {
   loadHymns,
-  getHymnByNumber,
-  formatHymnForDisplay,
-  hymnHasSyncedLyrics,
-  loadHymnTTML,
-  getHymnAudioPath,
+  resolveHymnDisplay,
   getBibleBooks,
   getBibleChapter,
   formatBibleChapterForDisplay,
   searchBibleVerses,
 } from "./dataLoader";
+import {
+  downloadMP3,
+  downloadAllMissingMP3s,
+  cancelMP3Download,
+  cancelAllMP3Downloads,
+  clearMP3Cache,
+  getMP3CacheStats,
+  onMP3DownloadProgress,
+  onHymnAssetsUpdated,
+} from "./hymnAssets";
 import {
   isTranslationDownloaded,
   downloadTranslation,
@@ -237,6 +243,15 @@ export function createServer(
 
   videoLibrary.onUploadProgress((progress) => {
     io.emit("uploadProgress", progress);
+  });
+
+  onMP3DownloadProgress((progress) => {
+    io.emit("mp3DownloadProgress", progress);
+  });
+  onHymnAssetsUpdated(() => {
+    const language = stateManager.getSettings().language;
+    io.emit("hymns", loadHymns(language));
+    io.emit("mp3CacheStats", getMP3CacheStats());
   });
 
   // Audio Library setup
@@ -551,22 +566,46 @@ export function createServer(
     });
 
     socket.on("loadHymn", (hymnNumber, synced?) => {
-      const hymn = getHymnByNumber(hymnNumber);
-      if (hymn) {
-        const language = stateManager.getSettings().language;
-        const { title, slides } = formatHymnForDisplay(hymn, language);
-
-        const useSynced = synced ?? stateManager.getSettings().syncedLyrics;
-        if (useSynced && hymnHasSyncedLyrics(hymnNumber)) {
-          const ttml = loadHymnTTML(hymnNumber);
-          const audioPath = getHymnAudioPath(hymnNumber);
-          if (ttml && audioPath) {
-            stateManager.loadSyncedHymn(title, slides, ttml, audioPath);
-            return;
-          }
-        }
-        stateManager.loadText(title, slides.join("\n\n"), "hymn");
+      const useSynced = synced ?? stateManager.getSettings().syncedLyrics;
+      const language = stateManager.getSettings().language;
+      const resolved = resolveHymnDisplay(hymnNumber, useSynced, language);
+      if (!resolved) return;
+      if (resolved.kind === "synced") {
+        stateManager.loadSyncedHymn(
+          resolved.title,
+          resolved.slides,
+          resolved.ttml,
+          resolved.audioPath,
+        );
+      } else {
+        stateManager.loadText(
+          resolved.title,
+          resolved.slides.join("\n\n"),
+          "hymn",
+        );
       }
+    });
+
+    socket.on("downloadHymnMP3", (hymnNumber) => {
+      downloadMP3(hymnNumber).catch(() => {});
+    });
+    socket.on("downloadAllHymnMP3s", () => {
+      downloadAllMissingMP3s().catch(() => {});
+    });
+    socket.on("cancelHymnMP3Download", (hymnNumber) => {
+      cancelMP3Download(hymnNumber);
+    });
+    socket.on("cancelAllHymnMP3Downloads", () => {
+      cancelAllMP3Downloads();
+    });
+    socket.on("clearHymnMP3Cache", () => {
+      clearMP3Cache();
+    });
+    socket.on("getHymnMP3CacheStats", () => {
+      socket.emit("mp3CacheStats", getMP3CacheStats());
+    });
+    socket.on("setKaraokeBannerDismissed", (dismissed) => {
+      stateManager.setKaraokeBannerDismissed(dismissed);
     });
 
     // Bible

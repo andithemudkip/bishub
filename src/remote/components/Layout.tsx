@@ -16,7 +16,7 @@ import { ChevronLeftIcon, ChevronRightIcon, StopIcon, MoreIcon, FitFillIcon, Fit
 type Page = "hymns" | "bible" | "images" | "video" | "audio" | "transfer" | "settings";
 
 interface Props {
-  children: (page: Page) => React.ReactNode;
+  children: (page: Page, navigateTo: (page: Page) => void) => React.ReactNode;
   state: DisplayState;
   settings: AppSettings;
   onGoIdle: () => void;
@@ -323,7 +323,7 @@ export default function Layout({
         <div className="flex-1 flex min-h-0 min-w-0">
           {/* Main page content */}
           <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-4 min-h-0 min-w-0">
-            {children(currentPage)}
+            {children(currentPage, setCurrentPage)}
           </main>
 
           {/* Desktop Preview Panel */}

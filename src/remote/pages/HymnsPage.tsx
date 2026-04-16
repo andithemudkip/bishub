@@ -1,9 +1,22 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useFocusSearch } from "../hooks/useFocusSearch";
-import type { Hymn, TextState, AudioState, AppSettings } from "../../shared/types";
+import type {
+  Hymn,
+  TextState,
+  AudioState,
+  AppSettings,
+  MP3DownloadProgress,
+  MP3CacheStats,
+} from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 import { normalizeForSearch, formatDuration } from "../../shared/utils";
-import { CloseIcon, PlayIcon, PauseIcon, MusicNoteIcon } from "../components/icons/ui";
+import {
+  CloseIcon,
+  PlayIcon,
+  PauseIcon,
+  MusicNoteIcon,
+  CloudDownloadIcon,
+} from "../components/icons/ui";
 import { StatusBanner } from "../components/ui/Card";
 
 interface Props {
@@ -16,6 +29,11 @@ interface Props {
   onPlayAudio: () => void;
   onPauseAudio: () => void;
   onSeekAudio: (time: number) => void;
+  mp3Downloads: MP3DownloadProgress[];
+  mp3CacheStats: MP3CacheStats;
+  onDownloadHymnMP3: (hymnNumber: string) => void;
+  onDismissKaraokeBanner: () => void;
+  onOpenKaraokeSettings: () => void;
 }
 
 export default function HymnsPage({
@@ -28,6 +46,11 @@ export default function HymnsPage({
   onPlayAudio,
   onPauseAudio,
   onSeekAudio,
+  mp3Downloads,
+  mp3CacheStats,
+  onDownloadHymnMP3,
+  onDismissKaraokeBanner,
+  onOpenKaraokeSettings,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
@@ -91,9 +114,20 @@ export default function HymnsPage({
   const isSynced = !!textState.syncedLyrics;
   // Extract hymn number from title (e.g., "1. Title" → "1")
   const currentHymnNumber = textState.title.split(".")[0]?.trim() ?? "";
-  const currentHymnHasSynced = hymns.find(
-    (h) => h.number === currentHymnNumber
-  )?.hasSyncedLyrics;
+  const currentHymnHasSynced =
+    hymns.find((h) => h.number === currentHymnNumber)?.syncedAvailability ===
+    "cached";
+
+  const showKaraokeBanner =
+    !settings.karaokeBannerDismissed &&
+    mp3CacheStats.availableCount > 0 &&
+    mp3CacheStats.count === 0;
+
+  const downloadsByHymn = useMemo(() => {
+    const map = new Map<string, MP3DownloadProgress>();
+    for (const d of mp3Downloads) map.set(d.id, d);
+    return map;
+  }, [mp3Downloads]);
   const progress =
     audioState.duration > 0
       ? (audioState.currentTime / audioState.duration) * 100
@@ -205,41 +239,119 @@ export default function HymnsPage({
         </StatusBanner>
       )}
 
-      {/* Hymn list */}
-      <div className="grid gap-2">
-        {filteredHymns.map((hymn) => (
-          <button
-            key={hymn.number}
-            onClick={() => handleSelectHymn(hymn)}
-            className={`text-left px-4 py-3 rounded-xl border transition-colors ${
-              isCurrentHymn(hymn)
-                ? "border-blue-500/50 bg-blue-950/30"
-                : "border-gray-700/50 bg-gray-800/50 hover:border-gray-600/50 hover:bg-gray-700/50"
-            }`}
-          >
+      {showKaraokeBanner && (
+        <StatusBanner color="blue">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm">{t.karaoke.bannerText}</div>
             <div className="flex items-center gap-2">
-              <span className={`font-mono text-sm font-bold ${
-                isCurrentHymn(hymn) ? "text-blue-300" : "text-blue-400"
-              }`}>
-                {hymn.number}
-              </span>
-              <span className="text-gray-600">·</span>
-              <span className="font-medium truncate">{hymn.title}</span>
-              <span className="ml-auto flex items-center gap-2 flex-shrink-0">
-                <span className="text-xs text-gray-500">
-                  {hymn.verses.length}{hymn.verses.length === 1 ? ` ${t.hymns.verse}` : ` ${t.hymns.verses}`}
-                  {hymn.chorus && ` + ${t.hymns.chorus}`}
-                </span>
-                {hymn.hasSyncedLyrics && (
-                  <>
-                    <span className="text-gray-600">·</span>
-                    <MusicNoteIcon className="w-3.5 h-3.5 text-gray-500" />
-                  </>
-                )}
-              </span>
+              <button
+                onClick={onOpenKaraokeSettings}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40"
+              >
+                {t.karaoke.bannerOpenSettings}
+              </button>
+              <button
+                onClick={onDismissKaraokeBanner}
+                className="text-xs text-blue-300/80 hover:text-blue-200 underline whitespace-nowrap"
+              >
+                {t.karaoke.bannerDismiss}
+              </button>
             </div>
-          </button>
-        ))}
+          </div>
+        </StatusBanner>
+      )}
+
+      <div className="grid gap-2">
+        {filteredHymns.map((hymn) => {
+          const padded = hymn.number.padStart(3, "0");
+          const download = downloadsByHymn.get(padded);
+          const isDownloading =
+            download?.status === "downloading" || download?.status === "queued";
+          const downloadPct =
+            download && download.bytesTotal > 0
+              ? Math.min(
+                  100,
+                  (download.bytesDownloaded / download.bytesTotal) * 100,
+                )
+              : 0;
+
+          return (
+            <div
+              key={hymn.number}
+              className={`relative rounded-xl border transition-colors ${
+                isCurrentHymn(hymn)
+                  ? "border-blue-500/50 bg-blue-950/30"
+                  : "border-gray-700/50 bg-gray-800/50 hover:border-gray-600/50 hover:bg-gray-700/50"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => handleSelectHymn(hymn)}
+                className="w-full text-left px-4 py-3"
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`font-mono text-sm font-bold ${
+                      isCurrentHymn(hymn) ? "text-blue-300" : "text-blue-400"
+                    }`}
+                  >
+                    {hymn.number}
+                  </span>
+                  <span className="text-gray-600">·</span>
+                  <span className="font-medium truncate">{hymn.title}</span>
+                  <span className="ml-auto flex items-center gap-2 flex-shrink-0">
+                    <span className="text-xs text-gray-500">
+                      {hymn.verses.length}
+                      {hymn.verses.length === 1
+                        ? ` ${t.hymns.verse}`
+                        : ` ${t.hymns.verses}`}
+                      {hymn.chorus && ` + ${t.hymns.chorus}`}
+                    </span>
+                    {hymn.syncedAvailability === "cached" && (
+                      <>
+                        <span className="text-gray-600">·</span>
+                        <MusicNoteIcon className="w-3.5 h-3.5 text-gray-500" />
+                      </>
+                    )}
+                    {hymn.syncedAvailability === "ttml-only" && (
+                      // Spacer reserves room for the absolute-positioned
+                      // download button — it sits outside this <button> to
+                      // avoid invalid nested interactive content.
+                      <span className="w-6" aria-hidden />
+                    )}
+                  </span>
+                </div>
+                {isDownloading && (
+                  <div className="mt-2 h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-400/80 transition-all"
+                      style={{ width: `${downloadPct}%` }}
+                    />
+                  </div>
+                )}
+                {download?.status === "error" && (
+                  <div className="mt-1 text-xs text-red-400">
+                    {download.error || t.karaoke.errorDownload}
+                  </div>
+                )}
+              </button>
+              {hymn.syncedAvailability === "ttml-only" && (
+                <button
+                  type="button"
+                  onClick={() => onDownloadHymnMP3(hymn.number)}
+                  title={t.karaoke.downloadButton}
+                  className={`absolute right-3 top-3 p-1 rounded transition-colors ${
+                    isDownloading
+                      ? "text-blue-400"
+                      : "text-gray-500 hover:text-blue-400"
+                  }`}
+                >
+                  <CloudDownloadIcon className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          );
+        })}
 
         {filteredHymns.length === 0 && searchQuery && (
           <div className="text-center py-8 text-gray-400">
