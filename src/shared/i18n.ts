@@ -407,7 +407,7 @@ const ro: Translations = {
     sectionTitle: "Lirică sincronizată",
     defaultToggleLabel: "Activată implicit",
     defaultToggleHint:
-      "Imnurile cu lirică sincronizată și instrumental descărcat vor porni implicit cu lirica sincronizată. Poți comuta între lirică sincronizată și text simplu pentru fiecare imn în bara de redare.",
+      "Imnurile cu instrumentalul descărcat pornesc cu lirică sincronizată. Poți comuta la text simplu pentru fiecare imn în bara de redare.",
     cacheStats: "{count} din {total} instrumentale descărcate · {size}",
     downloadAll: "Descarcă tot",
     downloadAllConfirm: "Descarcă {size}? Asta poate dura câteva minute.",
@@ -741,7 +741,7 @@ const en: Translations = {
     sectionTitle: "Synced lyrics",
     defaultToggleLabel: "Enabled by default",
     defaultToggleHint:
-      "Hymns with synced lyrics and a downloaded instrumental will start in synced mode by default. You can switch between synced lyrics and static text per hymn from the playback bar.",
+      "Hymns with a downloaded instrumental start with synced lyrics. You can switch to static text per hymn from the playback bar.",
     cacheStats: "{count} of {total} instrumentals downloaded · {size}",
     downloadAll: "Download all",
     downloadAllConfirm:
