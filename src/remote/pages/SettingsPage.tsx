@@ -13,6 +13,7 @@ import type {
   UpdateStatus,
   MP3CacheStats,
   MP3DownloadProgress,
+  BinaryInfo,
 } from "../../shared/types";
 import { formatFileSize } from "../../shared/utils";
 import { CheckIcon } from "../components/icons/ui";
@@ -90,6 +91,7 @@ export default function SettingsPage({
   const [securityKey, setSecurityKey] = useState<string>("...");
   const [openOnStartup, setOpenOnStartup] = useState<boolean>(false);
   const [confirmClearCache, setConfirmClearCache] = useState(false);
+  const [binaryInfo, setBinaryInfo] = useState<BinaryInfo[] | null>(null);
   const t = getTranslations(settings.language);
 
   const isMP3DownloadInFlight = mp3Downloads.some(
@@ -107,6 +109,7 @@ export default function SettingsPage({
       window.electronAPI?.getLocalIP().then(setLocalIP);
       window.electronAPI?.getSecurityKey().then(setSecurityKey);
       window.electronAPI?.getOpenOnStartup().then(setOpenOnStartup);
+      window.electronAPI?.getBinaryInfo?.().then(setBinaryInfo);
     } else {
       const url = new URL(window.location.href);
       const securityKey = url.searchParams.get("key") || "unknown";
@@ -625,6 +628,78 @@ export default function SettingsPage({
           )}
           {updateStatus.state === "error" && (
             <p className="text-sm text-red-400">{updateStatus.error}</p>
+          )}
+
+          {isElectron && (
+            <div className="pt-4 border-t border-gray-700/50">
+              <div className="text-sm text-gray-300 mb-2">
+                {t.diagnostics.bundledBinaries}
+              </div>
+              <div className="space-y-1.5">
+                {binaryInfo === null
+                  ? ["yt-dlp", "qjs", "ffmpeg", "ffprobe"].map((name) => (
+                      <div
+                        key={name}
+                        className="flex items-center justify-between text-xs font-mono gap-2"
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 bg-gray-600 animate-pulse"
+                            aria-hidden
+                          />
+                          <span className="text-gray-300">{name}</span>
+                        </span>
+                        <span
+                          className="inline-block h-3 w-28 rounded bg-gray-700/60 animate-pulse"
+                          aria-hidden
+                        />
+                      </div>
+                    ))
+                  : binaryInfo.map((bin) => {
+                      const sourceLabels = {
+                        ota: t.diagnostics.sourceOta,
+                        bundled: t.diagnostics.sourceBundled,
+                        system: t.diagnostics.sourceSystem,
+                      };
+                      const sourceLabel = bin.source ? sourceLabels[bin.source] : null;
+                      return (
+                        <div
+                          key={bin.name}
+                          className="flex items-center justify-between text-xs font-mono gap-2"
+                          title={bin.path ?? undefined}
+                        >
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span
+                              className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                                bin.available ? "bg-green-400" : "bg-red-400"
+                              }`}
+                              aria-hidden
+                            />
+                            <span className="text-gray-300">{bin.name}</span>
+                          </span>
+                          <span className="flex items-center gap-2 text-gray-500 min-w-0 truncate">
+                            {bin.available ? (
+                              <>
+                                <span className="text-gray-400 truncate">
+                                  {bin.version || t.diagnostics.unknownVersion}
+                                </span>
+                                {sourceLabel && (
+                                  <span className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 text-[10px] uppercase tracking-wide flex-shrink-0">
+                                    {sourceLabel}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-red-400">
+                                {t.diagnostics.notFound}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
+              </div>
+            </div>
           )}
         </div>
       </Card>

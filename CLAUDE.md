@@ -26,6 +26,17 @@ BisHub is a church display application built with Electron + React + TypeScript.
 - Remote control interface should be fully functional on phones/tablets
 - Use flexbox/grid with proper wrapping for different screen sizes
 
+### Web Remote Parity
+
+- **Anything implemented in the Electron remote UI must also work from web remotes** (mobile/tablet browsers on the same network), whenever it makes sense. The main computer runs Electron; other devices connect via Socket.io.
+- Electron-only is acceptable **only** when the feature inherently can't run remotely — e.g., opening a native file picker (`addLocalAudio`), revealing a file in Finder/Explorer, or anything that needs direct access to the main computer's filesystem/hardware. In those cases, hide the control for web remotes with `!library.isElectron`.
+- Actions that run in the main process (yt-dlp downloads, adding to libraries, triggering playback, etc.) should be wired on both paths. The pattern:
+  1. Electron path: `window.electronAPI!.someAction(...)` → IPC handler in `electron/main.ts`.
+  2. Web path: `socketRef.current?.emit("someAction", ...)` → handler in `electron/server.ts` calling the same backend function.
+  3. Progress/state that the main process broadcasts: expose via `windowManager.broadcastToAll(...)` for Electron AND `io.emit(...)` in `server.ts` for web.
+  4. Add the socket event name to `ClientToServerEvents` / `ServerToClientEvents` in `src/shared/types.ts`.
+- When adding a new action, check the sibling hook (`useVideoLibrary`, `useAudioLibrary`, etc.) — both IPC and Socket.io branches of the `useEffect` and `useCallback`s must be updated together.
+
 ### Shared Utilities
 
 - **Use `src/shared/utils.ts`** for common functions — don't duplicate utility logic

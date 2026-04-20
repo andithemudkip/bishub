@@ -9,6 +9,7 @@ import type {
   UpdateStatus,
   MP3DownloadProgress,
   MP3CacheStats,
+  BinaryInfo,
 } from "../src/shared/types";
 import type {
   VideoItem,
@@ -18,6 +19,7 @@ import type {
 import type {
   AudioItem,
   AudioUploadProgress,
+  AudioDownloadProgress,
   DirectoryImportProgress,
 } from "../src/shared/audioLibrary.types";
 import type {
@@ -43,6 +45,7 @@ const electronAPI = {
 
   // Updates
   getAppVersion: (): Promise<string> => ipcRenderer.invoke("get-app-version"),
+  getBinaryInfo: (): Promise<BinaryInfo[]> => ipcRenderer.invoke("get-binary-info"),
   checkForUpdates: (): Promise<void> => ipcRenderer.invoke("check-for-updates"),
   installUpdate: (): Promise<void> => ipcRenderer.invoke("install-update"),
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => {
@@ -230,6 +233,12 @@ const electronAPI = {
     ipcRenderer.invoke("delete-audio", audioId),
   renameAudio: (audioId: string, newName: string): Promise<AudioItem> =>
     ipcRenderer.invoke("rename-audio", audioId, newName),
+  downloadYouTubeAudio: (url: string): Promise<AudioDownloadProgress> =>
+    ipcRenderer.invoke("download-youtube-audio", url),
+  cancelYouTubeAudioDownload: (downloadId: string): Promise<boolean> =>
+    ipcRenderer.invoke("cancel-youtube-audio-download", downloadId),
+  getActiveAudioDownloads: (): Promise<AudioDownloadProgress[]> =>
+    ipcRenderer.invoke("get-active-audio-downloads"),
 
   // Audio playback
   loadAudio: (src: string, name: string): Promise<void> =>
@@ -261,6 +270,16 @@ const electronAPI = {
       (_event: any, progress: AudioUploadProgress) => callback(progress)
     );
     return () => ipcRenderer.removeAllListeners("audio-upload-progress");
+  },
+
+  onAudioDownloadProgress: (
+    callback: (progress: AudioDownloadProgress) => void
+  ) => {
+    ipcRenderer.on(
+      "audio-download-progress",
+      (_event: any, progress: AudioDownloadProgress) => callback(progress)
+    );
+    return () => ipcRenderer.removeAllListeners("audio-download-progress");
   },
 
   onAudioDirectoryImportProgress: (

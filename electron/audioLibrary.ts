@@ -7,6 +7,7 @@ import type {
   AudioItem,
   AudioSource,
   AudioUploadProgress,
+  AudioDownloadProgress,
   DirectoryImportProgress,
 } from "../src/shared/audioLibrary.types";
 
@@ -18,6 +19,7 @@ interface AudioLibrarySchema {
 
 type AudioLibraryChangeCallback = (audios: AudioItem[]) => void;
 type UploadProgressCallback = (progress: AudioUploadProgress) => void;
+type DownloadProgressCallback = (progress: AudioDownloadProgress) => void;
 type DirectoryImportProgressCallback = (
   progress: DirectoryImportProgress
 ) => void;
@@ -29,6 +31,7 @@ export class AudioLibraryManager {
   private audiosDir: string;
   private changeListeners: AudioLibraryChangeCallback[] = [];
   private uploadProgressListeners: UploadProgressCallback[] = [];
+  private downloadProgressListeners: DownloadProgressCallback[] = [];
   private directoryImportListeners: DirectoryImportProgressCallback[] = [];
 
   constructor() {
@@ -100,6 +103,19 @@ export class AudioLibraryManager {
 
   notifyUploadProgress(progress: AudioUploadProgress): void {
     this.uploadProgressListeners.forEach((cb) => cb(progress));
+  }
+
+  onDownloadProgress(callback: DownloadProgressCallback): () => void {
+    this.downloadProgressListeners.push(callback);
+    return () => {
+      this.downloadProgressListeners = this.downloadProgressListeners.filter(
+        (cb) => cb !== callback,
+      );
+    };
+  }
+
+  notifyDownloadProgress(progress: AudioDownloadProgress): void {
+    this.downloadProgressListeners.forEach((cb) => cb(progress));
   }
 
   // CRUD operations

@@ -209,6 +209,12 @@ export interface Translations {
     uploadFailed: string;
     processing: string;
     complete: string;
+    // YouTube audio download
+    youtube: string;
+    youtubeUrl: string;
+    download: string;
+    enterUrl: string;
+    invalidUrl: string;
     // Directory import
     scanningFolder: string;
     importingFolder: string;
@@ -359,6 +365,26 @@ export interface Translations {
     upToDate: string;
     checkForUpdates: string;
     newVersion: string;
+  };
+
+  // Diagnostics (bundled binaries shown in Settings > About)
+  diagnostics: {
+    bundledBinaries: string;
+    available: string;
+    notFound: string;
+    sourceOta: string;
+    sourceBundled: string;
+    sourceSystem: string;
+    unknownVersion: string;
+  };
+
+  // YouTube download phase labels (shared between video and audio)
+  youtubeDownload: {
+    preparing: string;
+    fetching: string;
+    downloading: string;
+    extracting: string;
+    merging: string;
   };
 }
 
@@ -556,6 +582,11 @@ const ro: Translations = {
     uploadFailed: "Încărcarea a eșuat. Te rog încearcă din nou.",
     processing: "Se procesează...",
     complete: "Finalizat!",
+    youtube: "YouTube",
+    youtubeUrl: "Lipește linkul YouTube...",
+    download: "Descarcă",
+    enterUrl: "Te rog introdu un link",
+    invalidUrl: "Te rog introdu un link YouTube valid",
     scanningFolder: "Se scanează folderul...",
     importingFolder: "Se importă folderul...",
     importProgress: "{current} din {total} fișiere",
@@ -564,7 +595,7 @@ const ro: Translations = {
     noAudioFiles: "Niciun fișier audio găsit în folder",
     openFileLocation: "Deschide locația fișierului",
     addTip:
-      "**Adaugă fișier** alege un fișier audio de pe acest calculator. **Adaugă folder** importă toate fișierele audio dintr-un folder. **Încarcă** trimite audio de pe telefon sau alt dispozitiv.",
+      "**Adaugă fișier** alege un fișier audio de pe acest calculator. **Adaugă folder** importă toate fișierele audio dintr-un folder. **Încarcă** trimite audio de pe telefon sau alt dispozitiv. **YouTube** descarcă doar track-ul audio dintr-un videoclip.",
     libraryTab: "Bibliotecă",
     scheduleTab: "Programare",
   },
@@ -685,6 +716,22 @@ const ro: Translations = {
     upToDate: "Aplicația este la zi",
     checkForUpdates: "Verifică actualizări",
     newVersion: "Versiune nouă",
+  },
+  diagnostics: {
+    bundledBinaries: "Binare incluse",
+    available: "Disponibil",
+    notFound: "Lipsește",
+    sourceOta: "actualizat",
+    sourceBundled: "inclus",
+    sourceSystem: "sistem",
+    unknownVersion: "versiune necunoscută",
+  },
+  youtubeDownload: {
+    preparing: "Se pregătește...",
+    fetching: "Se obțin informațiile...",
+    downloading: "Se descarcă...",
+    extracting: "Se extrage audio...",
+    merging: "Se combină...",
   },
   auth: {
     accessDenied: "Acces refuzat",
@@ -892,6 +939,11 @@ const en: Translations = {
     uploadFailed: "Upload failed. Please try again.",
     processing: "Processing...",
     complete: "Complete!",
+    youtube: "YouTube",
+    youtubeUrl: "Paste YouTube URL...",
+    download: "Download",
+    enterUrl: "Please enter a URL",
+    invalidUrl: "Please enter a valid YouTube URL",
     scanningFolder: "Scanning folder...",
     importingFolder: "Importing folder...",
     importProgress: "{current} of {total} files",
@@ -900,7 +952,7 @@ const en: Translations = {
     noAudioFiles: "No audio files found in folder",
     openFileLocation: "Open file location",
     addTip:
-      "**Add file** picks an audio file from this computer. **Add folder** imports all audio files from a folder at once. **Upload** sends audio from your phone or another device.",
+      "**Add file** picks an audio file from this computer. **Add folder** imports all audio files from a folder at once. **Upload** sends audio from your phone or another device. **YouTube** downloads just the audio track from a video.",
     libraryTab: "Library",
     scheduleTab: "Schedule",
   },
@@ -1021,6 +1073,22 @@ const en: Translations = {
     upToDate: "You're up to date",
     checkForUpdates: "Check for updates",
     newVersion: "New version",
+  },
+  diagnostics: {
+    bundledBinaries: "Bundled binaries",
+    available: "Available",
+    notFound: "Not found",
+    sourceOta: "updated",
+    sourceBundled: "bundled",
+    sourceSystem: "system",
+    unknownVersion: "version unknown",
+  },
+  youtubeDownload: {
+    preparing: "Preparing...",
+    fetching: "Fetching video info...",
+    downloading: "Downloading...",
+    extracting: "Extracting audio...",
+    merging: "Merging streams...",
   },
   auth: {
     accessDenied: "Access Denied",

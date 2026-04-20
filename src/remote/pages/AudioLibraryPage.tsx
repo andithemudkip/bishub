@@ -1,16 +1,18 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { AppSettings, AudioState } from "../../shared/types";
 import type { AudioItem } from "../../shared/audioLibrary.types";
 import { useAudioLibrary } from "../useAudioLibrary";
 import { useAudioScheduler } from "../useAudioScheduler";
 import AudioLibraryList from "../components/AudioLibraryList";
 import MediaUploader from "../components/MediaUploader";
+import YouTubeDownloader from "../components/YouTubeDownloader";
 import AudioScheduleSection from "../components/AudioScheduleSection";
 import StickyPlaybackBar from "../components/StickyPlaybackBar";
 import { getTranslations } from "@shared/i18n";
 import { formatFileSize } from "@shared/utils";
 import { Card } from "../components/ui/Card";
 import { renderTip } from "../components/ui/renderTip";
+import { YouTubeIcon } from "../components/icons/ui";
 
 
 interface Props {
@@ -38,9 +40,23 @@ export default function AudioLibraryPage({
   const scheduler = useAudioScheduler();
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
   const [pageTab, setPageTab] = useState<"library" | "schedule">("library");
-  const [uploadMode, setUploadMode] = useState(false);
+  const [addPanel, setAddPanel] = useState<"upload" | "youtube" | null>(null);
 
   const t = getTranslations(settings.language);
+
+  const youtubeLabels = useMemo(
+    () => ({
+      urlPlaceholder: t.audioLibrary.youtubeUrl,
+      downloadButton: t.audioLibrary.download,
+      enterUrl: t.audioLibrary.enterUrl,
+      invalidUrl: t.audioLibrary.invalidUrl,
+      processing: t.audioLibrary.processing,
+      complete: t.audioLibrary.complete,
+      cancel: t.audioLibrary.cancel,
+      stages: t.youtubeDownload,
+    }),
+    [t],
+  );
 
   const handleSelectAudio = (audio: AudioItem) => {
     setSelectedAudioId(audio.id);
@@ -76,12 +92,19 @@ export default function AudioLibraryPage({
         </div>
 
         {/* Library tab */}
-        {pageTab === "library" && (
+        {pageTab === "library" && (() => {
+          const togglePanel = (panel: "upload" | "youtube") =>
+            setAddPanel((p) => (p === panel ? null : panel));
+          const showUpload = addPanel === "upload" && !library.isElectron;
+          const showYoutube = addPanel === "youtube" || library.downloads.length > 0;
+          const hasContentBelow = !!library.directoryImport || showUpload || showYoutube;
+
+          return (
           <>
             {/* Add audio section */}
             <Card compact tip={renderTip(t.audioLibrary.addTip)}>
               {/* Toolbar */}
-              <div className={`flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden mr-8 ${library.directoryImport || (uploadMode && !library.isElectron) ? "mb-4" : ""}`}>
+              <div className={`flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden mr-8 ${hasContentBelow ? "mb-4" : ""}`}>
                 {library.isElectron && (
                   <>
                     <button
@@ -131,9 +154,9 @@ export default function AudioLibraryPage({
                 )}
                 {!library.isElectron && (
                   <button
-                    onClick={() => setUploadMode(!uploadMode)}
+                    onClick={() => togglePanel("upload")}
                     className={`px-3 py-2.5 sm:px-4 transition-colors flex items-center gap-2 text-sm ${
-                      uploadMode
+                      addPanel === "upload"
                         ? "bg-gray-700 text-blue-400"
                         : "text-gray-300 hover:bg-gray-700"
                     }`}
@@ -156,6 +179,17 @@ export default function AudioLibraryPage({
                     </span>
                   </button>
                 )}
+                <button
+                  onClick={() => togglePanel("youtube")}
+                  className={`px-3 py-2.5 sm:px-4 transition-colors flex items-center gap-2 text-sm ${
+                    addPanel === "youtube"
+                      ? "bg-gray-700 text-red-400"
+                      : "text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  <YouTubeIcon />
+                  <span>{t.audioLibrary.youtube}</span>
+                </button>
               </div>
 
               {/* Directory import progress */}
@@ -239,7 +273,7 @@ export default function AudioLibraryPage({
               )}
 
               {/* File uploader (web remote only) */}
-              {uploadMode && !library.isElectron && (
+              {showUpload && (
                 <MediaUploader
                   onUpload={library.uploadAudio}
                   activeUploads={library.uploads}
@@ -257,6 +291,17 @@ export default function AudioLibraryPage({
                     tooLarge: t.audioLibrary.tooLarge,
                     uploadFailed: t.audioLibrary.uploadFailed,
                   }}
+                />
+              )}
+
+              {/* Keep mounted while downloads are in flight so progress
+                  survives the user collapsing the panel. */}
+              {showYoutube && (
+                <YouTubeDownloader
+                  onDownload={library.downloadYouTubeAudio}
+                  onCancel={library.cancelAudioDownload}
+                  activeDownloads={library.downloads}
+                  labels={youtubeLabels}
                 />
               )}
             </Card>
@@ -284,7 +329,8 @@ export default function AudioLibraryPage({
               />
             </Card>
           </>
-        )}
+          );
+        })()}
 
         {/* Schedule tab */}
         {pageTab === "schedule" && (

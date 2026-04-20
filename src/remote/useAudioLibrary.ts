@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import type {
   AudioItem,
   AudioUploadProgress,
+  AudioDownloadProgress,
   DirectoryImportProgress,
 } from "../shared/audioLibrary.types";
 import type {
@@ -16,6 +17,7 @@ type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 interface AudioLibraryAPI {
   audios: AudioItem[];
   uploads: AudioUploadProgress[];
+  downloads: AudioDownloadProgress[];
   directoryImport: DirectoryImportProgress | null;
   isElectron: boolean;
   // Actions
@@ -24,6 +26,8 @@ interface AudioLibraryAPI {
   deleteAudio: (audioId: string) => Promise<boolean>;
   renameAudio: (audioId: string, newName: string) => void;
   uploadAudio: (file: File) => Promise<void>;
+  downloadYouTubeAudio: (url: string) => void;
+  cancelAudioDownload: (downloadId: string) => void;
   loadAudioToDisplay: (audio: AudioItem) => void;
 }
 
@@ -32,6 +36,7 @@ export function useAudioLibrary(
 ): AudioLibraryAPI {
   const [audios, setAudios] = useState<AudioItem[]>([]);
   const [uploads, setUploads] = useState<AudioUploadProgress[]>([]);
+  const [downloads, setDownloads] = useState<AudioDownloadProgress[]>([]);
   const [directoryImport, setDirectoryImport] =
     useState<DirectoryImportProgress | null>(null);
 
@@ -42,11 +47,17 @@ export function useAudioLibrary(
     if (isElectron) {
       // Use Electron IPC
       window.electronAPI!.getAudioLibrary().then(setAudios);
+      window.electronAPI!.getActiveAudioDownloads?.().then(setDownloads);
 
       const unsubLibrary = window.electronAPI!.onAudioLibraryUpdate(setAudios);
       const unsubUpload = window.electronAPI!.onAudioUploadProgress(
         (progress: AudioUploadProgress) => {
           setUploads((prev) => updateProgressList(prev, progress, setUploads));
+        }
+      );
+      const unsubDownload = window.electronAPI!.onAudioDownloadProgress?.(
+        (progress: AudioDownloadProgress) => {
+          setDownloads((prev) => updateProgressList(prev, progress, setDownloads));
         }
       );
       const unsubDirImport = window.electronAPI!.onAudioDirectoryImportProgress(
@@ -64,6 +75,7 @@ export function useAudioLibrary(
       return () => {
         unsubLibrary();
         unsubUpload();
+        unsubDownload?.();
         unsubDirImport();
       };
     } else {
@@ -82,6 +94,9 @@ export function useAudioLibrary(
       socket.on("audioUploadProgress", (progress) => {
         setUploads((prev) => updateProgressList(prev, progress, setUploads));
       });
+      socket.on("audioDownloadProgress", (progress) => {
+        setDownloads((prev) => updateProgressList(prev, progress, setDownloads));
+      });
 
       return () => {
         socket.disconnect();
@@ -92,6 +107,7 @@ export function useAudioLibrary(
   const api: AudioLibraryAPI = {
     audios,
     uploads,
+    downloads,
     directoryImport,
     isElectron,
 
@@ -141,6 +157,28 @@ export function useAudioLibrary(
         body: formData,
       });
     }, []),
+
+    downloadYouTubeAudio: useCallback(
+      (url: string) => {
+        if (isElectron) {
+          window.electronAPI!.downloadYouTubeAudio(url);
+        } else {
+          socketRef.current?.emit("downloadYouTubeAudio", url);
+        }
+      },
+      [isElectron],
+    ),
+
+    cancelAudioDownload: useCallback(
+      (downloadId: string) => {
+        if (isElectron) {
+          window.electronAPI!.cancelYouTubeAudioDownload(downloadId);
+        } else {
+          socketRef.current?.emit("cancelAudioDownload", downloadId);
+        }
+      },
+      [isElectron],
+    ),
 
     loadAudioToDisplay: useCallback(
       (audio: AudioItem) => {

@@ -46,7 +46,7 @@ import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
-import { startDownload, cancelDownload } from "./ytdlp";
+import { startDownload, startAudioDownload, cancelDownload } from "./ytdlp";
 
 // @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
@@ -310,6 +310,10 @@ export function createServer(
 
   audioLibrary.onUploadProgress((progress) => {
     io.emit("audioUploadProgress", progress);
+  });
+
+  audioLibrary.onDownloadProgress((progress) => {
+    io.emit("audioDownloadProgress", progress);
   });
 
   // Image Library setup
@@ -725,6 +729,14 @@ export function createServer(
 
     socket.on("renameAudio", (audioId, newName) => {
       audioLibrary.renameAudio(audioId, newName);
+    });
+
+    socket.on("downloadYouTubeAudio", (url) => {
+      startAudioDownload(url);
+    });
+
+    socket.on("cancelAudioDownload", (downloadId) => {
+      cancelDownload(downloadId);
     });
 
     // Audio playback

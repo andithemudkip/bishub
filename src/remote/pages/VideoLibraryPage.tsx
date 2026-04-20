@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { AppSettings, VideoState } from "../../shared/types";
 import type { VideoItem } from "../../shared/videoLibrary.types";
 import { useVideoLibrary } from "../useVideoLibrary";
@@ -10,6 +10,7 @@ import { getTranslations } from "@shared/i18n";
 import { formatFileSize } from "@shared/utils";
 import { Card } from "../components/ui/Card";
 import { renderTip } from "../components/ui/renderTip";
+import { YouTubeIcon } from "../components/icons/ui";
 
 interface Props {
   videoState: VideoState;
@@ -39,6 +40,20 @@ export default function VideoLibraryPage({
   );
 
   const t = getTranslations(settings.language);
+
+  const youtubeLabels = useMemo(
+    () => ({
+      urlPlaceholder: t.videoLibrary.youtubeUrl,
+      downloadButton: t.videoLibrary.download,
+      enterUrl: t.videoLibrary.enterUrl,
+      invalidUrl: t.videoLibrary.invalidUrl,
+      processing: t.videoLibrary.processing,
+      complete: t.videoLibrary.complete,
+      cancel: t.videoLibrary.cancel,
+      stages: t.youtubeDownload,
+    }),
+    [t],
+  );
 
   const handleSelectVideo = (video: VideoItem) => {
     setSelectedVideoId(video.id);
@@ -86,13 +101,7 @@ export default function VideoLibraryPage({
                   : "text-gray-300 hover:bg-gray-700"
               }`}
             >
-              <svg
-                className="w-4 h-4 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
-              </svg>
+              <YouTubeIcon />
               <span>
                 {t.videoLibrary.youtube}
               </span>
@@ -134,7 +143,7 @@ export default function VideoLibraryPage({
               onDownload={library.downloadYouTubeVideo}
               onCancel={library.cancelDownload}
               activeDownloads={library.downloads}
-              t={t}
+              labels={youtubeLabels}
             />
           )}
 

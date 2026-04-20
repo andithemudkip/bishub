@@ -143,8 +143,28 @@ export function uploadWithProgress(
   });
 }
 
+const YOUTUBE_URL_PATTERNS = [
+  /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]+/,
+  /^https?:\/\/youtu\.be\/[\w-]+/,
+  /^https?:\/\/(www\.)?youtube\.com\/shorts\/[\w-]+/,
+];
+
+export function isValidYouTubeUrl(url: string): boolean {
+  return YOUTUBE_URL_PATTERNS.some((p) => p.test(url));
+}
+
+function shallowEqual<T extends object>(a: T, b: T): boolean {
+  const ak = Object.keys(a) as (keyof T)[];
+  const bk = Object.keys(b) as (keyof T)[];
+  if (ak.length !== bk.length) return false;
+  for (const k of ak) if (a[k] !== b[k]) return false;
+  return true;
+}
+
 /**
  * Update a progress list: upsert by id, auto-remove completed/errored items after a delay.
+ * Returns `prev` unchanged when the incoming progress is field-equal to the existing entry,
+ * so high-frequency tick events (yt-dlp emits many per second) don't trigger pointless renders.
  */
 export function updateProgressList<T extends { id: string; status: string }>(
   prev: T[],
@@ -159,6 +179,7 @@ export function updateProgressList<T extends { id: string; status: string }>(
   }
   const index = prev.findIndex((item) => item.id === progress.id);
   if (index === -1) return [...prev, progress];
+  if (shallowEqual(prev[index], progress)) return prev;
   const updated = [...prev];
   updated[index] = progress;
   return updated;

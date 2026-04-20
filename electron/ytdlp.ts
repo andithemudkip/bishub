@@ -1,26 +1,51 @@
-import { spawn, execSync, ChildProcess } from "child_process";
+import { spawn, execFile, ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { app } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import { getVideoLibrary } from "./videoLibrary";
-import { getFfmpegPath } from "./utils";
+import { getAudioLibrary } from "./audioLibrary";
+import { getFfmpegPath, getFfprobePath } from "./utils";
 import { fetchJSON, downloadFile } from "./otaUtils";
-import type { DownloadProgress } from "../src/shared/videoLibrary.types";
+import { isValidYouTubeUrl } from "../src/shared/utils";
+import type { DownloadProgress, DownloadStage } from "../src/shared/videoLibrary.types";
+import type { AudioDownloadProgress } from "../src/shared/audioLibrary.types";
+import type { BinaryInfo } from "../src/shared/types";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function isFfmpegAvailable(): boolean {
-  return getFfmpegPath() !== null;
+type DownloadMode = "video" | "audio";
+
+// DownloadProgress and AudioDownloadProgress differ only in which of
+// videoId/audioId they carry — the internal shape supports both.
+interface InternalProgress {
+  id: string;
+  url: string;
+  status: "pending" | "downloading" | "processing" | "complete" | "error";
+  stage?: DownloadStage;
+  progress: number;
+  speed?: string;
+  eta?: string;
+  error?: string;
+  filename?: string;
+  videoId?: string;
+  audioId?: string;
 }
 
-// Active downloads map
 const activeDownloads = new Map<
   string,
-  { process: ChildProcess; progress: DownloadProgress }
+  { process: ChildProcess; progress: InternalProgress; mode: DownloadMode }
 >();
+
+function notify(mode: DownloadMode, progress: InternalProgress): void {
+  if (mode === "video") {
+    getVideoLibrary().notifyDownloadProgress(progress as DownloadProgress);
+  } else {
+    getAudioLibrary().notifyDownloadProgress(progress as AudioDownloadProgress);
+  }
+}
 
 // --- Binary resolution: prefer updated binaries in userData, fall back to bundled ---
 
@@ -180,59 +205,198 @@ export async function checkForBinaryUpdates(): Promise<void> {
   }
 }
 
-function isValidYouTubeUrl(url: string): boolean {
-  const patterns = [
-    /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]+/,
-    /^https?:\/\/youtu\.be\/[\w-]+/,
-    /^https?:\/\/(www\.)?youtube\.com\/shorts\/[\w-]+/,
-  ];
-  return patterns.some((p) => p.test(url));
+function probeVersion(binPath: string, args: string[]): Promise<string | null> {
+  // yt-dlp is a PyInstaller bundle that re-extracts itself on every run
+  // (~8–12s on macOS), so the timeout has to be generous. Non-zero exits still
+  // produce useful stdout (e.g. qjs prints its version banner on `-h` and exits 1),
+  // so we key on output rather than the exit code.
+  return new Promise((resolve) => {
+    execFile(binPath, args, { timeout: 30000, encoding: "utf-8" }, (_err, stdout) => {
+      const firstLine = (stdout || "").split("\n")[0].trim();
+      resolve(firstLine || null);
+    });
+  });
 }
 
-export function startDownload(url: string): DownloadProgress {
-  const library = getVideoLibrary();
+function parseFfmpegVersion(line: string | null): string | null {
+  // "ffmpeg version 6.0 Copyright ..." → "6.0"
+  if (!line) return null;
+  const m = line.match(/version\s+(\S+)/);
+  return m ? m[1] : line;
+}
+
+function resolveOtaOrBundled(name: string): {
+  path: string;
+  source: "ota" | "bundled";
+  available: boolean;
+} {
+  const isWindows = process.platform === "win32";
+  const binaryName = isWindows ? `${name}.exe` : name;
+  const otaPath = path.join(getUpdatedBinDir(), binaryName);
+  if (fs.existsSync(otaPath)) {
+    return { path: otaPath, source: "ota", available: true };
+  }
+  const bundled = getBundledBinaryPath(name);
+  return { path: bundled, source: "bundled", available: fs.existsSync(bundled) };
+}
+
+function resolveSystemOrBundled(
+  resolved: string | null,
+  name: string,
+): { path: string | null; source: "bundled" | "system" | null; available: boolean } {
+  if (!resolved) return { path: null, source: null, available: false };
+  const bundled = getBundledBinaryPath(name);
+  const source = resolved === bundled ? "bundled" : "system";
+  return { path: resolved, source, available: true };
+}
+
+// Cache the binary info for the process lifetime. Probing yt-dlp takes ~8s
+// on every invocation because the macOS release is a PyInstaller one-file
+// bundle that re-extracts into a fresh temp dir each time — there's no
+// cheaper way to get its version. Binaries don't change at runtime (OTA
+// completes at startup before the user opens Settings), so a single probe
+// per session is safe.
+let cachedBinaryInfo: Promise<BinaryInfo[]> | null = null;
+
+/**
+ * Diagnostic snapshot of all bundled/OTA/system binaries the app relies on.
+ * Used by the Settings page for troubleshooting. Cached for the process lifetime.
+ */
+export function getBinaryInfo(): Promise<BinaryInfo[]> {
+  if (!cachedBinaryInfo) {
+    cachedBinaryInfo = probeBinaries().then((info) => {
+      // If any available binary failed to report a version (likely a timeout),
+      // clear the cache so the next call retries rather than serving bad data.
+      const hasFailure = info.some((b) => b.available && b.version === null);
+      if (hasFailure) cachedBinaryInfo = null;
+      return info;
+    });
+  }
+  return cachedBinaryInfo;
+}
+
+async function probeBinaries(): Promise<BinaryInfo[]> {
+  const ytdlp = resolveOtaOrBundled("yt-dlp");
+  const qjs = resolveOtaOrBundled("qjs");
+  const ffmpeg = resolveSystemOrBundled(getFfmpegPath(), "ffmpeg");
+  const ffprobe = resolveSystemOrBundled(getFfprobePath(), "ffprobe");
+
+  const [ytdlpVersion, qjsVersion, ffmpegVersion, ffprobeVersion] =
+    await Promise.all([
+      ytdlp.available ? probeVersion(ytdlp.path, ["--version"]) : null,
+      qjs.available ? probeVersion(qjs.path, ["-h"]) : null,
+      ffmpeg.available && ffmpeg.path
+        ? probeVersion(ffmpeg.path, ["-version"]).then(parseFfmpegVersion)
+        : null,
+      ffprobe.available && ffprobe.path
+        ? probeVersion(ffprobe.path, ["-version"]).then(parseFfmpegVersion)
+        : null,
+    ]);
+
+  return [
+    {
+      name: "yt-dlp",
+      available: ytdlp.available,
+      path: ytdlp.path,
+      version: ytdlpVersion,
+      source: ytdlp.available ? ytdlp.source : null,
+    },
+    {
+      name: "qjs",
+      available: qjs.available,
+      path: qjs.path,
+      version: qjsVersion,
+      source: qjs.available ? qjs.source : null,
+    },
+    {
+      name: "ffmpeg",
+      available: ffmpeg.available,
+      path: ffmpeg.path,
+      version: ffmpegVersion,
+      source: ffmpeg.source,
+    },
+    {
+      name: "ffprobe",
+      available: ffprobe.available,
+      path: ffprobe.path,
+      version: ffprobeVersion,
+      source: ffprobe.source,
+    },
+  ];
+}
+
+function startYoutubeDownload(url: string, mode: DownloadMode): InternalProgress {
   const downloadId = uuidv4();
 
-  const progress: DownloadProgress = {
+  const progress: InternalProgress = {
     id: downloadId,
     url,
     status: "pending",
+    stage: "preparing",
     progress: 0,
   };
 
-  // Validate URL
   if (!isValidYouTubeUrl(url)) {
     progress.status = "error";
     progress.error = "Invalid YouTube URL";
-    library.notifyDownloadProgress(progress);
+    notify(mode, progress);
     return progress;
   }
 
   const ytdlpPath = getYtdlpPath();
-
-  // Check if yt-dlp binary exists
   if (!fs.existsSync(ytdlpPath)) {
     progress.status = "error";
     progress.error = `yt-dlp binary not found at ${ytdlpPath}. Please install yt-dlp.`;
-    library.notifyDownloadProgress(progress);
+    notify(mode, progress);
     return progress;
   }
 
-  const outputDir = library.getVideosDir();
+  const ffmpegPath = getFfmpegPath();
+  const ffmpegAvailable = ffmpegPath !== null;
+
+  // Audio extraction requires ffmpeg for the re-mux to mp3.
+  if (mode === "audio" && !ffmpegAvailable) {
+    progress.status = "error";
+    progress.error = "ffmpeg is required to extract audio. Install ffmpeg or use the bundled build.";
+    notify(mode, progress);
+    return progress;
+  }
+
+  const outputDir =
+    mode === "video"
+      ? getVideoLibrary().getVideosDir()
+      : getAudioLibrary().getAudiosDir();
   const outputTemplate = path.join(outputDir, "%(title)s.%(ext)s");
 
-  // Format selection based on ffmpeg availability
-  // Prefer H.264 (avc1) which plays in Electron, fallback to any format
-  const ffmpegAvailable = isFfmpegAvailable();
+  // Mode-specific format / post-processing. Video prefers H.264 (avc1) so it
+  // plays in Electron; audio extracts to mp3 via ffmpeg at best quality.
+  const modeArgs =
+    mode === "video"
+      ? [
+          "-f",
+          ffmpegAvailable
+            ? "bestvideo[vcodec^=avc1]+bestaudio/best[vcodec^=avc1]/best"
+            : "best[ext=mp4]/best",
+          ...(ffmpegAvailable ? ["--merge-output-format", "mp4"] : []),
+        ]
+      : [
+          "-f",
+          "bestaudio/best",
+          "-x",
+          "--audio-format",
+          "mp3",
+          "--audio-quality",
+          "0",
+        ];
+
   const args = [
     url,
     "-o",
     outputTemplate,
-    "-f",
-    ffmpegAvailable
-      ? "bestvideo[vcodec^=avc1]+bestaudio/best[vcodec^=avc1]/best"
-      : "best[ext=mp4]/best",
-    ...(ffmpegAvailable ? ["--merge-output-format", "mp4"] : []),
+    ...modeArgs,
+    ...(ffmpegAvailable
+      ? ["--ffmpeg-location", path.dirname(ffmpegPath!)]
+      : []),
     "--newline",
     "--progress",
     "--no-playlist",
@@ -243,18 +407,29 @@ export function startDownload(url: string): DownloadProgress {
   ];
 
   progress.status = "downloading";
-  library.notifyDownloadProgress(progress);
+  notify(mode, progress);
 
   const proc = spawn(ytdlpPath, args);
-  activeDownloads.set(downloadId, { process: proc, progress });
+  activeDownloads.set(downloadId, { process: proc, progress, mode });
 
   let outputFilePath: string | null = null;
-  let videoTitle: string | null = null;
+
+  const setStage = (stage: DownloadStage) => {
+    if (progress.stage === stage) return;
+    progress.stage = stage;
+    notify(mode, progress);
+  };
 
   proc.stdout?.on("data", (data: Buffer) => {
     const output = data.toString();
 
-    // Parse progress line: [download]  50.0% of 100.00MiB at 10.00MiB/s ETA 00:05
+    // yt-dlp's first stdout is the `[youtube] Extracting URL:` / `[info]` block —
+    // switch "preparing" → "fetching" so the UI shows progress past cold-start.
+    if ((/\[youtube\]|\[info\]/.test(output)) && progress.stage === "preparing") {
+      setStage("fetching");
+    }
+
+    // [download]  50.0% of 100.00MiB at 10.00MiB/s ETA 00:05
     const progressMatch = output.match(
       /\[download\]\s+([\d.]+)%\s+of\s+([\d.]+\w+)\s+at\s+([\d.]+\w+\/s)\s+ETA\s+(\S+)/
     );
@@ -262,35 +437,51 @@ export function startDownload(url: string): DownloadProgress {
       progress.progress = parseFloat(progressMatch[1]);
       progress.speed = progressMatch[3];
       progress.eta = progressMatch[4];
-      library.notifyDownloadProgress(progress);
+      progress.stage = "downloading";
+      notify(mode, progress);
     }
 
-    // Parse destination line: [download] Destination: /path/to/video.mp4
+    // [download] Destination: /path/to/file.ext
     const destMatch = output.match(/\[download\] Destination: (.+)/);
     if (destMatch) {
       outputFilePath = destMatch[1].trim();
+      // Expose the title (from the filename yt-dlp chose) so the UI can
+      // switch from URL to title as soon as the download starts.
+      const basename = path.basename(
+        outputFilePath,
+        path.extname(outputFilePath),
+      );
+      progress.filename = basename.replace(/_/g, " ");
+      setStage("downloading");
     }
 
-    // Parse merger line for final output: [Merger] Merging formats into "/path/to/video.mp4"
+    // [Merger] Merging formats into "/path/to/video.mp4"
     const mergerMatch = output.match(/\[Merger\] Merging formats into "(.+)"/);
     if (mergerMatch) {
       outputFilePath = mergerMatch[1];
+      setStage("merging");
     }
 
-    // Parse ExtractAudio/Fixup output: [ExtractAudio] or [FixupM4a] output path
+    // [ExtractAudio] Destination: /path/to/file.mp3   (also FixupM4a, etc.)
     const extractMatch = output.match(
-      /\[(ExtractAudio|FixupM4a|Fixup)\][^"]*"?([^"]+\.(mp4|m4a|webm|mkv))"?/i
+      /\[(?:ExtractAudio|FixupM4a|Fixup)\][^\n]*?Destination:\s*"?([^"\n]+?\.(?:mp4|m4a|mp3|webm|mkv|opus|ogg))"?/i
     );
     if (extractMatch) {
-      outputFilePath = extractMatch[2];
+      outputFilePath = extractMatch[1];
+      setStage("extracting");
     }
 
-    // Also catch: [download] /path/to/file has already been downloaded
+    // [download] /path/to/file has already been downloaded
     const alreadyMatch = output.match(
       /\[download\] (.+) has already been downloaded/
     );
     if (alreadyMatch) {
       outputFilePath = alreadyMatch[1].trim();
+      const basename = path.basename(
+        outputFilePath,
+        path.extname(outputFilePath),
+      );
+      progress.filename = basename.replace(/_/g, " ");
     }
   });
 
@@ -301,11 +492,17 @@ export function startDownload(url: string): DownloadProgress {
   proc.on("close", async (code) => {
     activeDownloads.delete(downloadId);
 
-    // Fallback: if outputFilePath wasn't captured, find most recent video in output dir
-    if (code === 0 && !outputFilePath) {
+    // Fallback: if we missed the destination line, or if the captured path
+    // no longer exists (yt-dlp deletes the intermediate after audio extract),
+    // find the most recent file in the output dir.
+    const fallbackExt =
+      mode === "video"
+        ? /\.(mp4|webm|mkv|mov)$/i
+        : /\.(mp3|m4a|opus|ogg)$/i;
+    if (code === 0 && (!outputFilePath || !fs.existsSync(outputFilePath))) {
       const files = fs
         .readdirSync(outputDir)
-        .filter((f) => /\.(mp4|webm|mkv|mov)$/i.test(f))
+        .filter((f) => fallbackExt.test(f))
         .map((f) => ({
           name: f,
           path: path.join(outputDir, f),
@@ -322,28 +519,34 @@ export function startDownload(url: string): DownloadProgress {
     if (code === 0 && outputFilePath && fs.existsSync(outputFilePath)) {
       progress.status = "processing";
       progress.progress = 100;
-      library.notifyDownloadProgress(progress);
+      notify(mode, progress);
 
-      // Extract title from filename
-      // yt-dlp uses the video title as filename (with --restrict-filenames which replaces spaces with underscores)
-      const filename = path.basename(
+      // yt-dlp uses the video title as filename (with --restrict-filenames
+      // which replaces spaces with underscores), so convert back for display.
+      const basename = path.basename(
         outputFilePath,
         path.extname(outputFilePath)
       );
-      // Convert underscores back to spaces
-      videoTitle = filename.replace(/_/g, " ");
+      const title = basename.replace(/_/g, " ");
 
       try {
-        // Add video to library
-        const video = await library.addVideo(outputFilePath, "youtube", {
-          name: videoTitle,
-          sourceUrl: url,
-          copyToLibrary: false, // Already in videos directory
-        });
-
+        if (mode === "video") {
+          const video = await getVideoLibrary().addVideo(outputFilePath, "youtube", {
+            name: title,
+            sourceUrl: url,
+            copyToLibrary: false,
+          });
+          progress.videoId = video.id;
+          progress.filename = video.filename;
+        } else {
+          const audio = await getAudioLibrary().addAudio(outputFilePath, "youtube", {
+            name: title,
+            copyToLibrary: false,
+          });
+          progress.audioId = audio.id;
+          progress.filename = audio.filename;
+        }
         progress.status = "complete";
-        progress.videoId = video.id;
-        progress.filename = video.filename;
       } catch (err) {
         progress.status = "error";
         progress.error = `Failed to add to library: ${err}`;
@@ -356,17 +559,25 @@ export function startDownload(url: string): DownloadProgress {
       progress.error = "Download completed but output file not found";
     }
 
-    library.notifyDownloadProgress(progress);
+    notify(mode, progress);
   });
 
   proc.on("error", (err) => {
     activeDownloads.delete(downloadId);
     progress.status = "error";
     progress.error = `Process error: ${err.message}`;
-    library.notifyDownloadProgress(progress);
+    notify(mode, progress);
   });
 
   return progress;
+}
+
+export function startDownload(url: string): DownloadProgress {
+  return startYoutubeDownload(url, "video") as DownloadProgress;
+}
+
+export function startAudioDownload(url: string): AudioDownloadProgress {
+  return startYoutubeDownload(url, "audio") as AudioDownloadProgress;
 }
 
 export function cancelDownload(downloadId: string): boolean {
@@ -376,22 +587,29 @@ export function cancelDownload(downloadId: string): boolean {
   download.process.kill();
   activeDownloads.delete(downloadId);
 
-  const library = getVideoLibrary();
   download.progress.status = "error";
   download.progress.error = "Cancelled by user";
-  library.notifyDownloadProgress(download.progress);
+  notify(download.mode, download.progress);
 
   return true;
 }
 
 export function getActiveDownloads(): DownloadProgress[] {
-  return Array.from(activeDownloads.values()).map((d) => d.progress);
+  return Array.from(activeDownloads.values())
+    .filter((d) => d.mode === "video")
+    .map((d) => d.progress as DownloadProgress);
+}
+
+export function getActiveAudioDownloads(): AudioDownloadProgress[] {
+  return Array.from(activeDownloads.values())
+    .filter((d) => d.mode === "audio")
+    .map((d) => d.progress as AudioDownloadProgress);
 }
 
 export function getDownloadProgress(
   downloadId: string
 ): DownloadProgress | null {
-  return activeDownloads.get(downloadId)?.progress || null;
+  return (activeDownloads.get(downloadId)?.progress as DownloadProgress) || null;
 }
 
 export function killAllDownloads(): void {

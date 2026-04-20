@@ -1,4 +1,4 @@
-export type AudioSource = "local" | "upload";
+export type AudioSource = "local" | "upload" | "youtube";
 
 export interface AudioItem {
   id: string;
@@ -17,6 +17,19 @@ export interface AudioUploadProgress {
   status: "uploading" | "processing" | "complete" | "error";
   progress: number;
   error?: string;
+  audioId?: string;
+}
+
+export interface AudioDownloadProgress {
+  id: string;
+  url: string;
+  status: "pending" | "downloading" | "processing" | "complete" | "error";
+  stage?: import("./videoLibrary.types").DownloadStage;
+  progress: number;
+  speed?: string;
+  eta?: string;
+  error?: string;
+  filename?: string;
   audioId?: string;
 }
 

@@ -1,28 +1,38 @@
 import { useState } from "react";
+import { isValidYouTubeUrl } from "../../shared/utils";
+import { CloseIcon } from "./icons/ui";
 import type { DownloadProgress } from "../../shared/videoLibrary.types";
-import type { Translations } from "../../shared/i18n";
+import type { AudioDownloadProgress } from "../../shared/audioLibrary.types";
+
+export interface YouTubeDownloaderLabels {
+  urlPlaceholder: string;
+  downloadButton: string;
+  enterUrl: string;
+  invalidUrl: string;
+  processing: string;
+  complete: string;
+  cancel: string;
+  stages: {
+    preparing: string;
+    fetching: string;
+    downloading: string;
+    extracting: string;
+    merging: string;
+  };
+}
 
 interface Props {
   onDownload: (url: string) => void;
   onCancel: (downloadId: string) => void;
-  activeDownloads: DownloadProgress[];
-  t: Translations;
-}
-
-function isValidYouTubeUrl(url: string): boolean {
-  const patterns = [
-    /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]+/,
-    /^https?:\/\/youtu\.be\/[\w-]+/,
-    /^https?:\/\/(www\.)?youtube\.com\/shorts\/[\w-]+/,
-  ];
-  return patterns.some((p) => p.test(url));
+  activeDownloads: (DownloadProgress | AudioDownloadProgress)[];
+  labels: YouTubeDownloaderLabels;
 }
 
 export default function YouTubeDownloader({
   onDownload,
   onCancel,
   activeDownloads,
-  t,
+  labels,
 }: Props) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
@@ -32,12 +42,12 @@ export default function YouTubeDownloader({
     setError("");
 
     if (!url.trim()) {
-      setError(t.videoLibrary.enterUrl);
+      setError(labels.enterUrl);
       return;
     }
 
     if (!isValidYouTubeUrl(url.trim())) {
-      setError(t.videoLibrary.invalidUrl);
+      setError(labels.invalidUrl);
       return;
     }
 
@@ -50,7 +60,7 @@ export default function YouTubeDownloader({
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
         <input
           type="text"
-          placeholder={t.videoLibrary.youtubeUrl}
+          placeholder={labels.urlPlaceholder}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 sm:px-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -72,7 +82,7 @@ export default function YouTubeDownloader({
               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
             />
           </svg>
-          {t.videoLibrary.download}
+          {labels.downloadButton}
         </button>
       </form>
 
@@ -81,75 +91,81 @@ export default function YouTubeDownloader({
       {/* Active downloads */}
       {activeDownloads.length > 0 && (
         <div className="space-y-2">
-          {activeDownloads.map((download) => (
-            <div
-              key={download.id}
-              className="bg-gray-700 rounded-lg p-3 space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm truncate">
-                    {download.filename || download.url}
+          {activeDownloads.map((download) => {
+            const isActive =
+              download.status === "downloading" ||
+              download.status === "pending";
+            const isProcessing = download.status === "processing";
+            // Speed/ETA are valid only during the actual download stage.
+            // They linger on the progress object afterward, so gate on stage
+            // or the user never sees "Extracting audio..." / "Merging streams...".
+            const showSpeed =
+              isActive && download.stage === "downloading" && download.speed;
+            const showStage = isActive && !showSpeed && download.stage;
+            const isIndeterminate =
+              isActive && download.stage !== "downloading";
+            return (
+              <div
+                key={download.id}
+                className="bg-gray-700 rounded-lg p-3 space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm truncate">
+                      {download.filename || download.url}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {showSpeed && (
+                        <>
+                          <span>{download.speed}</span>
+                          {download.eta && <span> - ETA: {download.eta}</span>}
+                        </>
+                      )}
+                      {showStage && (
+                        <span>{labels.stages[download.stage!]}</span>
+                      )}
+                      {isProcessing && labels.processing}
+                      {download.status === "complete" && (
+                        <span className="text-green-400">
+                          {labels.complete}
+                        </span>
+                      )}
+                      {download.status === "error" && (
+                        <span className="text-red-400">{download.error}</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400">
-                    {download.status === "downloading" && (
-                      <>
-                        {download.speed && <span>{download.speed}</span>}
-                        {download.eta && <span> - ETA: {download.eta}</span>}
-                      </>
-                    )}
-                    {download.status === "processing" &&
-                      t.videoLibrary.processing}
-                    {download.status === "complete" && (
-                      <span className="text-green-400">
-                        {t.videoLibrary.complete}
-                      </span>
-                    )}
-                    {download.status === "error" && (
-                      <span className="text-red-400">{download.error}</span>
-                    )}
-                  </div>
-                </div>
-                {(download.status === "downloading" ||
-                  download.status === "pending") && (
-                  <button
-                    onClick={() => onCancel(download.id)}
-                    className="p-1 hover:bg-gray-600 rounded text-gray-400"
-                    title="Cancel"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  {isActive && (
+                    <button
+                      onClick={() => onCancel(download.id)}
+                      className="p-1 hover:bg-gray-600 rounded text-gray-400"
+                      title={labels.cancel}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
+                      <CloseIcon />
+                    </button>
+                  )}
+                </div>
+
+                {/* Progress bar — indeterminate (pulsing) during non-downloading
+                    stages where yt-dlp isn't emitting a percentage. */}
+                {(isActive || isProcessing) && (
+                  <div className="h-2 bg-gray-600 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all ${
+                        isProcessing || isIndeterminate
+                          ? "bg-yellow-500 animate-pulse"
+                          : "bg-red-500"
+                      }`}
+                      style={{
+                        width:
+                          isIndeterminate ? "100%" : `${download.progress}%`,
+                      }}
+                    />
+                  </div>
                 )}
               </div>
-
-              {/* Progress bar */}
-              {(download.status === "downloading" ||
-                download.status === "processing") && (
-                <div className="h-2 bg-gray-600 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all ${
-                      download.status === "processing"
-                        ? "bg-yellow-500 animate-pulse"
-                        : "bg-red-500"
-                    }`}
-                    style={{ width: `${download.progress}%` }}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

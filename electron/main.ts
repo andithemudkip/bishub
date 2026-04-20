@@ -40,7 +40,7 @@ import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS_NO_DOT } from "../src/shared/imageLibrary.types";
 import { getTransferManager } from "./transferManager";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
-import { startDownload, cancelDownload, getActiveDownloads, killAllDownloads, checkForBinaryUpdates } from "./ytdlp";
+import { startDownload, startAudioDownload, cancelDownload, getActiveDownloads, getActiveAudioDownloads, killAllDownloads, checkForBinaryUpdates, getBinaryInfo } from "./ytdlp";
 import type {
   DisplayMode,
   ClockPosition,
@@ -117,6 +117,10 @@ function setupIPC() {
   // Update handlers
   ipcMain.handle("get-app-version", () => {
     return app.getVersion();
+  });
+
+  ipcMain.handle("get-binary-info", () => {
+    return getBinaryInfo();
   });
 
   ipcMain.handle("check-for-updates", () => {
@@ -485,6 +489,10 @@ function setupIPC() {
     windowManager.broadcastToAll("audio-upload-progress", progress);
   });
 
+  audioLibrary.onDownloadProgress((progress) => {
+    windowManager.broadcastToAll("audio-download-progress", progress);
+  });
+
   audioLibrary.onDirectoryImportProgress((progress) => {
     windowManager.broadcastToAll("audio-directory-import-progress", progress);
   });
@@ -528,6 +536,18 @@ function setupIPC() {
 
   ipcMain.handle("rename-audio", (_event, audioId: string, newName: string) => {
     return audioLibrary.renameAudio(audioId, newName);
+  });
+
+  ipcMain.handle("download-youtube-audio", (_event, url: string) => {
+    return startAudioDownload(url);
+  });
+
+  ipcMain.handle("cancel-youtube-audio-download", (_event, downloadId: string) => {
+    return cancelDownload(downloadId);
+  });
+
+  ipcMain.handle("get-active-audio-downloads", () => {
+    return getActiveAudioDownloads();
   });
 
   // Audio playback

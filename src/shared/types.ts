@@ -4,7 +4,7 @@ import type {
   DownloadProgress,
   UploadProgress,
 } from "./videoLibrary.types";
-import type { AudioItem, AudioUploadProgress } from "./audioLibrary.types";
+import type { AudioItem, AudioUploadProgress, AudioDownloadProgress } from "./audioLibrary.types";
 import type {
   AudioSchedule,
   AudioSchedulePreset,
@@ -166,6 +166,7 @@ export type ServerToClientEvents = {
   // Audio Library
   audioLibrary: (audios: AudioItem[]) => void;
   audioUploadProgress: (progress: AudioUploadProgress) => void;
+  audioDownloadProgress: (progress: AudioDownloadProgress) => void;
   // Audio Scheduling
   audioSchedules: (schedules: AudioSchedule[]) => void;
   audioPresets: (presets: AudioSchedulePreset[]) => void;
@@ -225,6 +226,8 @@ export type ClientToServerEvents = {
   getAudioLibrary: () => void;
   deleteAudio: (audioId: string) => void;
   renameAudio: (audioId: string, newName: string) => void;
+  downloadYouTubeAudio: (url: string) => void;
+  cancelAudioDownload: (downloadId: string) => void;
   loadAudio: (src: string, name: string) => void;
   playAudio: () => void;
   pauseAudio: () => void;
@@ -385,4 +388,13 @@ export interface UpdateStatus {
   releaseNotes?: string;
   progress?: number; // 0-100
   error?: string;
+}
+
+// Bundled binary diagnostics
+export interface BinaryInfo {
+  name: string;
+  available: boolean;
+  path: string | null;
+  version: string | null;
+  source: "ota" | "bundled" | "system" | null;
 }
