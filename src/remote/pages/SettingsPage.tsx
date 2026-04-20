@@ -15,8 +15,9 @@ import type {
   MP3CacheStats,
   MP3DownloadProgress,
   BinaryInfo,
+  DeviceInfo,
 } from "../../shared/types";
-import { formatFileSize } from "../../shared/utils";
+import { formatFileSize, formatTimeAgo } from "../../shared/utils";
 import { CheckIcon } from "../components/icons/ui";
 import {
   getTranslations,
@@ -33,6 +34,114 @@ interface BibleDownloadStatus {
   status: "downloading" | "ready" | "error";
   progress?: number;
   error?: string;
+}
+
+function DeviceRow({
+  device,
+  online,
+  onRename,
+  onRevoke,
+  t,
+}: {
+  device: DeviceInfo;
+  online: boolean;
+  onRename: (name: string) => void;
+  onRevoke: () => void;
+  t: ReturnType<typeof getTranslations>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(device.name);
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
+
+  useEffect(() => {
+    setDraft(device.name);
+  }, [device.name]);
+
+  const commitRename = () => {
+    setEditing(false);
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== device.name) {
+      onRename(trimmed);
+    } else {
+      setDraft(device.name);
+    }
+  };
+
+  return (
+    <div className="bg-gray-900/50 border border-gray-700/30 rounded-lg p-3 flex items-center gap-3">
+      <span
+        className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
+          online ? "bg-green-400" : "bg-gray-500"
+        }`}
+        aria-label={online ? t.devices.online : t.devices.offline}
+        title={online ? t.devices.online : t.devices.offline}
+      />
+      <div className="flex-1 min-w-0">
+        {editing ? (
+          <input
+            type="text"
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commitRename();
+              if (e.key === "Escape") {
+                setDraft(device.name);
+                setEditing(false);
+              }
+            }}
+            className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="text-left w-full truncate text-white hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+            title={t.devices.renameHint}
+          >
+            {device.name}
+          </button>
+        )}
+        <div className="text-xs text-gray-500 mt-0.5">
+          {t.devices.lastSeen}{" "}
+          {formatTimeAgo(device.lastSeenAt, t.common)}
+        </div>
+      </div>
+      {confirmRevoke ? (
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-gray-300 hidden sm:inline">
+            {t.devices.revokeConfirm}
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setConfirmRevoke(false);
+              onRevoke();
+            }}
+            className="px-2 py-1 rounded bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-600/40"
+          >
+            {t.devices.revoke}
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmRevoke(false)}
+            className="px-2 py-1 rounded bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 border border-gray-600/40"
+          >
+            {t.devices.revokeCancel}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirmRevoke(true)}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-600/40 flex-shrink-0"
+        >
+          {t.devices.revoke}
+        </button>
+      )}
+    </div>
+  );
 }
 
 interface Props {
@@ -61,6 +170,10 @@ interface Props {
   onDownloadAllHymnMP3s: () => void;
   onCancelAllHymnMP3Downloads: () => void;
   onClearHymnMP3Cache: () => void;
+  devices: DeviceInfo[];
+  connectedDeviceIds: string[];
+  onRenameDevice: (deviceId: string, name: string) => void;
+  onRevokeDevice: (deviceId: string) => void;
 }
 
 export default function SettingsPage({
@@ -89,6 +202,10 @@ export default function SettingsPage({
   onDownloadAllHymnMP3s,
   onCancelAllHymnMP3Downloads,
   onClearHymnMP3Cache,
+  devices,
+  connectedDeviceIds,
+  onRenameDevice,
+  onRevokeDevice,
 }: Props) {
   const [localIP, setLocalIP] = useState<string>("...");
   const [securityKey, setSecurityKey] = useState<string>("...");
@@ -113,11 +230,6 @@ export default function SettingsPage({
       window.electronAPI?.getSecurityKey().then(setSecurityKey);
       window.electronAPI?.getOpenOnStartup().then(setOpenOnStartup);
       window.electronAPI?.getBinaryInfo?.().then(setBinaryInfo);
-    } else {
-      const url = new URL(window.location.href);
-      const securityKey = url.searchParams.get("key") || "unknown";
-      setSecurityKey(securityKey);
-      setLocalIP(url.hostname);
     }
   }, [isElectron]);
 
@@ -556,44 +668,71 @@ export default function SettingsPage({
         </div>
       </Card>
 
-      {/* Connection info */}
-      <Card tip={renderTip(t.settings.mobileRemoteTip)}>
-        <h2 className="text-lg font-semibold mb-4">
-          {t.settings.mobileRemote}
-        </h2>
+      {/* Connection info — Electron only */}
+      {isElectron && (
+        <Card tip={renderTip(t.settings.mobileRemoteTip)}>
+          <h2 className="text-lg font-semibold mb-4">
+            {t.settings.mobileRemote}
+          </h2>
 
-        <div className="flex flex-col items-center gap-4">
-          {/* QR Code */}
-          <div className="bg-white p-4 rounded-lg">
-            <QRCodeSVG value={remoteURL} size={180} />
-          </div>
-
-          {/* URL */}
-          <div className="text-center">
-            <div className="text-sm text-gray-400 mb-1">
-              {t.settings.scanOrVisit}
+          <div className="flex flex-col items-center gap-4">
+            {/* QR Code */}
+            <div className="bg-white p-4 rounded-lg">
+              <QRCodeSVG value={remoteURL} size={180} />
             </div>
-            <div className="font-mono text-sm sm:text-lg text-blue-400 break-all">{remoteURL}</div>
-          </div>
 
-          <p className="text-sm text-gray-500 text-center">
-            {t.settings.sameWifi}
-          </p>
+            {/* URL */}
+            <div className="text-center">
+              <div className="text-sm text-gray-400 mb-1">
+                {t.settings.scanOrVisit}
+              </div>
+              <div className="font-mono text-sm sm:text-lg text-blue-400 break-all">{remoteURL}</div>
+            </div>
 
-          {/* Security Key Display */}
-          <div className="text-center mt-4 pt-4 border-t border-gray-700 w-full">
-            <div className="text-sm text-gray-400 mb-1">
-              {t.settings.securityKey}
-            </div>
-            <div className="font-mono text-2xl font-bold text-green-400 tracking-widest">
-              {securityKey}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              {t.settings.securityKeyHint}
+            <p className="text-sm text-gray-500 text-center">
+              {t.settings.sameWifi}
             </p>
+
+            {/* Security Key Display */}
+            <div className="text-center mt-4 pt-4 border-t border-gray-700 w-full">
+              <div className="text-sm text-gray-400 mb-1">
+                {t.settings.securityKey}
+              </div>
+              <div className="font-mono text-2xl font-bold text-green-400 tracking-widest">
+                {securityKey}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {t.settings.securityKeyHint}
+              </p>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
+
+      {/* Connected Devices — Electron only */}
+      {isElectron && (
+        <Card>
+          <h2 className="text-lg font-semibold mb-4">
+            {t.devices.sectionTitle}
+          </h2>
+          {devices.length === 0 ? (
+            <p className="text-sm text-gray-500">{t.devices.empty}</p>
+          ) : (
+            <div className="space-y-2">
+              {devices.map((device) => (
+                <DeviceRow
+                  key={device.id}
+                  device={device}
+                  online={connectedDeviceIds.includes(device.id)}
+                  onRename={(name) => onRenameDevice(device.id, name)}
+                  onRevoke={() => onRevokeDevice(device.id)}
+                  t={t}
+                />
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* About */}
       <Card>

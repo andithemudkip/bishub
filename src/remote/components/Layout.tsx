@@ -154,7 +154,7 @@ export default function Layout({
   };
 
   return (
-    <div className="h-screen-safe flex flex-col md:flex-row bg-gray-900 text-white overflow-hidden overscroll-none">
+    <div className="h-screen-safe safe-area-pt flex flex-col md:flex-row bg-gray-900 text-white overflow-hidden overscroll-none">
       {/* Sidebar - hidden on mobile, shown on desktop */}
       <div
         className={`hidden md:flex ${

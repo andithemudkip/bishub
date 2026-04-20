@@ -8,18 +8,15 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow: hidden;
   background: #111827; /* gray-900 — prevents white flash on iOS keyboard */
+  overscroll-behavior: none; /* stop iOS rubber-band / pull-to-refresh */
 }
 
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     sans-serif;
   -webkit-tap-highlight-color: transparent;
-  /* Prevent iOS bounce/rubber-band scrolling on body */
-  position: fixed;
-  width: 100%;
-  overflow: hidden;
 }
 
 /* Safe area support for iOS */
@@ -27,24 +24,20 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
+.safe-area-pt {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
 /* Prevent pull-to-refresh on mobile */
 html {
   overscroll-behavior: none;
 }
 
-/* Fix iOS Safari viewport height issue */
-/* 100vh on iOS includes the URL bar, so we use multiple fallbacks */
+/* --app-height is set by an inline script in the HTML from
+   window.visualViewport.height — avoids iOS standalone PWA quirks where
+   100dvh/100vh can mis-report the visible area by 100+ px. */
 .h-screen-safe {
-  height: 100%; /* Works with fixed body */
-  max-height: 100vh;
-  max-height: 100dvh; /* Dynamic viewport height for modern browsers */
-}
-
-@supports (height: 100dvh) {
-  .h-screen-safe {
-    height: 100dvh;
-    max-height: 100dvh;
-  }
+  height: var(--app-height, 100dvh);
 }
 
 /* Custom scrollbar */

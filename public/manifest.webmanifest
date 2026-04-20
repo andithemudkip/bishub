@@ -1,0 +1,30 @@
+{
+  "name": "BisHub Remote",
+  "short_name": "BisHub",
+  "description": "Remote control for the BisHub church display",
+  "start_url": "/remote",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#111827",
+  "theme_color": "#1f2937",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -47,6 +47,7 @@ import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
 import { startDownload, startAudioDownload, cancelDownload } from "./ytdlp";
+import { getDeviceRegistry } from "./deviceRegistry";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,9 +55,18 @@ const __dirname = path.dirname(__filename);
 const VITE_DEV_SERVER_URL =
   process.env.VITE_DEV_SERVER_URL || "http://localhost:5173";
 
+interface BishubSocketData {
+  deviceId?: string;
+}
+
 // Track server instances for cleanup
 let httpServerInstance: ReturnType<typeof createHttpServer> | null = null;
-let ioInstance: Server<ClientToServerEvents, ServerToClientEvents> | null = null;
+let ioInstance: Server<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  Record<string, never>,
+  BishubSocketData
+> | null = null;
 
 export function createServer(
   stateManager: StateManager,
@@ -65,15 +75,17 @@ export function createServer(
   const app = express();
   app.use(express.json());
   const httpServer = createHttpServer(app);
-  const io = new Server<ClientToServerEvents, ServerToClientEvents>(
-    httpServer,
-    {
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"],
-      },
-    }
-  );
+  const io = new Server<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    Record<string, never>,
+    BishubSocketData
+  >(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+    },
+  });
 
   // Store references for cleanup
   httpServerInstance = httpServer;
@@ -81,29 +93,57 @@ export function createServer(
 
   const isDev = !electronApp.isPackaged;
   const securityKey = stateManager.getSecurityKey();
+  const deviceRegistry = getDeviceRegistry();
 
-  // Middleware to validate security key for web remote access
-  const validateSecurityKey = (
+  // Accepts either a valid device token or the rotating pairing key.
+  // Used for all /api/* routes (except /api/pair, which requires the pairing key).
+  const validateAuth = (
     req: express.Request,
     res: express.Response,
     next: express.NextFunction
   ) => {
-    const key = req.query.key as string;
+    const token = req.query.token as string | undefined;
+    if (token && deviceRegistry.getByToken(token)) {
+      next();
+      return;
+    }
+    const key = req.query.key as string | undefined;
+    if (key === securityKey) {
+      next();
+      return;
+    }
+    return res.status(403).send("Access denied");
+  };
+
+  // Pairing-key-only middleware — prevents tokens from bootstrapping new tokens.
+  const validatePairingKey = (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    const key = req.query.key as string | undefined;
     if (key !== securityKey) {
-      return res.status(403).send("Access denied: Invalid security key");
+      return res.status(403).send("Access denied: Invalid pairing key");
     }
     next();
   };
 
-  // Socket.io authentication middleware
+  // Socket.io authentication middleware — device tokens only.
+  // Web remotes exchange the pairing key for a token via POST /api/pair first.
   io.use((socket, next) => {
-    const key = socket.handshake.auth.key || socket.handshake.query.key;
-    if (key === securityKey) {
-      next();
-    } else {
-      console.log("Socket.io connection rejected: invalid security key");
-      next(new Error("Invalid security key"));
+    const token = socket.handshake.auth.token as string | undefined;
+    if (token) {
+      const device = deviceRegistry.getByToken(token);
+      if (device) {
+        socket.data.deviceId = device.id;
+        deviceRegistry.updateLastSeen(device.id);
+        socket.join(`device:${device.id}`);
+        next();
+        return;
+      }
     }
+    console.log("Socket.io connection rejected: invalid token");
+    next(new Error("Invalid token"));
   });
 
   if (isDev) {
@@ -114,8 +154,11 @@ export function createServer(
       ws: true,
     });
 
-    // Rewrite /remote to /remote.html (with security key validation)
-    app.use("/remote", validateSecurityKey, (req, res, next) => {
+    // /remote is unauthenticated — the HTML shell is inert without a valid
+    // device token. The client JS runs the pairing handshake against
+    // /api/pair (which validates the pairing key) and falls back to the
+    // AccessDenied page when no credentials are present.
+    app.use("/remote", (req, res, next) => {
       if (req.path === "/" || req.path === "") {
         req.url = "/remote.html";
       }
@@ -138,13 +181,23 @@ export function createServer(
   } else {
     // Serve static files for mobile remote in production
     app.use(express.static(path.join(__dirname, "../dist")));
-    app.get("/remote", validateSecurityKey, (_req, res) => {
+    app.get("/remote", (_req, res) => {
       res.sendFile(path.join(__dirname, "../dist/remote.html"));
     });
   }
 
-  // Apply security key validation to all API routes
-  app.use("/api", validateSecurityKey);
+  // Pairing: exchange the rotating pairing key for a long-lived device token.
+  app.post("/api/pair", validatePairingKey, (req, res) => {
+    const userAgentHeader = req.headers["user-agent"] || "";
+    const bodyUserAgent =
+      typeof req.body?.userAgent === "string" ? req.body.userAgent : "";
+    const userAgent = bodyUserAgent || userAgentHeader;
+    const { device, token } = deviceRegistry.createDevice(userAgent);
+    res.json({ token, deviceId: device.id, name: device.name });
+  });
+
+  // Apply auth validation to all other API routes (token or pairing key).
+  app.use("/api", validateAuth);
 
   // API endpoint to get local IP addresses
   app.get("/api/ip", (_req, res) => {
@@ -490,14 +543,45 @@ export function createServer(
     io.emit("monitors", monitors);
   });
 
+  const broadcastConnectedDeviceIds = () => {
+    const ids = new Set<string>();
+    for (const sock of io.sockets.sockets.values()) {
+      if (sock.data.deviceId) ids.add(sock.data.deviceId);
+    }
+    const list = [...ids];
+    io.emit("connectedDeviceIds", list);
+    windowManager.broadcastToAll("connected-devices-update", list);
+  };
+
+  deviceRegistry.onDevicesChange((devices) => {
+    io.emit("devices", devices);
+    windowManager.broadcastToAll("devices-update", devices);
+  });
+
+  deviceRegistry.onRevoke((deviceId) => {
+    io.in(`device:${deviceId}`).disconnectSockets(true);
+  });
+
   // Socket.io connection handling
   io.on("connection", (socket) => {
-    console.log("Client connected:", socket.id);
+    console.log("Client connected:", socket.id, "device:", socket.data.deviceId);
+    broadcastConnectedDeviceIds();
 
     // Send current state to new client
     socket.emit("stateUpdate", stateManager.getState());
     socket.emit("settingsUpdate", stateManager.getSettings());
     socket.emit("monitors", windowManager.getMonitors());
+
+    // Devices
+    socket.on("getDevices", () => {
+      socket.emit("devices", deviceRegistry.getAll());
+    });
+    socket.on("renameDevice", (deviceId, name) => {
+      deviceRegistry.rename(deviceId, name);
+    });
+    socket.on("revokeDevice", (deviceId) => {
+      deviceRegistry.revoke(deviceId);
+    });
 
     // Mode control
     socket.on("setMode", (mode) => {
@@ -900,6 +984,7 @@ export function createServer(
 
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
+      broadcastConnectedDeviceIds();
     });
   });
 

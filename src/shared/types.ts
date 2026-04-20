@@ -153,11 +153,21 @@ export interface MP3CacheStats {
   availableCount: number;
 }
 
+export interface DeviceInfo {
+  id: string;
+  name: string;
+  userAgent: string;
+  firstSeenAt: number;
+  lastSeenAt: number;
+}
+
 // Socket.io event types
 export type ServerToClientEvents = {
   stateUpdate: (state: DisplayState) => void;
   settingsUpdate: (settings: AppSettings) => void;
   monitors: (monitors: MonitorInfo[]) => void;
+  devices: (devices: DeviceInfo[]) => void;
+  connectedDeviceIds: (ids: string[]) => void;
   hymns: (hymns: Hymn[]) => void;
   bibleBooks: (
     books: { id: string; name: string; chapterCount: number }[]
@@ -207,6 +217,10 @@ export type ClientToServerEvents = {
   setSyncedLyrics: (enabled: boolean) => void;
   getMonitors: () => void;
   goIdle: () => void;
+  // Devices
+  getDevices: () => void;
+  renameDevice: (deviceId: string, name: string) => void;
+  revokeDevice: (deviceId: string) => void;
   // Hymns
   getHymns: () => void;
   loadHymn: (hymnNumber: string, synced?: boolean) => void;

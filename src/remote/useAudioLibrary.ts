@@ -10,7 +10,7 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "../shared/types";
-import { getSecurityKeyFromURL, getApiUrl, updateProgressList } from "../shared/utils";
+import { getDeviceToken, getApiUrl, updateProgressList } from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
@@ -79,10 +79,10 @@ export function useAudioLibrary(
         unsubDirImport();
       };
     } else {
-      // Use Socket.io with security key authentication
-      const securityKey = getSecurityKeyFromURL();
+      const token = getDeviceToken();
+      if (!token) return;
       const socket: SocketType = io({
-        auth: { key: securityKey },
+        auth: { token },
       });
       socketRef.current = socket;
 

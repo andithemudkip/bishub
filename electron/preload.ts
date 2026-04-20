@@ -15,6 +15,7 @@ import type {
   MP3DownloadProgress,
   MP3CacheStats,
   BinaryInfo,
+  DeviceInfo,
 } from "../src/shared/types";
 import type {
   VideoItem,
@@ -47,6 +48,27 @@ const electronAPI = {
   getMonitors: (): Promise<MonitorInfo[]> => ipcRenderer.invoke("get-monitors"),
   getLocalIP: (): Promise<string> => ipcRenderer.invoke("get-local-ip"),
   getSecurityKey: (): Promise<string> => ipcRenderer.invoke("get-security-key"),
+
+  // Devices
+  getDevices: (): Promise<DeviceInfo[]> => ipcRenderer.invoke("get-devices"),
+  renameDevice: (deviceId: string, name: string): Promise<boolean> =>
+    ipcRenderer.invoke("rename-device", deviceId, name),
+  revokeDevice: (deviceId: string): Promise<boolean> =>
+    ipcRenderer.invoke("revoke-device", deviceId),
+  onDevicesUpdate: (callback: (devices: DeviceInfo[]) => void) => {
+    ipcRenderer.on(
+      "devices-update",
+      (_event: IpcRendererEvent, devices: DeviceInfo[]) => callback(devices)
+    );
+    return () => { ipcRenderer.removeAllListeners("devices-update"); };
+  },
+  onConnectedDevicesUpdate: (callback: (ids: string[]) => void) => {
+    ipcRenderer.on(
+      "connected-devices-update",
+      (_event: IpcRendererEvent, ids: string[]) => callback(ids)
+    );
+    return () => { ipcRenderer.removeAllListeners("connected-devices-update"); };
+  },
 
   // Updates
   getAppVersion: (): Promise<string> => ipcRenderer.invoke("get-app-version"),

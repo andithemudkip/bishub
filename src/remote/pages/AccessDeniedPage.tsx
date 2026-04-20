@@ -18,7 +18,7 @@ export default function AccessDeniedPage({ failed, onConnect }: Props) {
   };
 
   return (
-    <div className="h-screen-safe bg-gray-900 flex items-start justify-center px-4 pt-[25vh]">
+    <div className="h-screen-safe safe-area-pt bg-gray-900 flex items-start justify-center px-4 pt-[25vh]">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-600/20 border border-red-600/40 flex items-center justify-center">

@@ -39,6 +39,7 @@ import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getTransferManager } from "./transferManager";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import { startDownload, startAudioDownload, cancelDownload, getActiveDownloads, getActiveAudioDownloads, killAllDownloads, checkForBinaryUpdates, getBinaryInfo } from "./ytdlp";
+import { getDeviceRegistry } from "./deviceRegistry";
 import type {
   DisplayMode,
   ClockPosition,
@@ -147,6 +148,18 @@ function setupIPC() {
 
   ipcMain.handle("get-security-key", () => {
     return stateManager.getSecurityKey();
+  });
+
+  ipcMain.handle("get-devices", () => {
+    return getDeviceRegistry().getAll();
+  });
+
+  ipcMain.handle("rename-device", (_event, deviceId: string, name: string) => {
+    return getDeviceRegistry().rename(deviceId, name);
+  });
+
+  ipcMain.handle("revoke-device", (_event, deviceId: string) => {
+    return getDeviceRegistry().revoke(deviceId);
   });
 
   ipcMain.handle("set-mode", (_event, mode: DisplayMode) => {

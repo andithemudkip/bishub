@@ -92,17 +92,49 @@ export function formatTimeAgo(
 }
 
 /**
- * Extract security key from URL query parameter for web remote authentication
+ * Extract pairing key from URL query parameter (only present on first-time pairing)
  */
 export function getSecurityKeyFromURL(): string | null {
   const params = new URLSearchParams(window.location.search);
   return params.get("key");
 }
 
+const DEVICE_TOKEN_STORAGE_KEY = "bishub_device_token";
+
+export function getDeviceToken(): string | null {
+  try {
+    return window.localStorage.getItem(DEVICE_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setDeviceToken(token: string): void {
+  try {
+    window.localStorage.setItem(DEVICE_TOKEN_STORAGE_KEY, token);
+  } catch {
+    // localStorage unavailable (private mode, etc.) — non-fatal
+  }
+}
+
+export function clearDeviceToken(): void {
+  try {
+    window.localStorage.removeItem(DEVICE_TOKEN_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 /**
- * Build an authenticated API URL. Appends the security key when available.
+ * Build an authenticated API URL. Prefers the stored device token; falls back
+ * to the URL pairing key (used only before pairing completes).
  */
 export function getApiUrl(path: string): string {
+  const token = getDeviceToken();
+  if (token) {
+    const separator = path.includes("?") ? "&" : "?";
+    return `${path}${separator}token=${token}`;
+  }
   const key = getSecurityKeyFromURL();
   if (!key) return path;
   const separator = path.includes("?") ? "&" : "?";

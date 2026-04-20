@@ -358,6 +358,19 @@ export interface Translations {
     connectionFailed: string;
   };
 
+  // Connected devices
+  devices: {
+    sectionTitle: string;
+    empty: string;
+    online: string;
+    offline: string;
+    lastSeen: string;
+    revoke: string;
+    revokeConfirm: string;
+    revokeCancel: string;
+    renameHint: string;
+  };
+
   // Updates
   updates: {
     updateAvailable: string;
@@ -749,6 +762,17 @@ const ro: Translations = {
     connect: "Conectare",
     connectionFailed: "Conectarea a eșuat. Verifică cheia și încearcă din nou.",
   },
+  devices: {
+    sectionTitle: "Dispozitive conectate",
+    empty: "Niciun dispozitiv asociat încă. Scanează codul QR de pe un telefon sau tabletă pentru a conecta un telecomandă web.",
+    online: "online",
+    offline: "offline",
+    lastSeen: "Văzut",
+    revoke: "Revocă",
+    revokeConfirm: "Revocă accesul?",
+    revokeCancel: "Anulează",
+    renameHint: "Apasă pentru a redenumi",
+  },
 };
 
 const en: Translations = {
@@ -1109,6 +1133,17 @@ const en: Translations = {
     securityKeyPlaceholder: "Enter security key",
     connect: "Connect",
     connectionFailed: "Connection failed. Check the key and try again.",
+  },
+  devices: {
+    sectionTitle: "Connected devices",
+    empty: "No devices paired yet. Scan the QR code on a phone or tablet to connect a web remote.",
+    online: "online",
+    offline: "offline",
+    lastSeen: "Seen",
+    revoke: "Revoke",
+    revokeConfirm: "Revoke access?",
+    revokeCancel: "Cancel",
+    renameHint: "Click to rename",
   },
 };
 

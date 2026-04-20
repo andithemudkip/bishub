@@ -13,10 +13,17 @@ import type {
   AudioWidgetPosition,
   MP3DownloadProgress,
   MP3CacheStats,
+  DeviceInfo,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
-import { getSecurityKeyFromURL, updateProgressList } from "../shared/utils";
+import {
+  getSecurityKeyFromURL,
+  updateProgressList,
+  getDeviceToken,
+  setDeviceToken,
+  clearDeviceToken,
+} from "../shared/utils";
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
@@ -26,6 +33,7 @@ interface RemoteAPI {
   monitors: MonitorInfo[];
   hymns: Hymn[];
   isConnected: boolean;
+  isPaired: boolean;
   authError: boolean;
   authFailed: boolean;
   reconnectWithKey: (key: string) => void;
@@ -99,6 +107,11 @@ interface RemoteAPI {
   cancelAllHymnMP3Downloads: () => void;
   clearHymnMP3Cache: () => void;
   setKaraokeBannerDismissed: (dismissed: boolean) => void;
+  // Devices
+  devices: DeviceInfo[];
+  connectedDeviceIds: string[];
+  renameDevice: (deviceId: string, name: string) => void;
+  revokeDevice: (deviceId: string) => void;
 }
 
 export function useRemoteAPI(): RemoteAPI {
@@ -110,6 +123,10 @@ export function useRemoteAPI(): RemoteAPI {
     { id: string; name: string; chapterCount: number }[]
   >([]);
   const [isConnected, setIsConnected] = useState(false);
+  const isElectronEnv = !!window.electronAPI;
+  const [isPaired, setIsPaired] = useState(
+    () => isElectronEnv || !!getDeviceToken()
+  );
   const [authError, setAuthError] = useState(false);
   const [bibleDownloadStatus, setBibleDownloadStatus] = useState<RemoteAPI["bibleDownloadStatus"]>(null);
   const [downloadedTranslations, setDownloadedTranslations] = useState<string[]>(["ron-rccv"]);
@@ -119,6 +136,8 @@ export function useRemoteAPI(): RemoteAPI {
     sizeBytes: 0,
     availableCount: 0,
   });
+  const [devices, setDevices] = useState<DeviceInfo[]>([]);
+  const [connectedDeviceIds, setConnectedDeviceIds] = useState<string[]>([]);
   const authAttempted = useRef(false);
 
   const handleMP3Progress = useCallback((progress: MP3DownloadProgress) => {
@@ -135,17 +154,17 @@ export function useRemoteAPI(): RemoteAPI {
     null
   );
 
-  const isElectron = !!window.electronAPI;
+  const isElectron = isElectronEnv;
 
   const connectSocket = useCallback(
-    (key: string | null) => {
+    (token: string) => {
       if (socketRef.current) {
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
       }
 
       setAuthError(false);
-      const socket: SocketType = io({ auth: { key } });
+      const socket: SocketType = io({ auth: { token } });
       socketRef.current = socket;
 
       socket.on("connect", () => {
@@ -161,7 +180,9 @@ export function useRemoteAPI(): RemoteAPI {
       });
 
       socket.on("connect_error", (err) => {
-        if (err.message === "Invalid security key") {
+        if (err.message === "Invalid token") {
+          clearDeviceToken();
+          setIsPaired(false);
           setAuthError(true);
           socket.disconnect();
         }
@@ -196,9 +217,52 @@ export function useRemoteAPI(): RemoteAPI {
       socket.on("downloadedTranslations", setDownloadedTranslations);
       socket.on("mp3DownloadProgress", handleMP3Progress);
       socket.on("mp3CacheStats", setMp3CacheStats);
+      socket.on("devices", setDevices);
+      socket.on("connectedDeviceIds", setConnectedDeviceIds);
       socket.emit("getHymnMP3CacheStats");
     },
     [handleMP3Progress]
+  );
+
+  const pairingInFlight = useRef(false);
+
+  const pairAndConnect = useCallback(
+    async (pairingKey: string) => {
+      if (pairingInFlight.current) return;
+      pairingInFlight.current = true;
+      try {
+        // Defensive: a concurrent attempt may have already stored a token.
+        const existing = getDeviceToken();
+        if (existing) {
+          setIsPaired(true);
+          connectSocket(existing);
+          return;
+        }
+        const res = await fetch(`/api/pair?key=${encodeURIComponent(pairingKey)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userAgent: navigator.userAgent }),
+        });
+        if (!res.ok) {
+          setAuthError(true);
+          setIsPaired(false);
+          return;
+        }
+        const { token } = await res.json();
+        setDeviceToken(token);
+        const url = new URL(window.location.href);
+        url.searchParams.delete("key");
+        window.history.replaceState({}, "", url.toString());
+        setIsPaired(true);
+        connectSocket(token);
+      } catch {
+        setAuthError(true);
+        setIsPaired(false);
+      } finally {
+        pairingInFlight.current = false;
+      }
+    },
+    [connectSocket]
   );
 
   useEffect(() => {
@@ -209,6 +273,7 @@ export function useRemoteAPI(): RemoteAPI {
       window.electronAPI!.getMonitors().then(setMonitors);
       window.electronAPI!.getHymns().then(setHymns);
       window.electronAPI!.getDownloadedTranslations().then(setDownloadedTranslations);
+      window.electronAPI!.getDevices?.().then(setDevices);
 
       const unsubState = window.electronAPI!.onStateUpdate(setState);
       const unsubSettings = window.electronAPI!.onSettingsUpdate(setSettings);
@@ -218,6 +283,11 @@ export function useRemoteAPI(): RemoteAPI {
         window.electronAPI!.onHymnMP3DownloadProgress(handleMP3Progress);
       const unsubMP3Stats =
         window.electronAPI!.onHymnMP3CacheStats(setMp3CacheStats);
+      const unsubDevices =
+        window.electronAPI!.onDevicesUpdate?.(setDevices) ?? (() => {});
+      const unsubConnectedDevices =
+        window.electronAPI!.onConnectedDevicesUpdate?.(setConnectedDeviceIds) ??
+        (() => {});
       window.electronAPI!.getHymnMP3CacheStats().then(setMp3CacheStats);
       setIsConnected(true);
 
@@ -228,25 +298,34 @@ export function useRemoteAPI(): RemoteAPI {
         unsubHymns();
         unsubMP3Progress();
         unsubMP3Stats();
+        unsubDevices();
+        unsubConnectedDevices();
       };
     } else {
-      connectSocket(getSecurityKeyFromURL());
+      const token = getDeviceToken();
+      if (token) {
+        connectSocket(token);
+      } else {
+        const pairingKey = getSecurityKeyFromURL();
+        if (pairingKey) {
+          pairAndConnect(pairingKey);
+        } else {
+          setAuthError(true);
+        }
+      }
 
       return () => {
         socketRef.current?.disconnect();
       };
     }
-  }, [isElectron, connectSocket, handleMP3Progress]);
+  }, [isElectron, connectSocket, pairAndConnect, handleMP3Progress]);
 
   const reconnectWithKey = useCallback(
     (key: string) => {
-      const url = new URL(window.location.href);
-      url.searchParams.set("key", key);
-      window.history.replaceState({}, "", url.toString());
       authAttempted.current = true;
-      connectSocket(key);
+      pairAndConnect(key);
     },
-    [connectSocket]
+    [pairAndConnect]
   );
 
   const api: RemoteAPI = {
@@ -255,6 +334,7 @@ export function useRemoteAPI(): RemoteAPI {
     monitors,
     hymns,
     isConnected,
+    isPaired,
     authError,
     authFailed: authError && authAttempted.current,
     reconnectWithKey,
@@ -638,6 +718,24 @@ export function useRemoteAPI(): RemoteAPI {
       (dismissed: boolean) => {
         if (isElectron) window.electronAPI!.setKaraokeBannerDismissed(dismissed);
         else socketRef.current?.emit("setKaraokeBannerDismissed", dismissed);
+      },
+      [isElectron]
+    ),
+
+    // Devices
+    devices,
+    connectedDeviceIds,
+    renameDevice: useCallback(
+      (deviceId: string, name: string) => {
+        if (isElectron) window.electronAPI!.renameDevice?.(deviceId, name);
+        else socketRef.current?.emit("renameDevice", deviceId, name);
+      },
+      [isElectron]
+    ),
+    revokeDevice: useCallback(
+      (deviceId: string) => {
+        if (isElectron) window.electronAPI!.revokeDevice?.(deviceId);
+        else socketRef.current?.emit("revokeDevice", deviceId);
       },
       [isElectron]
     ),

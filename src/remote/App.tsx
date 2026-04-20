@@ -220,6 +220,10 @@ export default function App() {
             onDownloadAllHymnMP3s={api.downloadAllHymnMP3s}
             onCancelAllHymnMP3Downloads={api.cancelAllHymnMP3Downloads}
             onClearHymnMP3Cache={api.clearHymnMP3Cache}
+            devices={api.devices}
+            connectedDeviceIds={api.connectedDeviceIds}
+            onRenameDevice={api.renameDevice}
+            onRevokeDevice={api.revokeDevice}
           />
         );
       default:
@@ -229,6 +233,14 @@ export default function App() {
 
   if (api.authError) {
     return <AccessDeniedPage failed={api.authFailed} onConnect={api.reconnectWithKey} />;
+  }
+
+  if (!api.isPaired) {
+    return (
+      <div className="h-screen-safe safe-area-pt bg-gray-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-gray-600 border-t-blue-400 rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (

@@ -4,13 +4,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="BisHub" />
     <meta name="theme-color" content="#1f2937" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <title>BisHub</title>
+    <script>
+      // iOS standalone PWA can mis-report CSS viewport heights (100dvh/100vh)
+      // by 100+px. window.visualViewport.height matches the actually visible
+      // area reliably — publish it as --app-height for .h-screen-safe to use.
+      (function () {
+        function update() {
+          var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+          document.documentElement.style.setProperty("--app-height", h + "px");
+        }
+        update();
+        window.addEventListener("resize", update);
+        window.addEventListener("orientationchange", update);
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", update);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root" style="height: 100%; width: 100%; overflow: hidden;"></div>
