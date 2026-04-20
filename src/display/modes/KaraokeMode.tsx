@@ -44,7 +44,10 @@ function useInterpolatedTime(audioState: AudioState): number {
 
 export default function KaraokeMode({ config, audioState }: Props) {
   const { syncedLyrics } = config;
-  const lines = syncedLyrics?.lines ?? [];
+  const lines = useMemo(
+    () => syncedLyrics?.lines ?? [],
+    [syncedLyrics?.lines]
+  );
   const currentTime = useInterpolatedTime(audioState);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +56,8 @@ export default function KaraokeMode({ config, audioState }: Props) {
   const [fontSize, setFontSize] = useState(60);
   const [visible, setVisible] = useState(true);
   const [displayedScreen, setDisplayedScreen] = useState(0);
+  const displayedScreenRef = useRef(displayedScreen);
+  displayedScreenRef.current = displayedScreen;
 
   // Build screen groups from slides (verse structure from hymns.json)
   const screenGroups = useMemo(
@@ -99,7 +104,7 @@ export default function KaraokeMode({ config, audioState }: Props) {
   const transitionRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (targetScreen !== displayedScreen) {
+    if (targetScreen !== displayedScreenRef.current) {
       if (transitionRef.current) {
         clearTimeout(transitionRef.current);
       }
@@ -115,7 +120,7 @@ export default function KaraokeMode({ config, audioState }: Props) {
         clearTimeout(transitionRef.current);
       }
     };
-  }, [targetScreen]); // intentionally only depend on targetScreen
+  }, [targetScreen]);
 
   const currentLineIndices = screenGroups[displayedScreen] ?? [];
 

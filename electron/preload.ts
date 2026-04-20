@@ -1,4 +1,9 @@
-const { contextBridge, ipcRenderer } = require("electron");
+import {
+  contextBridge,
+  ipcRenderer,
+  type IpcRendererEvent,
+  type FileFilter,
+} from "electron";
 import type {
   DisplayState,
   AppSettings,
@@ -49,10 +54,10 @@ const electronAPI = {
   checkForUpdates: (): Promise<void> => ipcRenderer.invoke("check-for-updates"),
   installUpdate: (): Promise<void> => ipcRenderer.invoke("install-update"),
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => {
-    ipcRenderer.on("update-status", (_event: any, status: UpdateStatus) =>
+    ipcRenderer.on("update-status", (_event: IpcRendererEvent, status: UpdateStatus) =>
       callback(status)
     );
-    return () => ipcRenderer.removeAllListeners("update-status");
+    return () => { ipcRenderer.removeAllListeners("update-status"); };
   },
 
   setMode: (mode: string): Promise<void> =>
@@ -94,7 +99,7 @@ const electronAPI = {
   setClockPosition: (position: string): Promise<void> =>
     ipcRenderer.invoke("set-clock-position", position),
 
-  openFileDialog: (filters: any[]): Promise<string | null> =>
+  openFileDialog: (filters: FileFilter[]): Promise<string | null> =>
     ipcRenderer.invoke("open-file-dialog", filters),
 
   videoTimeUpdate: (time: number, duration: number): Promise<void> =>
@@ -128,23 +133,24 @@ const electronAPI = {
   ) => {
     ipcRenderer.on(
       "hymn-mp3-download-progress",
-      (_event: any, progress: MP3DownloadProgress) => callback(progress),
+      (_event: IpcRendererEvent, progress: MP3DownloadProgress) => callback(progress),
     );
-    return () =>
+    return () => {
       ipcRenderer.removeAllListeners("hymn-mp3-download-progress");
+    };
   },
   onHymnMP3CacheStats: (callback: (stats: MP3CacheStats) => void) => {
     ipcRenderer.on(
       "hymn-mp3-cache-stats",
-      (_event: any, stats: MP3CacheStats) => callback(stats),
+      (_event: IpcRendererEvent, stats: MP3CacheStats) => callback(stats),
     );
-    return () => ipcRenderer.removeAllListeners("hymn-mp3-cache-stats");
+    return () => { ipcRenderer.removeAllListeners("hymn-mp3-cache-stats"); };
   },
   onHymnsUpdate: (callback: (hymns: Hymn[]) => void) => {
-    ipcRenderer.on("hymns-update", (_event: any, hymns: Hymn[]) =>
+    ipcRenderer.on("hymns-update", (_event: IpcRendererEvent, hymns: Hymn[]) =>
       callback(hymns),
     );
-    return () => ipcRenderer.removeAllListeners("hymns-update");
+    return () => { ipcRenderer.removeAllListeners("hymns-update"); };
   },
 
   // Bible
@@ -196,25 +202,25 @@ const electronAPI = {
     ipcRenderer.invoke("get-video-thumbnail", videoId),
 
   onVideoLibraryUpdate: (callback: (videos: VideoItem[]) => void) => {
-    ipcRenderer.on("video-library-update", (_event: any, videos: VideoItem[]) =>
+    ipcRenderer.on("video-library-update", (_event: IpcRendererEvent, videos: VideoItem[]) =>
       callback(videos)
     );
-    return () => ipcRenderer.removeAllListeners("video-library-update");
+    return () => { ipcRenderer.removeAllListeners("video-library-update"); };
   },
 
   onDownloadProgress: (callback: (progress: DownloadProgress) => void) => {
     ipcRenderer.on(
       "download-progress",
-      (_event: any, progress: DownloadProgress) => callback(progress)
+      (_event: IpcRendererEvent, progress: DownloadProgress) => callback(progress)
     );
-    return () => ipcRenderer.removeAllListeners("download-progress");
+    return () => { ipcRenderer.removeAllListeners("download-progress"); };
   },
 
   onUploadProgress: (callback: (progress: UploadProgress) => void) => {
-    ipcRenderer.on("upload-progress", (_event: any, progress: UploadProgress) =>
+    ipcRenderer.on("upload-progress", (_event: IpcRendererEvent, progress: UploadProgress) =>
       callback(progress)
     );
-    return () => ipcRenderer.removeAllListeners("upload-progress");
+    return () => { ipcRenderer.removeAllListeners("upload-progress"); };
   },
 
   showItemInFolder: (filePath: string): Promise<void> =>
@@ -256,10 +262,10 @@ const electronAPI = {
     ipcRenderer.invoke("set-audio-widget-position", position),
 
   onAudioLibraryUpdate: (callback: (audios: AudioItem[]) => void) => {
-    ipcRenderer.on("audio-library-update", (_event: any, audios: AudioItem[]) =>
+    ipcRenderer.on("audio-library-update", (_event: IpcRendererEvent, audios: AudioItem[]) =>
       callback(audios)
     );
-    return () => ipcRenderer.removeAllListeners("audio-library-update");
+    return () => { ipcRenderer.removeAllListeners("audio-library-update"); };
   },
 
   onAudioUploadProgress: (
@@ -267,9 +273,9 @@ const electronAPI = {
   ) => {
     ipcRenderer.on(
       "audio-upload-progress",
-      (_event: any, progress: AudioUploadProgress) => callback(progress)
+      (_event: IpcRendererEvent, progress: AudioUploadProgress) => callback(progress)
     );
-    return () => ipcRenderer.removeAllListeners("audio-upload-progress");
+    return () => { ipcRenderer.removeAllListeners("audio-upload-progress"); };
   },
 
   onAudioDownloadProgress: (
@@ -277,9 +283,9 @@ const electronAPI = {
   ) => {
     ipcRenderer.on(
       "audio-download-progress",
-      (_event: any, progress: AudioDownloadProgress) => callback(progress)
+      (_event: IpcRendererEvent, progress: AudioDownloadProgress) => callback(progress)
     );
-    return () => ipcRenderer.removeAllListeners("audio-download-progress");
+    return () => { ipcRenderer.removeAllListeners("audio-download-progress"); };
   },
 
   onAudioDirectoryImportProgress: (
@@ -287,10 +293,11 @@ const electronAPI = {
   ) => {
     ipcRenderer.on(
       "audio-directory-import-progress",
-      (_event: any, progress: DirectoryImportProgress) => callback(progress)
+      (_event: IpcRendererEvent, progress: DirectoryImportProgress) => callback(progress)
     );
-    return () =>
+    return () => {
       ipcRenderer.removeAllListeners("audio-directory-import-progress");
+    };
   },
 
   // Audio Scheduling
@@ -317,25 +324,25 @@ const electronAPI = {
   onAudioSchedulesUpdate: (callback: (schedules: AudioSchedule[]) => void) => {
     ipcRenderer.on(
       "audio-schedules-update",
-      (_event: any, schedules: AudioSchedule[]) => callback(schedules)
+      (_event: IpcRendererEvent, schedules: AudioSchedule[]) => callback(schedules)
     );
-    return () => ipcRenderer.removeAllListeners("audio-schedules-update");
+    return () => { ipcRenderer.removeAllListeners("audio-schedules-update"); };
   },
   onAudioPresetsUpdate: (
     callback: (presets: AudioSchedulePreset[]) => void
   ) => {
     ipcRenderer.on(
       "audio-presets-update",
-      (_event: any, presets: AudioSchedulePreset[]) => callback(presets)
+      (_event: IpcRendererEvent, presets: AudioSchedulePreset[]) => callback(presets)
     );
-    return () => ipcRenderer.removeAllListeners("audio-presets-update");
+    return () => { ipcRenderer.removeAllListeners("audio-presets-update"); };
   },
   onAudioScheduleEvent: (callback: (event: ScheduleEvent) => void) => {
     ipcRenderer.on(
       "audio-schedule-event",
-      (_event: any, event: ScheduleEvent) => callback(event)
+      (_event: IpcRendererEvent, event: ScheduleEvent) => callback(event)
     );
-    return () => ipcRenderer.removeAllListeners("audio-schedule-event");
+    return () => { ipcRenderer.removeAllListeners("audio-schedule-event"); };
   },
 
   // Image Library
@@ -395,17 +402,17 @@ const electronAPI = {
   onImageLibraryUpdate: (callback: (images: ImageItem[]) => void) => {
     ipcRenderer.on(
       "image-library-update",
-      (_event: any, images: ImageItem[]) => callback(images)
+      (_event: IpcRendererEvent, images: ImageItem[]) => callback(images)
     );
-    return () => ipcRenderer.removeAllListeners("image-library-update");
+    return () => { ipcRenderer.removeAllListeners("image-library-update"); };
   },
 
   onSlideshowsUpdate: (callback: (slideshows: Slideshow[]) => void) => {
     ipcRenderer.on(
       "slideshows-update",
-      (_event: any, slideshows: Slideshow[]) => callback(slideshows)
+      (_event: IpcRendererEvent, slideshows: Slideshow[]) => callback(slideshows)
     );
-    return () => ipcRenderer.removeAllListeners("slideshows-update");
+    return () => { ipcRenderer.removeAllListeners("slideshows-update"); };
   },
 
   onImageUploadProgress: (
@@ -413,9 +420,9 @@ const electronAPI = {
   ) => {
     ipcRenderer.on(
       "image-upload-progress",
-      (_event: any, progress: ImageUploadProgress) => callback(progress)
+      (_event: IpcRendererEvent, progress: ImageUploadProgress) => callback(progress)
     );
-    return () => ipcRenderer.removeAllListeners("image-upload-progress");
+    return () => { ipcRenderer.removeAllListeners("image-upload-progress"); };
   },
 
   // File Transfers
@@ -423,32 +430,32 @@ const electronAPI = {
     ipcRenderer.invoke("get-transfers"),
   deleteTransfer: (id: string): Promise<boolean> =>
     ipcRenderer.invoke("delete-transfer", id),
-  addTransferToVideo: (id: string): Promise<any> =>
+  addTransferToVideo: (id: string): Promise<VideoItem | null> =>
     ipcRenderer.invoke("add-transfer-to-video", id),
-  addTransferToAudio: (id: string): Promise<any> =>
+  addTransferToAudio: (id: string): Promise<AudioItem | null> =>
     ipcRenderer.invoke("add-transfer-to-audio", id),
-  addTransferToImage: (id: string): Promise<any> =>
+  addTransferToImage: (id: string): Promise<ImageItem | null> =>
     ipcRenderer.invoke("add-transfer-to-image", id),
   onTransfersUpdate: (callback: (transfers: TransferItem[]) => void) => {
     ipcRenderer.on(
       "transfers-update",
-      (_event: any, transfers: TransferItem[]) => callback(transfers)
+      (_event: IpcRendererEvent, transfers: TransferItem[]) => callback(transfers)
     );
-    return () => ipcRenderer.removeAllListeners("transfers-update");
+    return () => { ipcRenderer.removeAllListeners("transfers-update"); };
   },
 
   onStateUpdate: (callback: (state: DisplayState) => void) => {
-    ipcRenderer.on("state-update", (_event: any, state: DisplayState) =>
+    ipcRenderer.on("state-update", (_event: IpcRendererEvent, state: DisplayState) =>
       callback(state)
     );
-    return () => ipcRenderer.removeAllListeners("state-update");
+    return () => { ipcRenderer.removeAllListeners("state-update"); };
   },
 
   onSettingsUpdate: (callback: (settings: AppSettings) => void) => {
-    ipcRenderer.on("settings-update", (_event: any, settings: AppSettings) =>
+    ipcRenderer.on("settings-update", (_event: IpcRendererEvent, settings: AppSettings) =>
       callback(settings)
     );
-    return () => ipcRenderer.removeAllListeners("settings-update");
+    return () => { ipcRenderer.removeAllListeners("settings-update"); };
   },
 };
 

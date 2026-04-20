@@ -4,8 +4,6 @@ import fs from "fs";
 import { app } from "electron";
 import { fileURLToPath } from "url";
 
-// __filename and __dirname replacement for ES modules
-// @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

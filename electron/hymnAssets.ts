@@ -277,12 +277,12 @@ export async function downloadMP3(hymnNumber: string): Promise<void> {
     recordMP3Cached(padded, progress.bytesDownloaded);
     emitProgress(progress);
     emitAssetsUpdated();
-  } catch (err: any) {
+  } catch (err) {
     if (controller.signal.aborted) {
       // Cancellation is silent — no error event.
     } else {
       progress.status = "error";
-      progress.error = err?.message || String(err);
+      progress.error = err instanceof Error ? err.message : String(err);
       emitProgress(progress);
       console.warn(`[hymnAssets] Failed to download MP3 ${padded}:`, err);
     }

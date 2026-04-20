@@ -9,7 +9,7 @@ export interface DownloadOptions {
   headers?: Record<string, string>;
 }
 
-export async function fetchJSON<T = any>(
+export async function fetchJSON<T = unknown>(
   url: string,
   headers?: Record<string, string>,
 ): Promise<T> {

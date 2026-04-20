@@ -48,7 +48,6 @@ import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
 import { startDownload, startAudioDownload, cancelDownload } from "./ytdlp";
 
-// @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

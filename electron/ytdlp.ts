@@ -111,7 +111,7 @@ function saveVersions(versions: Record<string, string>): void {
 
 async function updateYtdlp(): Promise<boolean> {
   try {
-    const release: GitHubRelease = await fetchJSON(
+    const release = await fetchJSON<GitHubRelease>(
       "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
     );
     const versions = getSavedVersions();
@@ -150,7 +150,7 @@ async function updateYtdlp(): Promise<boolean> {
 
 async function updateQjs(): Promise<boolean> {
   try {
-    const release: GitHubRelease = await fetchJSON(
+    const release = await fetchJSON<GitHubRelease>(
       "https://api.github.com/repos/quickjs-ng/quickjs/releases/latest",
     );
     const versions = getSavedVersions();

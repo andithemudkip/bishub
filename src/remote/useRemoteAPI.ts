@@ -137,6 +137,70 @@ export function useRemoteAPI(): RemoteAPI {
 
   const isElectron = !!window.electronAPI;
 
+  const connectSocket = useCallback(
+    (key: string | null) => {
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+      }
+
+      setAuthError(false);
+      const socket: SocketType = io({ auth: { key } });
+      socketRef.current = socket;
+
+      socket.on("connect", () => {
+        setIsConnected(true);
+        setAuthError(false);
+        socket.emit("getHymns");
+        socket.emit("getBibleBooks");
+        socket.emit("getDownloadedTranslations");
+      });
+
+      socket.on("disconnect", () => {
+        setIsConnected(false);
+      });
+
+      socket.on("connect_error", (err) => {
+        if (err.message === "Invalid security key") {
+          setAuthError(true);
+          socket.disconnect();
+        }
+      });
+
+      socket.on("stateUpdate", setState);
+      socket.on("settingsUpdate", setSettings);
+      socket.on("monitors", setMonitors);
+      socket.on("hymns", setHymns);
+      socket.on("bibleBooks", (books) => {
+        setBibleBooks(books);
+        if (bibleBooksCb.current) {
+          bibleBooksCb.current(books);
+          bibleBooksCb.current = null;
+        }
+      });
+      socket.on("bibleChapter", (verses) => {
+        if (bibleChapterCb.current) {
+          bibleChapterCb.current(verses);
+          bibleChapterCb.current = null;
+        }
+      });
+      socket.on("bibleSearchResults", (results) => {
+        if (bibleSearchCb.current) {
+          bibleSearchCb.current(results);
+          bibleSearchCb.current = null;
+        }
+      });
+      socket.on("bibleTranslationStatus", (status) => {
+        setBibleDownloadStatus(status);
+      });
+      socket.on("downloadedTranslations", setDownloadedTranslations);
+      socket.on("mp3DownloadProgress", handleMP3Progress);
+      socket.on("mp3CacheStats", setMp3CacheStats);
+      socket.emit("getHymnMP3CacheStats");
+    },
+    [handleMP3Progress]
+  );
+
   useEffect(() => {
     if (isElectron) {
       // Use Electron IPC
@@ -170,76 +234,18 @@ export function useRemoteAPI(): RemoteAPI {
         socketRef.current?.disconnect();
       };
     }
-  }, [isElectron]);
+  }, [isElectron, connectSocket, handleMP3Progress]);
 
-  function connectSocket(key: string | null) {
-    if (socketRef.current) {
-      socketRef.current.removeAllListeners();
-      socketRef.current.disconnect();
-    }
-
-    setAuthError(false);
-    const socket: SocketType = io({ auth: { key } });
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-      setIsConnected(true);
-      setAuthError(false);
-      socket.emit("getHymns");
-      socket.emit("getBibleBooks");
-      socket.emit("getDownloadedTranslations");
-    });
-
-    socket.on("disconnect", () => {
-      setIsConnected(false);
-    });
-
-    socket.on("connect_error", (err) => {
-      if (err.message === "Invalid security key") {
-        setAuthError(true);
-        socket.disconnect();
-      }
-    });
-
-    socket.on("stateUpdate", setState);
-    socket.on("settingsUpdate", setSettings);
-    socket.on("monitors", setMonitors);
-    socket.on("hymns", setHymns);
-    socket.on("bibleBooks", (books) => {
-      setBibleBooks(books);
-      if (bibleBooksCb.current) {
-        bibleBooksCb.current(books);
-        bibleBooksCb.current = null;
-      }
-    });
-    socket.on("bibleChapter", (verses) => {
-      if (bibleChapterCb.current) {
-        bibleChapterCb.current(verses);
-        bibleChapterCb.current = null;
-      }
-    });
-    socket.on("bibleSearchResults", (results) => {
-      if (bibleSearchCb.current) {
-        bibleSearchCb.current(results);
-        bibleSearchCb.current = null;
-      }
-    });
-    socket.on("bibleTranslationStatus", (status) => {
-      setBibleDownloadStatus(status);
-    });
-    socket.on("downloadedTranslations", setDownloadedTranslations);
-    socket.on("mp3DownloadProgress", handleMP3Progress);
-    socket.on("mp3CacheStats", setMp3CacheStats);
-    socket.emit("getHymnMP3CacheStats");
-  }
-
-  const reconnectWithKey = useCallback((key: string) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("key", key);
-    window.history.replaceState({}, "", url.toString());
-    authAttempted.current = true;
-    connectSocket(key);
-  }, []);
+  const reconnectWithKey = useCallback(
+    (key: string) => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("key", key);
+      window.history.replaceState({}, "", url.toString());
+      authAttempted.current = true;
+      connectSocket(key);
+    },
+    [connectSocket]
+  );
 
   const api: RemoteAPI = {
     state,
