@@ -1,243 +1,122 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
 ## Project Overview
 
-BisHub is a church display application built with Electron + React + TypeScript. It displays content (text, hymns, Bible verses, video) on a projection screen while allowing remote control from another window or device.
+BisHub is a church display app (Electron + React + TypeScript). A fullscreen **display** window projects content (text, hymns, Bible verses, video, images) on a secondary monitor; a **remote** window on the primary monitor (and web remotes on phones/tablets) controls it.
 
-## 🚨 DEFAULT DEVELOPMENT PRACTICES
+## 🚨 Invariants
 
-**Always apply these without being asked:**
-
-### Internationalization (i18n)
-
-- **All user-facing text MUST use i18n** from `src/shared/i18n.ts`
-- Never hardcode strings - always add to translations object first
-- Support both Romanian (`ro`) and English (`en`) languages
-- Use the pattern: `const t = getTranslations(settings.language); ... {t.key}`
-- Add new keys to both language objects in i18n.ts
-
-### Mobile Responsiveness
-
-- **All UI components MUST be mobile-responsive by default**
-- Use Tailwind's responsive prefixes: `sm:`, `md:`, `lg:`, `xl:`
-- Test layouts work on small screens (320px+)
-- Remote control interface should be fully functional on phones/tablets
-- Use flexbox/grid with proper wrapping for different screen sizes
+These can't be derived from the code. Always apply them.
 
 ### Web Remote Parity
 
-- **Anything implemented in the Electron remote UI must also work from web remotes** (mobile/tablet browsers on the same network), whenever it makes sense. The main computer runs Electron; other devices connect via Socket.io.
-- Electron-only is acceptable **only** when the feature inherently can't run remotely — e.g., opening a native file picker (`addLocalAudio`), revealing a file in Finder/Explorer, or anything that needs direct access to the main computer's filesystem/hardware. In those cases, hide the control for web remotes with `!library.isElectron`.
-- Actions that run in the main process (yt-dlp downloads, adding to libraries, triggering playback, etc.) should be wired on both paths. The pattern:
-  1. Electron path: `window.electronAPI!.someAction(...)` → IPC handler in `electron/main.ts`.
-  2. Web path: `socketRef.current?.emit("someAction", ...)` → handler in `electron/server.ts` calling the same backend function.
-  3. Progress/state that the main process broadcasts: expose via `windowManager.broadcastToAll(...)` for Electron AND `io.emit(...)` in `server.ts` for web.
-  4. Add the socket event name to `ClientToServerEvents` / `ServerToClientEvents` in `src/shared/types.ts`.
-- When adding a new action, check the sibling hook (`useVideoLibrary`, `useAudioLibrary`, etc.) — both IPC and Socket.io branches of the `useEffect` and `useCallback`s must be updated together.
+Anything in the Electron remote UI must also work from web remotes (mobile/tablet browsers on the same network) whenever it makes sense. The main computer runs Electron; other devices connect via Socket.io on port 3847.
 
-### Shared Utilities
+Electron-only is acceptable **only** when the feature inherently can't run remotely — native file pickers, revealing files in Finder/Explorer, direct filesystem/hardware access. In those cases, hide the control with `!library.isElectron`.
 
-- **Use `src/shared/utils.ts`** for common functions — don't duplicate utility logic
-- Available utilities: `getFileUrl`, `formatDuration`, `formatFileSize`, `formatDate`, `removeDiacritics`, `normalizeForSearch`, `findOptimalFontSize`, `getSecurityKeyFromURL`, `updateProgressList`, `formatTimeAgo`
-- Electron code imports from `../src/shared/utils`, renderer code uses `@shared/utils`
+For any action that runs in the main process (downloads, adding to libraries, playback, etc.):
 
-### UI Design System
+1. **Electron path**: `window.electronAPI!.someAction(...)` → IPC handler in `electron/main.ts`
+2. **Web path**: `socketRef.current?.emit("someAction", ...)` → handler in `electron/server.ts` calling the same backend function
+3. **Progress/state broadcasts**: `windowManager.broadcastToAll(...)` for Electron AND `io.emit(...)` in `server.ts` for web
+4. **Type the event**: add to `ClientToServerEvents` / `ServerToClientEvents` in `src/shared/types.ts`
 
-- **Use shared UI components** from `src/remote/components/ui/Card.tsx` and `src/remote/components/icons/ui.tsx`
-- **`<Card>`** — standard section container with `compact` prop for tighter padding. Uses `bg-gray-800/50 border border-gray-700/50 rounded-xl`
-- **`<StatusBanner>`** — colored accent banner with `color` prop (blue/green/yellow/red) and optional `onClick`. Uses `rounded-xl` with translucent backgrounds
-- **Icons**: Use `CloseIcon`, `ChevronLeftIcon`, `ChevronRightIcon`, `StopIcon`, `CollapseRightIcon`, `ExpandLeftIcon` from `icons/ui.tsx` — never use ASCII characters (✕, ←, →, ◀, ▶, ■) for UI elements
-- **Buttons**: Use ghost/outline style for actions — `bg-{color}-600/20 text-{color}-400 hover:bg-{color}-600/30 border border-{color}-600/40`. Avoid solid colored backgrounds
-- **Pill groups**: Related buttons grouped in `bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden` containers
-- **Inputs**: Use `bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`
-- **List items**: Use `bg-gray-900/50 border border-gray-700/30 rounded-lg` with `border-blue-500/50 bg-blue-950/20` for selected state
-- **Focus rings**: Use `focus-visible:ring-2` (not `focus:ring-2`) for interactive elements to avoid showing rings on mouse clicks
+When adding an action, check the sibling hook (`useVideoLibrary`, `useAudioLibrary`, `useImageLibrary`, etc.) — both IPC and Socket.io branches of the `useEffect` and `useCallback`s must be updated together.
 
-## Development Commands
+### Mirror `TextMode.tsx` ↔ `ScaledSlide`
 
-### Development
+`LivePreview` renders a scaled-down replica of the display at a virtual 1920×1080, then CSS-scales it. Any change to layout or font sizing in `src/display/modes/TextMode.tsx` must be mirrored in `ScaledSlide` inside `src/remote/components/preview/LivePreview.tsx`, or the preview will drift from the real display.
 
-```bash
-npm run dev             # Vite dev server only (builds preload first)
-npm run electron:dev    # Start development (Vite + Electron with HMR)
-npm run preview         # Preview production build
-```
+### Do NOT mutate cached data objects
 
-### Local Building (no GitHub publishing)
+Hymns (`assets/hymns.json`) and Bible data (`assets/bible.xml`, USFX format) are parsed once and cached in memory. Treat cached objects as immutable — clone before modifying.
 
-```bash
-npm run build           # Build only (no bundling)
-npm run electron:build  # Bundle for current platform locally
-npm run build:mac       # Bundle for macOS locally
-npm run build:win       # Bundle for Windows locally
-```
+### Internationalization
 
-### Release to GitHub
+All user-facing text goes through `getTranslations(settings.language)` from `src/shared/i18n.ts`. Never hardcode strings — add keys to both `ro` and `en` in `i18n.ts` first. Bible book names/abbreviations are localized in `src/shared/bibleParser.ts`. Language-specific assets live at `assets/{language}/`; falls back to default paths.
 
-```bash
-npm run release         # Build and publish for current platform
-npm run release:mac     # Build and publish macOS version
-npm run release:win     # Build and publish Windows version
-```
+### Mobile responsiveness
 
-### Utilities
+The remote UI must work on phones and tablets (320px+). Use Tailwind's `sm:`/`md:`/`lg:`/`xl:` prefixes and flex/grid with proper wrapping.
 
-```bash
-npm run build:preload   # Bundle preload.ts separately (if needed manually)
-```
+## UI Design System
+
+Use the shared components — don't hand-roll equivalents:
+
+- **`src/remote/components/ui/`** — `Card`, `StatusBanner`, `Select`, `PositionPicker`, `BibleTranslationPicker`, `renderTip`
+- **`src/remote/components/icons/ui.tsx`** — SVG icons (Close, Chevrons, Play/Pause, etc.). Never use ASCII (✕, ←, →, ◀, ▶, ■) for UI.
+- **`src/shared/utils.ts`** — check here before writing any utility. Electron imports from `../src/shared/utils`, renderer uses `@shared/utils`.
+
+Styling conventions:
+
+- **Card**: `bg-gray-800/50 border border-gray-700/50 rounded-xl` (use `<Card>` with optional `compact` prop)
+- **Buttons**: ghost/outline — `bg-{color}-600/20 text-{color}-400 hover:bg-{color}-600/30 border border-{color}-600/40`. Avoid solid colored backgrounds.
+- **Pill groups**: `bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden`
+- **Inputs**: `bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`
+- **List items**: `bg-gray-900/50 border border-gray-700/30 rounded-lg`; selected adds `border-blue-500/50 bg-blue-950/20`
+- **Focus rings**: `focus-visible:ring-2` (not `focus:ring-2`) to avoid rings on mouse clicks
 
 ## Architecture
 
-### Three-Window System
+**Three windows:**
+- Display (`src/display/`) — fullscreen on secondary monitor
+- Remote (`src/remote/`) — control interface on primary monitor
+- Main process (`electron/`) — state, networking, IPC
 
-- **Display Window** (`src/display/`) - Fullscreen on secondary monitor, renders content
-- **Remote Window** (`src/remote/`) - Control interface on primary monitor
-- **Main Process** (`electron/`) - Electron backend, state management, networking
+**Entry points:** `display.html` → `src/display/main.tsx`, `remote.html` → `src/remote/main.tsx`, `electron/main.ts`.
 
-### Entry Points
+**Communication:** IPC (preload bridge in `electron/preload.ts`) for the Electron remote; Socket.io (port 3847) for web remotes.
 
-- `display.html` → `src/display/main.tsx` - Projection display
-- `remote.html` → `src/remote/main.tsx` - Remote control interface
-- `electron/main.ts` - Electron main process
+**State:** `StateManager` in `electron/state.ts` (observer pattern). `DisplayState` = `{ mode, idle, text, video, audio, image }`; mode is `'idle' | 'text' | 'video' | 'image'`. Changes broadcast to all clients.
 
-### Communication Flow
+**Slide splitting:** text splits on `\n\n` or `---`. Hymn slides with 8+ lines auto-split at the midpoint (verses and chorus).
 
-1. **IPC** (Electron main ↔ Renderer) - via `electron/preload.ts` bridge
-2. **Socket.io** (Remote clients ↔ Server) - port 3847, enables external device control
+**TTML karaoke:** word-synced lyrics live on `TextState.syncedLyrics` (`ParsedTTML` from `src/shared/ttmlParser.ts`). Toggled by `AppSettings.syncedLyrics`; reuses the existing audio pipeline — no new content type.
 
-### State Management
+**Live Preview** (`src/remote/components/preview/LivePreview.tsx`):
+- Text: `ScaledSlide` at virtual 1920×1080, CSS-scaled (see invariant above)
+- Video: thumbnail via `/api/videos/thumbnail/:id` with play/pause + progress overlay
+- Image: current image or slideshow frame
+- Idle: clock + wallpaper indicator, plus `AudioOverlay` when audio is playing
 
-Central `StateManager` in `electron/state.ts` uses observer pattern:
+**Bundled binaries** (`bin/{darwin,win32,linux}/`, shipped via `extraResources`):
+- `yt-dlp` — YouTube downloads
+- `ffmpeg` / `ffprobe` — video/audio processing, thumbnails, duration
+- `qjs` (QuickJS-NG) — JS runtime yt-dlp uses for YouTube extraction
 
-- DisplayState: `{ mode, idle, text, video, audio }` where mode is 'idle' | 'text' | 'video'
-- Changes broadcast to all connected clients via Socket.io
-- Slides are created by splitting text on `\n\n` or `---` markers
-- Hymn slides with 8+ lines are automatically split at the midpoint (both verses and chorus)
+**OTA binary updates:** on startup, `checkForBinaryUpdates()` in `electron/ytdlp.ts` silently fetches newer yt-dlp / QuickJS-NG from GitHub releases into `userData/bin/`. `getBinaryPath()` prefers OTA binaries over bundled ones, so yt-dlp stays current without an app release.
 
-### Data Loading
+## Key files (non-obvious ones)
 
-- Hymns: `assets/hymns.json` - parsed and cached in memory (do NOT mutate cached objects)
-- Bible: `assets/bible.xml` - USFX format, parsed with regex
-- Language-specific assets: `assets/{language}/hymns.json`, `assets/{language}/bible.xml`
-- Falls back to default paths if language-specific files don't exist
+- `electron/state.ts` — central state, observer pattern
+- `electron/server.ts` — Express + Socket.io, all web-remote handlers
+- `electron/windowManager.ts` — multi-monitor window management, `broadcastToAll`
+- `src/shared/i18n.ts` — translations (always route UI text through this)
+- `src/shared/utils.ts` — shared utilities (check before duplicating)
+- `src/display/modes/TextMode.tsx` ↔ `src/remote/components/preview/LivePreview.tsx` — must stay in sync
 
-### Internationalization (i18n)
+Everything else is discoverable via Grep / Glob.
 
-- Translations in `src/shared/i18n.ts` - Romanian (`ro`) and English (`en`)
-- Bible parser supports language-specific book names/abbreviations in `src/shared/bibleParser.ts`
-- Current data is Romanian only; English data can be added at `assets/en/`
-- **Remember**: Always use `getTranslations(language)` for all UI strings
+## Development Commands
 
-### Bundled Binaries
-
-Third-party binaries are stored in `bin/{darwin,win32,linux}/` and bundled via `extraResources` in electron-builder:
-
-- **yt-dlp** - YouTube video downloading
-- **ffmpeg/ffprobe** - Video/audio processing, thumbnail generation, duration extraction
-- **qjs** (QuickJS-NG) - Lightweight JS runtime used by yt-dlp for YouTube extraction
-
-**OTA Updates**: On every app startup, `checkForBinaryUpdates()` silently checks GitHub releases for newer versions of yt-dlp and QuickJS-NG, downloading them to `userData/bin/`. The `getBinaryPath()` function prefers OTA-updated binaries over bundled ones. This means yt-dlp stays current with YouTube API changes without requiring a new app release.
-
-### Live Preview
-
-The `LivePreview` component (`src/remote/components/preview/LivePreview.tsx`) renders a scaled-down replica of the actual display:
-
-- **Text mode**: Uses `ScaledSlide` — renders at a virtual 1920×1080 resolution with the exact same structure/styling as `TextMode.tsx`, then CSS-scales it down. This ensures the preview is pixel-perfect.
-- **Video mode**: Shows the video thumbnail via `/api/videos/thumbnail/:id` (requires `videoId` in `VideoState`), with play/pause indicator and progress bar.
-- **Idle mode**: Shows clock and wallpaper indicator, plus an `AudioOverlay` when audio is playing.
-
-When modifying `TextMode.tsx` layout or font sizing, the same changes must be mirrored in `ScaledSlide` within `LivePreview.tsx`.
-
-## Common Patterns
-
-```tsx
-// i18n usage in React components
-import { getTranslations } from "@shared/i18n";
-
-function MyComponent({ settings }) {
-  const t = getTranslations(settings.language);
-  return <button>{t.buttonLabel}</button>;
-}
-
-// Shared utilities
-import { formatDuration, getFileUrl, normalizeForSearch } from "@shared/utils";
-
-// UI components
-import { Card, StatusBanner } from "../components/ui/Card";
-import { CloseIcon, ChevronRightIcon } from "../components/icons/ui";
-
-// Section container
-<Card>
-  <h2 className="text-lg font-semibold mb-4">{t.section.title}</h2>
-  {/* content */}
-</Card>
-
-// Ghost button (primary action)
-<button className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40">
-  {t.action}
-</button>
-
-// Destructive ghost button
-<button className="px-3 py-1.5 rounded-lg text-sm bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-600/40">
-  {t.delete}
-</button>
-
-// Pill button group
-<div className="flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden">
-  <button className="px-3 py-2 hover:bg-gray-700 transition-colors">Left</button>
-  <button className="px-3 py-2 hover:bg-gray-700 transition-colors text-blue-400">Right</button>
-</div>
-
-// Progress tracking in hooks (for upload/download progress lists)
-import { updateProgressList } from "@shared/utils";
-setUploads((prev) => updateProgressList(prev, progress, setUploads));
+```bash
+npm run electron:dev    # Vite + Electron with HMR (normal dev loop)
+npm run dev             # Vite only (builds preload first)
+npm run build           # Type-check (tsc) + bundle renderer — use to verify types
+npm run electron:build  # Package for current platform locally (no publish)
+npm run build:mac       # Package macOS locally
+npm run build:win       # Package Windows locally
+npm run release         # Build + publish to GitHub (current platform)
+npm run release:mac
+npm run release:win
+npm run build:preload   # Rebundle preload.ts manually
+npm run build:ttml      # Rebundle TTML hymns manually
 ```
 
-## Key Files
+No separate test/lint scripts exist — `npm run build` (which runs `tsc`) is the way to verify work before declaring it done.
 
-| File                        | Purpose                                                               |
-| --------------------------- | --------------------------------------------------------------------- |
-| `electron/main.ts`          | App lifecycle, window creation, IPC handlers                          |
-| `electron/state.ts`         | Central state management                                              |
-| `electron/server.ts`        | Express + Socket.io server                                            |
-| `electron/windowManager.ts` | Multi-monitor window management                                       |
-| `electron/dataLoader.ts`    | Hymn/Bible data parsing and formatting                                |
-| `electron/ytdlp.ts`         | YouTube downloading, bundled binary management, OTA updates           |
-| `electron/utils.ts`         | ffmpeg/ffprobe path resolution, `extractDurationWithFfprobe`          |
-| `src/shared/types.ts`       | Shared TypeScript interfaces                                          |
-| `src/shared/i18n.ts`        | **UI translations (Romanian/English) - use for ALL user-facing text** |
-| `src/shared/utils.ts`       | **Shared utility functions - use instead of duplicating logic**       |
-| `src/shared/bibleParser.ts` | Bible reference parsing with language support                         |
-| `src/display/modes/TextMode.tsx` | Display text rendering with auto font sizing                     |
-| `src/remote/components/preview/LivePreview.tsx` | Scaled preview replica of the display       |
-| `src/remote/components/MediaUploader.tsx` | Unified upload component (video + audio)            |
-| `src/remote/components/ui/Card.tsx` | **Shared Card and StatusBanner components**                |
-| `src/remote/components/icons/ui.tsx` | **Shared SVG icon components (Close, Chevrons, Stop, etc)** |
-| `src/remote/components/bible/*` | Bible page sub-components (SmartSearchBar, BrowseTab, SearchResultsTab, VerseListView) |
+**TTML bundling**: `build:ttml` compiles `assets/hymns/*.ttml` into `assets/hymns-ttml.json` and runs automatically before every dev/build command. If you add a new `.ttml` file, restart the dev server (or rerun a build) for it to appear.
 
-## Tech Stack Details
-
-- **Styling**: Tailwind CSS (configured in `tailwind.config.js`)
-- **Build**: Vite for React, esbuild for Electron preload
-- **Packaging**: electron-builder
-- **Communication**: Socket.io for real-time updates
-- **Path Alias**: `@shared/` → `src/shared/`
-
-## Keyboard Shortcuts
-
-| Key              | Action                                              |
-| ---------------- | --------------------------------------------------- |
-| `→` / `PageDown` | Next slide                                          |
-| `←` / `PageUp`   | Previous slide                                      |
-| `Escape`         | Go to idle mode (or back from Bible verse list view) |
-| `Enter`          | Bible: load reference / present highlighted verse    |
-| `F5`             | Focus search input                                   |
-
-## Build Pipeline
-
-1. TypeScript compiles with strict mode
-2. esbuild bundles `electron/preload.ts` to CommonJS
-3. Vite bundles React apps (separate entry points)
-4. electron-builder packages native app (DMG/NSIS)
+Path alias: `@shared/` → `src/shared/`.
