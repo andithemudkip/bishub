@@ -105,6 +105,8 @@ Everything else is discoverable via Grep / Glob.
 npm run electron:dev    # Vite + Electron with HMR (normal dev loop)
 npm run dev             # Vite only (builds preload first)
 npm run typecheck       # Type-check all three tsconfigs (main + node + electron)
+npm run lint            # ESLint — errors block, warnings are advisory
+npm run lint:fix        # Auto-fix what ESLint can
 npm run build           # typecheck + bundle renderer — use to verify before declaring work done
 npm run electron:build  # Package for current platform locally (no publish)
 npm run build:mac       # Package macOS locally
@@ -116,7 +118,9 @@ npm run build:preload   # Rebundle preload.ts manually
 npm run build:ttml      # Rebundle TTML hymns manually
 ```
 
-No test/lint scripts exist — `npm run typecheck` (or `npm run build`, which runs it) is the way to verify work before declaring it done.
+No test scripts exist — `npm run typecheck` (or `npm run build`, which runs it) is the way to verify work before declaring it done. Lint is separate: run `npm run lint` to see warnings, it's not wired into the build.
+
+**Linting** uses flat ESLint config (`eslint.config.js`) with `typescript-eslint` + `react-hooks` + `react-refresh`. Stance is intentionally minimal: real bugs (unused vars, rules-of-hooks) are errors; style/judgment calls (`any`, `@ts-ignore`, exhaustive-deps) are warnings. New React-hooks v7 rules (`set-state-in-effect`, `refs`, `purity`, `immutability`, `preserve-manual-memoization`) are disabled — they'd need a wider refactor. Don't silence warnings by adding `eslint-disable` comments casually; fix or leave them.
 
 **Three tsconfigs, check all three.** Default `tsc` only checks `tsconfig.json` (renderer, `src/`). Electron-side code is covered by `tsconfig.node.json` (`electron/` + `src/shared`) and `electron/tsconfig.json` (electron LSP/type-check — vite-plugin-electron does the actual bundle). If only one looks clean, the others may still be broken — run `npm run typecheck`, or target one with `typecheck:main` / `typecheck:node` / `typecheck:electron`.
 

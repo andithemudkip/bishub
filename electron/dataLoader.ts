@@ -3,8 +3,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import type {
   Hymn,
-  BibleBook,
-  BibleChapter,
   BibleVerse,
   BibleData,
   BibleContext,

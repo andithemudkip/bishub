@@ -1,6 +1,5 @@
-import { app, BrowserWindow, ipcMain, screen, dialog, net, shell } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
 import os from "os";
-import path from "path";
 import { createServer, closeServer } from "./server";
 import { WindowManager } from "./windowManager";
 import { StateManager } from "./state";
@@ -11,10 +10,7 @@ import {
   resolveHymnDisplay,
   getBibleBooks,
   getBibleChapter,
-  getBibleVerses,
-  formatBibleVersesForDisplay,
   formatBibleChapterForDisplay,
-  loadBible,
   searchBibleVerses,
 } from "./dataLoader";
 import {

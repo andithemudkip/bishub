@@ -92,7 +92,7 @@ export default function MediaUploader({
       } else {
         await onUpload(file);
       }
-    } catch (err) {
+    } catch {
       setError(labels.uploadFailed);
     } finally {
       setIsUploading(false);
