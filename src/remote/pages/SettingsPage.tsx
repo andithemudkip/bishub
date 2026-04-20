@@ -3,6 +3,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Card } from "../components/ui/Card";
 import { Select } from "../components/ui/Select";
 import { PositionPicker } from "../components/ui/PositionPicker";
+import { MonitorPicker } from "../components/ui/MonitorPicker";
 import { renderTip } from "../components/ui/renderTip";
 import type {
   MonitorInfo,
@@ -51,6 +52,7 @@ interface Props {
   onSetVolume: (volume: number) => void;
   onSetAudioVolume: (volume: number) => void;
   onSetSyncedLyrics: (enabled: boolean) => void;
+  onSetDisplayMonitor: (monitorId: number) => void;
   appVersion: string;
   updateStatus: UpdateStatus;
   onCheckForUpdates: () => void;
@@ -78,6 +80,7 @@ export default function SettingsPage({
   onSetVolume,
   onSetAudioVolume,
   onSetSyncedLyrics,
+  onSetDisplayMonitor,
   appVersion,
   updateStatus,
   onCheckForUpdates,
@@ -118,10 +121,17 @@ export default function SettingsPage({
     }
   }, [isElectron]);
 
-  const handleMonitorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const monitorId = Number(e.target.value);
-    window.electronAPI?.setDisplayMonitor(monitorId);
-  };
+  const resolvedAutoMonitor =
+    monitors.find((m) => !m.isPrimary) ?? monitors[0] ?? null;
+  const selectedMonitor = monitors.find((m) => m.id === settings.displayMonitor);
+  const monitorCaption =
+    settings.displayMonitor === -1
+      ? resolvedAutoMonitor
+        ? `${t.settings.autoResolvedTo}${resolvedAutoMonitor.label || resolvedAutoMonitor.name}`
+        : t.settings.selectMonitorHint
+      : selectedMonitor
+        ? selectedMonitor.label || selectedMonitor.name
+        : t.settings.selectMonitorHint;
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onSetLanguage(e.target.value as Language);
@@ -385,23 +395,28 @@ export default function SettingsPage({
         <h2 className="text-lg font-semibold mb-4">{t.settings.display}</h2>
 
         <div>
-          <label className="text-sm text-gray-400 block mb-2">
+          <label className="text-sm text-gray-400 block mb-3">
             {t.settings.displayMonitor}
           </label>
-          <Select
+          <MonitorPicker
+            monitors={monitors}
             value={settings.displayMonitor}
-            onChange={handleMonitorChange}
-          >
-            <option value={-1}>{t.settings.autoSecondary}</option>
-            {monitors.map((monitor) => (
-              <option key={monitor.id} value={monitor.id}>
-                {monitor.name} ({monitor.bounds.width}x{monitor.bounds.height})
-              </option>
-            ))}
-          </Select>
-          <p className="text-sm text-gray-500 mt-2">
-            {t.settings.selectMonitorHint}
-          </p>
+            resolvedAutoId={resolvedAutoMonitor?.id ?? null}
+            onChange={onSetDisplayMonitor}
+            language={settings.language}
+          />
+          <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+            <span className="text-gray-500">{monitorCaption}</span>
+            {settings.displayMonitor !== -1 && (
+              <button
+                type="button"
+                onClick={() => onSetDisplayMonitor(-1)}
+                className="text-blue-400 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1"
+              >
+                {t.settings.resetToAuto}
+              </button>
+            )}
+          </div>
         </div>
       </Card>
 

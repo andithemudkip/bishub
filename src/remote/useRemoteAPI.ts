@@ -212,6 +212,7 @@ export function useRemoteAPI(): RemoteAPI {
 
       const unsubState = window.electronAPI!.onStateUpdate(setState);
       const unsubSettings = window.electronAPI!.onSettingsUpdate(setSettings);
+      const unsubMonitors = window.electronAPI!.onMonitorsUpdate(setMonitors);
       const unsubHymns = window.electronAPI!.onHymnsUpdate(setHymns);
       const unsubMP3Progress =
         window.electronAPI!.onHymnMP3DownloadProgress(handleMP3Progress);
@@ -223,6 +224,7 @@ export function useRemoteAPI(): RemoteAPI {
       return () => {
         unsubState();
         unsubSettings();
+        unsubMonitors();
         unsubHymns();
         unsubMP3Progress();
         unsubMP3Stats();

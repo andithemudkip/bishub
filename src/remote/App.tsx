@@ -211,6 +211,7 @@ export default function App() {
             onSetVolume={api.setVolume}
             onSetAudioVolume={api.setAudioVolume}
             onSetSyncedLyrics={api.setSyncedLyrics}
+            onSetDisplayMonitor={api.setDisplayMonitor}
             appVersion={appVersion}
             updateStatus={updateStatus}
             onCheckForUpdates={handleCheckForUpdates}

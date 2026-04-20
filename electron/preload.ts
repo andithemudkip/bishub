@@ -455,6 +455,13 @@ const electronAPI = {
     );
     return () => { ipcRenderer.removeAllListeners("settings-update"); };
   },
+
+  onMonitorsUpdate: (callback: (monitors: MonitorInfo[]) => void) => {
+    ipcRenderer.on("monitors-update", (_event: IpcRendererEvent, monitors: MonitorInfo[]) =>
+      callback(monitors)
+    );
+    return () => { ipcRenderer.removeAllListeners("monitors-update"); };
+  },
 };
 
 contextBridge.exposeInMainWorld("electronAPI", electronAPI);

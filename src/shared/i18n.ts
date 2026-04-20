@@ -108,6 +108,11 @@ export interface Translations {
     displayMonitor: string;
     autoSecondary: string;
     selectMonitorHint: string;
+    autoResolvedTo: string;
+    resetToAuto: string;
+    monitorPrimary: string;
+    monitorInternal: string;
+    onlyMonitor: string;
     mobileRemote: string;
     scanOrVisit: string;
     sameWifi: string;
@@ -477,8 +482,13 @@ const ro: Translations = {
     language: "Limbă",
     display: "Afișaj",
     displayMonitor: "Monitor afișare",
-    autoSecondary: "Auto (Monitor secundar)",
-    selectMonitorHint: "Selectează monitorul pentru afișarea conținutului",
+    autoSecondary: "Auto",
+    selectMonitorHint: "Apasă pe monitorul pe care vrei să afișezi conținutul",
+    autoResolvedTo: "Auto → ",
+    resetToAuto: "Înapoi la auto",
+    monitorPrimary: "Principal",
+    monitorInternal: "Intern",
+    onlyMonitor: "Singurul monitor",
     mobileRemote: "Telecomandă mobilă",
     scanOrVisit: "Scanează sau accesează:",
     sameWifi: "Asigură-te că telefonul este conectat la aceeași rețea WiFi",
@@ -512,7 +522,7 @@ const ro: Translations = {
     securityKeyHint: "Necesară pentru a conecta alte dispozitive la această sesiune",
     openOnStartup: "Deschide la pornirea sistemului",
     displayTip:
-      "Alege pe ce monitor se afișează conținutul proiectat. **Auto** folosește al doilea monitor dacă este conectat. Selectează manual dacă detectarea automată alege monitorul greșit.",
+      "Alege pe ce monitor se afișează conținutul proiectat. Modul **Auto** folosește al doilea monitor — apare cu chenar punctat în picker. Apasă pe orice monitor pentru a-l selecta manual.",
     idleScreenTip:
       "Ecranul de așteptare apare pe proiecție când nu se prezintă nimic. Poți seta o **imagine de fundal**, ajusta **ceasul** și poziționa **widgetul audio**.",
     mobileRemoteTip:
@@ -833,8 +843,13 @@ const en: Translations = {
     language: "Language",
     display: "Display",
     displayMonitor: "Display Monitor",
-    autoSecondary: "Auto (Secondary Monitor)",
-    selectMonitorHint: "Select which monitor to use for the display output",
+    autoSecondary: "Auto",
+    selectMonitorHint: "Tap a monitor to display content on it",
+    autoResolvedTo: "Auto → ",
+    resetToAuto: "Reset to auto",
+    monitorPrimary: "Primary",
+    monitorInternal: "Internal",
+    onlyMonitor: "Only monitor",
     mobileRemote: "Mobile Remote",
     scanOrVisit: "Scan or visit:",
     sameWifi: "Make sure your phone is connected to the same WiFi network",
@@ -868,7 +883,7 @@ const en: Translations = {
     securityKeyHint: "Required to connect other devices to this session",
     openOnStartup: "Open on system startup",
     displayTip:
-      "Choose which monitor shows the projected content. **Auto** uses the second monitor if connected. Pick a specific monitor if auto-detection chooses the wrong one.",
+      "Choose which monitor shows the projected content. **Auto** mode uses the secondary monitor — it appears with a dashed outline in the picker. Tap any monitor to pin a specific one.",
     idleScreenTip:
       "The idle screen is what's shown on the projection when nothing is being presented. You can set a **background image**, adjust the **clock**, and position the **audio widget**.",
     mobileRemoteTip:

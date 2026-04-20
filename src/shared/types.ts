@@ -99,15 +99,22 @@ export interface DisplayState {
   image: ImageState;
 }
 
+export interface MonitorBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface MonitorInfo {
   id: number;
   name: string;
-  bounds: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  label: string;
+  bounds: MonitorBounds;
+  workArea: MonitorBounds;
+  scaleFactor: number;
+  rotation: 0 | 90 | 180 | 270;
+  internal: boolean;
   isPrimary: boolean;
 }
 

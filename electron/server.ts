@@ -486,6 +486,10 @@ export function createServer(
     io.emit("transfers", transfers);
   });
 
+  windowManager.onMonitorsChange((monitors) => {
+    io.emit("monitors", monitors);
+  });
+
   // Socket.io connection handling
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);

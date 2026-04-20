@@ -15,6 +15,9 @@ export class WindowManager {
   private displayWindow: BrowserWindow | null = null;
   private remoteWindow: BrowserWindow | null = null;
   private stateManager: StateManager;
+  private monitorChangeListeners = new Set<(monitors: MonitorInfo[]) => void>();
+  private moveInProgress = false;
+  private lastBroadcastMonitorsKey = "";
 
   constructor(stateManager: StateManager) {
     this.stateManager = stateManager;
@@ -29,18 +32,60 @@ export class WindowManager {
       this.displayWindow?.webContents.send("settings-update", settings);
       this.remoteWindow?.webContents.send("settings-update", settings);
     });
+
+    const onDisplayChange = () => {
+      this.broadcastMonitors();
+      void this.reconcileDisplayMonitor();
+    };
+    screen.on("display-added", onDisplayChange);
+    screen.on("display-removed", onDisplayChange);
+    screen.on("display-metrics-changed", onDisplayChange);
+  }
+
+  private async reconcileDisplayMonitor() {
+    if (!this.displayWindow || this.moveInProgress) return;
+    const resolved = this.getDisplayMonitor();
+    const currentDisplay = screen.getDisplayMatching(this.displayWindow.getBounds());
+    if (currentDisplay.id === resolved.id) return;
+    await this.moveDisplayToMonitor(this.stateManager.getSettings().displayMonitor);
   }
 
   getMonitors(): MonitorInfo[] {
     const displays = screen.getAllDisplays();
-    return displays.map((display, index) => ({
-      id: display.id,
-      name: `Display ${index + 1}${
-        display.bounds.x === 0 && display.bounds.y === 0 ? " (Primary)" : ""
-      }`,
-      bounds: display.bounds,
-      isPrimary: display.bounds.x === 0 && display.bounds.y === 0,
-    }));
+    const primaryId = screen.getPrimaryDisplay().id;
+    return displays.map((display, index) => {
+      const isPrimary = display.id === primaryId;
+      const rotation = ([0, 90, 180, 270].includes(display.rotation)
+        ? display.rotation
+        : 0) as 0 | 90 | 180 | 270;
+      return {
+        id: display.id,
+        name: `Display ${index + 1}${isPrimary ? " (Primary)" : ""}`,
+        label: display.label ?? "",
+        bounds: display.bounds,
+        workArea: display.workArea,
+        scaleFactor: display.scaleFactor,
+        rotation,
+        internal: display.internal,
+        isPrimary,
+      };
+    });
+  }
+
+  onMonitorsChange(listener: (monitors: MonitorInfo[]) => void) {
+    this.monitorChangeListeners.add(listener);
+    return () => this.monitorChangeListeners.delete(listener);
+  }
+
+  private broadcastMonitors() {
+    const monitors = this.getMonitors();
+    const key = JSON.stringify(monitors);
+    if (key === this.lastBroadcastMonitorsKey) return;
+    this.lastBroadcastMonitorsKey = key;
+    this.broadcastToAll("monitors-update", monitors);
+    for (const listener of this.monitorChangeListeners) {
+      listener(monitors);
+    }
   }
 
   private getSecondaryMonitor() {
@@ -138,51 +183,58 @@ export class WindowManager {
   }
 
   async moveDisplayToMonitor(monitorId: number) {
-    const displays = screen.getAllDisplays();
-    const monitor = displays.find((d) => d.id === monitorId);
-
-    if (!monitor || !this.displayWindow) return;
+    if (!this.displayWindow || this.moveInProgress) return;
+    const monitor =
+      monitorId === -1
+        ? this.getSecondaryMonitor()
+        : screen.getAllDisplays().find((d) => d.id === monitorId) ??
+          this.getSecondaryMonitor();
 
     this.stateManager.setDisplayMonitor(monitorId);
 
     const displayWindow = this.displayWindow;
-    const isFullScreen = displayWindow.isFullScreen();
+    this.moveInProgress = true;
+    try {
+      const isFullScreen = displayWindow.isFullScreen();
 
-    if (isFullScreen) {
-      // Wait for fullscreen exit to complete before moving
+      if (isFullScreen) {
+        // Wait for fullscreen exit to complete before moving
+        await new Promise<void>((resolve) => {
+          const timeout = setTimeout(resolve, 1000);
+          displayWindow.once("leave-full-screen", () => {
+            clearTimeout(timeout);
+            resolve();
+          });
+          displayWindow.setFullScreen(false);
+        });
+
+        // macOS needs time to settle after exiting fullscreen
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+
+      // Move window to new monitor
+      displayWindow.setBounds({
+        x: monitor.bounds.x,
+        y: monitor.bounds.y,
+        width: monitor.bounds.width,
+        height: monitor.bounds.height,
+      });
+
+      // Wait for bounds to be applied before going fullscreen
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Re-enter fullscreen on new monitor
       await new Promise<void>((resolve) => {
         const timeout = setTimeout(resolve, 1000);
-        displayWindow.once("leave-full-screen", () => {
+        displayWindow.once("enter-full-screen", () => {
           clearTimeout(timeout);
           resolve();
         });
-        displayWindow.setFullScreen(false);
+        displayWindow.setFullScreen(true);
       });
-
-      // macOS needs time to settle after exiting fullscreen
-      await new Promise((resolve) => setTimeout(resolve, 300));
+    } finally {
+      this.moveInProgress = false;
     }
-
-    // Move window to new monitor
-    displayWindow.setBounds({
-      x: monitor.bounds.x,
-      y: monitor.bounds.y,
-      width: monitor.bounds.width,
-      height: monitor.bounds.height,
-    });
-
-    // Wait for bounds to be applied before going fullscreen
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // Re-enter fullscreen on new monitor
-    await new Promise<void>((resolve) => {
-      const timeout = setTimeout(resolve, 1000);
-      displayWindow.once("enter-full-screen", () => {
-        clearTimeout(timeout);
-        resolve();
-      });
-      displayWindow.setFullScreen(true);
-    });
   }
 
   getDisplayWindow() {
