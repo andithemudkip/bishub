@@ -859,11 +859,12 @@ if (!gotTheLock) {
 } else {
   app.on("second-instance", () => {
     // Focus existing window if user tries to open another instance
-    if (windowManager?.remoteWindow) {
-      if (windowManager.remoteWindow.isMinimized()) {
-        windowManager.remoteWindow.restore();
+    const remoteWindow = windowManager?.getRemoteWindow();
+    if (remoteWindow) {
+      if (remoteWindow.isMinimized()) {
+        remoteWindow.restore();
       }
-      windowManager.remoteWindow.focus();
+      remoteWindow.focus();
     }
   });
 

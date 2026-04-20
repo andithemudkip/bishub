@@ -104,7 +104,8 @@ Everything else is discoverable via Grep / Glob.
 ```bash
 npm run electron:dev    # Vite + Electron with HMR (normal dev loop)
 npm run dev             # Vite only (builds preload first)
-npm run build           # Type-check (tsc) + bundle renderer — use to verify types
+npm run typecheck       # Type-check all three tsconfigs (main + node + electron)
+npm run build           # typecheck + bundle renderer — use to verify before declaring work done
 npm run electron:build  # Package for current platform locally (no publish)
 npm run build:mac       # Package macOS locally
 npm run build:win       # Package Windows locally
@@ -115,7 +116,9 @@ npm run build:preload   # Rebundle preload.ts manually
 npm run build:ttml      # Rebundle TTML hymns manually
 ```
 
-No separate test/lint scripts exist — `npm run build` (which runs `tsc`) is the way to verify work before declaring it done.
+No test/lint scripts exist — `npm run typecheck` (or `npm run build`, which runs it) is the way to verify work before declaring it done.
+
+**Three tsconfigs, check all three.** Default `tsc` only checks `tsconfig.json` (renderer, `src/`). Electron-side code is covered by `tsconfig.node.json` (`electron/` + `src/shared`) and `electron/tsconfig.json` (electron LSP/type-check — vite-plugin-electron does the actual bundle). If only one looks clean, the others may still be broken — run `npm run typecheck`, or target one with `typecheck:main` / `typecheck:node` / `typecheck:electron`.
 
 **TTML bundling**: `build:ttml` compiles `assets/hymns/*.ttml` into `assets/hymns-ttml.json` and runs automatically before every dev/build command. If you add a new `.ttml` file, restart the dev server (or rerun a build) for it to appear.
 

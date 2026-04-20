@@ -8,19 +8,6 @@ import VideoMode from "./modes/VideoMode";
 import ImageMode from "./modes/ImageMode";
 import AudioPlayer from "./components/AudioPlayer";
 
-declare global {
-  interface Window {
-    electronAPI?: {
-      getState: () => Promise<DisplayState>;
-      getSettings: () => Promise<AppSettings>;
-      onStateUpdate: (callback: (state: DisplayState) => void) => () => void;
-      onSettingsUpdate: (callback: (settings: AppSettings) => void) => () => void;
-      videoTimeUpdate: (time: number, duration: number) => Promise<void>;
-      audioTimeUpdate: (time: number, duration: number) => Promise<void>;
-    };
-  }
-}
-
 export default function App() {
   const [state, setState] = useState<DisplayState>(DEFAULT_STATE);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
