@@ -148,7 +148,7 @@ export interface Translations {
 
   // Video library
   videoLibrary: {
-    addLocalFile: string;
+    addLocalFiles: string;
     youtube: string;
     upload: string;
     library: string;
@@ -184,7 +184,7 @@ export interface Translations {
 
   // Audio library
   audioLibrary: {
-    addLocalFile: string;
+    addLocalFiles: string;
     addFolder: string;
     upload: string;
     library: string;
@@ -258,7 +258,6 @@ export interface Translations {
 
   // Image Library
   imageLibrary: {
-    addLocalFile: string;
     addLocalFiles: string;
     upload: string;
     searchPlaceholder: string;
@@ -522,7 +521,7 @@ const ro: Translations = {
       "Aceste scurtături funcționează în fereastra de control. Folosește **tastele săgeți** pentru a naviga între slide-uri.",
   },
   videoLibrary: {
-    addLocalFile: "Adaugă fișier",
+    addLocalFiles: "Adaugă fișiere",
     youtube: "YouTube",
     upload: "Încarcă",
     library: "Bibliotecă video",
@@ -557,7 +556,7 @@ const ro: Translations = {
       "**Adaugă fișier** alege un video de pe acest calculator. **YouTube** descarcă un video de la un link. **Încarcă** trimite un video de pe telefon sau alt dispozitiv.",
   },
   audioLibrary: {
-    addLocalFile: "Adaugă fișier",
+    addLocalFiles: "Adaugă fișiere",
     addFolder: "Adaugă folder",
     upload: "Încarcă",
     library: "Bibliotecă audio",
@@ -626,7 +625,6 @@ const ro: Translations = {
     tip: "Programează redarea audio automat la o anumită oră sau după un număr de minute. Audio-ul se redă doar când ecranul este **inactiv**. Salvează programări ca **presetări** pentru reutilizare rapidă.",
   },
   imageLibrary: {
-    addLocalFile: "Adaugă fișier",
     addLocalFiles: "Adaugă fișiere",
     upload: "Încarcă",
     searchPlaceholder: "Caută imagini...",
@@ -718,7 +716,7 @@ const ro: Translations = {
     newVersion: "Versiune nouă",
   },
   diagnostics: {
-    bundledBinaries: "Binare incluse",
+    bundledBinaries: "Utilitare incluse",
     available: "Disponibil",
     notFound: "Lipsește",
     sourceOta: "actualizat",
@@ -879,7 +877,7 @@ const en: Translations = {
       "These shortcuts work in the remote control window. Use **arrow keys** to navigate between slides.",
   },
   videoLibrary: {
-    addLocalFile: "Add file",
+    addLocalFiles: "Add files",
     youtube: "YouTube",
     upload: "Upload",
     library: "Video Library",
@@ -914,7 +912,7 @@ const en: Translations = {
       "**Add file** picks a video from this computer. **YouTube** downloads a video from a link. **Upload** sends a video from your phone or another device.",
   },
   audioLibrary: {
-    addLocalFile: "Add file",
+    addLocalFiles: "Add files",
     addFolder: "Add folder",
     upload: "Upload",
     library: "Audio Library",
@@ -983,7 +981,6 @@ const en: Translations = {
     tip: "Schedule audio to play automatically at a set time or after a number of minutes. Audio only plays when the display is **idle**. Save schedules as **presets** for quick reuse.",
   },
   imageLibrary: {
-    addLocalFile: "Add file",
     addLocalFiles: "Add files",
     upload: "Upload",
     searchPlaceholder: "Search images...",

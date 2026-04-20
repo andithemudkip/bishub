@@ -34,6 +34,8 @@ import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS_NO_DOT } from "../src/shared/imageLibrary.types";
+import type { VideoItem } from "../src/shared/videoLibrary.types";
+import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getTransferManager } from "./transferManager";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import { startDownload, startAudioDownload, cancelDownload, getActiveDownloads, getActiveAudioDownloads, killAllDownloads, checkForBinaryUpdates, getBinaryInfo } from "./ytdlp";
@@ -425,7 +427,7 @@ function setupIPC() {
 
   ipcMain.handle("add-local-video", async () => {
     const result = await dialog.showOpenDialog({
-      properties: ["openFile"],
+      properties: ["openFile", "multiSelections"],
       filters: [
         {
           name: "Videos",
@@ -434,11 +436,16 @@ function setupIPC() {
       ],
     });
 
-    if (result.filePaths[0]) {
-      const video = await videoLibrary.addVideo(result.filePaths[0], "local");
-      return video;
+    const videos: VideoItem[] = [];
+    for (const filePath of result.filePaths) {
+      try {
+        const video = await videoLibrary.addVideo(filePath, "local");
+        videos.push(video);
+      } catch (error) {
+        console.error(`Failed to add video ${filePath}:`, error);
+      }
     }
-    return null;
+    return videos;
   });
 
   ipcMain.handle("delete-video", async (_event, videoId: string) => {
@@ -499,7 +506,7 @@ function setupIPC() {
 
   ipcMain.handle("add-local-audio", async () => {
     const result = await dialog.showOpenDialog({
-      properties: ["openFile"],
+      properties: ["openFile", "multiSelections"],
       filters: [
         {
           name: "Audio",
@@ -508,11 +515,16 @@ function setupIPC() {
       ],
     });
 
-    if (result.filePaths[0]) {
-      const audio = await audioLibrary.addAudio(result.filePaths[0], "local");
-      return audio;
+    const audios: AudioItem[] = [];
+    for (const filePath of result.filePaths) {
+      try {
+        const audio = await audioLibrary.addAudio(filePath, "local");
+        audios.push(audio);
+      } catch (error) {
+        console.error(`Failed to add audio ${filePath}:`, error);
+      }
     }
-    return null;
+    return audios;
   });
 
   ipcMain.handle("add-local-audio-directory", async () => {
@@ -674,23 +686,6 @@ function setupIPC() {
     return imageLibrary.getAllSlideshows();
   });
 
-  ipcMain.handle("add-local-image", async () => {
-    const result = await dialog.showOpenDialog({
-      properties: ["openFile"],
-      filters: [
-        {
-          name: "Images",
-          extensions: IMAGE_EXTENSIONS_NO_DOT,
-        },
-      ],
-    });
-
-    if (result.filePaths[0]) {
-      return imageLibrary.addImage(result.filePaths[0], "local");
-    }
-    return null;
-  });
-
   ipcMain.handle("add-local-images", async () => {
     const result = await dialog.showOpenDialog({
       properties: ["openFile", "multiSelections"],
@@ -702,15 +697,16 @@ function setupIPC() {
       ],
     });
 
-    if (result.filePaths.length > 0) {
-      const images = [];
-      for (const filePath of result.filePaths) {
+    const images = [];
+    for (const filePath of result.filePaths) {
+      try {
         const image = await imageLibrary.addImage(filePath, "local");
         images.push(image);
+      } catch (error) {
+        console.error(`Failed to add image ${filePath}:`, error);
       }
-      return images;
     }
-    return [];
+    return images;
   });
 
   ipcMain.handle("delete-image", async (_event, imageId: string) => {

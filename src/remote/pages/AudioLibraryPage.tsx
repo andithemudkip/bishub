@@ -125,7 +125,7 @@ export default function AudioLibraryPage({
                         />
                       </svg>
                       <span>
-                        {t.audioLibrary.addLocalFile}
+                        {t.audioLibrary.addLocalFiles}
                       </span>
                     </button>
                     <button

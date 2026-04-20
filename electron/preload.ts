@@ -186,7 +186,7 @@ const electronAPI = {
   // Video Library
   getVideoLibrary: (): Promise<VideoItem[]> =>
     ipcRenderer.invoke("get-video-library"),
-  addLocalVideo: (): Promise<VideoItem> =>
+  addLocalVideo: (): Promise<VideoItem[]> =>
     ipcRenderer.invoke("add-local-video"),
   deleteVideo: (videoId: string): Promise<boolean> =>
     ipcRenderer.invoke("delete-video", videoId),
@@ -229,7 +229,7 @@ const electronAPI = {
   // Audio Library
   getAudioLibrary: (): Promise<AudioItem[]> =>
     ipcRenderer.invoke("get-audio-library"),
-  addLocalAudio: (): Promise<AudioItem> =>
+  addLocalAudio: (): Promise<AudioItem[]> =>
     ipcRenderer.invoke("add-local-audio"),
   addLocalAudioDirectory: (): Promise<{
     completed: AudioItem[];
@@ -350,8 +350,6 @@ const electronAPI = {
     ipcRenderer.invoke("get-image-library"),
   getSlideshows: (): Promise<Slideshow[]> =>
     ipcRenderer.invoke("get-slideshows"),
-  addLocalImage: (): Promise<ImageItem | null> =>
-    ipcRenderer.invoke("add-local-image"),
   addLocalImages: (): Promise<ImageItem[]> =>
     ipcRenderer.invoke("add-local-images"),
   deleteImage: (imageId: string): Promise<boolean> =>

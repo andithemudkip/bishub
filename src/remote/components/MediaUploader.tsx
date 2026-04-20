@@ -9,6 +9,14 @@ interface UploadItem {
   error?: string;
 }
 
+interface ClientUpload {
+  id: string;
+  filename: string;
+  progress: number;
+  status: "uploading" | "error";
+  error?: string;
+}
+
 interface Props {
   onUpload: (file: File) => Promise<void>;
   activeUploads: UploadItem[];
@@ -43,70 +51,96 @@ export default function MediaUploader({
   labels,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
-  const [error, setError] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadFilename, setUploadFilename] = useState("");
+  const [clientUploads, setClientUploads] = useState<ClientUpload[]>([]);
+  const [isBusy, setIsBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const validateFile = (file: File): boolean => {
+  const validateFile = (file: File): string | null => {
     if (allowedExtensions.length > 0) {
       const ext = "." + file.name.split(".").pop()?.toLowerCase();
-      if (!allowedExtensions.includes(ext)) {
-        setError(labels.invalidType);
-        return false;
-      }
+      if (!allowedExtensions.includes(ext)) return labels.invalidType;
     }
-    if (file.size > maxSizeBytes) {
-      setError(labels.tooLarge);
-      return false;
-    }
-    return true;
+    if (file.size > maxSizeBytes) return labels.tooLarge;
+    return null;
   };
 
-  const handleFile = async (file: File) => {
-    setError("");
-    if (!validateFile(file)) return;
+  const makeId = () =>
+    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-    setIsUploading(true);
-    setUploadProgress(0);
-    setUploadFilename(file.name);
+  const updateClientUpload = (id: string, patch: Partial<ClientUpload>) => {
+    setClientUploads((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, ...patch } : u))
+    );
+  };
+
+  const handleFiles = async (files: File[]) => {
+    if (files.length === 0) return;
+
+    setClientUploads((prev) => prev.filter((u) => u.status === "error"));
+    setIsBusy(true);
+
     try {
-      if (uploadUrl) {
-        const formData = new FormData();
-        formData.append(uploadFieldName, file);
-        if (uploadExtraFields) {
-          for (const [key, value] of Object.entries(uploadExtraFields)) {
-            formData.append(key, value);
+      for (const file of files) {
+        const id = makeId();
+        const validationError = validateFile(file);
+        if (validationError) {
+          setClientUploads((prev) => [
+            ...prev,
+            {
+              id,
+              filename: file.name,
+              progress: 0,
+              status: "error",
+              error: validationError,
+            },
+          ]);
+          continue;
+        }
+
+        setClientUploads((prev) => [
+          ...prev,
+          { id, filename: file.name, progress: 0, status: "uploading" },
+        ]);
+
+        try {
+          if (uploadUrl) {
+            const formData = new FormData();
+            formData.append(uploadFieldName, file);
+            if (uploadExtraFields) {
+              for (const [key, value] of Object.entries(uploadExtraFields)) {
+                formData.append(key, value);
+              }
+            }
+            if (!uploadExtraFields?.name) {
+              formData.append("name", file.name.replace(/\.[^.]+$/, ""));
+            }
+            await uploadWithProgress(
+              getApiUrl(uploadUrl),
+              formData,
+              (percent) => updateClientUpload(id, { progress: percent })
+            );
+          } else {
+            await onUpload(file);
           }
+          // Remove from client list on success; parent's activeUploads takes over.
+          setClientUploads((prev) => prev.filter((u) => u.id !== id));
+        } catch {
+          updateClientUpload(id, {
+            status: "error",
+            error: labels.uploadFailed,
+          });
         }
-        // Use name field derived from filename if not explicitly provided
-        if (!uploadExtraFields?.name) {
-          formData.append("name", file.name.replace(/\.[^.]+$/, ""));
-        }
-        await uploadWithProgress(
-          getApiUrl(uploadUrl),
-          formData,
-          setUploadProgress,
-        );
-      } else {
-        await onUpload(file);
       }
-    } catch {
-      setError(labels.uploadFailed);
     } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-      setUploadFilename("");
+      setIsBusy(false);
     }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) handleFiles(files);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -119,9 +153,9 @@ export default function MediaUploader({
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleFile(file);
-    e.target.value = ""; // Reset input
+    const files = Array.from(e.target.files ?? []);
+    if (files.length > 0) handleFiles(files);
+    e.target.value = "";
   };
 
   return (
@@ -132,7 +166,7 @@ export default function MediaUploader({
           isDragging
             ? "border-blue-500 bg-blue-500/10"
             : "border-gray-600 hover:border-gray-500"
-        } ${isUploading ? "opacity-50 pointer-events-none" : ""}`}
+        } ${isBusy ? "opacity-50 pointer-events-none" : ""}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -142,6 +176,7 @@ export default function MediaUploader({
           ref={fileInputRef}
           type="file"
           accept={allowedExtensions.join(",")}
+          multiple
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -159,32 +194,46 @@ export default function MediaUploader({
           />
         </svg>
         <div className="text-gray-300 text-sm sm:text-base">
-          {isUploading ? labels.uploading : labels.uploadDrop}
+          {isBusy ? labels.uploading : labels.uploadDrop}
         </div>
         <div className="text-xs sm:text-sm text-gray-500 mt-1">
           {labels.uploadHint}
         </div>
       </div>
 
-      {error && <div className="text-red-400 text-sm">{error}</div>}
-
-      {/* Client-side upload progress */}
-      {isUploading && uploadUrl && (
-        <div className="bg-gray-700 rounded-lg p-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="text-sm truncate">{uploadFilename}</div>
-              <div className="text-xs text-gray-400">
-                {labels.uploading} {uploadProgress}%
-              </div>
-            </div>
-          </div>
-          <div className="h-1.5 bg-gray-600 rounded-full overflow-hidden">
+      {/* Client-side upload progress (one entry per file) */}
+      {clientUploads.length > 0 && (
+        <div className="space-y-2">
+          {clientUploads.map((upload) => (
             <div
-              className="h-full bg-blue-500 transition-all duration-300"
-              style={{ width: `${uploadProgress}%` }}
-            />
-          </div>
+              key={upload.id}
+              className="bg-gray-700 rounded-lg p-3 space-y-2"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm truncate">{upload.filename}</div>
+                  <div className="text-xs text-gray-400">
+                    {upload.status === "uploading" && (
+                      <>
+                        {labels.uploading} {upload.progress}%
+                      </>
+                    )}
+                    {upload.status === "error" && (
+                      <span className="text-red-400">{upload.error}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {upload.status === "uploading" && (
+                <div className="h-1.5 bg-gray-600 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 transition-all duration-300"
+                    style={{ width: `${upload.progress}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
@@ -212,7 +261,6 @@ export default function MediaUploader({
                 </div>
               </div>
 
-              {/* Progress bar */}
               {(upload.status === "uploading" ||
                 upload.status === "processing") && (
                 <div className="h-2 bg-gray-600 rounded-full overflow-hidden">

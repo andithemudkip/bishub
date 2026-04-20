@@ -19,7 +19,7 @@ interface VideoLibraryAPI {
   uploads: UploadProgress[];
   isElectron: boolean;
   // Actions
-  addLocalVideo: () => Promise<VideoItem | null>;
+  addLocalVideo: () => Promise<VideoItem[]>;
   deleteVideo: (videoId: string) => Promise<boolean>;
   renameVideo: (videoId: string, newName: string) => void;
   downloadYouTubeVideo: (url: string) => void;
@@ -97,7 +97,7 @@ export function useVideoLibrary(
       if (isElectron) {
         return window.electronAPI!.addLocalVideo();
       }
-      return null; // Not available in web mode
+      return []; // Not available in web mode
     }, [isElectron]),
 
     deleteVideo: useCallback(

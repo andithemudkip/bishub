@@ -87,7 +87,7 @@ export default function VideoLibraryPage({
                   />
                 </svg>
                 <span>
-                  {t.videoLibrary.addLocalFile}
+                  {t.videoLibrary.addLocalFiles}
                 </span>
               </button>
             )}

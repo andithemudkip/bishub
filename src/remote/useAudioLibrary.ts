@@ -21,7 +21,7 @@ interface AudioLibraryAPI {
   directoryImport: DirectoryImportProgress | null;
   isElectron: boolean;
   // Actions
-  addLocalAudio: () => Promise<AudioItem | null>;
+  addLocalAudio: () => Promise<AudioItem[]>;
   addLocalAudioDirectory: () => Promise<void>;
   deleteAudio: (audioId: string) => Promise<boolean>;
   renameAudio: (audioId: string, newName: string) => void;
@@ -115,7 +115,7 @@ export function useAudioLibrary(
       if (isElectron) {
         return window.electronAPI!.addLocalAudio();
       }
-      return null; // Not available in web mode
+      return []; // Not available in web mode
     }, [isElectron]),
 
     addLocalAudioDirectory: useCallback(async () => {

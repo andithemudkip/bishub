@@ -19,7 +19,6 @@ export interface ImageLibraryAPI {
   uploads: ImageUploadProgress[];
   isElectron: boolean;
   // Image CRUD
-  addLocalImage: () => Promise<ImageItem | null>;
   addLocalImages: () => Promise<ImageItem[]>;
   deleteImage: (imageId: string) => Promise<boolean>;
   renameImage: (imageId: string, newName: string) => void;
@@ -101,13 +100,6 @@ export function useImageLibrary(
     slideshows,
     uploads,
     isElectron,
-
-    addLocalImage: useCallback(async () => {
-      if (isElectron) {
-        return window.electronAPI!.addLocalImage();
-      }
-      return null;
-    }, [isElectron]),
 
     addLocalImages: useCallback(async () => {
       if (isElectron) {
