@@ -142,7 +142,7 @@ export default function HymnsPage({
   return (
     <div className="space-y-4 max-w-2xl mx-auto w-full">
       {/* Search */}
-      <div className="sticky -top-4 bg-gray-900 pb-4 pt-4 -mx-4 px-4">
+      <div className="sticky -top-4 bg-gray-900 pb-4 pt-4 -mx-4 px-4 z-10">
         <div className="relative">
           <input
             ref={searchInputRef}
