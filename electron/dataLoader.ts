@@ -209,6 +209,10 @@ export function formatHymnForDisplay(
       ? `${t.hymns.chorusPrefix}: ${hymn.chorus.trim()}`
       : null;
 
+  if (chorus && hymn.chorusFirst) {
+    pushSlides(slides, chorus);
+  }
+
   hymn.verses.forEach((verse, index) => {
     pushSlides(slides, `${index + 1}. ${verse}`);
 

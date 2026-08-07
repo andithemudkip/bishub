@@ -91,6 +91,101 @@ export default function SearchResultsTab({
     return new RegExp(`(${escaped.join("|")})`, "gi");
   }, [searchInput]);
 
+  const renderTextResults = (): React.ReactNode => {
+    if (isSearching) {
+      return <p className="text-sm text-blue-400 py-4">{t.bible.searching}</p>;
+    }
+
+    if (searchInput.length > 0 && searchInput.length < 3) {
+      return (
+        <p className="text-sm text-gray-500 py-4">{t.bible.minCharsHint}</p>
+      );
+    }
+
+    if (textSearchResults.length > 0) {
+      return (
+        <div>
+          <p className="text-sm text-gray-400 mb-2">
+            {t.bible.searchResults} ({textSearchResults.length})
+          </p>
+          <div className="max-h-[60vh] overflow-y-auto space-y-1.5">
+            {textSearchResults.map((result) => (
+              <button
+                key={`${result.bookId}-${result.chapter}-${result.verse}`}
+                onClick={() =>
+                  onSelectReference(
+                    result.bookId,
+                    result.bookName,
+                    result.chapter,
+                    result.verse
+                  )
+                }
+                className="w-full text-left p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+              >
+                <span className="text-blue-400 font-semibold text-sm">
+                  {result.bookName} {result.chapter}:{result.verse}
+                </span>
+                <p className="text-sm text-gray-300 mt-1">
+                  {highlightWithPattern(result.text, highlightPattern)}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (searchInput.length >= 3) {
+      return (
+        <p className="text-sm text-gray-500 py-4">
+          {t.bible.noSearchResults} &quot;{searchInput}&quot;
+        </p>
+      );
+    }
+
+    // Empty state — show search history
+    if (searchHistory.length > 0) {
+      return (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-400">{t.bible.recentSearches}</p>
+            <button
+              onClick={onClearHistory}
+              className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+            >
+              {t.bible.clearHistory}
+            </button>
+          </div>
+          <div className="space-y-1">
+            {searchHistory.map((entry) => (
+              <button
+                key={entry.id}
+                onClick={() => onHistorySelect(entry)}
+                className="w-full text-left p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700 transition-colors flex items-center justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <span className="text-blue-400 font-semibold text-sm">
+                    {entry.bookName} {entry.chapter}:{entry.verse}
+                  </span>
+                  {entry.query !== `${entry.bookName} ${entry.chapter}:${entry.verse}` && (
+                    <span className="text-gray-500 text-xs ml-2">
+                      &quot;{entry.query}&quot;
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-600 flex-shrink-0">
+                  {formatTimeAgo(entry.timestamp, t.common)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   // Invalid reference (book recognized but chapter/verse out of range)
   if (invalidRef) {
     return (
@@ -99,112 +194,32 @@ export default function SearchResultsTab({
   }
 
   // Reference detected — show a card
-  if (parsedRef) {
-    return (
-      <StatusBanner color="green" onClick={onGoReference}>
-        <div className="flex items-center justify-between">
-          <span className="text-green-400 font-semibold text-lg">
-            {parsedRef.bookName} {parsedRef.chapter}:{parsedRef.startVerse}
-            {parsedRef.endVerse !== parsedRef.startVerse &&
-              `-${parsedRef.endVerse}`}
-          </span>
-          <span className="px-4 py-1.5 bg-green-600/30 border border-green-600/50 rounded-lg text-sm font-medium text-green-400">
-            {t.bible.go}
-          </span>
-        </div>
-      </StatusBanner>
-    );
-  }
-
-  // Text search
-  if (isSearching) {
-    return <p className="text-sm text-blue-400 py-4">{t.bible.searching}</p>;
-  }
-
-  if (searchInput.length > 0 && searchInput.length < 3) {
-    return <p className="text-sm text-gray-500 py-4">{t.bible.minCharsHint}</p>;
-  }
-
-  if (textSearchResults.length > 0) {
-    return (
-      <div>
-        <p className="text-sm text-gray-400 mb-2">
-          {t.bible.searchResults} ({textSearchResults.length})
-        </p>
-        <div className="max-h-[60vh] overflow-y-auto space-y-1.5">
-          {textSearchResults.map((result) => (
-            <button
-              key={`${result.bookId}-${result.chapter}-${result.verse}`}
-              onClick={() =>
-                onSelectReference(
-                  result.bookId,
-                  result.bookName,
-                  result.chapter,
-                  result.verse
-                )
-              }
-              className="w-full text-left p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-            >
-              <span className="text-blue-400 font-semibold text-sm">
-                {result.bookName} {result.chapter}:{result.verse}
-              </span>
-              <p className="text-sm text-gray-300 mt-1">
-                {highlightWithPattern(result.text, highlightPattern)}
-              </p>
-            </button>
-          ))}
-        </div>
+  const referenceCard = parsedRef && (
+    <StatusBanner color="green" onClick={onGoReference}>
+      <div className="flex items-center justify-between">
+        <span className="text-green-400 font-semibold text-lg">
+          {parsedRef.bookName} {parsedRef.chapter}
+          {!parsedRef.bookOnly && `:${parsedRef.startVerse}`}
+          {!parsedRef.bookOnly &&
+            parsedRef.endVerse !== parsedRef.startVerse &&
+            `-${parsedRef.endVerse}`}
+        </span>
+        <span className="px-4 py-1.5 bg-green-600/30 border border-green-600/50 rounded-lg text-sm font-medium text-green-400">
+          {t.bible.go}
+        </span>
       </div>
-    );
-  }
+    </StatusBanner>
+  );
 
-  if (searchInput.length >= 3) {
-    return (
-      <p className="text-sm text-gray-500 py-4">
-        {t.bible.noSearchResults} &quot;{searchInput}&quot;
-      </p>
-    );
-  }
+  // A full reference stands on its own; a bare book name is also a plausible
+  // search term, so its matching verses stay listed underneath the card.
+  if (parsedRef && !parsedRef.bookOnly) return referenceCard;
+  if (!referenceCard) return renderTextResults();
 
-  // Empty state — show search history
-  if (searchHistory.length > 0) {
-    return (
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-gray-400">{t.bible.recentSearches}</p>
-          <button
-            onClick={onClearHistory}
-            className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
-          >
-            {t.bible.clearHistory}
-          </button>
-        </div>
-        <div className="space-y-1">
-          {searchHistory.map((entry) => (
-            <button
-              key={entry.id}
-              onClick={() => onHistorySelect(entry)}
-              className="w-full text-left p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700 transition-colors flex items-center justify-between gap-3"
-            >
-              <div className="min-w-0">
-                <span className="text-blue-400 font-semibold text-sm">
-                  {entry.bookName} {entry.chapter}:{entry.verse}
-                </span>
-                {entry.query !== `${entry.bookName} ${entry.chapter}:${entry.verse}` && (
-                  <span className="text-gray-500 text-xs ml-2">
-                    &quot;{entry.query}&quot;
-                  </span>
-                )}
-              </div>
-              <span className="text-xs text-gray-600 flex-shrink-0">
-                {formatTimeAgo(entry.timestamp, t.common)}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <div className="space-y-3">
+      {referenceCard}
+      {renderTextResults()}
+    </div>
+  );
 }

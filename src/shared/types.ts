@@ -368,6 +368,8 @@ export interface Hymn {
   title: string;
   chorus: string;
   verses: string[];
+  /** Hymns that open on the chorus rather than on verse 1. */
+  chorusFirst?: boolean;
   syncedAvailability?: SyncedAvailability;
 }
 

@@ -1,4 +1,5 @@
 import type { Language } from "./i18n";
+import { normalizeForSearch } from "./utils";
 
 export type BibleBookInfo = {
   id: string;
@@ -104,7 +105,7 @@ export const BIBLE_BOOKS_RO: BibleBookInfo[] = [
   {
     id: "LAM",
     name: "Plângerile",
-    abbrevs: ["plang", "plangeri", "plângerile", "lam"],
+    abbrevs: ["plang", "plangeri", "plangerile", "lam"],
   },
   { id: "EZK", name: "Ezechiel", abbrevs: ["ez", "ezec", "ezechiel", "ezk"] },
   { id: "DAN", name: "Daniel", abbrevs: ["dan", "daniel", "dn"] },
@@ -388,46 +389,90 @@ export interface ParsedReference {
   chapter: number;
   startVerse: number;
   endVerse: number;
+  /** True when the input was just a book name, with no chapter given. */
+  bookOnly: boolean;
+}
+
+// ── Book matching ────────────────────────────────────────────────────────────
+
+/** Every way a book can be typed (name, ID, abbreviations), diacritic-free. */
+function buildAliases(books: BibleBookInfo[]): Map<string, string[]> {
+  return new Map(
+    books.map((b) => [
+      b.id,
+      [...new Set([b.name, b.id, ...b.abbrevs].map(normalizeForSearch))],
+    ])
+  );
+}
+
+const BOOK_ALIASES: Record<Language, Map<string, string[]>> = {
+  ro: buildAliases(BIBLE_BOOKS_RO),
+  en: buildAliases(BIBLE_BOOKS_EN),
+};
+
+interface MatchableBook {
+  id: string;
+  name: string;
 }
 
 /**
- * Parse a Bible reference string like:
- * - "gen 2:16" -> Genesis chapter 2, verse 16
- * - "1ki 1:20-25" -> 1 Kings chapter 1, verses 20-25
- * - "ps 23" -> Psalm 23 (all verses)
- * - "john 3:16" -> John 3:16
+ * Find a book by a normalized (lowercase, diacritic-free) search string.
+ *
+ * The active language's aliases win, then the other language's, so "lamentations"
+ * still resolves while a Romanian translation is loaded without letting English
+ * abbreviations shadow Romanian ones ("jud" → Judecători in RO, Jude in EN).
+ * Exact matches always beat prefix matches.
  */
-export function parseBibleReference(
-  input: string,
-  language: Language = "ro"
-): ParsedReference | null {
-  const normalized = input.toLowerCase().trim();
+function findBook<T extends MatchableBook>(
+  books: T[],
+  search: string,
+  language: Language,
+  allowPrefix: boolean
+): T | undefined {
+  const other: Language = language === "en" ? "ro" : "en";
+  // The loaded translation may name a book differently than our tables
+  // ("Plângerile lui Ieremia" vs "Plângerile"), so always match its own name too.
+  const own = (b: T) => normalizeForSearch(b.name);
+  const passes = [
+    (b: T) => [own(b), ...(BOOK_ALIASES[language].get(b.id) ?? [])],
+    (b: T) => [own(b), ...(BOOK_ALIASES[other].get(b.id) ?? [])],
+  ];
 
+  for (const aliases of passes) {
+    const exact = books.find((b) => aliases(b).includes(search));
+    if (exact) return exact;
+  }
+  if (!allowPrefix) return undefined;
+  for (const aliases of passes) {
+    const prefix = books.find((b) => aliases(b).some((a) => a.startsWith(search)));
+    if (prefix) return prefix;
+  }
+  return undefined;
+}
+
+// [book] [chapter]:[verse][-endVerse], where everything after the book is optional
+const REFERENCE_PATTERN = /^(.+?)(?:\s*(\d+)(?::(\d+)(?:-(\d+))?)?)?$/;
+
+function parseReference<T extends MatchableBook>(
+  input: string,
+  books: T[],
+  language: Language
+): ParsedReference | null {
+  const normalized = normalizeForSearch(input);
   if (!normalized) return null;
 
-  // Pattern: [book] [chapter]:[verse][-endVerse]
-  // or: [book] [chapter] (whole chapter)
-  const match = normalized.match(/^(.+?)\s*(\d+)(?::(\d+)(?:-(\d+))?)?$/);
-
+  const match = normalized.match(REFERENCE_PATTERN);
   if (!match) return null;
 
   const [, bookPart, chapterStr, startVerseStr, endVerseStr] = match;
-  const bookSearch = bookPart.trim();
+  const bookOnly = !chapterStr;
 
-  // Get books for the specified language
-  const books = getBibleBooks(language);
-
-  // Find the book
-  const book = books.find(
-    (b) =>
-      b.abbrevs.some((abbrev) => abbrev === bookSearch) ||
-      b.name.toLowerCase() === bookSearch ||
-      b.id.toLowerCase() === bookSearch
-  );
-
+  // A bare book name has to match exactly — otherwise any partial word typed
+  // into the search box would masquerade as a reference and hide text results.
+  const book = findBook(books, bookPart.trim(), language, !bookOnly);
   if (!book) return null;
 
-  const chapter = parseInt(chapterStr, 10);
+  const chapter = chapterStr ? parseInt(chapterStr, 10) : 1;
   const startVerse = startVerseStr ? parseInt(startVerseStr, 10) : 1;
   const endVerse = endVerseStr ? parseInt(endVerseStr, 10) : startVerse;
 
@@ -437,7 +482,23 @@ export function parseBibleReference(
     chapter,
     startVerse,
     endVerse: Math.max(startVerse, endVerse),
+    bookOnly,
   };
+}
+
+/**
+ * Parse a Bible reference string like:
+ * - "gen 2:16" -> Genesis chapter 2, verse 16
+ * - "1ki 1:20-25" -> 1 Kings chapter 1, verses 20-25
+ * - "ps 23" -> Psalm 23 (all verses)
+ * - "john 3:16" -> John 3:16
+ * - "plangeri" -> Lamentations chapter 1 (bookOnly)
+ */
+export function parseBibleReference(
+  input: string,
+  language: Language = "ro"
+): ParsedReference | null {
+  return parseReference(input, getBibleBooks(language), language);
 }
 
 /**
@@ -448,16 +509,15 @@ export function getBookSuggestions(
   language: Language = "ro"
 ): BibleBookInfo[] {
   const books = getBibleBooks(language);
-  const normalized = input.toLowerCase().trim();
+  const normalized = normalizeForSearch(input);
 
   if (!normalized) return books.slice(0, 10);
 
   return books
-    .filter(
-      (b) =>
-        b.abbrevs.some((abbrev) => abbrev.startsWith(normalized)) ||
-        b.name.toLowerCase().startsWith(normalized) ||
-        b.id.toLowerCase().startsWith(normalized)
+    .filter((b) =>
+      (BOOK_ALIASES[language].get(b.id) ?? []).some((a) =>
+        a.startsWith(normalized)
+      )
     )
     .slice(0, 10);
 }
@@ -471,41 +531,14 @@ export interface DynamicBookInfo {
 
 /**
  * Parse a Bible reference using dynamic book names from the loaded translation.
- * Matches against book name (prefix), book ID, and common abbreviations.
+ * Matches against the translation's own book names plus the IDs and
+ * abbreviations from our tables, so "plang 3", "plangeri 3" and "lam 3" all work
+ * even though the translation calls the book "Plângerile lui Ieremia".
  */
 export function parseBibleReferenceWithBooks(
   input: string,
-  books: DynamicBookInfo[]
+  books: DynamicBookInfo[],
+  language: Language = "ro"
 ): ParsedReference | null {
-  const normalized = input.toLowerCase().trim();
-  if (!normalized) return null;
-
-  const match = normalized.match(/^(.+?)\s*(\d+)(?::(\d+)(?:-(\d+))?)?$/);
-  if (!match) return null;
-
-  const [, bookPart, chapterStr, startVerseStr, endVerseStr] = match;
-  const bookSearch = bookPart.trim();
-
-  // Find book: exact name match, prefix match, or ID match
-  const book = books.find(
-    (b) =>
-      b.name.toLowerCase() === bookSearch ||
-      b.id.toLowerCase() === bookSearch
-  ) || books.find(
-    (b) => b.name.toLowerCase().startsWith(bookSearch)
-  );
-
-  if (!book) return null;
-
-  const chapter = parseInt(chapterStr, 10);
-  const startVerse = startVerseStr ? parseInt(startVerseStr, 10) : 1;
-  const endVerse = endVerseStr ? parseInt(endVerseStr, 10) : startVerse;
-
-  return {
-    bookId: book.id,
-    bookName: book.name,
-    chapter,
-    startVerse,
-    endVerse: Math.max(startVerse, endVerse),
-  };
+  return parseReference(input, books, language);
 }

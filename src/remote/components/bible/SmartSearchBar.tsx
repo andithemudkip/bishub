@@ -47,14 +47,15 @@ export default function SmartSearchBar({
     // Use dynamic book names from the loaded translation when available,
     // fall back to hardcoded RO/EN book names
     const parsed = books.length > 0
-      ? parseBibleReferenceWithBooks(value, books)
+      ? parseBibleReferenceWithBooks(value, books, language)
       : parseBibleReference(value, language);
 
     // Only notify parent if parsed result actually changed
     if (parsed?.bookId !== lastParsedRef.current?.bookId ||
         parsed?.chapter !== lastParsedRef.current?.chapter ||
         parsed?.startVerse !== lastParsedRef.current?.startVerse ||
-        parsed?.endVerse !== lastParsedRef.current?.endVerse) {
+        parsed?.endVerse !== lastParsedRef.current?.endVerse ||
+        parsed?.bookOnly !== lastParsedRef.current?.bookOnly) {
       lastParsedRef.current = parsed;
       onParsedRefChange(parsed);
     }
@@ -64,8 +65,10 @@ export default function SmartSearchBar({
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // If it's a reference or short query, clear results only if there were any
-    if (parsed || value.trim().length < 3) {
+    // If it's a full reference or short query, clear results only if there were any.
+    // A bare book name still runs the text search — "iov" should offer both the
+    // book of Iov and verses containing the word.
+    if ((parsed && !parsed.bookOnly) || value.trim().length < 3) {
       if (lastHadResultsRef.current) {
         lastHadResultsRef.current = false;
         onSearchResults(EMPTY_RESULTS);
