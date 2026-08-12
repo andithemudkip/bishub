@@ -8,10 +8,10 @@ import {
   fetchWithEtag,
 } from "./otaUtils";
 import type {
+  HymnAudioAvailability,
   MP3CacheStats,
   MP3DownloadProgress,
   MP3DownloadStatus,
-  SyncedAvailability,
 } from "../src/shared/types";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -128,10 +128,11 @@ function isMP3Available(padded: string): boolean {
 
 // --- Cached MP3 file index + running stats ---
 //
-// `getSyncedAvailability` runs against every hymn on every `loadHymns()` call
-// (~920 hymns), so a per-call `fs.existsSync` would be a syscall storm during
-// bulk downloads. We track the on-disk MP3 set in memory, populated once at
-// startup and mutated incrementally on download/delete.
+// `getHymnAudioAvailability` runs against every hymn of the karaoke hymnal on each
+// `loadHymns()` call for that book (~920 hymns), so a per-call `fs.existsSync`
+// would be a syscall storm during bulk downloads. We track the on-disk MP3 set
+// in memory, populated once at startup and mutated incrementally on
+// download/delete.
 
 let cachedMP3Numbers: Set<string> | null = null;
 let cachedMP3SizeBytes = 0;
@@ -177,12 +178,21 @@ export function getMP3Path(number: string): string | null {
   return isMP3Cached(padded) ? getMP3PathForNumber(padded) : null;
 }
 
-export function getSyncedAvailability(number: string): SyncedAvailability {
+/**
+ * Instrumental state, independent of whether synced lyrics exist — an MP3
+ * without TTML still drives instrumental playback behind manual slides.
+ */
+export function getHymnAudioAvailability(
+  number: string,
+): HymnAudioAvailability {
   const padded = padHymnNumber(number);
-  if (!loadTTMLBundle()[padded]) return "none";
   if (isMP3Cached(padded)) return "cached";
-  if (isMP3Available(padded)) return "ttml-only";
+  if (isMP3Available(padded)) return "downloadable";
   return "none";
+}
+
+export function hasSyncedLyrics(number: string): boolean {
+  return !!loadTTMLBundle()[padHymnNumber(number)];
 }
 
 // --- Download manager ---
@@ -229,6 +239,20 @@ interface ActiveDownload {
 }
 
 const activeDownloads = new Map<string, ActiveDownload>();
+
+/**
+ * The in-flight bulk download. Cancelling has to stop the *queue*, not just the
+ * handful of transfers currently open — aborting those alone simply frees the
+ * workers to claim the next ones, so the download appears to carry on.
+ */
+interface BulkRun {
+  queue: string[];
+  /** Next index a worker will claim; everything below it has already started. */
+  cursor: number;
+  cancelled: boolean;
+}
+
+let bulkRun: BulkRun | null = null;
 
 function makeProgress(
   hymnNumber: string,
@@ -279,7 +303,10 @@ export async function downloadMP3(hymnNumber: string): Promise<void> {
     emitAssetsUpdated();
   } catch (err) {
     if (controller.signal.aborted) {
-      // Cancellation is silent — no error event.
+      // Still a terminal event: without one the row stays "downloading" in the
+      // remote forever, which also keeps the UI in its downloading state.
+      progress.status = "cancelled";
+      emitProgress(progress);
     } else {
       progress.status = "error";
       progress.error = err instanceof Error ? err.message : String(err);
@@ -299,6 +326,16 @@ export function cancelMP3Download(hymnNumber: string): void {
 }
 
 export function cancelAllMP3Downloads(): void {
+  const run = bulkRun;
+  if (run) {
+    run.cancelled = true;
+    // Everything from the cursor on was announced as "queued" but never
+    // started, so nothing else will ever report on it. Retire those rows here.
+    for (let i = run.cursor; i < run.queue.length; i++) {
+      emitProgress(makeProgress(run.queue[i], "cancelled"));
+    }
+    run.cursor = run.queue.length;
+  }
   for (const padded of Array.from(activeDownloads.keys())) {
     cancelMP3Download(padded);
   }
@@ -324,6 +361,9 @@ function getFreeDiskSpaceBytes(): number | null {
 }
 
 export async function downloadAllMissingMP3s(): Promise<void> {
+  // One run at a time. Two overlapping runs would leave `bulkRun` pointing at
+  // the newer one, so cancelling would only stop half the queue.
+  if (bulkRun) return;
   const missing = getMissingMP3Numbers();
   if (missing.length === 0) return;
 
@@ -345,21 +385,26 @@ export async function downloadAllMissingMP3s(): Promise<void> {
     }
   }
 
-  let cursor = 0;
-  const workerCount = Math.min(BULK_DOWNLOAD_CONCURRENCY, missing.length);
-  const workers: Promise<void>[] = [];
-  for (let i = 0; i < workerCount; i++) {
-    workers.push(
-      (async () => {
-        while (true) {
-          const idx = cursor++;
-          if (idx >= missing.length) return;
-          await downloadMP3(missing[idx]);
-        }
-      })(),
-    );
+  const run: BulkRun = { queue: missing, cursor: 0, cancelled: false };
+  bulkRun = run;
+  try {
+    const workerCount = Math.min(BULK_DOWNLOAD_CONCURRENCY, missing.length);
+    const workers: Promise<void>[] = [];
+    for (let i = 0; i < workerCount; i++) {
+      workers.push(
+        (async () => {
+          while (!run.cancelled) {
+            const idx = run.cursor++;
+            if (idx >= run.queue.length) return;
+            await downloadMP3(run.queue[idx]);
+          }
+        })(),
+      );
+    }
+    await Promise.all(workers);
+  } finally {
+    if (bulkRun === run) bulkRun = null;
   }
-  await Promise.all(workers);
 }
 
 // --- Cache management ---

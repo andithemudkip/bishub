@@ -52,6 +52,11 @@ export interface Translations {
     nowPlaying: string;
     switchToStatic: string;
     switchToSynced: string;
+    playInstrumental: string;
+    hymnal: string;
+    allHymnals: string;
+    scrollBooksLeft: string;
+    scrollBooksRight: string;
   };
 
   // Karaoke audio (TTML + MP3)
@@ -59,6 +64,8 @@ export interface Translations {
     sectionTitle: string;
     defaultToggleLabel: string;
     defaultToggleHint: string;
+    instrumentalsToggleLabel: string;
+    instrumentalsToggleHint: string;
     cacheStats: string; // {count}, {total}, {size}
     downloadAll: string;
     downloadAllConfirm: string; // {size}
@@ -74,6 +81,7 @@ export interface Translations {
     errorDownload: string;
     errorDiskSpace: string;
     statusQueued: string;
+    statusCancelled: string;
   };
 
   // Bible page
@@ -447,12 +455,20 @@ const ro: Translations = {
     nowPlaying: "Redare:",
     switchToStatic: "Text simplu",
     switchToSynced: "Sincronizat",
+    playInstrumental: "Cu instrumental",
+    hymnal: "Imnuri",
+    allHymnals: "Toate imnurile",
+    scrollBooksLeft: "Imnurile anterioare",
+    scrollBooksRight: "Mai multe imnuri",
   },
   karaoke: {
-    sectionTitle: "Lirică sincronizată",
-    defaultToggleLabel: "Activată implicit",
+    sectionTitle: "Audio imnuri",
+    defaultToggleLabel: "Lirică sincronizată",
     defaultToggleHint:
-      "Imnurile cu instrumentalul descărcat pornesc cu lirică sincronizată. Poți comuta la text simplu pentru fiecare imn în bara de redare.",
+      "Imnurile cu lirică sincronizată și instrumentalul descărcat pornesc în modul karaoke. Poți comuta la text simplu pentru fiecare imn în bara de redare.",
+    instrumentalsToggleLabel: "Instrumental",
+    instrumentalsToggleHint:
+      "Imnurile fără lirică sincronizată pornesc automat instrumentalul.",
     cacheStats: "{count} din {total} instrumentale descărcate · {size}",
     downloadAll: "Descarcă tot",
     downloadAllConfirm: "Descarcă {size}? Asta poate dura câteva minute.",
@@ -461,7 +477,7 @@ const ro: Translations = {
     clearCache: "Șterge cache-ul",
     clearCacheConfirm: "Sigur ștergi toate instrumentalele descărcate?",
     bannerText:
-      "Instrumentale disponibile pentru imnurile sincronizate.",
+      "Sunt disponibile instrumentale pentru imnurile din această carte.",
     bannerDismiss: "Ascunde",
     bannerOpenSettings: "Deschide setările",
     downloadButton: "Descarcă",
@@ -469,6 +485,7 @@ const ro: Translations = {
     errorDownload: "Descărcare eșuată",
     errorDiskSpace: "Spațiu insuficient pe disc",
     statusQueued: "În așteptare",
+    statusCancelled: "Anulat",
   },
   bible: {
     searchPlaceholder: "Tastează o referință sau caută text...",
@@ -819,12 +836,20 @@ const en: Translations = {
     nowPlaying: "Now playing:",
     switchToStatic: "Static",
     switchToSynced: "Synced",
+    playInstrumental: "With instrumental",
+    hymnal: "Hymnal",
+    allHymnals: "All hymnals",
+    scrollBooksLeft: "Previous hymnals",
+    scrollBooksRight: "More hymnals",
   },
   karaoke: {
-    sectionTitle: "Synced lyrics",
-    defaultToggleLabel: "Enabled by default",
+    sectionTitle: "Hymn audio",
+    defaultToggleLabel: "Synced lyrics",
     defaultToggleHint:
-      "Hymns with a downloaded instrumental start with synced lyrics. You can switch to static text per hymn from the playback bar.",
+      "Hymns with synced lyrics and a downloaded instrumental start in karaoke mode. You can switch to static text per hymn from the playback bar.",
+    instrumentalsToggleLabel: "Instrumental",
+    instrumentalsToggleHint:
+      "Hymns without synced lyrics play the instrumental while you advance the slides by hand, as usual.",
     cacheStats: "{count} of {total} instrumentals downloaded · {size}",
     downloadAll: "Download all",
     downloadAllConfirm:
@@ -835,7 +860,7 @@ const en: Translations = {
     clearCacheConfirm:
       "Delete all downloaded instrumentals?",
     bannerText:
-      "Instrumentals available for synced hymns.",
+      "Instrumentals are available for hymns in this book.",
     bannerDismiss: "Dismiss",
     bannerOpenSettings: "Open settings",
     downloadButton: "Download",
@@ -843,6 +868,7 @@ const en: Translations = {
     errorDownload: "Download failed",
     errorDiskSpace: "Insufficient disk space",
     statusQueued: "Queued",
+    statusCancelled: "Cancelled",
   },
   bible: {
     searchPlaceholder: "Type a reference or search text...",

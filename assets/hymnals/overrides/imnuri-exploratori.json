@@ -1,0 +1,1321 @@
+{
+  "3": {
+    "reason": "run-on lines merged 4 phrases into 2; split at natural clause boundaries",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Acolo-n valea cerului, pe-albastrele câmpii\nLa fluierul Păstorului se strâng oițe mii…\nPrin poarta Orionului pornesc mieluți spre cer\nȘi îngeri vin să-i ducă-apoi înspre Emanuel."
+      },
+      {
+        "kind": "verse",
+        "text": "În lume rar sunt primăveri, izvoarele-au secat,\nSunt multe lacrimi și dureri și drum întunecat...\nPrin vânt și ploi doar un popor răzbate curajos,\nEi se numesc exploratori, copii ai lui Hristos."
+      },
+      {
+        "kind": "verse",
+        "text": "Noi, inima Ți-o dăm,\nIsus, izvor să faci din ea\nȘi zborul nostru spre mai sus condu-l cu dreapta Ta!\nȚi-ai dat viața pentru noi: ce lucru minunat!\nNoi astăzi suntem blânde oi,\nTu,\nMielul Împărat!"
+      }
+    ]
+  },
+  "5": {
+    "reason": "run-on line merged two parallel promise clauses",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Mergem înainte,\nDomnul e cu noi,\nNiciodată-n luptă nu vom da ‘napoi!\nRăul, sus pe cruce,\nEl a biruit,\nDrumul spre victorii El ne-a pregătit!\nIată, se zărește al măririi prag,\nMergem înainte sub același steag!"
+      },
+      {
+        "kind": "verse",
+        "text": "Mergem înainte, spre același țel,\nNoi suntem oștirea,\nRege este El!\nÎn unire sfântă, trecem zi de zi,\nUna în durere, una-n bucurii.\nIată, se zărește al măririi prag,\nMergem înainte sub același steag!"
+      },
+      {
+        "kind": "verse",
+        "text": "Mergem înainte, lupta cât de grea,\nEl ne sprijinește nu putem cădea!\nNe-a promis o Țară și-o vom locui\nNe-a promis un Nume, și-l vom moșteni!\nIată, se zărește al măririi prag,\nMergem înainte sub același steag!"
+      }
+    ]
+  },
+  "7": {
+    "reason": "entire stanza was one run-on line; split into ABAB quatrain (rhyme: asemănare/uimitoare, mari/temerari)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Vis albastru fără-asemănare\nÎl purtăm în ochii noștri mari\nPrintre taine uimitoare\nCa exploratori temerari!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ne-a ales Isus să-I fim aproape,\nUcenici și pașnici călători,\nMesageri pe munți și ape Și navigatori visători."
+      },
+      {
+        "kind": "verse",
+        "text": "Ca să ducem visuri de iubire,\nToate patru zări ni se deschid\nȘi să strângem fericire\nCu Isus Hristos,\nMaster Ghid!"
+      },
+      {
+        "kind": "verse",
+        "text": "Spre o nouă lume, minunată\nPlină de iubire și de cânt\nHaideți toți,\nIsus ne-așteaptă „Pentru Domnul!\"\n\"Gata oricând!\""
+      }
+    ]
+  },
+  "10": {
+    "reason": "run-on final line split into two matching stanza 1's 4-line shape",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "De Isus eu am fost modelat,\nAstăzi sunt lui Isus consacrat,\nSă fiu steag, să fiu far luminând în larg,\nPentru toți un catarg Până-n al veciei prag."
+      },
+      {
+        "kind": "verse",
+        "text": "Să fiu rob credincios, să-L slujesc,\nTot ce am pentru El să jertfesc,\nCa un rug, ca un foc viața mea de-acum\nS-o aprind pe-al meu drum Până-n cerul de minuni."
+      }
+    ]
+  },
+  "12": {
+    "reason": "run-on line split at clause boundary (11 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Știi tu cine este Domnul?\nȘtii de unde a venit?\nȘtii cu câtă bucurie El te-a căutat și te-a găsit?"
+      },
+      {
+        "kind": "chorus",
+        "text": "Iubește-L, da, iubește-L,\nCăci pentru tine El a fost jertfit!\nCere-I și-ți va da viața-n dar,\nIubește-L să fii mântuit!"
+      },
+      {
+        "kind": "verse",
+        "text": "Știi tu cine este Domnul,\nCel ce te-a răscumpărat,\nCel ce ți-a plătit osânda\nSă poți fi în veci eliberat?"
+      },
+      {
+        "kind": "verse",
+        "text": "Știi că îngerii din ceruri Sunt uimiți de jertfa Sa?\nPleacă-te și tu la cruce Și închină-I toată viața ta!"
+      }
+    ]
+  },
+  "15": {
+    "reason": "entire echo-song stanza was one run-on line; split into 4 lines per PDF sheet music (each line = one musical phrase with its echo)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ia-mi inima (ia-mi inima), vreau să locuiești în ea,\n(ca-ntr-un templu,\nOsana),\nIa mâna mea (ia mâna mea), ține-o strâns într-a Ta (cu o rugă în ea)\nȘi viața mea (o torță-aș vrea) spre a lumina (în noaptea grea)\nIubirea mea (întreagă-aș vrea) să fie-a Ta (pe veci a Ta)."
+      }
+    ]
+  },
+  "19": {
+    "reason": "run-on line split into ABAB quatrain (rhyme: copil/tril, Eden/refren)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Când Isus a fost copil,\nSe unea cu-al florilor tril\nȘi glasul Lui ce-a vorbit în Eden\nÎnvăța al lor refren."
+      },
+      {
+        "kind": "chorus",
+        "text": "O, minunat Creator,\nȘi-al nostru Mântuitor,\nJertfă de frumos înălțăm,\nIubirea să-Ți cântăm."
+      },
+      {
+        "kind": "verse",
+        "text": "Asculta și-un psalm de izvor\nClipocind la vale, de zor\nȘi Cel ce-a-ntins peste mări un răzor\nFredona cu ele-n cor."
+      },
+      {
+        "kind": "verse",
+        "text": "Prin păduri mergând deseori,\nZăbovind cu-ai norilor zori Să povestim împreună, voios,\nDe iubirea lui Hristos!"
+      }
+    ]
+  },
+  "27": {
+    "reason": "run-on line split at clause boundary (11 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Mâinile Lui m-au creat Când din lut am fost modelat,\nEl m-a făcut un copil de-mpărat În Edenul cel minunat."
+      },
+      {
+        "kind": "verse",
+        "text": "Mâinile Lui m-au atins Cu iubire de nedescris,\nDomnul mi-a dat bucuria în dar\nMi-a umplut inima cu har."
+      },
+      {
+        "kind": "verse",
+        "text": "Mâinile Lui m-au ținut Când păcatul a apărut,\nEl m-a-ntărit când tristeți m-au învins\nCa să văd ceru-ntreg deschis."
+      },
+      {
+        "kind": "verse",
+        "text": "Mâinile Lui m-au salvat Și sunt liber de-orice păcat,\nAzi pot cânta, pot visa, pot zbura,\nParadisul e țara mea."
+      }
+    ]
+  },
+  "29": {
+    "reason": "run-on line split into ABAB quatrain (rhyme: modelat/creat, frumos/Hristos)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Clipă cu clipă sunt modelat\nDe mâna Celui care m-a creat\nDupă modelul cel mai frumos,\nAl Domnului Isus Hristos."
+      },
+      {
+        "kind": "verse",
+        "text": "Clipă cu clipă sunt fericit,\nAzi lângă Domnul locul mi-am găsit,\nSă fiu cu El e tot ce-mi doresc\nȘi să ajung pe plai ceresc."
+      }
+    ]
+  },
+  "30": {
+    "reason": "first line (12 words) split at natural conjunction boundary; rest of stanza already correctly broken (confirmed via PDF strophic structure matching stanza 1)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Spre cerul nopții eu privesc, și-mi zic:\n\"Ce e un om să te gândești mereu la el?\"\nCascade de-ntrebări pornesc Spre-al slavei tron împărătesc…\nO,\nDoamne-n fiecare clipă Mă-ntreb:\n\"De ce am fost creat?\"\nMi-ai dat un Nume minunat,\nSă fiu copil de Împărat."
+      },
+      {
+        "kind": "verse",
+        "text": "L-ai pus ca să domnească peste peștii mărilor\nși peste păsărele-n zbor,\nDar eu mă-ntreb:\n\"Ce e un om Pe-acest pământ rătăcitor?\"\nO,\nDoamne, mare și puternic,\nMai sus de ceruri și pământ,\nCu toți copiii-Ți vom cânta:\nMărire, slavă,\nOsana!"
+      }
+    ]
+  },
+  "34": {
+    "reason": "repeated 12-word line split at clause boundary, matching block0's short-line style",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Vedeți ce dragoste,\nTatăl nostru din ceruri ne-a arătat!\nVedeți ce dragoste,\nTatăl nostru din ceruri ne-a arătat!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Copii ai lui Dumnezeu suntem!\nCopii ai lui Dumnezeu suntem!"
+      },
+      {
+        "kind": "verse",
+        "text": "Dar lumea nu ne cunoaște\nCum nici pe El nu L-a cunoscut,\nDar lumea nu ne cunoaște\nCum nici pe El nu L-a cunoscut!"
+      },
+      {
+        "kind": "verse",
+        "text": "Copii suntem și copii ai Lui Vom rămâne în veșnicii,\nCopii suntem și copii ai Lui Vom rămâne în veșnicii!"
+      }
+    ]
+  },
+  "35": {
+    "reason": "run-on line split at clause boundary (11 words); \"Isuse,\" kept on own line matching hymnal convention",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "În turma de mioare eu sunt un miel plăpând,\nDar Tu mi-ești apărare,\nPăstorul meu cel blând.\nÎn prag de veșnicie cu sufletul senin,\nTe-aștept cu bucurie,\nIsus,\nPăstor divin!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pe pajiști de iubire, spre cer m-ai îndreptat,\nIzvor de fericire în cale mi-ai săpat.\nÎn palmele-ți străpunse, pe veci mă regăsesc\nCa miel al tău,\nIsuse,\nPăstorul meu ceresc!"
+      },
+      {
+        "kind": "verse",
+        "text": "De mulțumire plină mi-e inima acum,\nToiagul și nuiaua mă mângâie pe drum …\nLa ape de odihnă mă-ndrept așa voios,\nCă nu-i în lume tihnă ca pacea lui Hristos!"
+      }
+    ]
+  },
+  "37": {
+    "reason": "run-on line split at clause boundary (11 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Vin cu drag la ora de-nchinare,\nÎți aduc onoare, bun Isus!\nSă primești micuța-mi jertfă Pregătită cum ai spus!\nVin cu drag la ora de-nchinare,\nDoamne, vreau să-Ți fiu supus."
+      },
+      {
+        "kind": "verse",
+        "text": "Biblia vorbește despre Moise,\nCă stătea ‘naintea Ta plecat\nȘi vorbeai cu el prin tunet,\nChiar prin foc Te-ai arătat.\nBiblia vorbește despre Moise,\nVreau ca el să fiu curat."
+      },
+      {
+        "kind": "verse",
+        "text": "Am citit de David împăratul,\nCe-a luptat doar pentru Dumnezeu\nCă a fost plin de credință,\nDomnului slujind mereu.\nAm citit de David împăratul,\nVreau ca el să fiu și eu."
+      }
+    ]
+  },
+  "43": {
+    "reason": "run-on line split at causal-clause boundary (11 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dacă vântul ar urla turbat,\nTot nu ne va clinti,\nCăci în mari furtuni am învățat Spre Domnul a privi."
+      },
+      {
+        "kind": "chorus",
+        "text": "De mână ne-am prins că suntem frați,\nPurtăm o cruce grea,\nDar mâinile noastre nu obosesc\nCă sunt prinse de mâna Sa!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ziduri nu pot fi și nici urgii Să-oprească-al nostru zbor,\nOrice grea ispită ar veni,\nAvem un Salvator!"
+      }
+    ]
+  },
+  "45": {
+    "reason": "final line merged a new clause with the repeated refrain; split to match block0's 7-line template",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Nu mă tem, nu mă tem,\nDe întuneric nu mă tem,\nNu mă tem, pe Isus în rugă eu Îl chem!\nDomnul,\nDomnul e lumina mea,\nEl alungă bezna cea mai grea,\nNu mă tem, pe Isus în rugă eu Îl chem!"
+      },
+      {
+        "kind": "verse",
+        "text": "Nu mă tem, nu mă tem,\nDe vânt și valuri nu mă tem,\nNu mă tem, pe Isus în rugă eu Îl chem!\nDomnul,\nDomnul este pacea mea,\nDomnul ține vântu-n mâna Sa\nNu mă tem, pe Isus în rugă eu Îl chem!"
+      },
+      {
+        "kind": "verse",
+        "text": "Nu mă tem, nu mă tem,\nDe toți dușmanii nu mă tem,\nNu mă tem, pe Isus în rugă eu Îl chem!\nDomnul,\nDomnul e tăria mea,\nCu dușmanii El Se va lupta,\nNu mă tem, pe Isus în rugă eu Îl chem!"
+      }
+    ]
+  },
+  "47": {
+    "reason": "entire stanza was one run-on line (27 words); split into ABAB-style quatrain matching sibling stanzas, rhyme Pământ/Cuvânt",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Să ne ducă pe un Nou Pământ\nNe-a promis Isus ‘n-al Său Sfânt Cuvânt\nȘtim că El va reveni curând\nSă ne ducă pe un Nou Pământ."
+      },
+      {
+        "kind": "verse",
+        "text": "Vom zbura cu El spre alte lumi\nExplorând un Univers de minuni,\nÎnsoțiți la cer de îngeri buni\nVom zbura cu El spre alte lumi."
+      },
+      {
+        "kind": "verse",
+        "text": "Vom străbate-ai veșniciei zori Către lumi de stele, bravi călători,\nContemplând cereștile comori Vom străbate-ai veșniciei zori."
+      }
+    ]
+  },
+  "48": {
+    "reason": "run-on line split at clause boundary; rhyme nor/biruitor",
+    "blocks": [
+      {
+        "kind": "chorus",
+        "text": "Ne grăbim acum, la acest sfârșit de drum,\nIntrăm în Noul Canaan!"
+      },
+      {
+        "kind": "verse",
+        "text": "Suntem conduși prin stâlp de foc și nor\nDe Dumnezeul nostru, viteaz biruitor!\nEl e cu noi devreme și târziu,\nNe poartă pașii prin pustiu."
+      },
+      {
+        "kind": "verse",
+        "text": "Am învățat credința din trecut,\nȘi ne-avântăm ‘nainte spre noul început!\nAproape-Acasă, iată,ne simțim Și nici un ceas nu ne oprim!"
+      },
+      {
+        "kind": "verse",
+        "text": "Veniți cu noi, prieteni, într-un gând,\nVeniți, căci ne așteaptă un înnoit pământ!\nCântați cu toții imnul triumfal:\nSosim la Marea de cristal!"
+      }
+    ]
+  },
+  "55": {
+    "reason": "two run-on lines (15 and 13 words) split at clause boundaries",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "De pe drumuri lungi, de prin văi și munți\nNe-ai chemat către cer să pornim,\nDe pe-ntreg pământ ne-ai unit în gând,\nCopii ai Tăi vrem să fim!\nDoamne,\nTe rugăm, vino iar,\nInima Ți-o dăm în dar!\nNe e dor de cer, vrem cu Tine-a sta\nMereu privind fața Ta!"
+      }
+    ]
+  },
+  "58": {
+    "reason": "the \"Isus mi-e lumină...minuni\" line (13 words) appears twice, both run-on; split at clause boundary each time",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Isus mă așteaptă pe țărmul ceresc,\nÎn luntrea credinței pe valuri plutesc,\nIsus mi-e lumină prin nori și furtuni\nȘi viața mi-e plină de minuni…\nVăd cum se-adună nori de furtună,\nValuri de-ntunecimi,\nDar nu mi-e teamă,\nDomnul mă cheamă mai sus, spre înălțimi.\nIsus mă așteaptă pe țărmul ceresc,\nÎn luntrea credinței pe valuri plutesc,\nIsus mi-e lumină prin nori și furtuni\nȘi viața mi-e plină de minuni..."
+      }
+    ]
+  },
+  "63": {
+    "reason": "repeated refrain line (13 words) split before capitalised \"Dumnezeu\" (heuristic's blind spot)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Bucură-te, tinere în tinerețea ta,\nVeselă să-ți fie inima!\nUmblă-n căi alese de inima ta Și plăcute ochilor tăi!\nDar nu uita, nu uita că te va chema\nDumnezeu la judecata Sa,\nDar nu uita, nu uita că te va chema\nDumnezeu la judecata Sa!"
+      },
+      {
+        "kind": "verse",
+        "text": "Viața să-ți traiești din plin\ncu tot ce e în ea,\nFără să-ți ofteze inima!\nJoacă-te, aleargă, fii vesel mereu,\nFugi de tot ce-ți pare prea greu!\nDar nu uita, nu uita că te va chema\nDumnezeu la judecata Sa!\nDar nu uita, nu uita că te va chema\nDumnezeu la judecata Sa!"
+      }
+    ]
+  },
+  "65": {
+    "reason": "run-on line split at clause boundary; rhyme cer/pier",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Printre munți și dealuri simt pe Dumnezeu,\nApe cristaline cântă tot mereu."
+      },
+      {
+        "kind": "chorus",
+        "text": "[:Cântă, cântă:\nDomnul este bun,\nVeșnic, veșnic Domnul este bun!:]"
+      },
+      {
+        "kind": "verse",
+        "text": "Soarele se ‘nalță maiestuos pe cer\nȘi aruncă dulce raze ce nu pier."
+      },
+      {
+        "kind": "verse",
+        "text": "Prin păduri și lanuri trece vântu-n zbor,\nCântă preamărire pentru Creator."
+      },
+      {
+        "kind": "verse",
+        "text": "Inima să cânte:\n\"Domnul este bun!\"\nSfânt și plin de milă, veșnic, este bun!"
+      }
+    ]
+  },
+  "66": {
+    "reason": "run-on line split at clause boundary (15 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Viață și cântec și zâmbet și pace\nMereu pentru oameni eu aș vrea să fiu!\nSă-ntind mâna celor care mângâiere, vindecare,\nVor să afle până nu e prea târziu."
+      },
+      {
+        "kind": "verse",
+        "text": "Cine să meargă solia cerească La toți să vestească:\n\"Vine iar Isus!\"?\nNe vom duce toți cei care mângâiere, vindecare,\nAm găsit la Domnul nostru scump,\nIsus."
+      }
+    ]
+  },
+  "67": {
+    "reason": "run-on line split at clause boundary; matches block0's \"Să fii vesel, să zâmbești mereu,\" line",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Să fii vesel, să zâmbești mereu,\nCu toată inima să cânți,\nChiar când ploaia bate-n geamul tău Sau soarele-i cu dinți!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Ascultă cum Domnul Îți spune drumul pas cu pas,\nÎn șoapta-I divină Să-ți faci plăcut popas!"
+      },
+      {
+        "kind": "verse",
+        "text": "Să fii vesel, să zâmbești mereu\nCăci ai la rugăciune ton!\nEa e firul pân’ la Dumnezeu,\nAl vieții telefon!"
+      },
+      {
+        "kind": "verse",
+        "text": "Să fii vesel, să zâmbești mereu Când vin torente de-ncercări,\nTe salvează Dumnezeul Tău Din orice încercări!"
+      }
+    ]
+  },
+  "68": {
+    "reason": "run-on line (14 words) split into three short phrases",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Când stele mii pe cer se-aprind La ceas de înserat,\nEu ruga mi-o înalț\nSpre Cel ce m-a creat\nȘi viață-n dar mi-a dat."
+      },
+      {
+        "kind": "verse",
+        "text": "Eu sunt așa de fericit,\nCă pot să-I mulțumesc,\nCând noaptea a venit\nDe El sunt ocrotit\nȘi-n El mă odihnesc."
+      }
+    ]
+  },
+  "69": {
+    "reason": "two run-on lines split at conjunction clause boundaries",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Când soarele apune-n flăcări de raze mii\nȘi când natura se pregătește de-odihnă după-o zi,\nTotul în rugă sfântă se pleacă chiar acum\nȘi mulțumiri aduce unui Părinte bun."
+      },
+      {
+        "kind": "verse",
+        "text": "Părinte-al îndurării, azi Tu ne-ai ocrotit,\nNe-ai dat viață și sănătate, nimic nu ne-a lipsit,\nTu ne-ai dat și putere să facem voia Ta,\nCu bucurie-n suflet, în veci Îți vom cânta!"
+      },
+      {
+        "kind": "verse",
+        "text": "Natura e o carte scrisă de mâna Ta,\nCe binecuvântare bogată Tu ai făcut din ea,\nTotul Te preamărește, slujește altora,\nO,\nDoamne, ce minune-i toată zidirea Ta."
+      },
+      {
+        "kind": "verse",
+        "text": "Acum privim spre toate ce Tu ne-ai dăruit,\nȘi mulțumiri Ți-aducem din suflet,\nMântuitor iubit,\nPrimește ruga noastră, al inimii prinos,\nSlăvit să fii o,\nTată, prin Fiul Tău,\nHristos!"
+      }
+    ]
+  },
+  "70": {
+    "reason": "run-on line split at clause boundary; rhyme cântând/lăudând",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Norii înserării zboară coborând spre asfințit,\nSuliți calde de lumină chiar acum s-au domolit …\nDoamne, câtă frumusețe e-n apusul minunat!\nPăsări cântă mulțumire Celui care le-a creat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Întuneric e-n pădure, întuneric și mister,\nDoar o strălucire lină se coboară dinspre cer …\nCerul plin cu mii de stele parcă e un cor cântând\nOglindit pe-ntins de ape și pe Domnul lăudând!"
+      }
+    ]
+  },
+  "71": {
+    "reason": "two run-on lines split; rhyme apus/surâs, grăbesc/ceresc",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "O cât de frumos se aude-n apus\nCum curge izvorul ‘n-al lunii surâs,\nIar frunzele pomilor se grăbesc\nSă ’nalțe o rugă spre Tatăl ceresc!"
+      },
+      {
+        "kind": "verse",
+        "text": "Și păsări și-au strâns sub aripi puii lor\nȘi-n pace înalță o șoaptă de dor\nAcelui ce viața le-a ocrotit,\nPărintelui lor,\nDumnezeu preamărit!"
+      },
+      {
+        "kind": "verse",
+        "text": "Din inimi curate de exploratori\nSe ‘nalță un cântec ce trece de nori\nȘi mână în mână toți ne unim\nSă spunem în rugă:\n\"Isus te iubim!\""
+      }
+    ]
+  },
+  "74": {
+    "reason": "verse 1 kept two heuristic fragment-lines (\"Focul Tău,\" / \"Astăzi,\") isolated instead of joined to their clause, unlike sibling verses 2-3's clean 4-line structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Focul Tău, Isuse, ardă-n viața mea,\nEl să-mi cuprindă toată inima.\nTot ce sunt și tot ce pot să am mai bun\nAstăzi, Isuse, pe altar eu pun.\nTu ești speranța, bucuria mea,\nTu ești lumină când e noaptea grea,\nȘtiu că asculți, fierbinte, ruga mea,\nEu mă încred mereu în mila Ta!"
+      },
+      {
+        "kind": "verse",
+        "text": "Când Satana vine cu ispita sa,\nPrivesc la Tine, sus pe Golgota.\nCăci pe cerul negru al acestei lumi\nTu ești lumină, al speranței drum!\nTu ești speranța, bucuria mea,\nTu ești lumină când e noaptea grea,\nȘtiu că asculți, fierbinte, ruga mea,\nEu mă încred mereu în mila Ta!"
+      },
+      {
+        "kind": "verse",
+        "text": "Vine ziua mare când Te voi vedea,\nCu mii de îngeri, în mărirea Ta,\nÎncă-o clipă doar, și trece negrul nor,\nSă fiu cu Tine eu aștept cu dor!\nTu ești speranța, bucuria mea,\nTu ești lumină când e noaptea grea,\nȘtiu că asculți, fierbinte, ruga mea,\nEu mă încred mereu în mila Ta!"
+      }
+    ]
+  },
+  "75": {
+    "reason": "run-on line split at clause boundary; monorhyme -ept confirms (îndrept/aștept/piept)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dimineața și seara eu mă rog lui Isus,\nSă-mi trimită lumină și putere de sus,\nSă-mi dea har și credință, să m-avânt tot mai sus,\nDimineața și seara eu mă rog lui Isus."
+      },
+      {
+        "kind": "verse",
+        "text": "Dimineața și seara spre Isus mă îndrept\nȘi în liniștea rugii pace-n suflet aștept,\nOrice dor El îl știe cum se zbate în piept,\nDimineața și seara spre Isus mă îndrept."
+      },
+      {
+        "kind": "verse",
+        "text": "Dimineața și seara eu ascult vocea Sa,\nCând Isus îmi vorbește, cântă inima mea …\nDumnezeu mă aprinde ca să pot lumina,\nDimineața și seara eu ascult vocea Sa!"
+      }
+    ]
+  },
+  "77": {
+    "reason": "run-on line split into 3 short lines, rhyme pace/face, lună/bună",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Lin se lasă seara Ca un sol de pace,\nPe la cuiburi păsărele iar se strâng,\nPrintre stele, vara\nCuib și ea își face\nDin frumoasa lună,\nNoapte bună!"
+      },
+      {
+        "kind": "verse",
+        "text": "Focu-ncet adoarme\nȘi în pace sfântă\nToți exploratorii-n rugă s-au plecat.\nDulce-adie vântul Și un greier cântă,\nParcă-ar vrea să spună:\nNoapte bună!"
+      }
+    ]
+  },
+  "80": {
+    "reason": "run-on line split at clause boundary (12 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ce frumoasă, tainică e noaptea,\nSus pe cer, cât mister!\nCând se văd atâtea constelații,\nCât mister sus pe cer!"
+      },
+      {
+        "kind": "verse",
+        "text": "Carul Mare,\nLebăda și Lira \"Domnu-i bun!\" parcă spun,\nOrionul și Casiopeea Parcă spun:\n\"Domnu-i bun!\""
+      },
+      {
+        "kind": "verse",
+        "text": "Doamne, du-ne printre constelații Cum ai spus, în cer, sus,\nCa să fim cu Tine-n veșnicie\nÎn cer sus, cum ai spus!"
+      }
+    ]
+  },
+  "81": {
+    "reason": "run-on line split matching template of sibling stanzas (short clause + repeated refrain)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Mulțumesc,\nIsuse, pentru al zilei dar,\nTu mi-ai fost lumină înc-o zi de har!\nTu mi-ai fost lumină înc-o zi de har!"
+      },
+      {
+        "kind": "verse",
+        "text": "Mulțumesc,\nIsuse, că și azi mi-ai fost,\nPrin vâltoarea vieții, sigur adăpost!\nPrin vâltoarea vieții sigur adăpost!"
+      },
+      {
+        "kind": "verse",
+        "text": "Mulțumesc,\nIsuse, că și azi din nou\nTu ai fost și pâinea și izvorul meu!\nTu ai fost și pâinea și izvorul meu!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pacea Ta să-mi fie peste-al nopții vis\nScară luminoasă către Paradis!\nScară luminoasă către Paradis!"
+      }
+    ]
+  },
+  "82": {
+    "reason": "run-on line split at clause boundary; rhyme cer/sper",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "În fiecare dimineață vesel cânt,\nCă Tu,\nIsuse, ești cu mine orișicând,\nDeschizi în calea mea o poartă către cer\nȘi-n orice încercare pot să sper."
+      },
+      {
+        "kind": "verse",
+        "text": "În fiecare dimineață la izvor\nCurată apă limpezește al meu dor,\nE fără de sfârșit ca și iubirea Ta\nCe poate limpezi și viața mea."
+      },
+      {
+        "kind": "verse",
+        "text": "În fiecare dimineață raze dulci\nTrimiți și umbre mari din suflet Tu alungi,\nPădurea în lumina caldă-a soarelui\nE ca un colț din lumea raiului."
+      }
+    ]
+  },
+  "84": {
+    "reason": "run-on line split into 3 short phrases",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Raze de culori au răsărit,\nZâmbete de flori au întâlnit,\nPrimul ciripit înmiresmat\nM-a salutat ca mesager\nAl dragostei lui Dumnezeu din cer."
+      },
+      {
+        "kind": "verse",
+        "text": "Aburii din zori s-au depărtat,\nCerul dintre nori s-a luminat\nVisul meu curat e mai frumos,\nMai luminos cu cât privesc Seninul chip al Tatălui Ceresc."
+      },
+      {
+        "kind": "verse",
+        "text": "Soarele de foc e acum sus,\nVede orice loc, oricât de-ascuns,\nTot la fel,\nIsus, mă va privi,\nMă va iubi și-n veci aș vrea\nSă-mi fie tot curată inima."
+      }
+    ]
+  },
+  "86": {
+    "reason": "run-on line split at clause boundary; rhyme colorate/toate",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Prin văzduh răsună iar Ciripit de păsărele,\nSă asculte, se trezesc,\nMugurași pe rămurele."
+      },
+      {
+        "kind": "chorus",
+        "text": "Bine, bine ai venit,\nScumpa noastră primăvară!\nViață nouă așteptăm Și în inimi să răsară…"
+      },
+      {
+        "kind": "verse",
+        "text": "Pe câmpii răsar din nou Floricele colorate\nZburdă miei, de dragul lor,\nTare le-ar gusta pe toate…"
+      },
+      {
+        "kind": "verse",
+        "text": "Vremea rece-a aruncat Pijamaua de zăpadă,\nStraie noi a îmbrăcat Și-a ieșit, cântând pe stradă."
+      }
+    ]
+  },
+  "89": {
+    "reason": "run-on line split at clause boundary; rhyme mereu/eu",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Din zborul vrăbiuței vreau să-nvăț mereu\nPe aripa credinței cum să zbor și eu.\nNatura îmi arată tot ce-i de-nvățat,\nCa zborul vrăbiuței, zborul meu curat."
+      },
+      {
+        "kind": "verse",
+        "text": "În stânca neclintită e-un model frumos,\nÎn valuri de ispită să fiu credincios.\nNatura îmi arată tot ce-i de-nvățat\nCa stânca neclintită să rămân curat."
+      },
+      {
+        "kind": "verse",
+        "text": "Din zâmbetul de floare cu frumos parfum\nEu văd o țintă mare: vreau să fiu mai bun!\nNatura îmi arată tot ce-i de-nvățat,\nO viață de valoare cu parfum curat."
+      },
+      {
+        "kind": "verse",
+        "text": "Din susur de izvoare eu învăț mereu,\nIzvor de îndurare este Dumnezeu.\nNatura îmi arată tot ce-i de-nvățat,\nIzvor de îndurare-i Cel ce ne-a creat."
+      }
+    ]
+  },
+  "90": {
+    "reason": "run-on line split at clause boundary; rhyme câmpii/știi",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Și peștișoru-n apă și cerbul din câmpii\nȘi pasărea ce zboară și floarea cum o știi."
+      },
+      {
+        "kind": "chorus",
+        "text": "Pe toți foarte mult îi iubește El\nȘi pe noi, copiii, tot la fel!"
+      },
+      {
+        "kind": "verse",
+        "text": "Vițeii ce pasc iarbă, oițele cu miei,\nÎnaripații vulturi și ne-nfricații lei …"
+      },
+      {
+        "kind": "verse",
+        "text": "Iubește indienii, chinezii tot la fel\nȘi africanii negri și albii toți la fel."
+      },
+      {
+        "kind": "verse",
+        "text": "Pe oameni îi iubește, pe cei de jos sau sus,\nSlab, gras, mai mic, mai mare,\nsunt toți ai lui Isus!"
+      }
+    ]
+  },
+  "94": {
+    "reason": "run-on line split at clause boundary; rhyme nai/plai, cor/Creator",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Primăvara a sosit,\nIarna și gerul iute au fugit,\nDe-acuma soar’le ne va bucura,\nVom alerga și vom cânta!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Cântăm cu toți în vesel cor:\nE anotimpul florilor.\nCântăm cu toți în vesel cor,\nSlăvind pe bunul Creator!"
+      },
+      {
+        "kind": "verse",
+        "text": "Vesel sună glas de nai\nȘi de vioară peste lung de plai,\nCu ele vom cânta și noi în cor,\nSlăvind pe bunul Creator!"
+      },
+      {
+        "kind": "verse",
+        "text": "Când vom crește mari și noi,\nÎn fața iernii nu vom da ‘napoi,\nNe vom lupta cu ne-mblânzitul ger Spre-al primăverii nou mister!"
+      }
+    ]
+  },
+  "96": {
+    "reason": "run-on line split at clause boundary; rhyme doar/var",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Nimbus,\nCirus,\nCumulus,\nNorii cerului de sus,\nPentru noi sunt vestitori ai timpului:\nVreme bună, vreme rea,\nNegreșit noi vom afla Cunoscând culoarea lor, a norilor!"
+      },
+      {
+        "kind": "verse",
+        "text": "Nimbus e întunecat,\nPloaia s-a apropiat,\nCumulus e luminos: ce timp frumos!\nCirus e un petic, doar,\nCa un strop curat de var\nPe tavanul albăstrui al cerului!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ce Maestru minunat,\nNori de apă a pictat,\nSă aducă ploaia-n dar, belșug de har!\nEl ne-a dat Cuvântul Lui,\nCa și norii cerului,\nSă cunoaștem semnele sfârșitului!"
+      }
+    ]
+  },
+  "98": {
+    "reason": "run-on line split at clause boundary; rhyme încălzi/răsări",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Învață de la mica floricică Să răspândești mereu plăcut parfum,\nCând au nevoie cei din jur de tine,\nSă fii un pom la margine de drum!\nNimic să nu te-oprească din cântare,\nFii greier și la bine și la greu,\nPrivește la furnica truditoare,\nLucrând, ea laudă pe Dumnezeu!"
+      },
+      {
+        "kind": "chorus",
+        "text": "În orice faci sau spui, fii bun exemplu,\nO pildă orișicui,\nDă bun exemplu,\nChiar dacă alții-s răi,\nTu fii exemplu,\nCăci Domnu-a fost ca tine Și exemplul Său ți-a dat!\nCăci Domnu-a fost ca tine Și exemplul Său ți-a dat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Privește căprioara cea sfioasă,\nCum caută doar apă de izvor,\nPăianjenu-l îți poate-ntinde-o plasă,\nDar nu uita că ai un Salvator!\nDe-i gerul greu în iarna pământeană,\nCredința ta de foc te va-ncălzi,\nȘi primăvara-i gata să apară\nȘi-atunci un Soare nou va răsări!"
+      }
+    ]
+  },
+  "99": {
+    "reason": "run-on line split at clause boundary; rhyme primim/iubim",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Pentru soare-Ți mulțumim,\nPentru lumina cerului senin,\nÎți mulțumim,\nIsuse, pentru nor,\nCă el ne plouă pe ogor!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Îți mulțumim, îți mulțumim\nCă tot ce-i bun în dar primim,\nÎți mulțumim și Te iubim,\nDoamne,\nIsuse-Ți mulțumim!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pentru stele-Ți mulțumim Că luminează noaptea când dormim,\nÎți mulțumim și pentru pacea Ta Ce ne mângâie inima!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pentru apă-Ți mulțumim,\nEa ne adapă fără să plătim,\nÎți mulțumim că aerul curat E-așa bun de respirat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pentru tot ce-n dar primim,\nDoamne,\nIsuse vrem să-Ți mulțumim,\nÎți mulțumim că veșnic ne iubești\nȘi sus în ceruri ne primești!"
+      }
+    ]
+  },
+  "100": {
+    "reason": "run-on line split at clause boundary; rhyme legat/minunat",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Raze triste-au pornit printre pânze de nori,\nȘi în inimi s-au oprit cu ai toamnei reci fiori…\nVântul iar pe câmpii a pornit fără rost,\nTot mai des în cămin căutăm adăpost."
+      },
+      {
+        "kind": "verse",
+        "text": "Cânt și zâmbet și dor de Isus s-au legat\nȘi privim în viitor un cămin mai minunat…\nCine poate opri al pământului plâns?\nDoar Isus, plin de har, mâna Lui ne-a întins."
+      },
+      {
+        "kind": "verse",
+        "text": "Vântul zilei de-apoi în dureri revărsat\nSuflă astăzi peste noi de mânie încărcat …\nSă ne scape de el, cine oare-ar putea?\nTe-așteptăm, scump Isus, așteptăm ziua Ta!"
+      }
+    ]
+  },
+  "103": {
+    "reason": "run-on line split matching block0's 4-line \"mâna Sa\" refrain pattern",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "El ține toată lumea în mâna Sa,\nÎntreg pământul nostru în mâna Sa,\nEl ține Universul în mâna Sa,\nÎntreaga lume e în mâna Sa!"
+      },
+      {
+        "kind": "verse",
+        "text": "El ține copilașii în mâna Sa,\nȘi pe părinții noștri în mâna Sa,\nFrați și surori El ține în mâna Sa\nPe oameni El îi ține-n mâna Sa!"
+      },
+      {
+        "kind": "verse",
+        "text": "El ține chiar și vântul în mâna Sa,\nEl ține și oceanul în mâna Sa,\nEl ține nori de ploaie în mâna Sa,\nȘi viața noastră e în mâna Sa."
+      },
+      {
+        "kind": "verse",
+        "text": "El ține sori și stele în mâna Sa,\nPlanete și comete în mâna Sa,\nEl ține mersul lumii în mâna Sa\nȘi viitorul e în mâna Sa!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pe mine El mă ține în mâna Sa,\nPe tine El te ține în mâna Sa,\nPe noi Isus ne ține în mâna Sa,\nExploratorii sunt în mâna Sa!"
+      }
+    ]
+  },
+  "104": {
+    "reason": "run-on opening line (17 words) split into three short phrases, isolating the cuckoo’s cry to match the hymnal’s convention of one-word exclamation lines",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "E zarvă în pădure, o zarvă cu ecou:\nCă-n cuibul unei mierle a apărut un ou!…\n\"Al cui?\nAl cui?\"\n\"Ce grea-ntrebare pui!\nPăi, dacă n-are-o mamă, o fi al nimănui!\""
+      },
+      {
+        "kind": "verse",
+        "text": "Dar, de pe altă creangă, privea ca un năuc\nFăptașul cu pricina, cu numele de \"cuc\"\n\"Cucu!\nCucu!\nGândește-te și tu:\nDoar pentr-un ou micuț, ce mai zarvă se făcu!\""
+      },
+      {
+        "kind": "verse",
+        "text": "S-a dus ca vântul vestea și timpul de clocit,\nIar puiul din găoace doar mierlă n-a ieșit!\n\"Dă-i zor!\nDă-i zor!\nAruncă-ți frații-n zbor,\nCă doar așa în cuib ai să fii moștenitor!\""
+      },
+      {
+        "kind": "verse",
+        "text": "Când puiul crește mare, e mândru foc de el,\nDa-l macină-o-ntrebare:\n\"De ce e singurel?!\"\nCucu!\nCucu!\nEl singur și-o făcu,\nDe-aceea-și strigă-ntruna doar numele acu’:\n\"CUCU!\""
+      }
+    ]
+  },
+  "106": {
+    "reason": "chorus is two separate musical phrases per the PDF sheet music (two staff rows), not one line",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Păsărele-n cântul lor preamăresc pe Creator,\nCântă tril de bucurie, plin e codrul de-armonie!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Ola-rio, rio, rio, ola-rio, rio, ra,\nola-rio, rio, rio, ola-ra!"
+      },
+      {
+        "kind": "verse",
+        "text": "Veverițe prin copaci strâng alune în desagi,\nPe-o albastră de cicoare doarme-un fluture la soare."
+      },
+      {
+        "kind": "verse",
+        "text": "Furnicuțe prin zăvoi meșteresc un mușuroi\nȘi-n cristal curat de apă văd un păstrăv ce se joacă."
+      },
+      {
+        "kind": "verse",
+        "text": "Căprioare la izvor își alină setea lor,\nIar, pe sus, un vultur zboară pe seninul cer de vară."
+      },
+      {
+        "kind": "verse",
+        "text": "Se-nserează pe pământ, stele-n cer se-aprind pe rând,\nFocu-n jurul lui ne-adună, glasuri vesele răsună."
+      }
+    ]
+  },
+  "109": {
+    "reason": "run-on line split at clause boundary; rhyme mii/bucurii",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Inima e plină, plină de avânt,\nCăci ne cheamă munții să pornim cântând!\nCătre zări senine vulturi suie-n zbor,\nHai și noi pe urma lor!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Dealuri și câmpii, flori și păsări mii\nToate ne aduc în cale bucurii,\nIar deasupra lor bun și iubitor Este-al nostru Creator!"
+      },
+      {
+        "kind": "verse",
+        "text": "O, ce fericire, vesel, să privești\nDe pe-un vârf de munte, slăvile cerești!\nFarmecul naturii nu te va-nșela,\nCând te prinde-n vraja sa!"
+      },
+      {
+        "kind": "verse",
+        "text": "Șoapte de iubire se aud în flori\nCa să ne-nsoțească pașii călători,\nPrin păduri înalte, iată, s-au deschis Drumuri către Paradis!"
+      }
+    ]
+  },
+  "111": {
+    "reason": "entire stanza was one run-on line with no punctuation; split into 4 short lines matching sibling stanzas",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Plecăm în drumeție,\nPlecăm ne-ntârziat!\nPrieteni buni, veniți cu noi,\nCăci drumul e marcat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Fânețe și izvoare\nPrin munți o să vedem\nȘi păsări mii și vietăți\nȘi plante ca-n Eden!"
+      },
+      {
+        "kind": "verse",
+        "text": "Nu vă certați cu ursul\nÎn dulce zmeuriș\nȘi veverița s-o lăsați\nSă zburde prin frunziș!"
+      },
+      {
+        "kind": "verse",
+        "text": "Frumoasă e natura,\nȘi-i doar un mesager,\nVeniți cu noi, prieteni buni,\nPe drumul către cer!"
+      }
+    ]
+  },
+  "114": {
+    "reason": "run-on line split at comma boundary (11 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Suntem exploratorii pe care-i știți, voioși,\nVrem să întrecem norii, totdeauna curajoși!\nDomnul ne-ajută pe cărare, nu ne e teamă de ‘nălțimi,\nZilnic zburăm către soare, pe aripi de heruvimi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Noi suntem luptătorii ce nu pot fi învinși,\nSuntem luminătorii, plini de soare și nestinși…\nDucem o luptă fără arme, doar cu iubire și avânt,\nNimeni din noi nu mai doarme,\ncă zburăm spre-un Nou Pământ!"
+      },
+      {
+        "kind": "verse",
+        "text": "Nu vrem această glie, noi vrem ceva mai bun,\nMergem spre veșnicie, ce frumos e-al nostru drum!\nDomnul ne poartă către stele, suntem mereu încrezători,\nVom alerga printre ele, tot mai buni exploratori!"
+      }
+    ]
+  },
+  "116": {
+    "reason": "run-on line (12 words) split into three short phrases matching this hymn's verse structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Explorând mereu natura,\nÎl cunoaștem pe Isus,\nCa izvor al vieții noastre Și-al culorilor de sus!\nNespusă bucurie și har îmbelșugat,\nMinunat e-n veci tot ce El ne-a dat,\nTot ce Domnul a creat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ce frumoasă e speranța\nDe-a avea un Salvator\nȘi culoarea ei curată:\nUn albastru fără nor!\nSperanță, bucurie și har îmbelșugat,\nMinunat e-n veci tot ce El ne-a dat,\nTot ce Domnul a creat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ce frumoasă e credința Ce te-ajută să nu cazi,\nCa și verdele statornic Al pădurilor de brazi!\nCredință, bucurie și har îmbelșugat,\nMinunat e-n veci tot ce El ne-a dat,\nTot ce Domnul a creat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ce frumoasă e lumina Norilor imaculați!\nTrecători și noi, ca norii,\nSă trăim la fel, curați!\nLumină, bucurie și har îmbelșugat,\nMinunat e-n veci tot ce El ne-a dat,\nTot ce Domnul a creat!"
+      }
+    ]
+  },
+  "117": {
+    "reason": "entire stanza was one run-on line with no punctuation; split into 4 short lines matching sibling blocks 2 and 3",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Privește-n jurul tău\nȘi vezi pe Dumnezeu\nÎn tot ce a creat\nȘi nouă ne-a lăsat."
+      },
+      {
+        "kind": "chorus",
+        "text": "De-aceea noi cu plăcere Totdeauna’I mulțumim!\nVrem pentru a Sa iubire,\nÎn veci să-L preamărim!"
+      },
+      {
+        "kind": "verse",
+        "text": "În stânca de granit,\nÎn bradul înverzit,\nÎn soare și în nor Vedem pe Creator."
+      },
+      {
+        "kind": "verse",
+        "text": "În tril de ciocârlii,\nPe’ntinsele câmpii,\nÎn Cartea Domnului Vedem iubirea Lui."
+      }
+    ]
+  },
+  "121": {
+    "reason": "entire chorus was one run-on line with no punctuation; split into 4 short lines matching verse block0's style",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "O, la, la, o, la, le,\nCe frumos e muntele!\nO, la, la, o, la, le Când îl scaldă soarele!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Tainice chemări simțim\nCătre culme să suim\nPe-ale vieții înălțimi\nInundate de lumini!"
+      },
+      {
+        "kind": "verse",
+        "text": "O, la, la, o, la, le,\nNu e simplu a urca\nO, la, la, o, la, le,\nDar ne-atrage inima!"
+      },
+      {
+        "kind": "verse",
+        "text": "O, la, la, o, la, le,\nNu putem pe loc a sta\nO, la, la, o, la, le,\nCalea cât ar fi de grea!"
+      }
+    ]
+  },
+  "122": {
+    "reason": "run-on line split into 3 lines matching block1's confirmed 3-line template; rhyme răsare/soare",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dimineața când răsare\nRaza cea dintâi de soare\nIar îmi cântă inima,\nO,\nDoamne,\nȚie,\nOsana!"
+      },
+      {
+        "kind": "verse",
+        "text": "Când văd norii la amiază,\nVântul maistru cum pictează,\nIar îmi cântă inima,\nO,\nDoamne,\nȚie,\nOsana!"
+      },
+      {
+        "kind": "verse",
+        "text": "Umbra serii când coboară\nPacea dulce mă-nconjoară\nIar îmi cântă inima O,\nDoamne,\nȚie,\nOsana!"
+      },
+      {
+        "kind": "verse",
+        "text": "Doamne, plin de bunătate,\nSlava ta o văd în toate,\nIar îmi cântă inima O,\nDoamne,\nȚie,\nOsana!"
+      }
+    ]
+  },
+  "124": {
+    "reason": "two run-on lines split at comma/clause boundaries",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Slavă Ți-aducem, cerescule Tată, la ceas de plăcută închinare,\nCe bucurie să-Ți dăm viața toată,\ncăci suntem ai Tăi, fiecare!\nViața, suflarea și dragostea noastră\nși totul avem de la Tine,\nO, ce minune-i o viață curată pe brațele Tale divine!"
+      },
+      {
+        "kind": "verse",
+        "text": "Doamne, învață-ne taina iubirii înscrisă în palmele Tale,\nEa ne inundă izvoarele firii cu sfinte și noi osanale!\nAzi bucuroși ne-nchinăm cu credință deși\nTe simțim ca prin ceață,\nDar cât mai grabnic, de-ar fi cu putință,\nTe vrem,\nTată bun, față-n față!"
+      }
+    ]
+  },
+  "126": {
+    "reason": "run-on line split at clause boundary; rhyme tot/Sabaot",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Seara a venit, e timp de odihnit,\nGlasuri de copii s-au stins de mult,\nNorii se opresc și-n taină mai șoptesc,\nRugaciunea lor cu drag ascult."
+      },
+      {
+        "kind": "chorus",
+        "text": "Se-aprind ușor pe cer în zbor steluțe mii și mii,\nÎn taina lor, fermecător e-un vis de veșnicii!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ruga s-a ‘nălțat prin cerul înstelat\nȘi parfumul ei e peste tot.\nMinunat și sfânt în cer și pe pamânt,\nMinunat e Domnul Sabaot!"
+      },
+      {
+        "kind": "verse",
+        "text": "Către alte zări simt tainice chemări,\nDorul meu de cer se face vis,\nȘtiu că-n zori de zi Isus mă va primi,\nDeschizându-mi porți de Paradis."
+      }
+    ]
+  },
+  "129": {
+    "reason": "run-on line split at comma boundary (11 words)",
+    "blocks": [
+      {
+        "kind": "chorus",
+        "text": "Dacă Isus e cu tine,\ntu poți să faci mari minuni!\nLuptă-te mereu pentu bine, te-ajută îngerii buni!"
+      },
+      {
+        "kind": "verse",
+        "text": "Întinde mâna, fii zâmbitor,\nO vorbă bună zi tuturor!\nCe bucurie poate să fie Chiar o privire rostind iubire!"
+      },
+      {
+        "kind": "verse",
+        "text": "În rugăciune te poți pleca,\nDomnul rămâne tăria ta!\nPrin El înclină inima-ți plină\nMereu spre alții și-ajută pe frații!"
+      },
+      {
+        "kind": "verse",
+        "text": "Bani, o mulțime nu ai să dai,\nDă cu iubire din tot ce ai,\nDă din speranța ce-ți umple viața\nMarea salvare celui ce moare..."
+      }
+    ]
+  },
+  "131": {
+    "reason": "two run-on lines split at clause boundaries; rhyme minunată/curată, pământ/rând",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dumnezeu mi-a dat o mamă minunată\nCum nu are nimeni pe pământ,\nOchii ei, izvor de dragoste curată\nStelele din ceruri mi le-ar da la rând."
+      },
+      {
+        "kind": "chorus",
+        "text": "Dragostea de mamă, flori de Paradis,\nMinuni a pus în jurul meu.\nDragostea de mamă cerul mi-a deschis,\nSă-L văd, să-L văd pe Dumnezeu!"
+      },
+      {
+        "kind": "verse",
+        "text": "Cred că n-am să pot ajunge niciodată\nSă-nțeleg din lacrimi dorul ei,\nSă cuprind a mamei suferință toată,\nPentru-al ei copil cu ochii de scântei."
+      },
+      {
+        "kind": "verse",
+        "text": "E aproape ziua, ziua răsplătirii,\nCând Se-ntoarce Domnu-n slava Sa.\nDe la El voi cere-n lacrima iubirii\nUn buchet de stele pentru mama mea."
+      }
+    ]
+  },
+  "132": {
+    "reason": "run-on line split at clause boundary; rhyme opriți/smeriți, Mine/vine",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Veniți, copilașii Mei, veniți În brațele Mele divine,\nStrăini de mândrie, blânzi, fericiți,\nStegari ai speranței ce vine!"
+      },
+      {
+        "kind": "verse",
+        "text": "Lăsați copilașii, nu-i opriți,\nLăsați-i să vină la Mine,\nA celor ca ei, la fel de smeriți\nVa fi-mpărăția ce vine!"
+      },
+      {
+        "kind": "verse",
+        "text": "Veniți, copilași, și voi, părinți,\nVeniți și-nvățați de la Mine,\nȘi-apoi mână-n mână, veseli porniți Spre veacul iubirii ce vine!"
+      }
+    ]
+  },
+  "134": {
+    "reason": "run-on line split at comma boundary (11 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Zi de Sabat, popas de tihnă,\npe calea noastră catre cer!\nTatăl sfânt, din dragostea Lui, revarsă binecuvântări!"
+      },
+      {
+        "kind": "verse",
+        "text": "Zi de Sabat, odihnă sfântă și drum deschis spre veșnicii,\nDin Eden mi-ești stâlpul de foc\nși până-n paradis vei fi."
+      },
+      {
+        "kind": "verse",
+        "text": "Zi de Sabat!\nCântări de slavă se-aud în templul Tău cel sfânt!\nAh, grăbește-te Doamne s-avem un Sabat nou pe-un nou pământ!"
+      }
+    ]
+  },
+  "135": {
+    "reason": "run-on line split at clause boundary; rhyme sfânt/pământ",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "În grădina Ghetsemani Domnu-n rugă se lupta,\nCând o ceată de dușmani Către El se îndreaptă...\n\"Eu sunt mielul ce-a venit Pentru jertfă pregătit\"!\nȘi la glasul Său cel sfânt\nAu căzut toți la pământ."
+      },
+      {
+        "kind": "verse",
+        "text": "Domnul singur a ramas:\nUcenicii L-au lăsat\nȘi în cel mai groaznic ceas\nC-un sărut a fost trădat...\nUn cuvânt de-ar fi rostit Pe toți i-ar fi nimicit,\nDar să moară înadins S-a lăsat să fie prins."
+      },
+      {
+        "kind": "verse",
+        "text": "Judecat și răstignit,\nMielul sfânt nevinovat De păcat ne-a mântuit,\nViață veșnică ne-a dat.\nGhetsemani și Golgota Povestesc iubirea Ta...\nPreamărit în veci să fii,\nAzi, aici și-n veșnicii!"
+      }
+    ]
+  },
+  "136": {
+    "reason": "two run-on lines split into 4-line stanza matching sibling blocks; rhyme căzut/renăscut, fiecare/mare",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Lângă drum, o sămânță-a căzut și-a-ncolțit,\nÎnsă spinii n-au vrut s-o primească,\nTot așa dacă sufletul nu-i curățit,\nNici un bob de Scriptură n-o să crească!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pe terenul pietros o sămânță-a zburat,\nÎnsă n-a fost să dea rădăcină,\nTot așa dacă sufletul nu-i înmuiat,\nNici un bob de Scriptură n-o să țină."
+      },
+      {
+        "kind": "verse",
+        "text": "Pe cărarea bătută semințe-au venit:\nPentru păsări, ce bună mâncare!\nTot așa dacă sufletul nu e păzit,\nNici un bob de Scriptură nu răsare!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pe pământul arat multe boabe-au căzut\nȘi-au crescut, și-au rodit fiecare,\nTot așa într-un suflet prin har renăscut\nSe adună recolta cea mai mare!"
+      }
+    ]
+  },
+  "137": {
+    "reason": "run-on line split at clause boundary, matching block0's 4-line template",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Bartimeu nimic nu vedea,\nNici păsări, nici fluturi, nici albine,\nDar el într-o zi el începu a striga:\n\"Isuse ai milă de mine\"!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Am fost orb, dar acum pot vedea,\nO,\nDoamne, cât e de bine,\nÎți mulțumesc pentru marea mila Ta,\nCă Tu mai vindecat și pe mine!"
+      },
+      {
+        "kind": "verse",
+        "text": "Eu am ochi și chiar pot vedea\nȘi păsări, și fluturi și albine,\nDar am mari motive să strig tot așa:\n\"Isuse, ai milă de mine\"!"
+      },
+      {
+        "kind": "verse",
+        "text": "Tot sunt orb când nu pot vedea\nS-aleg ce e rău de ce e bine,\nDe-aceea acum vreau să-nalț ruga mea:\n\"Isuse, ai milă de mine\"!"
+      }
+    ]
+  },
+  "138": {
+    "reason": "run-on line split before capitalised \"Fiul\" (heuristic’s blind spot); rhyme vânt/flămând",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Iată-l cum își lasă căminul părintesc,\nNeștiind că-n urmă sunt toți cei ce-l iubesc...\nNici o privire ‘napoi și nici un gând!\nTatăl rămâne la poartă plângând..."
+      },
+      {
+        "kind": "verse",
+        "text": "Iată-l cum în lume se pierde amăgit,\nCăutând să afle un trai mai fericit...\nDar după o vreme de goană după vânt\nFiul e rob zdrențăros și flămând..."
+      },
+      {
+        "kind": "verse",
+        "text": "Iată-l cum ridică privirea din dureri,\nȘi își vine-n fire și caută spre cer...\n\"Tată, nu-ți cer ca pe-un fiu să mă iubești,\nDoar ca pe un rob numai să mă primești!\""
+      },
+      {
+        "kind": "verse",
+        "text": "Iată, e la poartă un Tată iubitor!\nEl de mult te-așteaptă, copil risipitor!\nȘtii, fericire în lumea asta nu-i,\nVino, copile în dragostea Lui!"
+      }
+    ]
+  },
+  "139": {
+    "reason": "run-on line split at clause boundary; rhyme coboară/înconjoară, ajutor/lor",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Pe drumul lumii care coboară\nUn om se zbate făr’ ajutor...\nMulți trec pe-alături, îl înconjoară:\nCu toți au motivele lor."
+      },
+      {
+        "kind": "verse",
+        "text": "Tu care treci pe-aceeași cărare,\nVrei să te-oprești, o clipă s-ajuți?\nSau nu ai timp, nici bani, nici răbdare\nȘi treci pe alături, cum fac cei mulți?"
+      },
+      {
+        "kind": "verse",
+        "text": "Dacă ai fi chiar tu pe cărare\nFăr’ ajutor în clipa cea grea,\nCum te-ai simți și ce-ai zice oare\nCând vezi că nimeni n-ar observa?"
+      },
+      {
+        "kind": "verse",
+        "text": "Dar dacă ești creștin cu iubire\nȘi-n suflet ai pe Domnul Hristos,\nNu te gândi să treci cu grăbire,\nFii tu samariteanul milos!"
+      }
+    ]
+  },
+  "140": {
+    "reason": "run-on line split before capitalised \"Căci\" clause",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Zacheu era un om mai mic,\nCare nu vedea nimic.\nDe aceea-n dud el se suia\nCăci Isus pe drum trecea,\nCăci Isus pe drum trecea..."
+      },
+      {
+        "kind": "verse",
+        "text": "Cu drag Isus la el privea Ca să-i spele inima,\nȘi-i zise:\n\"Vino, nu mai sta,\nVreau să intru-n casa ta!\nVreau să intru-n casa ta!\""
+      },
+      {
+        "kind": "verse",
+        "text": "Zacheu coboară un, doi, trei,\nȘi s-a dus la banii săi:\nCu cei săraci el i-a-mpărțit Și acum e mântuit.\nȘi acum e mântuit!"
+      }
+    ]
+  },
+  "141": {
+    "reason": "run-on line split at clause boundary (11 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Daniele, n-ai murit de frică,\nDușmanii când te pândeau,\nȘi voiau de tot să te trimită\nÎntre leii ce urlau?\nNu, nu mi-a fost frică,\nNu, nu, nici o clipă,\nDușmanii m-au urât Dar Domnul m-a iubit!"
+      },
+      {
+        "kind": "verse",
+        "text": "Daniele, n-ai murit de frică,\nLângă leii ce urlau Și, flămânzi, puteau să te inghită,\nColții când și-i arătau?\nNu, nu mi-a fost frică,\nNu, nu, nici o clipă,\nÎngerii m-au păzit Și leii au dormit!..."
+      }
+    ]
+  },
+  "142": {
+    "reason": "entire stanza was one run-on line with no punctuation; split into 4 short lines; rhyme plecăm/să-nvățăm, frumos/Hristos",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Fericiți acum plecăm\nDin natură să-nvățăm\nCum să viețuim frumos\nPentru slava lui Hristos."
+      },
+      {
+        "kind": "verse",
+        "text": "Munții cei stâncoși, înalți\nStau întruna nemișcați\nȘi pe soare și pe ploi\nÎn credință stăm și noi."
+      },
+      {
+        "kind": "verse",
+        "text": "Floare de \"nu mă uita\" Are doar albastru-n ea.\nNoi la fel frumoși vom fi,\nCerul tot de-l vom sorbi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Stelele sclipesc pe cer,\nO, ce ne-nțeles mister!\nDar și tu poți străluci Când pe Domnul vei iubi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Flori și păsări, soare, ploi,\nCercetați-le și voi,\nScoate-ți câte-un gând frumos Pentru slava lui Hristos!"
+      }
+    ]
+  },
+  "144": {
+    "reason": "run-on line split at clause boundary (12 words)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ce fericit sunt cu Isus,\nEl mi-e prieten, în El m-am ascuns,\nEl e mereu în preajma mea,\nCe fericire e-n dragoastea Sa!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Nu-i pe pământ, nici în cer sus\nMai bun prieten decât Isus!\nEu sunt al Lui,\nEl este al meu,\nȘi mă încred în numele Său."
+      },
+      {
+        "kind": "verse",
+        "text": "Falnicii munți de s-or muta,\nTot nu se clatină dragostea Sa.\nSus pe Calvar El s-a jertfit:\nAzi sunt fericit că sunt mântuit!"
+      },
+      {
+        "kind": "verse",
+        "text": "Știu că-n curând El va veni,\nO, ce minue să văd marea zi!\nTainicu-mi dor se va-mplini\nCând în sfârșit lângă Domnul voi fi."
+      }
+    ]
+  },
+  "145": {
+    "reason": "run-on line split into short phrases matching this hymn's short-line + \"Osana,\" refrain style",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Au cântat odată ingeri:\nOsana!\nS-a născut Isus în iesle,\nOsana!\nSlavă Domnului, mărire,\nOsana Cântă și inima mea!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Scump Isus,\nTe-am găsit,\nPăn’ la iesle am venit Să-Ți aduc inima,\nVreau să intri Tu în ea!"
+      },
+      {
+        "kind": "verse",
+        "text": "Betleemu’ a fost odată,\nOsana,\nCu păstorii laolaltă,\nOsana,\nAu plecat să facă ieslea,\nOsana,\nIesle-i și inima mea."
+      },
+      {
+        "kind": "verse",
+        "text": "Au aprins odată îngerii o stea\nȘi-au văzut trei înțelepți lumina sa\nȘi-au venit cu daruri scumpe,\nOsana,\nDoamne pân’ la ieslea Ta."
+      }
+    ]
+  },
+  "146": {
+    "reason": "entire stanza was one run-on line with no punctuation; split into 4 short lines; rhyme închinare/salvare",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Veniți cu bucurie\nS-aducem închinare\nCăci s-a născut Mesia\nȘi ne-a adus salvare!"
+      },
+      {
+        "kind": "verse",
+        "text": "Veniți cu mulțumire\nCăci Pruncul ne aduce\nNespusă mângâiere\nȘi pacea Lui cea dulce."
+      },
+      {
+        "kind": "verse",
+        "text": "Veniți la iesle astăzi Cu harfe și chimvale,\nSă-L preamărim pe Domnul În veci cu Osanale!"
+      }
+    ]
+  },
+  "147": {
+    "reason": "run-on line split into 4-line stanza matching sibling blocks",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Bun copil a fost Isus.\nCum sunt eu, cum sunt eu?\nÎmpărțea din jucării.\nVreau să fac la fel!"
+      },
+      {
+        "kind": "verse",
+        "text": "Bun copil a fost Isus.\nCum sunt eu, cum sunt eu?\nBun, supus, de ajutor.\nVreau să fac la fel!"
+      },
+      {
+        "kind": "verse",
+        "text": "Bun copil a fost Isus.\nCum sunt eu, cum sunt eu?\nDe-animale a-ngrijit.\nVreau să fac la fel!"
+      },
+      {
+        "kind": "verse",
+        "text": "Bun copil a fost Isus.\nCum sunt eu, cum sunt eu?\nAjuta pe mama Lui.\nVreau să fac la fel!"
+      },
+      {
+        "kind": "verse",
+        "text": "Bun copil a fost Isus.\nCum sunt eu, cum sunt eu?\nAsculta de Dumnezeu.\nVreau să fac la fel!"
+      },
+      {
+        "kind": "verse",
+        "text": "Bun copil a fost Isus.\nVreau și eu, vreau și eu\nCa să fiu în ceruri sus,\nSă-L iubesc mereu!"
+      }
+    ]
+  },
+  "150": {
+    "reason": "run-on line split at clause boundary, matching sibling blocks' 4-line template",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dacă ai o grădină și frumos o-ngrijești,\nDacă aduci apă și stropești,\nDacă sapi și plivești și-ți pui inima,\nMulte roade cândva vei avea."
+      },
+      {
+        "kind": "verse",
+        "text": "Dar exist-o grădină și în sufletul tău:\nVezi să nu semeni ce e rău!\nDe plantezi ce e bun și-ți pui inima,\nMulte roade cândva vei avea."
+      },
+      {
+        "kind": "verse",
+        "text": "Viața noastră-i grădina ce mereu o-ngrijim\nȘi cu dragoste o stropim,\nCu credință săpăm, iubire plantăm,\nO, ce roade frumoase avem!"
+      }
+    ]
+  }
+}

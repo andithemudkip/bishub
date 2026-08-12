@@ -1,0 +1,363 @@
+{
+  "4": {
+    "reason": "run-on final line reflowed to match the 5-line pattern of the sibling verses",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "’Nainte, companioni,\nCând cerul e senin,\nPe drumul drept urcăm uniți spre înălțimi!\nPrivim în sus Și ținta noastră`ntodeauna e Isus!"
+      },
+      {
+        "kind": "verse",
+        "text": "’Nainte, companioni,\nCând drumul pare greu,\nSperanța noastră`ntotdeauna-i Dumnezeu!\nEl e cu noi,\nNe însoțește-n bucurii și în nevoi!"
+      },
+      {
+        "kind": "verse",
+        "text": "’Nainte, companioni,\nCând clipe-au mai rămas,\nȘi Domnul ne va zice \"Bun venit acas’\"\nCu El vom fi\nȘi niciodată nu ne vom mai despărți!"
+      }
+    ]
+  },
+  "5": {
+    "reason": "run-on couplet split into two lines (confirmed by PDF score, break falls between \"vrea\" and \"Să\")",
+    "blocks": [
+      {
+        "kind": "chorus",
+        "text": "Să fii tânăr, să fii liber,\nTânăr în Domnul, liber în Domnul,\nSă fii tânăr, să fii liber,\nPrieten cu Isus!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pe drumul vieții, tu ai pornit,\nȘi o răscruce ai întâlnit…\nChiar dacă toate te ispitesc,\nAlege drumul drept!"
+      },
+      {
+        "kind": "verse",
+        "text": "Când încercări și griji te lovesc,\nAdu-ți aminte:\nEu te iubesc!\nNici un examen nu e prea greu,\nCând Eu sunt Domnul tău!"
+      },
+      {
+        "kind": "verse",
+        "text": "Întinde o mână oricui ar vrea\nSă meargă-alături pe calea ta!\nFii mereu vesel și curajos,\nTu ești al lui Hristos!"
+      }
+    ]
+  },
+  "8": {
+    "reason": "run-on final line split; rhyme nor/biruitor and PDF score confirm the break",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Te-aștept,\nIsus, în viața mea,\nO, vino-acum, să domnești în ea!\nCondu-mă,\nTu, stâlp de foc și nor\nȘi-atunci știu că voi fi biruitor!"
+      }
+    ]
+  },
+  "9": {
+    "reason": "three-clause run-on sentence split at each \"Și\" clause boundary (heuristic missed capitalized clause starts)",
+    "blocks": [
+      {
+        "kind": "chorus",
+        "text": "El poate,\nEl poate,\nEu știu că poate,\nȘtiu,\nDomnul îmi va da biruința Sa!\nEl poate,\nEl poate,\nEu știu că poate Știu,\nDomnul îmi va da biruința Sa!"
+      },
+      {
+        "kind": "verse",
+        "text": "El inima zdrobită o va elibera\nȘi șchiopul va sări din nou\nȘi orbul va vedea!"
+      }
+    ]
+  },
+  "14": {
+    "reason": "run-on couplet split; rhyme casă/lasă and PDF score column alignment with verse 1 confirm the break",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Bate ceas cu sclipiri de stele,\nCrește cânt oglindit în ele,\nArde nor potopit de lumină,\nNoi visăm așteptând să vină,\nSlava Ta, ziua Ta."
+      },
+      {
+        "kind": "chorus",
+        "text": "Stăm la hotar clipa Ta de senin și slavă,\nDoamne prea bun,\nTe-așteptăm să vii,\nAzi ne-ai deschis drumul sfânt către zări de pace,\nZilele spun că răsar veșnicii."
+      },
+      {
+        "kind": "verse",
+        "text": "Știm un dor, știm un zbor spre casă\nDor de cer peste noi se lasă,\nZori de zi au venit să ne cheme,\nNoi visăm așteptând prin vreme,\nSlava Ta, ziua Ta."
+      }
+    ]
+  },
+  "16": {
+    "reason": "two run-on/misplaced lines reflowed to match the unflagged 3rd stanza’s 8-line template",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "În lumea-aceasta toate-s trecătoare,\nÎn valuri vin și toate vor pieri...\nȘi tot ce-apasă inima și doare,\nAcolo sus vor fi doar amintiri…\nDar pân’atunci voi lăuda pe Domnul\nȘi ruga mea spre El se va-ndrepta,\nPână`ntr-o zi când voi ajunge-n ceruri,\nÎn ziua când Îl voi vedea!"
+      },
+      {
+        "kind": "verse",
+        "text": "În lumea-aceasta toate-s trecătoare,\nDureri și griji sunt trepte spre mai sus...\nDe-a lungul drumului ce mă conduce\nPân’ la al meu Mântuitor, Isus.\nDar pân-atunci spre cer înalț cântare,\nRăsplata mea cu drag voi aștepta,\nPână`ntr-o zi când voi ajunge-n ceruri,\nÎn ziua când mă va chema!"
+      },
+      {
+        "kind": "verse",
+        "text": "În lume-aceasta toate-s trecătoare,\nNecazul meu de azi se va schimba...\nÎntr-o cunună-n veci nepieritoare,\nCe Domnul meu în ceruri mi-o va da.\nDar pân’atunci cu Domnul voi rămâne,\nO rugăciune viața mea va fi,\nPână’ntr-o zi când voi ajunge-n ceruri,\nÎn ziua când mă va primi!"
+      }
+    ]
+  },
+  "23": {
+    "reason": "run-on couplet split; PDF score column alignment with verses 1 and 3 confirms the break falls after \"luminat\"",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Minunat, minunat,\nDomnul meu, ce minunat,\nDin adânc de păcat El m-a salvat!\nM-a găsit, m-a iubit și acum sunt fericit,\nMinunat,\nDomnul meu e minunat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Minunat, minunat, drumul meu e luminat\nCăci Isus e cu mine ne-ncetat!\nÎl iubesc,\nÎl doresc și mereu Îi mulțumesc,\nMinunat,\nDomnul meu e minunat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Minunat, minunat, vine iar ca Împărat,\nZi de zi Îl aștept, ce minunat!\nOchii mei vor vedea față-n față slava Sa,\nMinunat,\nDomnul meu e minunat!"
+      }
+    ]
+  },
+  "26": {
+    "reason": "run-on couplet split before capitalized \"Dar\" clause start",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Am un Prieten, știu bine,\nEl urcă-alături de mine…\nPot fi oriunde sub stele,\nCerul senin e al meu!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Crede, crede în El,\nCrede în El, bun prieten,\nCântă, cântă mereu,\nCerul senin e al tău!"
+      },
+      {
+        "kind": "verse",
+        "text": "Mă cheamă lumea în vale\nDar glasul Lui e mai tare,\nCalea spre lumea divină,\nE după inima mea."
+      }
+    ]
+  },
+  "27": {
+    "reason": "two run-on lines reflowed to ABAB rhyme (citesc/cresc, Tale/cale) matching verse 1’s cânt/pământ, soare/sărbătoare pattern",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "O lună doar de uit să cânt,\nÎmi pare că s-a stins un soare,\nȘi că, de veacuri, pe pământ,\nN-am mai ajuns la sărbătoare…"
+      },
+      {
+        "kind": "verse",
+        "text": "O zi de nu pot să citesc\nCuvântul sfânt al Cărții Tale,\nSe pierde gândul meu și-mi cresc\nNoi temeri și-ndoieli pe cale…"
+      },
+      {
+        "kind": "verse",
+        "text": "Un singur ceas de nu mă rog,\nÎmi arde inima-nsetată,\nȘi-mi pare sufletul zălog La o-ntristare necurmată…"
+      },
+      {
+        "kind": "verse",
+        "text": "O clipă,\nDoamne, de nu-Ți pot Simți prezența lângă mine,\nNici cerul, nici pământul tot Nu pot ființa să-mi aline!…"
+      }
+    ]
+  },
+  "35": {
+    "reason": "run-on final lines split into two; PDF score shows each pair sharing one staff line, matching the already-correct sibling verse 2 structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Stăm împreună azi în mâna Sa,\nViața Lui primim în dar,\nȘi învățăm să creștem și să fim\nCopiii Domnului, prin har."
+      },
+      {
+        "kind": "chorus",
+        "text": "Stăm împreună în mâna Sa,\nDragostea Lui pe toți ne-adună!\nNe ocrotește, ne poartă spre cer\nÎn mâna Sa cea bună!"
+      },
+      {
+        "kind": "verse",
+        "text": "Vrem să rămânem veșnic lângă El,\nÎn credință strâns uniți;\nÎn piepturi inimile bat la fel,\nChiar dacă suntem diferiți!"
+      },
+      {
+        "kind": "verse",
+        "text": "Doar împreună deplin trăim,\nBucuria de nespus:\nEste speranța ce-o împărtășim Că, iată, vine iar Isus!"
+      }
+    ]
+  },
+  "39": {
+    "reason": "run-on opening couplet split before capitalized \"A vieții povară\" clause start (same fix applied to both stanzas)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Aș vrea, scump Isus, să-ți predau\nA vieții povară, o, cât de grea!\nȘi când nu știu încotro să merg,\nLa Tine alerg,\nSă-ți predau, scump Isus, inima!"
+      },
+      {
+        "kind": "verse",
+        "text": "Aș vrea, scump Isus, să-ți predau\nA vieții povară, o, cât de grea!\nȘi când nu știu încotro să merg,\nLa Tine alerg,\nSă-ți dau, scump Isus, inima!\nSă-ți predau, scump Isus, viața mea!"
+      }
+    ]
+  },
+  "40": {
+    "reason": "run-on lines reflowed; PDF score confirms line breaks (măriri/străluciri rhyme, and \"O,\" belongs with \"Primăvară\" on the closing line, not with \"rodi\")",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Blânzi ghiocei poartă cântecul iubirii,\nVis de-nceput, sfinte primăveri…\nFlori de cireș, fraged zâmbet de măriri\nÎmpart la toți zori de străluciri."
+      },
+      {
+        "kind": "verse",
+        "text": "Tot mai senin, cerul parcă-i mai aproape…\nNorii mai buni, mai prietenoși…\nInima noastră mai știe a spera…\nDoamne, ce caldă e mâna Ta!"
+      },
+      {
+        "kind": "verse",
+        "text": "Cer și pământ cheamă ziua întâlnirii\nCând, fericit, mâini se vor uni,\nCând pomul vieții pe maluri va rodi\nO, Primăvară în veșnicii!"
+      }
+    ]
+  },
+  "41": {
+    "reason": "run-on couplet split before capitalized \"Și\" clause; rhyme haină/taină and stins/promis confirms the ABAB pattern matching verse 1",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Încet, pe-ntreg pământ se face noapte,\nDe-atâta alergat am obosit,\nVeniți, căci vremea cinei e aproape,\nAcasă este totul pregătit!"
+      },
+      {
+        "kind": "chorus",
+        "text": "E ceasul cinei, negreșit!\nNe cheamă, iar,\nIsus!\nAcasă totu-i pregătit!\nAcasă, în sfârșit!"
+      },
+      {
+        "kind": "verse",
+        "text": "Coboară seara lumii ca o haină\nȘi peste tot speranțele s-au stins…\nVeniți, veniți la Cina cea de taină,\nAcolo toți avem un loc promis!"
+      },
+      {
+        "kind": "verse",
+        "text": "Isus ne-așteaptă plin de nerăbdare,\nPrin umbre, oare ce mai căutăm?\nVeniți, acasă totu-i sărbătoare,\nVeniți, cu Domnul nostru să cinăm!"
+      }
+    ]
+  },
+  "42": {
+    "reason": "benediction (Numbers 6 paraphrase) split into its three clauses, each starting with a capitalized word with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Cu dragostea Sa, cu tot harul Său,\nDumnezeu să te binecuvânteze-n drumul tău!\nLumina feței Sale\nSă fie peste tine\nȘi peste tot lucrul mâinii tale!"
+      }
+    ]
+  },
+  "44": {
+    "reason": "run-on couplet split before capitalized \"Viața\" clause start; PDF score and rhyme (frumoasă/voioasă) confirm the break, matching the 2-line template of sibling verses",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "De la stânci am învățat să urcăm spre soare,\nDe la cerul înstelat pacea-n încercare..."
+      },
+      {
+        "kind": "chorus",
+        "text": "Doamne-ajută să-nțelegem Tot ce astăzi vom vedea,\nSă vedem iubirea Ta Pe oriunde mergem!"
+      },
+      {
+        "kind": "verse",
+        "text": "De la ape-am învățat să privim ‘nainte,\nDe la mărul încărcat dragostea fierbinte..."
+      },
+      {
+        "kind": "verse",
+        "text": "De la flori am învățat cât e de frumoasă\nViața care ni s-a dat, inima voioasă..."
+      }
+    ]
+  },
+  "45": {
+    "reason": "two run-on lines split; PDF score confirms verse 1’s ending mirrors verse 2’s already-correct 3-short-line closing structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Încet spre cer se ridică fum,\nFocul arde pe altar…\nIar preotul ia un miel acum\nCa să-l ardă pentru har.\nDar mielul îi scapă, fuge din mâna sa…\nPe-al crucii lemn\nMielul sfânt atunci\nPentru mine se jertfea."
+      },
+      {
+        "kind": "verse",
+        "text": "În locul sfânt sfeșnicul arzând Masa pâinii lumina…\nDe pe altar, un miros plăcut De tămâie, se`nălța…\nDar înger grăbit perdeaua a rupt de sus…\nÎn ceasu-acel’ pentru noi,\nIsus,\nDrum de pace ne-a adus."
+      },
+      {
+        "kind": "verse",
+        "text": "Azi ca atunci fiecare-avem Drumul nostru nesfârșit,\nDar într-o zi peste tot ce e Se va spune:\n„S-a sfârșit!\"\nAcum Domnu-așteaptă viața să-I dăruiești,\nDeschide-n grab’ cât mai bate afar’ Cu iubire să-L primești."
+      }
+    ]
+  },
+  "46": {
+    "reason": "run-on couplet split before capitalized \"Risipind\" gerund clause; PDF score confirms the break",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Adunăm veșnicii pe cărări pustii\nRisipind mir de preț și dureri!\nPentru Domnul cel bun, peste înserări,\nNoi suntem ai luminii fii."
+      },
+      {
+        "kind": "verse",
+        "text": "Din iubire născuți spre iubirea Sa,\nFericiți, fericind cât mai mulți,\nSoli cerești, alergând peste văi și munți,\nSuntem jertfă din jertfa Sa."
+      },
+      {
+        "kind": "verse",
+        "text": "Așteptăm ziua plină de heruvimi:\nMântuiți așteptând veșnicii!\nLângă Tatăl acasă cu îngeri mii,\nPentru veci cu Isus vom fi!"
+      }
+    ]
+  },
+  "47": {
+    "reason": "run-on closing lines split before capitalized clause starts; rhyme poveri/mângâieri and învățat/păcat confirms the breaks",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ca un balsam e harul Tău în viața mea,\nCa un copil,\nIsuse bun,\nTe voi urma!\nM-ai ajutat să pot purta atâtea mari poveri\nȘi n-am să uit a’ Tale mângâieri..."
+      },
+      {
+        "kind": "verse",
+        "text": "Ca un balsam din Galaad, alinător,\nIubirea Ta,\nIsuse-mi dă aripi de zbor…\nPe stâncă pasul mi l-ai pus și-apoi m-ai învățat\nUn cântec nou: salvarea din păcat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ca un balsam vindecător din Galaad,\nIubirea Ta m-ajută,\nDoamne, să nu cad,\nCu mâna mea în mâna Ta pe valuri eu plutesc,\nPân’ o s-ajung în portul Tău, ceresc!"
+      }
+    ]
+  },
+  "48": {
+    "reason": "two run-on lines reflowed to 4 lines; PDF score column alignment with verses 1 and 3 confirms both breaks (Hristos/prețios and marele-mpărat/salvat rhyme)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Noi suntem ai Lui, trandafirii Regelui,\nFăclii pe ’nălțimi, mesagerii cerului!\nNoi vrem să slujim și dorim să ne jertfim;\nPe El, pe Isus tuturor Îl dăruim."
+      },
+      {
+        "kind": "chorus",
+        "text": "Cântăm dragostea ce ne dă un viitor,\nTrăim pentru Cel ce ne e Mântuitor!"
+      },
+      {
+        "kind": "verse",
+        "text": "Mereu înflorim prin iubirea lui Hristos\nȘi cerul ne e visul cel mai prețios!\nVestim neîncetat despre marele-mpărat\nCă El pentru noi S-a jertfit și ne-a salvat."
+      },
+      {
+        "kind": "verse",
+        "text": "Parfum dăruim, peste tot de-a lung de drum,\nȘi spunem la toți cât e Dumnezeu de bun!\nTrăim pentru El, suntem glasul Mirelui,\nNoi suntem ai Lui, trandafirii Regelui!"
+      }
+    ]
+  },
+  "49": {
+    "reason": "run-on lines split into the 4-line pattern used by the unflagged 3rd stanza (rhyme crește/sădește and ne-adună/împreună confirms)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Plin de speranță în inimi ne crește\nUn gând spre mai sus, zi de zi!\nDorul de-acasă în suflet sădește\nO clipă din veșnicii."
+      },
+      {
+        "kind": "chorus",
+        "text": "Domnul te cheamă să vii,\nInima ta se va-ncălzi…\nCerul e-aproape, te-așteaptă să vii O clipă din veșnicii."
+      },
+      {
+        "kind": "verse",
+        "text": "Gânduri de viață curată ne-adună\nȘi toți către cer vom păși!\nInimi spre inimi trăim împreună\nO clipă din veșnicii."
+      },
+      {
+        "kind": "verse",
+        "text": "Poartă-ți cărarea pe urma divină Și-nvață mai mult a iubi,\nViața să-ți fie mai mult în lumină,\nO clipă din veșnicii."
+      }
+    ]
+  },
+  "52": {
+    "reason": "run-on lines reflowed to mirror the parallel rhetorical-question structure of the unflagged 1st/2nd stanzas (\"De nu.../ Celui/Maestrul...\")",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Un mugur s-a’ntâlnit cu-o rază Și-nfiorați au tresărit;\nDin sfânta lor îmbrățișare O dulce floare-a răsărit…\nAtâtea păsări cântătoare,\nAtâtea flori în lung și-n lat!\nO, nu-s acestea toate, oare,\nSpre slava Celui înviat?..."
+      },
+      {
+        "kind": "verse",
+        "text": "Ce înțelept și prin ce lege Aduce-atâtea frumuseți,\nDe nu nemuritorul Rege,\nMaestrul făurar de vieți?\nUn ghiocel din mușchi se-arată\nȘi-un strop de rouă-i dă-n vileag…\nNu-i oare lacrimă curată De bucurie și de drag?"
+      },
+      {
+        "kind": "verse",
+        "text": "Ce vrea să spună fulguirea Ce-mbracă ramuri de cireși\nDe nu-i în ea neprihănirea\nCelui ales între aleși?…\nȘi dacă lucruri pieritoare Sunt pline de mister nespus,\nCum ne va fi în ceruri, oare,\nÎn țara Domului Isus?"
+      }
+    ]
+  }
+}

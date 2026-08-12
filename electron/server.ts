@@ -18,12 +18,14 @@ import type {
 import type { Language } from "../src/shared/i18n";
 import {
   loadHymns,
-  resolveHymnDisplay,
+  searchAllHymns,
   getBibleBooks,
   getBibleChapter,
   formatBibleChapterForDisplay,
   searchBibleVerses,
 } from "./dataLoader";
+import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
+import { isValidHymnalSlug } from "../src/shared/hymnals";
 import {
   downloadMP3,
   downloadAllMissingMP3s,
@@ -301,8 +303,8 @@ export function createServer(
     io.emit("mp3DownloadProgress", progress);
   });
   onHymnAssetsUpdated(() => {
-    const language = stateManager.getSettings().language;
-    io.emit("hymns", loadHymns(language));
+    const slug = resolveHymnalSlug(stateManager);
+    io.emit("hymns", slug, loadHymns(slug));
     io.emit("mp3CacheStats", getMP3CacheStats());
   });
 
@@ -651,30 +653,31 @@ export function createServer(
       stateManager.setSyncedLyrics(enabled);
     });
 
-    // Hymns
-    socket.on("getHymns", () => {
-      socket.emit("hymns", loadHymns());
+    socket.on("setInstrumentals", (enabled: boolean) => {
+      stateManager.setInstrumentals(enabled);
     });
 
-    socket.on("loadHymn", (hymnNumber, synced?) => {
-      const useSynced = synced ?? stateManager.getSettings().syncedLyrics;
-      const language = stateManager.getSettings().language;
-      const resolved = resolveHymnDisplay(hymnNumber, useSynced, language);
-      if (!resolved) return;
-      if (resolved.kind === "synced") {
-        stateManager.loadSyncedHymn(
-          resolved.title,
-          resolved.slides,
-          resolved.ttml,
-          resolved.audioPath,
-        );
-      } else {
-        stateManager.loadText(
-          resolved.title,
-          resolved.slides.join("\n\n"),
-          "hymn",
-        );
-      }
+    // Hymns
+    socket.on("getHymns", (slug) => {
+      const resolved = resolveHymnalSlug(stateManager, slug);
+      socket.emit("hymns", resolved, loadHymns(resolved));
+    });
+
+    socket.on("loadHymn", (slug, hymnNumber, playbackMode?) => {
+      presentHymn(
+        stateManager,
+        resolveHymnalSlug(stateManager, slug),
+        hymnNumber,
+        playbackMode,
+      );
+    });
+
+    socket.on("searchAllHymns", (query) => {
+      socket.emit("hymnSearchResults", searchAllHymns(query));
+    });
+
+    socket.on("setHymnal", (slug) => {
+      if (isValidHymnalSlug(slug)) stateManager.setHymnal(slug);
     });
 
     socket.on("downloadHymnMP3", (hymnNumber) => {

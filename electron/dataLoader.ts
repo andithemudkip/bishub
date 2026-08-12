@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import type {
   Hymn,
+  HymnSearchResult,
   BibleVerse,
   BibleData,
   BibleContext,
@@ -12,12 +13,14 @@ import { type Language, getTranslations } from "../src/shared/i18n";
 import { normalizeForSearch } from "../src/shared/utils";
 import { parseTTML, type ParsedTTML } from "../src/shared/ttmlParser";
 import { DEFAULT_TRANSLATION_ID, getTranslationById } from "../src/shared/bibleTranslations";
+import { DEFAULT_HYMNAL_SLUG, getHymnalBySlug, HYMNALS } from "../src/shared/hymnals";
 import { loadTranslation } from "./bibleManager";
 import {
   downloadMP3,
+  getHymnAudioAvailability,
   getHymnTTMLContent,
   getMP3Path,
-  getSyncedAvailability,
+  hasSyncedLyrics,
 } from "./hymnAssets";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,51 +33,46 @@ function getAssetsPath(): string {
   return path.join(__dirname, "..", "assets");
 }
 
-// Get language-specific asset path with fallback to default
-// Future: assets/{language}/hymns.json
-// Current: assets/hymns.json (Romanian only)
-function getLanguageAssetPath(language: Language, filename: string): string {
-  const assetsPath = getAssetsPath();
+// Raw list cached per book. Per-call re-annotation with availability state is
+// cheap (in-memory Set lookups in hymnAssets) and reflects MP3s that finished
+// downloading since the previous call.
+const hymnsRawCache = new Map<string, Hymn[]>();
 
-  // Try language-specific path first
-  const langPath = path.join(assetsPath, language, filename);
-  if (fs.existsSync(langPath)) {
-    return langPath;
+export function loadHymns(slug: string = DEFAULT_HYMNAL_SLUG): Hymn[] {
+  const hymnal = getHymnalBySlug(slug);
+  if (!hymnal) {
+    console.error(`Unknown hymnal: ${slug}`);
+    return [];
   }
 
-  // Fallback to default path (current Romanian data)
-  return path.join(assetsPath, filename);
-}
-
-// Raw list cached per language. Per-call re-annotation with availability
-// state is cheap (in-memory Set lookups in hymnAssets) and reflects MP3s
-// that finished downloading since the previous call.
-const hymnsRawCache = new Map<Language, Hymn[]>();
-
-export function loadHymns(language: Language = "ro"): Hymn[] {
-  let raw = hymnsRawCache.get(language);
+  let raw = hymnsRawCache.get(slug);
   if (!raw) {
-    const hymnsPath = getLanguageAssetPath(language, "hymns.json");
+    const hymnsPath = path.join(getAssetsPath(), "hymnals", `${slug}.json`);
     try {
       raw = JSON.parse(fs.readFileSync(hymnsPath, "utf-8")) as Hymn[];
-      hymnsRawCache.set(language, raw);
+      hymnsRawCache.set(slug, raw);
     } catch (error) {
-      console.error(`Failed to load hymns for ${language}:`, error);
+      console.error(`Failed to load hymnal ${slug}:`, error);
       return [];
     }
   }
+
+  // Karaoke assets are keyed by bare hymn number, so they're only meaningful
+  // for the one book that has them. Checking the book once here beats asking
+  // per hymn, which used to run ~920 lookups per call.
+  if (!hymnal.karaoke) return raw;
   return raw.map((hymn) => ({
     ...hymn,
-    syncedAvailability: getSyncedAvailability(hymn.number),
+    audioAvailability: getHymnAudioAvailability(hymn.number),
+    hasSyncedLyrics: hasSyncedLyrics(hymn.number),
   }));
 }
 
 export function getHymnByNumber(
   number: string,
-  language: Language = "ro"
+  slug: string = DEFAULT_HYMNAL_SLUG,
 ): Hymn | null {
-  const hymns = loadHymns(language);
-  return hymns.find((h) => h.number === number) || null;
+  return loadHymns(slug).find((h) => h.number === number) || null;
 }
 
 export function loadHymnTTML(number: string): ParsedTTML | null {
@@ -99,46 +97,98 @@ export type ResolvedHymn =
       ttml: ParsedTTML;
       audioPath: string;
     }
+  | {
+      kind: "instrumental";
+      title: string;
+      slides: string[];
+      audioPath: string;
+    }
   | { kind: "static"; title: string; slides: string[] };
 
+export interface HymnAudioPreferences {
+  /** Word-synced karaoke, when both TTML and the MP3 are on hand. */
+  synced: boolean;
+  /** Instrumental behind manual slides, when only the MP3 is on hand. */
+  instrumental: boolean;
+}
+
 /**
- * Resolve a hymn for playback: prefer synced karaoke when available, otherwise
- * fall back to static slides. When TTML exists but the MP3 isn't cached yet,
- * fire a background download so karaoke is available next time.
+ * Resolve a hymn for playback, richest form first: karaoke, then instrumental
+ * behind manual slides, then silent slides. When the MP3 isn't cached yet, fire
+ * a background download so the audio is there next time — this play stays
+ * static rather than waiting on the network.
  */
 export function resolveHymnDisplay(
+  slug: string,
   hymnNumber: string,
-  syncedPreferred: boolean,
+  prefs: HymnAudioPreferences,
   language: Language,
 ): ResolvedHymn | null {
-  const hymn = getHymnByNumber(hymnNumber, language);
+  const hymn = getHymnByNumber(hymnNumber, slug);
   if (!hymn) return null;
   const { title, slides } = formatHymnForDisplay(hymn, language);
 
-  if (syncedPreferred) {
-    const availability = getSyncedAvailability(hymnNumber);
+  const wantsAudio = prefs.synced || prefs.instrumental;
+  if (wantsAudio && getHymnalBySlug(slug)?.karaoke) {
+    const availability = getHymnAudioAvailability(hymnNumber);
     if (availability === "cached") {
-      const ttml = loadHymnTTML(hymnNumber);
       const audioPath = getHymnAudioPath(hymnNumber);
-      if (ttml && audioPath) {
-        return { kind: "synced", title, slides, ttml, audioPath };
+      if (audioPath) {
+        if (prefs.synced) {
+          const ttml = loadHymnTTML(hymnNumber);
+          if (ttml) return { kind: "synced", title, slides, ttml, audioPath };
+        }
+        if (prefs.instrumental) {
+          return { kind: "instrumental", title, slides, audioPath };
+        }
       }
-    } else if (availability === "ttml-only") {
+    } else if (availability === "downloadable") {
       downloadMP3(hymnNumber).catch(() => {});
     }
   }
   return { kind: "static", title, slides };
 }
 
-export function searchHymns(query: string, language: Language = "ro"): Hymn[] {
-  const hymns = loadHymns(language);
+function matchesHymn(hymn: Hymn, query: string, lowerQuery: string): boolean {
+  return (
+    hymn.number.includes(query) || hymn.title.toLowerCase().includes(lowerQuery)
+  );
+}
+
+export function searchHymns(
+  query: string,
+  slug: string = DEFAULT_HYMNAL_SLUG,
+): Hymn[] {
   const lowerQuery = query.toLowerCase();
-  return hymns
-    .filter(
-      (h) =>
-        h.number.includes(query) || h.title.toLowerCase().includes(lowerQuery)
-    )
+  return loadHymns(slug)
+    .filter((h) => matchesHymn(h, query, lowerQuery))
     .slice(0, 20); // Limit results
+}
+
+/**
+ * Search every book at once. Runs in the main process because the renderer
+ * only ever holds one book at a time — shipping all nine to the client just to
+ * search them would undo the per-book fetch.
+ */
+export function searchAllHymns(query: string): HymnSearchResult[] {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+  const lowerQuery = trimmed.toLowerCase();
+
+  // Capped per book rather than overall: a broad query like "Isus" matches far
+  // more than the cap in the largest hymnal alone, so a single global limit
+  // would fill up before the other books were reached and silently hide them.
+  const PER_BOOK_LIMIT = 10;
+  const results: HymnSearchResult[] = [];
+  for (const hymnal of HYMNALS) {
+    let taken = 0;
+    for (const hymn of loadHymns(hymnal.slug)) {
+      if (!matchesHymn(hymn, trimmed, lowerQuery)) continue;
+      results.push({ book: hymnal.slug, bookName: hymnal.shortName, hymn });
+      if (++taken >= PER_BOOK_LIMIT) break;
+    }
+  }
+  return results;
 }
 
 export function loadBible(translationId: string = DEFAULT_TRANSLATION_ID): BibleData {
@@ -204,22 +254,26 @@ export function formatHymnForDisplay(
 } {
   const slides: string[] = [];
   const t = getTranslations(language);
-  const chorus =
-    hymn.chorus && hymn.chorus.trim()
-      ? `${t.hymns.chorusPrefix}: ${hymn.chorus.trim()}`
-      : null;
 
-  if (chorus && hymn.chorusFirst) {
-    pushSlides(slides, chorus);
-  }
-
-  hymn.verses.forEach((verse, index) => {
-    pushSlides(slides, `${index + 1}. ${verse}`);
-
-    if (chorus) {
-      pushSlides(slides, chorus);
-    }
+  // Verses are numbered by their position among verse blocks rather than by
+  // their position in the sequence, so a repeated verse keeps its own number.
+  const verseNumbers = new Map<number, number>();
+  let verseCount = 0;
+  hymn.blocks.forEach((block, index) => {
+    if (block.kind === "verse") verseNumbers.set(index, ++verseCount);
   });
+
+  for (const index of hymn.sequence) {
+    const block = hymn.blocks[index];
+    if (!block) continue;
+    if (block.kind === "chorus") {
+      pushSlides(slides, `${t.hymns.chorusPrefix}: ${block.text}`);
+    } else if (block.kind === "verse") {
+      pushSlides(slides, `${verseNumbers.get(index)}. ${block.text}`);
+    } else {
+      pushSlides(slides, block.text);
+    }
+  }
 
   return {
     title: `${hymn.number}. ${hymn.title}`,

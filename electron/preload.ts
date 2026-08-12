@@ -9,6 +9,7 @@ import type {
   AppSettings,
   MonitorInfo,
   Hymn,
+  HymnSearchResult,
   BibleVerse,
   BibleSearchResult,
   UpdateStatus,
@@ -16,6 +17,7 @@ import type {
   MP3CacheStats,
   BinaryInfo,
   DeviceInfo,
+  HymnPlaybackMode,
 } from "../src/shared/types";
 import type {
   VideoItem,
@@ -107,6 +109,8 @@ const electronAPI = {
     ipcRenderer.invoke("set-language", language),
   setSyncedLyrics: (enabled: boolean): Promise<void> =>
     ipcRenderer.invoke("set-synced-lyrics", enabled),
+  setInstrumentals: (enabled: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-instrumentals", enabled),
   setOpenOnStartup: (openOnStartup: boolean): Promise<void> =>
     ipcRenderer.invoke("set-open-on-startup", openOnStartup),
   getOpenOnStartup: (): Promise<boolean> =>
@@ -128,11 +132,20 @@ const electronAPI = {
     ipcRenderer.invoke("video-time-update", time, duration),
 
   // Hymns
-  getHymns: (): Promise<Hymn[]> => ipcRenderer.invoke("get-hymns"),
-  searchHymns: (query: string): Promise<Hymn[]> =>
-    ipcRenderer.invoke("search-hymns", query),
-  loadHymn: (hymnNumber: string, synced?: boolean): Promise<void> =>
-    ipcRenderer.invoke("load-hymn", hymnNumber, synced),
+  getHymns: (slug?: string): Promise<Hymn[]> =>
+    ipcRenderer.invoke("get-hymns", slug),
+  searchHymns: (query: string, slug?: string): Promise<Hymn[]> =>
+    ipcRenderer.invoke("search-hymns", query, slug),
+  loadHymn: (
+    slug: string,
+    hymnNumber: string,
+    playbackMode?: HymnPlaybackMode,
+  ): Promise<void> =>
+    ipcRenderer.invoke("load-hymn", slug, hymnNumber, playbackMode),
+  searchAllHymns: (query: string): Promise<HymnSearchResult[]> =>
+    ipcRenderer.invoke("search-all-hymns", query),
+  setHymnal: (slug: string): Promise<void> =>
+    ipcRenderer.invoke("set-hymnal", slug),
 
   // Hymn karaoke MP3 cache
   downloadHymnMP3: (hymnNumber: string): Promise<void> =>
@@ -168,9 +181,11 @@ const electronAPI = {
     );
     return () => { ipcRenderer.removeAllListeners("hymn-mp3-cache-stats"); };
   },
-  onHymnsUpdate: (callback: (hymns: Hymn[]) => void) => {
-    ipcRenderer.on("hymns-update", (_event: IpcRendererEvent, hymns: Hymn[]) =>
-      callback(hymns),
+  onHymnsUpdate: (callback: (slug: string, hymns: Hymn[]) => void) => {
+    ipcRenderer.on(
+      "hymns-update",
+      (_event: IpcRendererEvent, slug: string, hymns: Hymn[]) =>
+        callback(slug, hymns),
     );
     return () => { ipcRenderer.removeAllListeners("hymns-update"); };
   },

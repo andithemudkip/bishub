@@ -59,7 +59,7 @@ export default function KaraokeMode({ config, audioState }: Props) {
   const displayedScreenRef = useRef(displayedScreen);
   displayedScreenRef.current = displayedScreen;
 
-  // Build screen groups from slides (verse structure from hymns.json)
+  // Build screen groups from slides (verse structure from the hymnal JSON)
   const screenGroups = useMemo(
     () => buildScreenGroups(config.slides, lines.length),
     [config.slides, lines.length]

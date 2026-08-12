@@ -1,0 +1,454 @@
+{
+  "149": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Sfânt Cuvânt de har divin,\nDe lumina vieții plin,\nLasă astăzi raza Ta\nSă ne umple inima!"
+      },
+      {
+        "kind": "verse",
+        "text": "Sfânt Cuvânt ocrotitor,\nDe viață dătător,\nPrin înțelepciunea Ta,\nNumai Tu ne poți salva!"
+      },
+      {
+        "kind": "verse",
+        "text": "Sfânt Cuvânt, Tu să ne fii\nDrum deschis spre bucurii!\nCu nădejde ne-ndreptăm\nSpre Isus și ne-nchinăm!"
+      },
+      {
+        "kind": "verse",
+        "text": "Sfânt Cuvânt al lui Hristos,\nViu, curat și credincios,\nVino și zidește-n noi\nTemplul unor inimi noi!"
+      }
+    ],
+    "reason": "our #149 and #150 were swapped; PDF page 149 is 'Sfânt Cuvânt' (4 verses) and PDF page 150 is the 'Cerul, pământul…' canon (1 verse) — MyBible has the numbering right, ours had them swapped",
+    "sequence": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "title": "Sfânt Cuvânt"
+  },
+  "150": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Cerul, pământul se vor topi!\nÎn veci Cuvântul, în veci Cuvântul.\nÎn veci Cuvântul nu va pieri!"
+      }
+    ],
+    "reason": "our #149 and #150 were swapped; PDF page 150 is the 'Cerul, pământul…' canon (1 verse) and PDF page 149 is 'Sfânt Cuvânt' (4 verses)",
+    "sequence": [
+      0
+    ],
+    "title": "Cerul, pământul… (canon)"
+  },
+  "343": {
+    "reason": "title: sheet music and our own line 1 both read \"dor\"; the title had \"dar\"",
+    "title": "Către cer un dor m-atrage"
+  },
+  "500": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Printre nori de osanale,\nPeste râuri de lumini,\nMii de imnuri triumfale\nCheamă-acas’ pe cei străini.\nValea morții se-nsenină,\nZori de cer au răsărit,\nDurerea s-a sfârșit…\nGlorie, glorie, Aleluia!\nGlorie, glorie, Aleluia!\nGlorie, glorie, Aleluia!\nDurerea s-a sfârșit…"
+      },
+      {
+        "kind": "verse",
+        "text": "Pentru cei ce-n val de patimi\nAdevărul l-au păstrat,\nPentru cei ce, printre lacrimi,\nPe Isus L-au așteptat,\nPorți de aur, porți de slavă\nSe deschid spre veșnicii!\nCe minunată zi!\nGlorie, glorie, Aleluia!\nGlorie, glorie, Aleluia!\nGlorie, glorie, Aleluia!\nCe minunată zi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Domnul este Cel ce-așează\nMasa-n cer la toți cei buni,\nDomnul este Cel ce pune\nPeste fruntea lor cununi!\nTot cu nume de iubire\nFiecare e strigat,\nPe veci răscumpărat!\nGlorie, glorie, Aleluia!\nGlorie, glorie, Aleluia!\nGlorie, glorie, Aleluia!\nPe veci răscumpărat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Dinspre lumile măririi\nOsanale vin și vin,\nCântă stelele iubire,\nPentru-a fi frumos deplin,\nBucuria mântuirii\nSe revarsă-n infinit!\nIsus fie mărit!\nGlorie, glorie, Aleluia!\nGlorie, glorie, Aleluia!\nGlorie, glorie, Aleluia!\nIsus fie mărit!"
+      }
+    ],
+    "reason": "our version was missing the hymn's opening verse ('Printre nori de osanale...') entirely, and mis-split the remaining verses around a bogus reused chorus block whose final line didn't match; PDF confirms 4 self-contained verses, each ending in its own 'Glorie, glorie, Aleluia!' tag with a different last line",
+    "sequence": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "529": {
+    "reason": "title: sheet music and our own line 1 both elide to \"goarna-ncepe\"; the title had \"goarna începe\"",
+    "title": "Auzi, goarna-ncepe să sune!"
+  },
+  "665": {
+    "reason": "title: sheet music and our own line 1 both read \"așezat\"; the title had \"aranjat\"",
+    "title": "Pe masă e totul frumos așezat"
+  },
+  "74": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Cine, ca Isus, mai poate\nSă mă facă fericit?\nDomnul este-al meu în toate,\nEl pe mine m-a iubit!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Drag îmi e Isus pe lume,\nMai de preț ca viața mea!\nDintre mii și mii de nume,\nEu pe El Îl voi cânta!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ce risipă de iubire,\nEl trimite an de an,\nMai presus de nemurire,\nMai adânc ca un ocean!"
+      },
+      {
+        "kind": "verse",
+        "text": "El îmi satură trăirea,\nEl e plin de tot ce-i bun,\nBrațul Său e mântuirea,\nEl mi-e totul, pot să spun!"
+      },
+      {
+        "kind": "verse",
+        "text": "O, ce mare bucurie\nPe Isus să-L pot vedea\nȘi întreaga veșnicie\nSă slăvesc iubirea Sa!"
+      }
+    ],
+    "reason": "verse 2 text was corrupted (mixed in wording from an unrelated hymn); PDF confirms verse 2 is 'Ce risipă de iubire, El trimite an de an...' matching MyBible"
+  },
+  "749": {
+    "reason": "title: sheet music title; ours read \"Fără de Tine\", which appears nowhere in the hymn",
+    "title": "Vreau să fiu ca Tine"
+  },
+  "756": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "De vezi pe cel flămând că-n poartă-ți bate,\nNu-nchide nicicând ușa ta,\nAdu-l la masa ta, iubite frate,\nȘi caută a-l sătura!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Adu-l la masa ta, iubite frate,\nȘi caută a-l sătura!"
+      },
+      {
+        "kind": "verse",
+        "text": "Iar dacă-l vezi căzut în disperare,\nSă nu te-arăți nepăsător;\nTu să-l mângâi cu multă-ndemânare,\nPrecum al tău Mântuitor!"
+      },
+      {
+        "kind": "verse",
+        "text": "Și, dacă-l vezi în plină răzvrătire,\nNu pune paie peste foc,\nCi liniștește-l cu dulce iubire,\nNu face al Satanei joc!"
+      },
+      {
+        "kind": "verse",
+        "text": "Iar de-l vezi gârbov și bătrân de zile,\nFăr’ ajutor și fără rost,\nDeschide-i largă ușa casei tale,\nȘi-asigură-i un adăpost!"
+      }
+    ],
+    "reason": "the refrain 'Adu-l la masa ta...' was embedded inside every verse instead of being a deduped chorus block; PDF shows a single printed 'Refren' shared by all four verses (dedup convention)",
+    "sequence": [
+      0,
+      1,
+      2,
+      1,
+      3,
+      1,
+      4,
+      1
+    ]
+  },
+  "764": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Slavă, cinste și-nchinare,\nNumai Creatorului!\nNe vestesc pământ și mare\nCeasul judecății Lui."
+      },
+      {
+        "kind": "verse",
+        "text": "Babilon, cetatea tare,\nVa rămâne praf și fum…\nVor găsi spre cer scăpare\nCei ce ies din el acum!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ori ești rece, ori fierbinte,\nNu mai poți fi căldicel.\nAi pe mână și pe frunte\nSemn de fiară sau de Miel."
+      },
+      {
+        "kind": "chorus",
+        "text": "Astăzi orice om să știe,\nOrice neam, orice popor:\nEvanghelia cea vie\nLuminează tuturor!"
+      },
+      {
+        "kind": "chorus",
+        "text": "„Astăzi nu mai este vreme!”\nSe aude-n sanctuar\n„Israele, nu te teme!\nSalvatorul vine iar!”"
+      }
+    ],
+    "reason": "our version was missing verse 1 ('Slavă, cinste și-nchinare...') entirely and mislabeled the refrain lines as verse/chorus; PDF confirms 3 verses, with verse 3 using a different refrain than verses 1-2",
+    "sequence": [
+      0,
+      3,
+      1,
+      3,
+      2,
+      4
+    ]
+  },
+  "792": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "De multe ori pustie-i\nViața, și-un oftat\nÎn locul bucuriei,\nÎn pieptu-ți s-a-ncuibat.\nDeși e rea cercarea,\nDar ceasul ăsta greu,\nO binecuvântare\nE de la Dumnezeu."
+      },
+      {
+        "kind": "chorus",
+        "text": "Pe Hristos de-L iubești,\nOrice-ar fi să-ntâlnești,\nBucurie, întristări,\nToate-s binecuvântări."
+      },
+      {
+        "kind": "verse",
+        "text": "Căci Domnul Își rezervă\nMomentul Său când vrea:\nTe binecuvântează\nPrin ce n-ai aștepta.\nÎn valuri varsă harul\nÎn pieptu-ți plin de-oftat:\nAmar o fi paharul,\nDar binecuvântat!"
+      }
+    ],
+    "reason": "the refrain 'Pe Hristos de-L iubești...' was baked into verse 1's text instead of being a deduped chorus repeated after both verses, per the PDF's 'Refren' marking",
+    "sequence": [
+      0,
+      1,
+      2,
+      1
+    ]
+  },
+  "793": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dorind fericirea, eu, adeseori\nAm legat gândul meu de ceva trecător…\nDar nici n-am ajuns idealul iubit\nȘi visul meu scump m-a-nșelat, a pierit."
+      },
+      {
+        "kind": "chorus",
+        "text": "Isus doar, rămâne la toți credincios!\nEtern Salvator e numai El, Domnul Hristos!"
+      },
+      {
+        "kind": "verse",
+        "text": "Doar singur, Isus mi-a rămas credincios!\nEl, aceeași iubire, îmi dă, bucuros!\nÎn El aflu pace, cu El mă mângâi!\nSub brațu-I puternic eu pot să rămân."
+      },
+      {
+        "kind": "verse",
+        "text": "De-acum înainte pot fi fericit;\nIdealul pierdut în Isus l-am găsit!\nMai dulce ca viața îmi e voia Sa!\nOriunde pe Domnul cu drag voi urma!"
+      }
+    ],
+    "reason": "the refrain 'Isus doar, rămâne...' was baked into every verse's text instead of being a deduped chorus; PDF shows a single printed Refren repeated after each verse",
+    "sequence": [
+      0,
+      1,
+      2,
+      1,
+      3,
+      1
+    ]
+  },
+  "796": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Cu Cel Sfânt începe tot,\nCa un fiu în El te-ncrede,\nToți aceia se vor pierde\nCâți puternici se socot.\nCu Cel Sfânt începe tot.\nCu Cel Sfânt începe tot."
+      },
+      {
+        "kind": "verse",
+        "text": "Cu Isus începe tot,\nCei ce-L au drept călăuză,\nSfânt cuvântul au s-audă,\nCă în cer au toți un loc.\nCu Isus începe tot.\nCu Isus începe tot."
+      },
+      {
+        "kind": "verse",
+        "text": "Cu Isus începe tot,\nDomnul le va da putere,\nPlini de-ncredere să spere,\nCă-i va mântui de tot.\nCu Isus începe tot.\nCu Isus începe tot."
+      }
+    ],
+    "reason": "PDF confirms verse 2 line 2 reads 'drept călăuză', not 'de călăuză' — our version had a typo that MyBible had correct"
+  },
+  "823": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ieșiți cu toți, vă bucurați,\nCât este vară cercetați\nA Tatălui iubire!\nPodoaba mândră din grădini\nNe-ndeamnă să ne veselim.\nÎncântă-orice privire.\nÎncântă-orice privire."
+      },
+      {
+        "kind": "verse",
+        "text": "Copacii toți au înfrunzit,\nPământul este-acoperit\nDe iarba cea bogată,\nCu dulci podoabe-nveșmântat,\nAzi crinul este arătat\nCa pildă-n lumea toată.\nCa pildă-n lumea toată."
+      },
+      {
+        "kind": "verse",
+        "text": "În aer zboară ciocârlii\nȘi porumbeii cei zglobii:\nPădurea pare vie.\nPlăcutele privighetori\nDesfată tot cu vocea lor:\nDeal, vale și câmpie.\nDeal, vale și câmpie."
+      },
+      {
+        "kind": "verse",
+        "text": "Pârâul murmură-n nisip,\nIar pe-al său mal Domnu-a sădit\nO salcie pletoasă.\nPe-ntinsele câmpii, ce-s verzi,\nPăstorii stau păzind cirezi,\nȘi viața li-e voioasă.\nȘi viața li-e voioasă."
+      },
+      {
+        "kind": "verse",
+        "text": "Bătrân și tânăr e-ncântat,\nCum grâul crește ne-ncetat,\nȘi laudă pe Domnul,\nPe Cel ce-atât de minunat\nPământu-a binecuvântat,\nSă bucure tot omul.\nSă bucure tot omul."
+      },
+      {
+        "kind": "verse",
+        "text": "Mărirea Tatălui ceresc\nMă face astăzi să vorbesc;\nSă tac nu sunt în stare.\nCând totul cântă, cânt și eu\nȘi fac ca cei din jurul meu:\nÎnalț spre cer cântare.\nÎnalț spre cer cântare."
+      },
+      {
+        "kind": "verse",
+        "text": "O, Doamne, dacă-acum, frumos,\nLe faci Tu toate-aicea, jos,\nÎn lumea rătăcită;\nCât mai frumos le vei crea,\nCând cu cântări vom saluta\nVenirea Ta dorită.\nVenirea Ta dorită."
+      },
+      {
+        "kind": "verse",
+        "text": "Ce aer bun și luminos\nÎn Paradis lângă Hristos,\nCe mare bucuria;\nCând mii de serafimi în cor,\nCu voce clară, în lin zbor\nCânta-vor aleluia.\nCânta-vor aleluia."
+      },
+      {
+        "kind": "verse",
+        "text": "De-aș fi acolo-aș sta smerit\nMărețe Dumnezeu, slăvit,\nSăltând de bucurie.\nCa îngerii din fața Ta\nSă Te măresc atunci aș vrea\nCu psalmi frumoși, o mie.\nCu psalmi frumoși, o mie."
+      }
+    ],
+    "reason": "PDF and MyBible both confirm 'Mărirea Tatălui ceresc' — our version had a typo ('Tatalui', missing the ă)"
+  },
+  "840": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ne vom revedea odată\nSus, în țara zărilor,\nUnde Domnul guvernează\nCu dreptate pe popor!\nÎn orașul cel de aur,\nCu de iaspis zid bogat,\nVom cânta cântări mărețe\nLui Isus cel adorat!"
+      },
+      {
+        "kind": "chorus",
+        "text": "În curând, uniți cu toții,\nLângă tronul sfânt vom fi!\nAtunci nimeni nu mai poate,\nNu ne poate despărți!"
+      },
+      {
+        "kind": "verse",
+        "text": "Vom vedea iar pe ai noștri,\nCei ce-n Domnu-au adormit,\nCăci la trâmbița din urmă\nÎnvia-vor negreșit;\nȘi cu sfinții-n număr mare,\nAdunați de pe pământ,\nVom cânta noua cântare,\nSfinte harpe-n mâini având!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ca să fim cu El în ceruri,\nVine iar pe albul nor,\nCu putere și mărire,\nȘi vom fi al Său popor!\nFericit va fi atuncea\nOrișicare credincios,\nCăci va moșteni pământul\nÎmpreună cu Hristos!"
+      }
+    ],
+    "reason": "our version was missing verse 3 ('Ca să fim cu El în ceruri...'); PDF and MyBible both confirm it exists",
+    "sequence": [
+      0,
+      1,
+      2,
+      1,
+      3,
+      1
+    ]
+  },
+  "843": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Cu Tine-n veci\nCu Tine-n veci\nTu inima să-mi ții\nO, Doamne!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pe calea mea\nPe calea mea\nSă pot odat’ s-ajung\nLa Tine."
+      },
+      {
+        "kind": "verse",
+        "text": "Tu pasul meu\nTu pasul meu\nȘi-ajută-mi să pășesc\nMereu."
+      }
+    ],
+    "reason": "the three call-and-response lines were merged into a single verse block; PDF numbers them '1.', '2.', '3.' as three distinct verses sharing the same melody",
+    "sequence": [
+      0,
+      1,
+      2
+    ]
+  },
+  "869": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Cătăm acum loc de-odihnit\nȘi ne încredem Tatălui celui din veci;\nÎnchidem ochiul obosit,\nFără să știm că poate-i somnul morții reci."
+      },
+      {
+        "kind": "chorus",
+        "text": "Tatăl din cer, El poartă grija orișicui:\nÎncredeți-vă Lui!"
+      },
+      {
+        "kind": "verse",
+        "text": "Când soarele-i sub orizont\nZiua s-a dus, lumina piere, unde e?\nLa fel din lume piere tot,\nCând ochiu-adoarme: bogăția, numele."
+      },
+      {
+        "kind": "verse",
+        "text": "Aruncă-al grijilor pahar,\nDe ce te-ai teme de-al mormântului urât,\nDe-un somn ce curmă-al vieții-amar,\nCând, astfel, să ne libereze Domnu-a vrut?"
+      },
+      {
+        "kind": "verse",
+        "text": "În alte mâini lucrarea-ți lași,\nDacă așa voiește Dumnezeu de sus,\nȘi spre odihnă-ți iei sălaș\nPân’ la-nviere, când te va scula Isus."
+      }
+    ],
+    "reason": "our version had the title and lyrics of a different hymn ('Într-o simțire') attached to #869's chorus; PDF confirms #869 is 'Cătăm acum loc de-odihnit' with 4 verses",
+    "sequence": [
+      0,
+      1,
+      2,
+      1,
+      3,
+      1,
+      4,
+      1
+    ],
+    "title": "Cătăm acum loc de-odihnit"
+  },
+  "871": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ne-adunăm cu toții, iarăși să-nvățăm,\nȘi sub steagul lui Isus să ne grupăm,\nCăci în lupta-Mpărăției, ce-așteptăm,\nNu cedăm, cât vom trăi!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Lăudați, lăudați!\nȘi cântați, și cântați\nPe Hristos, pe Hristos,\nAcum și în veac de veac!"
+      },
+      {
+        "kind": "verse",
+        "text": "Noi, în Școală-n Sabat, arme făurim,\nPentru lupta grea cu Spirit ne-oțelim,\nBucuroși ieșim apoi să biruim,\nNu cedăm, cât vom trăi!"
+      },
+      {
+        "kind": "verse",
+        "text": "După focul luptei, veșnici mângâieri:\nPe câmpia Salem nu mai sunt dureri;\nFericiți că-avem așa făgăduieli,\nNu cedăm, cât vom trăi!"
+      }
+    ],
+    "reason": "verse 2 was a literal duplicate of verse 1 instead of the real second stanza; PDF confirms verse 2 is 'Noi, în Școală-n Sabat...' (MyBible had 'făurite' but PDF pronunciation confirms 'făurim')",
+    "sequence": [
+      0,
+      1,
+      2,
+      1,
+      3,
+      1
+    ]
+  },
+  "910": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Aș vrea să duc în lume pacea Ta,\nIubire între cei ce se urăsc,\nIertare unde-i plânsă inima,\nCredință-n cei ce se-ndoiesc!\nRevarsă, Doamne, Duhul Tău bogat,\nSă mângâi cum și Tu m-ai mângâiat,\nSă simtă lumea harul Tău întreg,\nPe cei neînțeleși să-i înțeleg!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Revarsă, Doamne, Duhul Tău cel Sfânt,\nSperanțe să se-aprindă pe pământ,\nLumina Ta s-alunge noaptea grea\nȘi toți cei triști să cânte slava Ta!"
+      },
+      {
+        "kind": "verse",
+        "text": "Aș vrea să duc în lume pacea Ta,\nCuvântul plin de har dumnezeiesc\nȘi toți cei însetați să poată bea\nDin Tine, sfânt Izvor ceresc!"
+      },
+      {
+        "kind": "verse",
+        "text": "Aș vrea să duc în lume pacea Ta,\nPutere celor care obosesc,\nSă-mi dau și eu, ca Tine, viața mea,\nM-ascund în Tine, să trăiesc!"
+      }
+    ],
+    "reason": "our version was missing verse 1 ('Iubire între cei ce se urăsc...') and had its verse-specific refrain mislabeled as chorus/verse; PDF confirms verse 1 carries its own refrain ('...Duhul Tău bogat') while verses 2-3 share a different refrain ('...Duhul Tău cel Sfânt')",
+    "sequence": [
+      0,
+      2,
+      1,
+      3,
+      1
+    ]
+  },
+  "913": {
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Vezi, în nori El vine iară,\nCel pe cruce răstignit!\nÎngerii toți se coboară\nÎn cântări urmând pe Hrist.\nAleluia, vine în regatul Său!\nAleluia, vine în regatul Său!"
+      },
+      {
+        "kind": "verse",
+        "text": "Orice ochi Îl vede-acuma\nGlorios și minunat,\nSe-ngrozesc omorâtorii\nDe-acest Rege-ncoronat.\nDisperați, ei văd pe Domnu-acum venind!\nDisperați, ei văd pe Domnu-acum venind!"
+      },
+      {
+        "kind": "verse",
+        "text": "Când pământul și-ntreg cerul\nSe topesc prin trâmbițări,\nToți dușmanii-n fața-I sfântă\nSe vor zbate-n remușcări.\nJudecata vine să le dea acum.\nJudecata vine să le dea acum."
+      },
+      {
+        "kind": "verse",
+        "text": "Slavă, cinste și-nchinare\nFie-Ți Ție Prea Slăvit,\nIa-Ți regatul în mărire,\nJudecata a sosit.\nVino, Doamne, vino ia-Ți regatul Tău!\nVino, Doamne, vino ia-Ți regatul Tău!"
+      }
+    ],
+    "reason": "PDF confirms 'Prea Slăvit' is two words, not the compound 'PreaSlăvit' our version had"
+  }
+}

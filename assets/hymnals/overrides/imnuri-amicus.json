@@ -1,0 +1,394 @@
+{
+  "1": {
+    "reason": "chorus and last verse left as run-on prose by the heuristic; verse 2 already correct and left untouched",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Neîncetat vestea cea bună Conjugă verbul \"a iubi\",\nEa ne-a adus iar împreună Să-nfiripăm prietenii!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Vrei să rămâi cu Dumnezeu\nSă fim și prieteni și colegi?!\nPe tine, AMiCUS, zâmbetul meu\nAzi te invită să alegi!"
+      },
+      {
+        "kind": "verse",
+        "text": "De ai greșit, vine mustrare Când ai prieten credincios,\nNu te-n trista, rana ce doare Te va întoarce la Hristos!"
+      },
+      {
+        "kind": "verse",
+        "text": "Când în curând Cel fără vină Ne va aduce bune vești,\nVom saluta, sus, în lumină, Pe nor prietenii cerești!"
+      }
+    ]
+  },
+  "2": {
+    "reason": "verses 1 and 3 run long lines together; PDF score confirms 4 short lines per verse",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Am strâns din ochii lor\nSenin prea plin de caldă zi,\nIar zâmbetul ce-l port\nE semn că mi-au știut zâmbi."
+      },
+      {
+        "kind": "chorus",
+        "text": "Isus te cheamă simplu Prieten să ne fii,\nDe vrei să vii în veșnicii,\nAMiCUS vei trăi."
+      },
+      {
+        "kind": "verse",
+        "text": "Când sufletul ți-e trist Și seara singur te-a aflat,\nFă doar un pas spre vis,\nSpre Cel ce-atât te-a așteptat."
+      },
+      {
+        "kind": "verse",
+        "text": "În gândul strâns legat\nAm început din nou să sper,\nPrin mâna lor mi-a dat\nCuraj să mă agăț de cer."
+      }
+    ]
+  },
+  "4": {
+    "reason": "verses 2 and 3 left one merged run-on opening line; PDF score confirms split matching verse 1 pattern",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Plin de tăcere povara iubirii simt,\nFiul Tău Sfânt pentru mine-a murit,\nAl cerului cântec o clipă a înlemnit,\nPână la capăt,\nIsus m-a iubit!"
+      },
+      {
+        "kind": "verse",
+        "text": "Glasul Tău bun, al Tău zâmbet din alt tărâm\nPe cruce, stins, ca nicicând mi-au vorbit.\nCrud adevăr prin durere mi-ai mijlocit:\nTot ce-mi poți da, eu prin vină fărâm."
+      },
+      {
+        "kind": "verse",
+        "text": "Plin de tăcere povara iubirii simt\nFiul Tău viața dând, m-a biruit,\nAl cerului cântec în slavă a izbucnit:\nPână la capăt,\nIsus m-ai iubit.\nCu Tine în veci!\nAmin!"
+      }
+    ]
+  },
+  "5": {
+    "reason": "all three verses had clauses merged into run-on first lines; PDF score confirms 4-line structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "În mâna Ta mă vreau purtat\nAscuns de Duhul Tău curat\nSă port în fapte un nume bun,\nS-avem vecia de pe-acum."
+      },
+      {
+        "kind": "verse",
+        "text": "În jertfa Ta m-ascund umil,\nMă pierd în har, iertat deplin,\nCuprins de slavă azi mă închin\nSă naști din mine nou copil."
+      },
+      {
+        "kind": "verse",
+        "text": "În grija Ta de Dumnezeu\nÎn gândul bun de-a mă salva\nSimt că Ți-e dor să mă ai mereu,\nSă faci din ceruri casa mea."
+      }
+    ]
+  },
+  "6": {
+    "reason": "second verse merged into two long run-on lines; PDF score confirms 4-line split matching verse 3",
+    "blocks": [
+      {
+        "kind": "chorus",
+        "text": "Crește în tine vecia,\nSimte cum timpul te uită,\nEști fiu de Domn Nesfârșit...\nEl vrea să fii fericit!"
+      },
+      {
+        "kind": "verse",
+        "text": "Dar să nu uiți că-n moarte\nS-a scris a Ta viață…\nIsus a plâns pentru a ști\nCă tu poți astăzi zâmbi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Dar să nu uiți privirea,\nAcelui fără frate,\nE visul Celui jertfit:\nIubește cum ești iubit!"
+      }
+    ]
+  },
+  "7": {
+    "reason": "first verse last line merged two clauses; PDF score confirms split (matches chorus pattern)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Am spus tăcerii să stea în umbră,\nFreamătă-n suflet un vesel cânt,\nAm dat iubirii liber să prindă\nDinspre vecie orice bun gând."
+      },
+      {
+        "kind": "chorus",
+        "text": "Fără de teamă, prin vorbă caldă,\nTraducem cerul pentru pământ.\nFără de pată, plină de jertfă,\nViața ne poartă frumosul sfânt."
+      },
+      {
+        "kind": "verse",
+        "text": "Am scos culoare din negre zile,\nAm pus lumină în ochii stinși.\nCreăm din fapte demnă iubire,\nArtiști sunt cei spre bine deschiși."
+      },
+      {
+        "kind": "verse",
+        "text": "Mâna se joacă în praf de lume,\nPoartă în gesturi har nesfârșit,\nA Sa putere mereu va spune,\nCum Domnul vieții ne-a mântuit."
+      }
+    ]
+  },
+  "8": {
+    "reason": "first verse merged into two long run-on lines; sibling hymn 9 (same lyrics) confirms 4-line split",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Azi vedem și știm în parte\nDor, chemări fără răspuns...\nDar curând ne va da dreptate\nGlasul clar al lui Isus."
+      },
+      {
+        "kind": "chorus",
+        "text": "Către cer se-nalță cântul:\nSlavă-n veci lui Dumnezeu!\nPlin de dor s-a strâns pământul Să-și primească Domnul Său..."
+      },
+      {
+        "kind": "verse",
+        "text": "Chiar de noaptea ne așteaptă Să ne stingă orice zi,\nPasul greu spre zări ne-ndreaptă,\nEl Lumină ne va fi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pregătim vuiet de mărire,\nVine Tatăl prea curând!\nÎntr-un glas întreaga fire Să-I dea laudă strigând…"
+      }
+    ]
+  },
+  "9": {
+    "reason": "two verses left a final clause merged onto the previous line",
+    "blocks": [
+      {
+        "kind": "chorus",
+        "text": "Către cer se-nalță cântul:\nSlavă-n veci lui Dumnezeu!\nPlin de dor s-a strâns pământul Să-și primească Domnul Său…"
+      },
+      {
+        "kind": "verse",
+        "text": "Chiar de noaptea ne așteaptă Să ne stingă orice zi,\nPasul greu spre zări ne-ndreaptă,\nEl Lumină ne va fi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Azi vedem și știm în parte,\nDor, chemări fără răspuns…\nDar curând ne va da dreptate\nGlasul clar al lui Isus."
+      },
+      {
+        "kind": "verse",
+        "text": "Am ales, de mult, păcatul,\nL-am trădat pe Cel prea Bun,\nCasa noastră era înaltul,\nDar ne e prea sus acum…"
+      },
+      {
+        "kind": "verse",
+        "text": "Pentru noi a murit pe cruce,\nFiu de Om și Dumnezeu,\nJertfa Lui în dar ne-aduce\nȘansa de-a gândi semeț din nou!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pregătim vuiet de mărire,\nVine Tatăl prea curând!\nÎntr-un glas întreaga fire Să-I dea laudă strigând…"
+      }
+    ]
+  },
+  "11": {
+    "reason": "third verse refrain-line merged two clauses (repeated twice); PDF score confirms split matching verses 1-2 pattern",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Domnu mă conduce, de cine să mă tem?\nDomnul e aici când Îl chem.\nSunt copilul Său, mă încred în mila Sa,\nPentru El voi cânta:\nAleluia!\nSunt copilul Său, mă încred în mila Sa,\nPentru El voi cânta:\nAleluia!"
+      },
+      {
+        "kind": "verse",
+        "text": "Domnul mă conduce,\nEl știe drumul meu,\nDomnul mă ajută la greu.\nVesel voi lucra,\nÎl voi binecuvânta Și mai mult voi cânta:\nAleluia!\nVesel voi lucra,\nÎl voi binecuvânta Și mai mult voi cânta:\nAleluia!"
+      },
+      {
+        "kind": "verse",
+        "text": "Domnul mă conduce, mă scapă din necaz,\nDomnul e Prieten viteaz.\nȘtiu că-L voi vedea, în cetate voi intra\nȘi în veci voi cânta:\nAleluia!\nȘtiu că-L voi vedea, în cetate voi intra\nȘi în veci voi cânta:\nAleluia!"
+      }
+    ]
+  },
+  "13": {
+    "reason": "first verse opening line merged with the next clause; PDF score confirms split (verse 2/3 already show this pattern); verse 2 left untouched as its long final line already matches the score",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Cuvânt divin al lui Hristos\nÎl port în suflet bucuros Și orișicine-L va primi,\nÎn lupta grea va birui."
+      },
+      {
+        "kind": "verse",
+        "text": "Cuvânt divin al lui Hristos,\nTu ești tezaur prețios!\nÎn dulce pace vor umbla Acei ce merg pe calea Ta."
+      },
+      {
+        "kind": "verse",
+        "text": "Cuvânt divin al lui Hristos,\nEști farul nostru luminos,\nDin întuneric de păcat În veșnicii ne-ai ridicat."
+      }
+    ]
+  },
+  "14": {
+    "reason": "chorus line 2 merged two clauses; PDF score + internal rhyme (plin/senin, nins/învins/atins) confirm split",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dacă porți al vinei chin singur, neștiut,\nDacă n-ai curaj să crezi în noul început…"
+      },
+      {
+        "kind": "chorus",
+        "text": "Cu mâna-I tare, de slavă plin,\nStăpân peste gânduri, te poartă senin\nPrin lupta crucii, cald sânge nins,\nUcis de iubire,\nIsus a învins!\nPrin palma-I străpunsă, sfânt cer ai atins."
+      },
+      {
+        "kind": "verse",
+        "text": "Dacă vrei să vadă toți ceru-n ochii tăi,\nDacă fapte știi să scrii din suflet vii văpăi…"
+      },
+      {
+        "kind": "verse",
+        "text": "Dacă-n lume s-au pierdut unele culori,\nRoagă-L pe Isus să-ți dea tot visul înapoi…"
+      }
+    ]
+  },
+  "18": {
+    "reason": "last verse opening line merged two clauses with no preceding punctuation before the capitalised second clause",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Privim cu toți spre-un mare viitor De Dumnezeu promis,\nAvem în suflet cântece de dor Și vis de Paradis!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Viitorul suntem noi,\nTineri simpli, nu eroi,\nDar cu inimile noi De Isus ne ancorăm,\nÎn credință ne-avântăm Viitorul să-l schimbăm!"
+      },
+      {
+        "kind": "verse",
+        "text": "La tot ce Domnul nostru-a pregătit La așa un viitor,\nSuntem chiar noi unelte de zidit Și nu doar spectatori!"
+      },
+      {
+        "kind": "verse",
+        "text": "Nu poate fi un viitor mai bun\nCu oameni tot mai răi,\nDoar Domnul face-o lume de minuni,\nSchimbându-ne pe noi!"
+      }
+    ]
+  },
+  "19": {
+    "reason": "chorus and verse 2 each had a final clause merged onto the previous line; PDF score confirms split",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Stă potopul de îngeri în zare,\nStă Hristos pregătit de sfârșit,\nNumai oamenii dorm, nepăsare,\nOri se sting sub tristeți de granit."
+      },
+      {
+        "kind": "chorus",
+        "text": "Bate clipa spre zori de vecie,\nTrâmbiți sună chemări peste noi,\nEste vremea să fim bucurie\nȘi să strângem comori din noroi."
+      },
+      {
+        "kind": "verse",
+        "text": "Dumnezeu se apleacă spre mine,\nVrea să-mi spună că are un loc\nUnde eu pot sluji cel mai bine,\nDacă viața nu-mi stă sub obroc."
+      },
+      {
+        "kind": "verse",
+        "text": "Stăm în prag de lumină cerească,\nRostul meu și al tău este clar,\nEste vremea, în inimi să crească Bucuria slujirii în dar."
+      }
+    ]
+  },
+  "24": {
+    "reason": "verses 1 and 2 had their opening anaphora clause merged with the next line; PDF score confirms split (dor/nor, dor/Mântuitor rhymes)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Am așteptat, dar ne e mult prea dor\nȘi-am așezat un curcubeu în nor\nSă nască-n noi un tânăr legământ,\nSă-mplinească iar un jurământ.\nUn roșu zbor în inimi am aprins,\nAlbastru cer din stele am desprins,\nUn alb curat pe cruce sângerat,\nAzi răscumpărați Prin El am fost iertați."
+      },
+      {
+        "kind": "chorus",
+        "text": "Culoarea Sa (culoarea mea) E dragostea,\n(e vina grea),\nEl S-a jertfit (eu am primit) Căci m-a iubit.\nPrin crucea Sa Isus a biruit,\nPrețul a plătit căci m-a iubit.\n(iubit) Culoarea Sa (culoarea mea) E dragostea,\n(e vina grea),\nEl S-a jertfit (eu am primit) Căci m-a iubit.\nEu voi cânta Mărire,\nOsana De iubirea Sa Aleluia!"
+      },
+      {
+        "kind": "verse",
+        "text": "Mai vrem un timp de rugă și vegheat,\nVrem un Model în totul de urmat.\nAm așteptat, dar ne e mult prea dor\nSă se nască-n noi Mântuitor.\nUn galben viu a iesle și-a târziu,\nUn verde blând a primăvară-n gând,\nUn alb curat pe cruce sângerat,\nAzi răscumpărați Prin El am fost iertați."
+      },
+      {
+        "kind": "verse",
+        "text": "Am așteptat dar ne e prea mult dor,\nȘi-am colorat frumosul nostru zbor,\nMai vrem un ceas să spunem bun rămas,\nBun rămas pământ cu vină-n gând.\nEști mult prea greu să porți un curcubeu,\nEști cenușiu de-atâta \"prea târziu\",\nSperanța e doar în jertfa Sa,\nE în albul clar,\nAl ispășirii dar."
+      }
+    ]
+  },
+  "25": {
+    "reason": "all three verses had a clause merged into a long run-on line; PDF score confirms 4-line split for each",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Auzit-am de Țara de sus,\nUnde nu-s suferinți, nici păcat\nȘi de-atunci un dor tainic m-a cuprins,\nDe-a vedea acel loc minunat."
+      },
+      {
+        "kind": "verse",
+        "text": "Azi mă simt peregrin pe-acest pământ\nȘi de trudă ades cad răpus,\nDar zăresc prin credință acel cămin\nFericit pregătit de Isus."
+      },
+      {
+        "kind": "verse",
+        "text": "Armonii se răsfrâng în infinit\nDe la tronul iubirii de sus,\nVisul drag de-nfrățire-i împlinit,\nPentru veci Domnul păcii Isus."
+      }
+    ]
+  },
+  "28": {
+    "reason": "refrain line \"Se va uita (Se va uita)...\" merged in all 3 verses; PDF score confirms split matching the \"(va ridica) Din ochii...\" line pattern; verses 1-2 also had their opening clause merged",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "De aș încerca\nPrin puterea mea păcatul să-l alung,\nTot pe genunchi ajung.\nDe pe genunchi El mă va ridica,\n(va ridica) Din ochii mei va șterge lacrima,\nSe va uita\n(Se va uita) La rana mea Și o va vindeca."
+      },
+      {
+        "kind": "verse",
+        "text": "Va veni o zi\nCând voi regăsi în suflet pacea Sa,\nSpre străluciri de stea.\nDe pe genunchi El mă va ridica,\n(va ridica) Din ochii mei va șterge lacrima,\nSe va uita\n(Se va uita) La rana mea Și o va vindeca."
+      },
+      {
+        "kind": "verse",
+        "text": "Chiar când sunt pierdut,\nChiar când sunt căzut pe margini de abis,\nCăci cerul mi-a deschis.\nDe pe genunchi El mă va ridica,\n(va ridica) Din ochii mei va șterge lacrima,\nSe va uita\n(Se va uita) La rana mea Și o va vindeca."
+      }
+    ]
+  },
+  "30": {
+    "reason": "second verse opening merged 4 short clauses into one line and closing line merged 2 clauses; PDF score confirms verse is 8 short lines, matching verse 1 and 3",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Noaptea grabnic pleacă Dus e tot ce-a fost,\nSori vin să se-ntreacă,\nGândul are rost.\nVrem s-avem lumină,\nZi de cer să știm…\nInimi se-nsenină,\nÎn Isus să fim!"
+      },
+      {
+        "kind": "verse",
+        "text": "Mâini unite-n rugă\nTimp nemăsurat\nZâmbet să ne-ajungă\nEl ne-a arătat.\nVrem din nou puterea,\nDorul să ni-l știm,\nStrâns uniți în vrerea\nCa Isus să fim."
+      },
+      {
+        "kind": "verse",
+        "text": "Cu Isus alături Nu ne vom opri,\nPe aceleași drumuri Alții vor veni,\nVrem să afle zarea Știm să dăruim!\nÎntrupând iubirea Către cer pornim!"
+      }
+    ]
+  },
+  "31": {
+    "reason": "chorus and verse 3 each had a final clause merged onto the previous line; PDF score confirms 4-line split",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Tu, popor ales de Domnul,\nNu-ți fă griji pentru mâine,\nCă și astăzi, ca-n pustie,\nEl se va-ngriji de tine."
+      },
+      {
+        "kind": "chorus",
+        "text": "Să n-ai teamă niciodată,\nEl te duce-n carul Său,\nCa să vezi cât ești de tare\nCând rămâi cu Dumnezeu."
+      },
+      {
+        "kind": "verse",
+        "text": "E prezent și când ți-e sete,\nÎți dă apă chiar din stâncă,\nȘi să știi că toate-ascultă Necurmat a Sa poruncă."
+      },
+      {
+        "kind": "verse",
+        "text": "El te-a dus chiar și prin mare,\nPrin minunea ce-o știi bine,\nCa să vezi că Domnul Slavei\nNu te lasă de rușine."
+      },
+      {
+        "kind": "verse",
+        "text": "El îți pune înainte Stâlp de foc să lumineze,\nCa să vadă fiecare,\nCalea dreapta s-o păstreze."
+      }
+    ]
+  },
+  "32": {
+    "reason": "last verse final line merged two clauses; PDF score + rhyme (fii/veșnicii) confirm split",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Se înserează peste zări,\nE tainic ceas de asfințit.\nDin ceruri astăzi am primit Noian de binecuvântări,\nAtâtea sfinte îndurări."
+      },
+      {
+        "kind": "verse",
+        "text": "Adie lin al serii vânt,\nNe-atinge al veciei dor,\nSabatul dat de Creator Ne-a fost popas frumos și sfânt,\nAltar de rugă și de cânt."
+      },
+      {
+        "kind": "verse",
+        "text": "Îți mulțumim,\nPărinte Sfânt,\nNe-ai dăruit Cuvântul viu,\nNe-ai pus o masă în pustiu,\nDin pâinea vieții Tu ne-ai frânt,\nNe-ai pus în inimă un cânt."
+      },
+      {
+        "kind": "verse",
+        "text": "Rămâi, rămâi cu-ai Tăi copii,\nIsuse,\nTe rugăm acum,\nSă vii cu noi pe-al vieții drum,\nUn stâlp de nor și foc ne fii\nȘi ne condu spre veșnicii."
+      }
+    ]
+  },
+  "35": {
+    "reason": "repeat-section slash markers were split mid-phrase instead of at the \"/  /\" section boundary; PDF score confirms the two repeated sections (A and B)",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "/Siya hamb` ekukhanyen` kwenkhos` Siya hamb` ekukhanyen` kwenkhos` /\n/Siya hamba, hamba, Siya hamba, hamba Siya hamb` ekukhanyen` kwenkhos` /"
+      },
+      {
+        "kind": "verse",
+        "text": "/ We are marching in the light of God, We are marching in the light of God./\n/ We are marching, marching, We are marching, marching, We are marching in the light of God./"
+      }
+    ]
+  }
+}

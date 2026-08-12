@@ -150,3 +150,15 @@ input[type="range"]:active::-moz-range-thumb {
   opacity: 0;
   transition: opacity 300ms ease-out;
 }
+
+/* Horizontally scrollable strips (e.g. the hymnal book selector) keep the
+   swipe affordance without the scrollbar, which on desktop draws a chunky
+   grey bar across the control. Edge fades signal the overflow instead. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

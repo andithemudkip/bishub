@@ -28,6 +28,7 @@ import {
 import { SHORTCUTS } from "../../shared/shortcuts";
 import { getTranslationsByLanguage } from "../../shared/bibleTranslations";
 import { BibleTranslationPicker } from "../components/ui/BibleTranslationPicker";
+import { HYMNALS } from "../../shared/hymnals";
 
 interface BibleDownloadStatus {
   translationId: string;
@@ -152,6 +153,7 @@ interface Props {
   audioVolume: number;
   onSetLanguage: (language: Language) => void;
   onSetBibleTranslation: (translationId: string) => void;
+  onSetHymnal: (slug: string) => void;
   bibleDownloadStatus: BibleDownloadStatus | null;
   downloadedTranslations: string[];
   onSetWallpaper: (selectNew?: boolean) => Promise<string | null>;
@@ -161,6 +163,7 @@ interface Props {
   onSetVolume: (volume: number) => void;
   onSetAudioVolume: (volume: number) => void;
   onSetSyncedLyrics: (enabled: boolean) => void;
+  onSetInstrumentals: (enabled: boolean) => void;
   onSetDisplayMonitor: (monitorId: number) => void;
   appVersion: string;
   updateStatus: UpdateStatus;
@@ -184,6 +187,7 @@ export default function SettingsPage({
   audioVolume,
   onSetLanguage,
   onSetBibleTranslation,
+  onSetHymnal,
   bibleDownloadStatus,
   downloadedTranslations,
   onSetWallpaper,
@@ -193,6 +197,7 @@ export default function SettingsPage({
   onSetVolume,
   onSetAudioVolume,
   onSetSyncedLyrics,
+  onSetInstrumentals,
   onSetDisplayMonitor,
   appVersion,
   updateStatus,
@@ -336,6 +341,29 @@ export default function SettingsPage({
           )}
       </Card>
 
+      {/* Hymnal — every book is bundled, so this is a plain grouped select */}
+      <Card>
+        <h2 className="text-lg font-semibold mb-4">{t.hymns.hymnal}</h2>
+        <Select
+          value={settings.hymnal}
+          onChange={(e) => onSetHymnal(e.target.value)}
+        >
+          {Array.from(new Set(HYMNALS.map((h) => h.languageName))).map(
+            (languageName) => (
+              <optgroup key={languageName} label={languageName}>
+                {HYMNALS.filter((h) => h.languageName === languageName).map(
+                  (hymnal) => (
+                    <option key={hymnal.slug} value={hymnal.slug}>
+                      {hymnal.name} ({hymnal.songCount})
+                    </option>
+                  ),
+                )}
+              </optgroup>
+            ),
+          )}
+        </Select>
+      </Card>
+
       {/* Open on startup - Electron only */}
       {isElectron && (
         <Card>
@@ -373,6 +401,26 @@ export default function SettingsPage({
               type="checkbox"
               checked={settings.syncedLyrics}
               onChange={(e) => onSetSyncedLyrics(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </div>
+        </label>
+
+        <label className="flex items-start justify-between cursor-pointer gap-4 mt-5">
+          <div className="flex-1 min-w-0">
+            <div className="font-medium">
+              {t.karaoke.instrumentalsToggleLabel}
+            </div>
+            <p className="text-sm text-gray-400 mt-1">
+              {t.karaoke.instrumentalsToggleHint}
+            </p>
+          </div>
+          <div className="relative flex-shrink-0 mt-1">
+            <input
+              type="checkbox"
+              checked={settings.instrumentals}
+              onChange={(e) => onSetInstrumentals(e.target.checked)}
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -463,6 +511,7 @@ export default function SettingsPage({
                       : 0;
                   const isDone = d.status === "complete";
                   const isError = d.status === "error";
+                  const isCancelled = d.status === "cancelled";
                   return (
                     <div
                       key={d.id}
@@ -476,9 +525,11 @@ export default function SettingsPage({
                           className={`h-full transition-all ${
                             isError
                               ? "bg-red-400"
-                              : isDone
-                                ? "bg-green-400"
-                                : "bg-blue-400/80"
+                              : isCancelled
+                                ? "bg-gray-500"
+                                : isDone
+                                  ? "bg-green-400"
+                                  : "bg-blue-400/80"
                           }`}
                           style={{
                             width: isDone || isError ? "100%" : `${pct}%`,
@@ -488,6 +539,7 @@ export default function SettingsPage({
                       <span className="w-20 text-right text-gray-500 flex items-center justify-end">
                         {d.status === "queued" && t.karaoke.statusQueued}
                         {isError && t.karaoke.errorDownload}
+                        {isCancelled && t.karaoke.statusCancelled}
                         {isDone && (
                           <CheckIcon className="w-3.5 h-3.5 text-green-400" />
                         )}

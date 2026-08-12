@@ -1,3 +1,5 @@
+import type { Hymn } from "./types";
+
 /**
  * Convert a local file path to a file:// URL (handles Windows backslashes)
  */
@@ -193,8 +195,10 @@ function shallowEqual<T extends object>(a: T, b: T): boolean {
   return true;
 }
 
+const TERMINAL_PROGRESS_STATUSES = ["complete", "error", "cancelled"];
+
 /**
- * Update a progress list: upsert by id, auto-remove completed/errored items after a delay.
+ * Update a progress list: upsert by id, auto-remove finished items after a delay.
  * Returns `prev` unchanged when the incoming progress is field-equal to the existing entry,
  * so high-frequency tick events (yt-dlp emits many per second) don't trigger pointless renders.
  */
@@ -204,7 +208,7 @@ export function updateProgressList<T extends { id: string; status: string }>(
   setter: (updater: (prev: T[]) => T[]) => void,
   delay = 3000,
 ): T[] {
-  if (progress.status === "complete" || progress.status === "error") {
+  if (TERMINAL_PROGRESS_STATUSES.includes(progress.status)) {
     setTimeout(() => {
       setter((p) => p.filter((item) => item.id !== progress.id));
     }, delay);
@@ -215,4 +219,22 @@ export function updateProgressList<T extends { id: string; status: string }>(
   const updated = [...prev];
   updated[index] = progress;
   return updated;
+}
+
+/**
+ * Verse count and chorus presence for a hymn, derived from its blocks.
+ * Counts distinct blocks rather than sequence entries, so a chorus that recurs
+ * after every verse still reports as one chorus.
+ */
+export function summarizeHymn(hymn: Hymn): {
+  verseCount: number;
+  hasChorus: boolean;
+} {
+  let verseCount = 0;
+  let hasChorus = false;
+  for (const block of hymn.blocks) {
+    if (block.kind === "verse") verseCount++;
+    else if (block.kind === "chorus") hasChorus = true;
+  }
+  return { verseCount, hasChorus };
 }

@@ -31,7 +31,7 @@ When adding an action, check the sibling hook (`useVideoLibrary`, `useAudioLibra
 
 ### Do NOT mutate cached data objects
 
-Hymns (`assets/hymns.json`) and Bible data (`assets/bible.xml`, USFX format) are parsed once and cached in memory. Treat cached objects as immutable — clone before modifying.
+Hymns (`assets/hymnals/{slug}.json`) and Bible data (`assets/bible.xml`, USFX format) are parsed once and cached in memory. Treat cached objects as immutable — clone before modifying.
 
 ### Internationalization
 

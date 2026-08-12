@@ -7,6 +7,7 @@ import type {
   Hymn,
   BibleVerse,
   BibleSearchResult,
+  HymnSearchResult,
   ServerToClientEvents,
   ClientToServerEvents,
   ClockPosition,
@@ -14,6 +15,7 @@ import type {
   MP3DownloadProgress,
   MP3CacheStats,
   DeviceInfo,
+  HymnPlaybackMode,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
@@ -32,6 +34,8 @@ interface RemoteAPI {
   settings: AppSettings;
   monitors: MonitorInfo[];
   hymns: Hymn[];
+  /** Which book `hymns` holds — lags `settings.hymnal` while a fetch is in flight. */
+  hymnsSlug: string;
   isConnected: boolean;
   isPaired: boolean;
   authError: boolean;
@@ -52,9 +56,16 @@ interface RemoteAPI {
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;
   setSyncedLyrics: (enabled: boolean) => void;
+  setInstrumentals: (enabled: boolean) => void;
   goIdle: () => void;
   // Hymns
-  loadHymn: (hymnNumber: string, synced?: boolean) => void;
+  loadHymn: (
+    slug: string,
+    hymnNumber: string,
+    playbackMode?: HymnPlaybackMode,
+  ) => void;
+  setHymnal: (slug: string) => void;
+  searchAllHymns: (query: string) => Promise<HymnSearchResult[]>;
   // Bible
   getBibleBooks: () => Promise<
     { id: string; name: string; chapterCount: number }[]
@@ -118,7 +129,10 @@ export function useRemoteAPI(): RemoteAPI {
   const [state, setState] = useState<DisplayState>(DEFAULT_STATE);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
-  const [hymns, setHymns] = useState<Hymn[]>([]);
+  const [hymnData, setHymnData] = useState<{ slug: string; hymns: Hymn[] }>({
+    slug: "",
+    hymns: [],
+  });
   const [bibleBooks, setBibleBooks] = useState<
     { id: string; name: string; chapterCount: number }[]
   >([]);
@@ -153,6 +167,9 @@ export function useRemoteAPI(): RemoteAPI {
   const bibleSearchCb = useRef<((results: BibleSearchResult[]) => void) | null>(
     null
   );
+  const hymnSearchCb = useRef<
+    ((results: HymnSearchResult[]) => void) | null
+  >(null);
 
   const isElectron = isElectronEnv;
 
@@ -170,7 +187,6 @@ export function useRemoteAPI(): RemoteAPI {
       socket.on("connect", () => {
         setIsConnected(true);
         setAuthError(false);
-        socket.emit("getHymns");
         socket.emit("getBibleBooks");
         socket.emit("getDownloadedTranslations");
       });
@@ -191,7 +207,13 @@ export function useRemoteAPI(): RemoteAPI {
       socket.on("stateUpdate", setState);
       socket.on("settingsUpdate", setSettings);
       socket.on("monitors", setMonitors);
-      socket.on("hymns", setHymns);
+      socket.on("hymns", (slug, list) => setHymnData({ slug, hymns: list }));
+      socket.on("hymnSearchResults", (results) => {
+        if (hymnSearchCb.current) {
+          hymnSearchCb.current(results);
+          hymnSearchCb.current = null;
+        }
+      });
       socket.on("bibleBooks", (books) => {
         setBibleBooks(books);
         if (bibleBooksCb.current) {
@@ -271,14 +293,15 @@ export function useRemoteAPI(): RemoteAPI {
       window.electronAPI!.getState().then(setState);
       window.electronAPI!.getSettings().then(setSettings);
       window.electronAPI!.getMonitors().then(setMonitors);
-      window.electronAPI!.getHymns().then(setHymns);
       window.electronAPI!.getDownloadedTranslations().then(setDownloadedTranslations);
       window.electronAPI!.getDevices?.().then(setDevices);
 
       const unsubState = window.electronAPI!.onStateUpdate(setState);
       const unsubSettings = window.electronAPI!.onSettingsUpdate(setSettings);
       const unsubMonitors = window.electronAPI!.onMonitorsUpdate(setMonitors);
-      const unsubHymns = window.electronAPI!.onHymnsUpdate(setHymns);
+      const unsubHymns = window.electronAPI!.onHymnsUpdate((slug, list) =>
+        setHymnData({ slug, hymns: list }),
+      );
       const unsubMP3Progress =
         window.electronAPI!.onHymnMP3DownloadProgress(handleMP3Progress);
       const unsubMP3Stats =
@@ -328,11 +351,27 @@ export function useRemoteAPI(): RemoteAPI {
     [pairAndConnect]
   );
 
+  // Hymns are fetched one book at a time rather than all at once: the full
+  // corpus is ~3 MB across nine hymnals, which every web remote would otherwise
+  // pull on connect.
+  const selectedHymnal = settings.hymnal;
+  useEffect(() => {
+    if (!isConnected || !selectedHymnal) return;
+    if (isElectron) {
+      window
+        .electronAPI!.getHymns(selectedHymnal)
+        .then((list) => setHymnData({ slug: selectedHymnal, hymns: list }));
+    } else {
+      socketRef.current?.emit("getHymns", selectedHymnal);
+    }
+  }, [isConnected, isElectron, selectedHymnal]);
+
   const api: RemoteAPI = {
     state,
     settings,
     monitors,
-    hymns,
+    hymns: hymnData.hymns,
+    hymnsSlug: hymnData.slug,
     isConnected,
     isPaired,
     authError,
@@ -436,15 +475,42 @@ export function useRemoteAPI(): RemoteAPI {
       [isElectron]
     ),
 
+    setInstrumentals: useCallback(
+      (enabled: boolean) => {
+        if (isElectron) window.electronAPI!.setInstrumentals(enabled);
+        else socketRef.current?.emit("setInstrumentals", enabled);
+      },
+      [isElectron]
+    ),
+
     goIdle: useCallback(() => {
       if (isElectron) window.electronAPI!.goIdle();
       else socketRef.current?.emit("goIdle");
     }, [isElectron]),
 
+    searchAllHymns: useCallback(
+      (query: string) => {
+        if (isElectron) return window.electronAPI!.searchAllHymns(query);
+        return new Promise<HymnSearchResult[]>((resolve) => {
+          hymnSearchCb.current = resolve;
+          socketRef.current?.emit("searchAllHymns", query);
+        });
+      },
+      [isElectron],
+    ),
+
+    setHymnal: useCallback(
+      (slug: string) => {
+        if (isElectron) window.electronAPI!.setHymnal(slug);
+        else socketRef.current?.emit("setHymnal", slug);
+      },
+      [isElectron],
+    ),
     loadHymn: useCallback(
-      (hymnNumber, synced?) => {
-        if (isElectron) window.electronAPI!.loadHymn(hymnNumber, synced);
-        else socketRef.current?.emit("loadHymn", hymnNumber, synced);
+      (slug, hymnNumber, playbackMode?) => {
+        if (isElectron)
+          window.electronAPI!.loadHymn(slug, hymnNumber, playbackMode);
+        else socketRef.current?.emit("loadHymn", slug, hymnNumber, playbackMode);
       },
       [isElectron]
     ),

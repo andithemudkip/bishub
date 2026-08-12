@@ -1,0 +1,681 @@
+{
+  "1": {
+    "reason": "heuristic missed breaks before capitalized clause-starts (no preceding punctuation), leaving the last line of each stanza run-on",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Vreau să am în privire doar soare,\nVreau s-ascult glasul Tău părintesc,\nVreau ca doar glasul Tău să mă-ndrume\nCând în cale-o răscruce-ntâlnesc."
+      },
+      {
+        "kind": "verse",
+        "text": "Vreau să fiu un exemplu în toate,\nVreau să-ntâmpin furtuna cântând,\nVreau să spun tuturor vestea bună\nCă Isus se întoarce curând!"
+      }
+    ]
+  },
+  "3": {
+    "reason": "heuristic missed breaks before capitalized clause-starts with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Domnul iubește toți copiii,\nEl la Sine i-a chemat,\nȘi i-a binecuvântat și în inimi le-a plantat\nDragoste de tot ce-i nobil și curat."
+      },
+      {
+        "kind": "verse",
+        "text": "Domnul mi-a dat o inimioară Să-L ascult și să-L iubesc,\nȘi o gură să vorbesc, despre El să povestesc,\nAl Său Nume ne-ncetat să-L preamăresc."
+      },
+      {
+        "kind": "verse",
+        "text": "Doi ochi primit-am de la Domnul\nLumea-ntreagă să privesc,\nSă văd cerul înstelat și să spun ce minunat\nEu îl văd pe Domnu-n toate și-L iubesc!"
+      }
+    ]
+  },
+  "4": {
+    "reason": "heuristic missed breaks before capitalized clause-starts with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Uite curcubeul,\nDomnul l-a făcut,\nSoare, lună, stele, de la început\nȘi pe fiecare ne-ncetat\nTot El le-a binecuvântat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Câinii din ogradă, pisicuțele,\nPuii de găină și broscuțele,\nCurca și cocoșul, rațele,\nVăcuța ce dă laptele!"
+      },
+      {
+        "kind": "verse",
+        "text": "Florile, copacii,\nDomnul le-a creat,\nVântul, ploaia, iarba, totu-i minunat!\nMama și cu tata, chiar și eu\nSuntem făcuți de Dumnezeu!"
+      }
+    ]
+  },
+  "5": {
+    "reason": "heuristic missed break before capitalized clause-start; isolated 'Iată,' merged with following clause instead",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Apele din râuri, pomii fructiferi,\nIarbă, flori și grâne, ierni și primăveri;\nSoarele și luna, aerul curat,\nToate din iubire Domnul le-a creat."
+      },
+      {
+        "kind": "verse",
+        "text": "Domnul locuiește-n cerul maiestos,\nEl ne pregătește un Eden frumos;\nIată, El revine, vine în curând\nȘi va fi de-apururi pace pe pământ."
+      }
+    ]
+  },
+  "11": {
+    "reason": "heuristic missed break before capitalized 'Nu' starting a new clause with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Sus, în țara mea din cer\nNu sunt vânturi și nici ger,\nNu sunt valuri, nu e foc\nNici păcatul n-are loc!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Eu cu dor o voi cânta:\nAsta este Țara mea!\nNu-i acolo nici un rău,\nÎmpărat e Dumnezeu!"
+      },
+      {
+        "kind": "verse",
+        "text": "Sus, în țara mea din cer\nNu sunt lacrimi, nici dureri,\nNu e moarte, nici mormânt,\nSuferințe nu mai sunt!"
+      },
+      {
+        "kind": "verse",
+        "text": "Sus, în țara mea din cer Veșnic numai primăveri,\nNumai soare fără nori,\nNumai minunate flori!"
+      }
+    ]
+  },
+  "14": {
+    "reason": "long repeated-word line never got a break; split at the natural repeat matching verse 2's structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Să fii mereu voios, să fii mereu voios,\nSă fii tot voios nu e așa de greu,\nSă fii voios, să fii voios,\nsă fii mereu, să fii mereu voios..."
+      },
+      {
+        "kind": "verse",
+        "text": "Vei fi mereu voios, vei fi mereu voios,\nDe ești cu Hristos nu e așa de greu,\nVei fi voios, vei fi voios,\nCu El vei fi, vei fi mereu voios!"
+      }
+    ]
+  },
+  "19": {
+    "reason": "heuristic missed break before capitalized clause-start ('Ce-mi dă puteri...'), matching verse 2's confirmed 3-line structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Din toate câte sunt O carte-i pe pământ\nCe-mi dă puteri Când citesc din ea,\nAceasta-i Biblia!"
+      },
+      {
+        "kind": "chorus",
+        "text": "În Biblie citesc Cum trebuie să trăiesc:\nCurat și sfânt în purtări și gând,\nPe Domnul lăudând!"
+      },
+      {
+        "kind": "verse",
+        "text": "Al Domnului Cuvânt E plin de Spirit Sfânt,\nPe calea grea E lumina mea,\nAceasta-i Biblia!"
+      }
+    ]
+  },
+  "27": {
+    "reason": "isolated 'O,' line should join the following clause to match the 2-line structure of the other stanzas",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ce dragă mi-este mama când mă gândesc la ea!\nPe brațul ei, la pieptul ei, ușor mă legăna..."
+      },
+      {
+        "kind": "verse",
+        "text": "Și-atunci când voi fi mare și depărtat de ea,\nTot gândul meu se va-ndrepta mereu spre mama mea...\nTot gândul meu se va-ndrepta mereu spre mama mea..."
+      },
+      {
+        "kind": "verse",
+        "text": "O, Doamne-ascultă-mi ruga și fii cu mama mea,\nÎn veșnicii să fim ai Tăi, să fim în slava Ta!"
+      }
+    ]
+  },
+  "28": {
+    "reason": "heuristic missed break before capitalized \"'Naintea\" starting a new clause with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Mama mea are ochii spre Dumnezeu,\nMi-e dragă cât nu pot să spun...\nPășind lângă ea, nu-i nimic prea greu:\nPrin lacrimi îmi croiește drum!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Către ceruri prin ochii tăi privesc...\nScumpă mamă, ce mult te iubesc!"
+      },
+      {
+        "kind": "verse",
+        "text": "Dumnezeu stă de vorbă cu mama mea,\nI-arată porți spre Paradis...\nPrin valuri și stele să pot avea\n'Naintea mea un drum deschis!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pașii mei spre lumină se-ndreaptă-acum,\nChiar dacă-am rătăcit cândva...\nAlerg spre credință pe-al vieții drum Și-ți mulțumesc, măicuța mea!"
+      }
+    ]
+  },
+  "30": {
+    "reason": "heuristic missed break before capitalized 'Și fiii' starting a new clause with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Cine a făcut arca?\nArca, cine a făcut?\nNoe arca a făcut.\nDomnul Sfânt i-a poruncit Și Noe arca a și construit.\nO arcă lungă cu cămări,\nCu ușă și geam deschis spre zări."
+      },
+      {
+        "kind": "verse",
+        "text": "Cine a făcut arca?\nArca, cine a făcut?\nNoe arca a făcut.\nCând el arca a terminat,\nTot soiul de animale-au intrat,\nPuternici lei, cămile mari,\nGirafe, pantere, lupi hoinari."
+      },
+      {
+        "kind": "verse",
+        "text": "Cine a intrat sus în arcă?\nCine a intrat?\nAnimale au intrat!\nElefanți și șoricei,\nChiar struți înalți, berze și porumbei Și corbii negri, tuciurii,\nRățuște și iepurași zglobii."
+      },
+      {
+        "kind": "verse",
+        "text": "Cine a mai venit sus în arcă?\nCine-a mai venit?\nAnimale au venit!\nRinoceri și crocodili,\nCurând veniră și broaște tiptil,\nOițe, vaci, purcei, pisici Și foci dar și pinguini voinici."
+      },
+      {
+        "kind": "verse",
+        "text": "Cine a trimis animale?\nCine a trimis?\nDomnul, iată, le-a trimis!\nRând pe rând au tot venit,\nPerechi, perechi, iată cum au sosit.\nPe toate Domnul le-a mânat,\nSă intre-n arcă le-a-ndemnat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Cine a încuiat ușa?\nUșa, cine a-ncuiat?\nDomnul ușa a-ncuiat.\nNoe a intrat și el\nȘi fiii lui au făcut tot la fel,\nDoar opt persoane au intrat,\nIar ușa chiar Domnul a-ncuiat!"
+      }
+    ]
+  },
+  "31": {
+    "reason": "heuristic missed break before capitalized 'Și' starting a new clause with no preceding punctuation, matching verse 1's confirmed 4-line structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Chiar de n-a plouat niciodată,\nChiar de n-a văzut nici un nor,\nCând Domnul i-a spus ce să facă,\nNoe-a fost ascultător."
+      },
+      {
+        "kind": "chorus",
+        "text": "A crede nu-i așa de greu,\nPrecum își închipuie cei mulți;\nDe-ai auzit ce spune Dumnezeu,\nA crede-nseamnă simplu: să asculți!"
+      },
+      {
+        "kind": "verse",
+        "text": "Chiar dacă n-a plutit pe vreo mare\nȘi nici n-a văzut vreun vapor,\nCând Dumnezeu i-a dat o chemare,\nNoe a fost ascultător."
+      },
+      {
+        "kind": "verse",
+        "text": "Cât de greu să lupți cu mulțimea,\nCât de greu s-oprești hazul lor!\nDar Noe învinse rușinea,\nNoe a fost ascultător!"
+      }
+    ]
+  },
+  "32": {
+    "reason": "heuristic missed break before the repeated line ('Trimisă dinspre...'), matching the confirmed 3-line pattern of the other stanzas",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ce ne spune oare o frunză de măslin\nTrimisă dinspre zare cu un mesaj divin,\nTrimisă dinspre zare cu un mesaj divin?"
+      },
+      {
+        "kind": "verse",
+        "text": "O speranță bună e frunza de măslin\nCă după grea furtună va fi un cer senin,\nCă după grea furtună va fi un cer senin."
+      },
+      {
+        "kind": "verse",
+        "text": "Mare bucurie e frunza de măslin,\nCă-ncepe o veșnicie de cânt fără suspin,\nCă-ncepe o veșnicie de cânt fără suspin!"
+      },
+      {
+        "kind": "verse",
+        "text": "Când sosește oare și unde s-o găsim?\nNoi suntem fiecare o frunză de măslin,\nNoi suntem fiecare o frunză de măslin!"
+      }
+    ]
+  },
+  "34": {
+    "reason": "heuristic missed breaks before capitalized clause-starts with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Cred în Dumnezeu ca Tată,\nAcel ce a creat\nCerul, soarele și luna, pământul minunat!\nÎn fiecare clipă tot de la El primim\nAtâtea daruri bune!\nO,\nTată,\nTe iubim!"
+      },
+      {
+        "kind": "verse",
+        "text": "Cred în Domnu-Isus cel care atâta ne-a iubit\nEl a coborât din ceruri, pe cruce S-a jertfit.\nEl spală vina noastră să fim curați și sfinți\nȘi să ne mântuiască cu-ai noștri scumpi părinți!"
+      },
+      {
+        "kind": "verse",
+        "text": "Cred în Duhul Sfânt că poate a fi cu noi mereu,\nDe nu-L întristăm vreodată prin faptă sau gând rău!\nEl cheamă pe oricine, iubește pe copii,\nEl ne aduce-n suflet puterea de-a iubi!"
+      }
+    ]
+  },
+  "37": {
+    "reason": "heuristic missed breaks before capitalized clause-starts ('Și câmpul', 'De noi', 'Și să-Ți') with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Fii,\nDoamne, binecuvântat!\nTu din iubire ne-ai creat,\nTu ai pus pe boltă sori\nȘi câmpul l-ai pictat cu flori."
+      },
+      {
+        "kind": "verse",
+        "text": "Bogate lanuri aurii,\nIzvoare sprintene, zglobii Pomii verzi foșnind în vânt,\nTu le-ai chemat cu-al Tău cuvânt!"
+      },
+      {
+        "kind": "verse",
+        "text": "Iar pentru tot ce Tu ne-ai dat\nDe noi fii astăzi lăudat,\nVrem să fim ai Tăi copii\nȘi să-Ți cântăm în veșnicii!"
+      }
+    ]
+  },
+  "38": {
+    "reason": "heuristic missed break before capitalized 'El' starting a new clause with no preceding punctuation, matching sibling verses' 5-line structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "David, păstorul e un copilaș!\nCum să învingă pe-acest uriaș?\nDomnul e de partea mea,\nȘtiu că El mă v-ajuta!\nDavid, păstorul, așa le spunea!"
+      },
+      {
+        "kind": "verse",
+        "text": "David a strâns pietricele din râu\nEl doar o praștie are la brâu...\n\"Spadă n-am de luptător,\nDar voi fi biruitor!\"\nÎn Dumnezeu el era-ncrezător!"
+      },
+      {
+        "kind": "verse",
+        "text": "Poate și voi întâlniți uriași,\nSă nu vă temeți de ei, copilași!\nSpadă, scut și ajutor,\nNoi avem Mântuitor!\nCu El oricine e biruitor!"
+      }
+    ]
+  },
+  "41": {
+    "reason": "heuristic missed breaks before capitalized clause-starts 'Împletim' and 'Bucuria', both with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Din cântări și flori și din poezii\nÎmpletim buchete de bucurii;\nMamă, ție, cu dragoste să-ți dăruim,\nCa să știi cât te iubim!"
+      },
+      {
+        "kind": "verse",
+        "text": "Este visul tău, visul cel mai sfânt,\nSă ne știi salvați de pe-acest pământ,\nDumnezeu e cu noi și în veci El va fi\nBucuria cea dintâi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pentru fruntea ta,\nDomnul cel iubit,\nO coroană de-aur a pregătit,\nStrălucind de iubire tot ne vei purta,\nStele în coroana ta!"
+      }
+    ]
+  },
+  "42": {
+    "reason": "heuristic misplaced the break mid-row instead of between the two melodic rows; also missed break before capitalized 'Lângă'",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Sfinte Doamne, azi inima Ți-o dau\nEu voi fi al Tău,\nȚie mă predau!\nȘi curată, chiar până-n veșnicii,\nÎn iubirea Ta inima să-mi ții!"
+      },
+      {
+        "kind": "verse",
+        "text": "Astăzi, scump Isus, ochii mei Ți-i dau,\nEi vor fi ai Tăi,\nȚie Ți-i predau!\nOchii mei mereu până-n veșnicii,\nSă privească-n sus,\nDoamne, să mi-i ții!"
+      },
+      {
+        "kind": "verse",
+        "text": "Și urechile Ție Ți le dau,\nSă asculte doar Glasul Tău, eu vreau!\nDoamne, tot mereu, până-n veșnicii\nLângă Tine stau, nu mă părăsi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Astăzi, scump Isus, mâna mea Ți-o dau,\nDe la rău s-o ții, mâna Ți-o predau!\nPână-n veșnicii să lucrez cu spor Pentru slava Ta,\nDoamne,\nTe implor!"
+      }
+    ]
+  },
+  "43": {
+    "reason": "heuristic missed break before capitalized clause-start with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Fii curajos, fii curajos!\nÎngeri să scrie de tine frumos!\nTu ai ceva de făcut, numai tu!\nFă tot cu dragoste, nu spune:\n\"Nu!\"\nFii curajos, fii curajos!\nDa, da, fii curajos!"
+      },
+      {
+        "kind": "verse",
+        "text": "Fii curajos, fii curajos!\nOameni să spună de tine frumos!\nStai prin credință cu suflet curat\nFii un erou, de Isus ancorat!\nFii curajos, fii curajos!\nDa, da, fii curajos!"
+      },
+      {
+        "kind": "verse",
+        "text": "Fii curajos, fii curajos!\nDomnul să scrie de tine frumos!\nPoți să iubești și să-mparți pâinea ta,\nPe cei sărmani tu îi poți ajuta!\nFii curajos, fii curajos!\nDa, da, fii curajos!"
+      },
+      {
+        "kind": "verse",
+        "text": "Fii curajos, fii curajos!\nCu mâna ta scrie-ți viața frumos!\nDomnul Isus îți va da cu prisos\nCer și palate și tron maiestuos!\nFii curajos, fii curajos!\nDa, da, fii curajos!"
+      }
+    ]
+  },
+  "44": {
+    "reason": "heuristic missed break before capitalized 'Pe Isus' starting a new clause with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Țupa, țup, a fugit,\nIepurașul s-a pitit,\nTare i-e frică și de umbra lui;\nAre însă și dușmani destui...\nBine-n lumea asta nu-i!"
+      },
+      {
+        "kind": "verse",
+        "text": "Bâldâbâc, a sărit,\nO broscuță s-a pitit,\nTare-i mai bate inima sub lac:\nTica, tica, tica, tica, tac...\nCu dușmanii ce mă fac?"
+      },
+      {
+        "kind": "verse",
+        "text": "Lipa, lip, pe nisip,\nUn rățoi s-a-mpleticit,\nȘi vânătorul iute l-a ochit,\nDoamne, ce pământ nesuferit!\nNimeni nu e fericit!"
+      },
+      {
+        "kind": "verse",
+        "text": "Cip-cirip, se ascund,\nPăsărele, rând pe rând,\nSeara se culcă sus, în cuibul lor,\nDupă ce se roagă-n tril ușor,\nPentru pace până-n zori."
+      },
+      {
+        "kind": "verse",
+        "text": "Țupa, țup, bâldâbâc,\nLipa, lipa, cip-cirip,\nLumea întreagă-așteaptă an de an\nPe Isus să facă-un nou liman,\nUnde nu-i nici un dușman!"
+      }
+    ]
+  },
+  "51": {
+    "reason": "no break at all was found before capitalized 'Dumnezeu'/'Ca'",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Pentru fiecare floare, pentru vrăbii și cocori\nDumnezeu a dat culoare și aripi pentru zbor."
+      },
+      {
+        "kind": "verse",
+        "text": "Pentru pomii din grădină, pentru grâul din ogor,\nDumnezeu a dat lumină și soare lucitor."
+      },
+      {
+        "kind": "verse",
+        "text": "Pentru cele patru vânturi, pentru mersul timpului\nDumnezeu a pus pământul să-ntoarcă roata lui."
+      },
+      {
+        "kind": "verse",
+        "text": "Pentru-a inimii cântare ochi și gură El ne-a dat\nCa să spunem cât de mare e Cel care ne-a creat!"
+      }
+    ]
+  },
+  "52": {
+    "reason": "heuristic missed break before capitalized 'Și nu uita' starting a new clause with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "S-a scurs nevăzută, vremea întâlnirii,\nȘi tabăra rămâne tristă fără noi,\nÎți spunem cu durere, de-acum \"la revedere\"\nȘi nu uita că vom veni 'napoi!"
+      },
+      {
+        "kind": "verse",
+        "text": "Luăm azi cu noi plăcută amintire,\nA tot ce-a fost frumos și plin de bucurii,\nÎți spunem cu durere, de-acum \"la revedere\",\nCăci peste-un an din nou te vom găsi!"
+      }
+    ]
+  },
+  "53": {
+    "reason": "no break at all was found; matching the confirmed 2-line pattern of the sibling stanzas",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Isus mi-a dat din cerul luminos,\no rază vie mi-a dat ca s-o port frumos..."
+      },
+      {
+        "kind": "verse",
+        "text": "Isus mi-a dat din soare și din nor,\nCântare nouă mi-a dat ca s-o cânt cu dor..."
+      },
+      {
+        "kind": "verse",
+        "text": "Isus mi-a dat din stele și din nopți,\nLumină lină mi-a dat ca s-o duc la toți."
+      }
+    ]
+  },
+  "55": {
+    "reason": "no break at all was found before capitalized 'Căci'; verse 2 also had no break before capitalized 'Pe'",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Un pământ minunat Fără moarte și păcat,\nDumnezeu cel iubit Tuturor ne-a pregătit!"
+      },
+      {
+        "kind": "verse",
+        "text": "Cine nu ar dori Să trăiască-n veșnicii,\nPlin de slavă și cânt\nPe un nou și sfânt pământ."
+      },
+      {
+        "kind": "verse",
+        "text": "Pe acel Nou Pământ Nimeni nu va fi mâhnit\nCăci a noastră va fi Veșnicia zi de zi."
+      },
+      {
+        "kind": "verse",
+        "text": "Când copii s-or juca Leii nu vor sfâșia,\nOrice rău va pieri,\nVa pieri în veșnicii!"
+      },
+      {
+        "kind": "verse",
+        "text": "Și pe câmpu-nverzit Mieii zburdă liniștit,\nLângă lupi, lângă lei,\nLângă tigri mititei."
+      }
+    ]
+  },
+  "57": {
+    "reason": "heuristic missed the break at the internal comma, matching verse 2's confirmed 4-line structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Un copilaș pentru Domnul,\nDulce, plăcut și gingaș,\npoate să fie un bun ucenic,\nun copilaș cât de mic!"
+      },
+      {
+        "kind": "verse",
+        "text": "Domnul îi poartă de grijă,\nCa un Păstor bun și blând,\nPe toți copiii iubește nespus,\nCe bun Păstor e Isus!"
+      },
+      {
+        "kind": "verse",
+        "text": "Cine iubește pe Domnul,\nCine ascultă de El,\nÎn orice zi bucurii va avea Și-n veșnicii va cânta!"
+      }
+    ]
+  },
+  "60": {
+    "reason": "no break at all was found; matching verse 1's confirmed 3-line structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dimineața Cântați bucuria,\nLaudă-L pe Mesia,\nDimineața Pleacă-te 'naintea Lui!"
+      },
+      {
+        "kind": "verse",
+        "text": "La amiază Cântați bucuria,\nLaudă-L pe Mesia,\nLa amiază Pleacă-te 'naintea Lui!"
+      },
+      {
+        "kind": "verse",
+        "text": "Pe-nserate Cântați bucuria\nLaudă-L pe Mesia\nPe-nserate Pleacă-te 'naintea Lui!"
+      },
+      {
+        "kind": "verse",
+        "text": "Chiar și noaptea Cântați bucuria\nLaudă-L pe Mesia\nChiar și noaptea Pleacă-te 'naintea Lui!"
+      }
+    ]
+  },
+  "68": {
+    "reason": "heuristic missed break before capitalized clause-starts with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Un om înțelept lângă râu a venit\nȘi-o casă pe stâncă și-a construit,\nCurând după-aceea ploaia-a venit,\nNorii grei peste ea s-au oprit."
+      },
+      {
+        "kind": "verse",
+        "text": "Ploaia venea și râul creștea,\nVal după val în casă lovea,\nDar stânca pe care casa era,\nNeclintită-n picioare-o ținea."
+      },
+      {
+        "kind": "verse",
+        "text": "Un om fără minte la râu a venit\nȘi-o casă pe plajă și-a construit,\nCurând după-aceea ploaia-a venit,\nNorii grei peste ea s-au oprit."
+      },
+      {
+        "kind": "verse",
+        "text": "Ploaia venea și râul creștea,\nVal după val în casă lovea,\nÎndată nisipul s-a sfărâmat Și curând casa s-a dărâmat."
+      },
+      {
+        "kind": "verse",
+        "text": "De ești înțelept,\nPe Isus vei clădi,\nȘi casa vieții tare va fi,\nCând vântul și ploaia te-or încerca\nCasa ta nu se va dărâma!"
+      },
+      {
+        "kind": "verse",
+        "text": "De ești înțelept\npe Isus vei primi\nȘi vântul și Stânca-n tine vor fi\nCând vântul și ploaia te-or încerca,\nPrin Isus în credință vei sta!"
+      }
+    ]
+  },
+  "70": {
+    "reason": "heuristic missed break before capitalized 'Ne-arată' starting a new clause with no preceding punctuation, matching verse 1's confirmed structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Puternic și Sfânt, puternic e Domnul,\nNimic nu e greu pentru El!\nPuternic și Sfânt, puternic e Domnul,\nNimic nu e greu pentru El!\nȘi munții înalți, și apele-adânci,\nȘi stelele-ascultă de El,\nȘi inima mea, și inima mea,\nAș vrea să asculte la fel!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ce bun e Isus, ce mare iubire\nNe-arată din cer zi de zi!\nCe bun e Isus, ce mare iubire\nNe-arată din cer zi de zi!\nPe toți cei pierduți, pe toți cei căzuți,\nI-așteaptă să vină la El,\nȘi inima mea, și inima mea,\nAș vrea să iubească la fel!"
+      }
+    ]
+  },
+  "71": {
+    "reason": "heuristic missed breaks before capitalized clause-starts with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ați văzut cumva o perlă minunată\nCum lucește-n raze aurii?\nAți văzut cum n-are, n-are nici o pată,\nDin adânc de mări ieșind spre veșnicii?"
+      },
+      {
+        "kind": "chorus",
+        "text": "Perle noi suntem, ca ele strălucim!\nPurtăm iubirile dintâi!\nPerle noi suntem și vrem să oglindim\nLumini, lumini spre veșnicii!"
+      },
+      {
+        "kind": "verse",
+        "text": "Știți voi cum se naște-o perlă minunată\nDin durerea tainicei iubiri?\nȘtiți cu câtă grijă Dumnezeu ne poartă\nDin adânc de mări s-ajungem străluciri?"
+      },
+      {
+        "kind": "verse",
+        "text": "Oare cum putem păstra o viață-ntreagă Străluciri de suflet nepătat?\nChipul Tău din noi nimic să nu îl șteargă,\nDoamne, vino Tu, cu haru-Ți minunat!"
+      }
+    ]
+  },
+  "73": {
+    "reason": "heuristic missed break before capitalized clause-starts with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dacă-aș fi arici m-aș opri mereu,\nAș vorbi cu toți de pe drumul meu...\nCu insecte mari și cu cele mici\nAș vorbi mereu dacă-aș fi arici."
+      },
+      {
+        "kind": "chorus",
+        "text": "Dar sunt copil de Dumnezeu\nȘi-am să mă bucur cum sunt eu,\nSunt făcut de El, sunt făcut la fel,\nÎn fiecare zi mă duc să văd cum lumea a făcut,\nȘtiu că sunt ca El,\nFiu de Dumnezeu."
+      },
+      {
+        "kind": "verse",
+        "text": "Dacă-aș fi stejar ghindă aș rodi,\nȘi un secol chiar poate aș trăi...\nDar un pădurar, fără de habar,\nM-ar tăia de tot, dacă-aș fi stejar."
+      },
+      {
+        "kind": "verse",
+        "text": "Aripi de-aș avea, aș zbura mereu\nPeste țări și mări, nu mi-ar fi prea greu,\nCând mi-ar fi prea cald, când mi-ar fi prea frig,\nAș zbura mereu de-aș avea aripi."
+      },
+      {
+        "kind": "verse",
+        "text": "De aș fi cățel, m-aș juca și eu\nIar după pisici aș lătra mereu.\nUn prieten bun pentru om aș fi,\nOase mi-ar plăcea, casa aș păzi."
+      }
+    ]
+  },
+  "75": {
+    "reason": "heuristic missed breaks before capitalized clause-starts with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "chorus",
+        "text": "Mii de steluțe, floricele albe,\nMilioane de fluturași zglobii,\nÎn palmele iubirii noastre calde\nSe topesc de parcă nici n-ar fi..."
+      },
+      {
+        "kind": "verse",
+        "text": "Tu de unde vii, steluță de zăpadă,\nDe unde ai veșmânt așa curat?\nUite, toți copiii veseli vin să vadă\nCum ai înflorit de minunat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Tu, ce slabă ești, steluță de zăpadă,\nCând vii frumos aici, pe mâna mea!\nCum de poți atunci să cazi peste ogradă\nȘi s-așterni o plapumă de nea?"
+      },
+      {
+        "kind": "verse",
+        "text": "Chiar și-n frigul lumii, flori de bucurie\nVom fi prin Domnul care ne-a salvat!\nPentru așa o preafrumoasă mântuire\nDumnezeu să fie lăudat!"
+      }
+    ]
+  },
+  "76": {
+    "reason": "heuristic missed breaks before capitalized clause-starts with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dumnezeu a făcut peștișori aurii Să umple oceanele și marea,\nPrivește-i cum se-aruncă-n valuri,\nVeseli și zglobii Să-ncânte privirea și visarea."
+      },
+      {
+        "kind": "chorus",
+        "text": "Mulțumesc pentru micii peștișori!\nMulțumesc că mi-ai dat și ochișori,\nÎn limpezimea iubirii Tale voi pluti ușor\nȘi eu ca un mic peștișor!"
+      },
+      {
+        "kind": "verse",
+        "text": "Dumnezeu a făcut peștișori colorați\nÎn apă curată să trăiască\nȘi-oricine-i va privi cât sunt De scumpi și minunați,\nIubire și pace să trăiască."
+      },
+      {
+        "kind": "verse",
+        "text": "Cât de dragi îmi sunteți, peștișori aurii,\nAșa de tăcuți, dar plini de soare!\nMi-ar place să vă țin în mâna mea,\nSă vă mângâi,\nPromit să v-arunc 'napoi în mare!"
+      }
+    ]
+  },
+  "77": {
+    "reason": "heuristic missed breaks before capitalized clause-starts with no preceding punctuation, matching sibling verses' 6-line structure",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "A fost cândva un pui drăgălaș,\nCu frații lui în total vreo șapte pui.\nMama pleca și venea ciripind,\nMama hrănea puii toți pe rând.\nA fost cândva un pui drăgălaș,\nCu frații lui: în total vreo șapte pui."
+      },
+      {
+        "kind": "verse",
+        "text": "Și-au început, când au mai crescut,\nCu mama lor, prima lecție de zbor...\nUn, doi, trei, un, doi, trei, toți se-avântau,\nUn, doi, trei, un, doi, trei, toți zburau,\nȘi-au început, când au mai crescut,\nCu mama lor, prima lecție de zbor..."
+      },
+      {
+        "kind": "verse",
+        "text": "Și-i învăța, mereu le spunea\nSă fie-atenți, să nu fie repetenți.\nMulte neazuri se pot întâmpla\nCelui ce nu știe-a asculta,\nȘi-i învăța, mereu le spunea\nSă fie atenți, să nu fie repetenți!"
+      },
+      {
+        "kind": "verse",
+        "text": "Un vânător în miriștea lor\nVenea spre ei împreună cu Grivei!\nMama ascunse pe cei șapte frați:\n\"Până mă-ntorc, voi să nu mișcați!\"\nUn vânător în miriștea lor\nVenea spre ei împreună cu Grivei!"
+      },
+      {
+        "kind": "verse",
+        "text": "Dar s-a mișcat și chiar a zburat...\nSărmanul pui... ce-a fost oare-n capul lui?\nAripa lui de alice s-a frânt,\nIată-l cum tremură la pământ!\nVai, ce păcat, că toți au plecat,\nIar el plângând a rămas în frig și vânt..."
+      }
+    ]
+  },
+  "80": {
+    "reason": "heuristic missed break before capitalized 'Să strângem' starting a new clause with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "chorus",
+        "text": "E primăvară iar,\nA-a-a-a...\nPrin munți și prin câmpie E-atâta veselie,\nLa viață nouă florile răsar.\nE primăvară iar!"
+      },
+      {
+        "kind": "verse",
+        "text": "Zăpada s-a topit de-acum și frigul s-a dus,\nPrivim tot mai încrezători albastrul de sus...\nTe duci s-asculți privighetoarea-n luncă sau vrei\nSă strângem un buchet de ghiocei?"
+      },
+      {
+        "kind": "verse",
+        "text": "E vremea învierii primăvara pe câmp,\nE vremea rugăciunii către Domnul Cel Sfânt;\nCând florile speranței s-au deschis azi în piept.\nIubirea către ceruri mi-o îndrept."
+      },
+      {
+        "kind": "verse",
+        "text": "Se-aude prin păduri abia șoptit un Cuvânt:\nVa fi o altă primăvară pe-acest pământ!\nToți oamenii, și albi și negri, se vor iubi,\nȘi nici un rău în veac nu va mai fi!"
+      }
+    ]
+  },
+  "84": {
+    "reason": "heuristic missed break before capitalized clause-starts with no preceding punctuation",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Sus, prichindei!\nVă deșteptați!\nHaideți afară, natura s-o luați!\nSus, prichindei!\nVă veseliți Cele dintâi raze să le sorbiți!"
+      },
+      {
+        "kind": "verse",
+        "text": "Hai, un, doi, trei, pasul vioi,\nLa-nviorare fiți harnici cum sunteți voi!\nHai, un, doi, trei, aer curat\nE din belșug, gratis de respirat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Cu Dumnezeu în orice zi,\nDin zori și pân' la apus numai bucurii!\nMunți și câmpii, greieri, furnici\nN-au nici un rost fără de licurici!"
+      }
+    ]
+  },
+  "85": {
+    "reason": "no break at all was found between the two melodic lines",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Un, doi, trei, un, doi, trei, hai, nu mai sta\nUn, doi, trei, un, doi, trei, cântă așa:\nDomnului slavă,\nEl e creator!"
+      },
+      {
+        "kind": "verse",
+        "text": "Un, doi, trei, un, doi, trei, inima,\nUn, doi, trei, un, doi, trei, cântă așa:\nDomnu-i izvor de cerești bucurii."
+      },
+      {
+        "kind": "verse",
+        "text": "Un, doi, trei, un, doi, trei,\nAleluia!\nUn, doi, trei, un, doi, trei,\nLui Osana!\nDomnul e-n ceruri și jos pe pământ."
+      }
+    ]
+  }
+}

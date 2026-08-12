@@ -5,6 +5,7 @@ import type {
   ClockPosition,
   AudioWidgetPosition,
   TextContentType,
+  HymnRef,
   BibleContext,
 } from "../src/shared/types";
 import type { ParsedTTML } from "../src/shared/ttmlParser";
@@ -128,15 +129,26 @@ export class StateManager {
     this.settingsListeners.forEach((cb) => cb(settingsCopy));
   }
 
+  /**
+   * A hymn's karaoke or instrumental track belongs to the slides it came with,
+   * so anything that replaces those slides must silence it. Background audio is
+   * untouched — that one lives and dies with idle mode.
+   */
+  private stopHymnAudio() {
+    if (this.state.audio.role === "hymn" && this.state.audio.src) {
+      this.stopAudio();
+    }
+  }
+
   // Mode control
   setMode(mode: DisplayMode) {
-    const isSyncedHymn = !!this.state.text.syncedLyrics;
-    // Stop synced hymn audio when leaving text mode
-    if (isSyncedHymn && mode !== "text" && this.state.audio.src) {
+    const isHymnAudio = this.state.audio.role === "hymn";
+    // Stop hymn audio when leaving text mode
+    if (isHymnAudio && mode !== "text" && this.state.audio.src) {
       this.stopAudio();
     }
     // Stop standalone audio when leaving idle mode
-    if (!isSyncedHymn && mode !== "idle" && this.state.audio.playing) {
+    if (!isHymnAudio && mode !== "idle" && this.state.audio.playing) {
       this.stopAudio();
     }
     this.state.mode = mode;
@@ -144,10 +156,7 @@ export class StateManager {
   }
 
   goIdle() {
-    // Stop synced hymn audio when going idle
-    if (this.state.text.syncedLyrics && this.state.audio.src) {
-      this.stopAudio();
-    }
+    this.stopHymnAudio();
     this.state.text.syncedLyrics = undefined;
     this.cachedScreenGroups = [];
     this.state.mode = "idle";
@@ -160,12 +169,10 @@ export class StateManager {
   loadText(
     title: string,
     content: string,
-    contentType: TextContentType = "custom"
+    contentType: TextContentType = "custom",
+    hymnRef?: HymnRef
   ) {
-    // Stop synced hymn audio when switching to static text
-    if (this.state.text.syncedLyrics && this.state.audio.src) {
-      this.stopAudio();
-    }
+    this.stopHymnAudio();
     this.cachedScreenGroups = [];
 
     const slides = content
@@ -179,6 +186,7 @@ export class StateManager {
       currentSlide: 0,
       contentType,
       bibleContext: undefined,
+      hymnRef,
     };
     this.state.mode = "text";
     this.notifyStateChange();
@@ -188,7 +196,8 @@ export class StateManager {
     title: string,
     slides: string[],
     syncedLyrics: ParsedTTML,
-    audioPath: string
+    audioPath: string,
+    hymnRef?: HymnRef
   ) {
     this.state.text = {
       title,
@@ -196,6 +205,7 @@ export class StateManager {
       currentSlide: 0,
       contentType: "hymn",
       bibleContext: undefined,
+      hymnRef,
       syncedLyrics,
     };
     // Load audio without switching to idle mode
@@ -206,8 +216,43 @@ export class StateManager {
       currentTime: 0,
       duration: 0,
       volume: this.state.audio.volume,
+      role: "hymn",
     };
     this.cachedScreenGroups = buildScreenGroups(slides, syncedLyrics.lines.length);
+    this.state.mode = "text";
+    this.notifyStateChange();
+  }
+
+  /**
+   * Karaoke minus the word-sync: the instrumental plays while the operator
+   * advances slides by hand, exactly as they do for a silent hymn. Deliberately
+   * leaves `syncedLyrics` unset — that field is what makes slides follow the
+   * audio, and here the two are independent.
+   */
+  loadInstrumentalHymn(
+    title: string,
+    slides: string[],
+    audioPath: string,
+    hymnRef?: HymnRef
+  ) {
+    this.cachedScreenGroups = [];
+    this.state.text = {
+      title,
+      slides,
+      currentSlide: 0,
+      contentType: "hymn",
+      bibleContext: undefined,
+      hymnRef,
+    };
+    this.state.audio = {
+      src: audioPath,
+      name: title,
+      playing: true,
+      currentTime: 0,
+      duration: 0,
+      volume: this.state.audio.volume,
+      role: "hymn",
+    };
     this.state.mode = "text";
     this.notifyStateChange();
   }
@@ -218,6 +263,8 @@ export class StateManager {
     startIndex: number,
     bibleContext: BibleContext
   ) {
+    this.stopHymnAudio();
+    this.cachedScreenGroups = [];
     this.state.text = {
       title,
       slides,
@@ -285,6 +332,7 @@ export class StateManager {
 
   // Video mode
   loadVideo(src: string, videoId?: string) {
+    this.stopHymnAudio();
     this.state.video = {
       src,
       videoId: videoId ?? null,
@@ -355,6 +403,11 @@ export class StateManager {
     this.notifySettingsChange();
   }
 
+  setInstrumentals(enabled: boolean) {
+    this.settings.instrumentals = enabled;
+    this.notifySettingsChange();
+  }
+
   setKaraokeBannerDismissed(dismissed: boolean) {
     this.settings.karaokeBannerDismissed = dismissed;
     this.notifySettingsChange();
@@ -362,6 +415,11 @@ export class StateManager {
 
   setBibleTranslation(translationId: string) {
     this.settings.bibleTranslation = translationId;
+    this.notifySettingsChange();
+  }
+
+  setHymnal(slug: string) {
+    this.settings.hymnal = slug;
     this.notifySettingsChange();
   }
 
@@ -407,6 +465,7 @@ export class StateManager {
       currentTime: 0,
       duration: 0,
       volume: this.state.audio.volume,
+      role: "background",
     };
     // Ensure we're in idle mode for audio
     if (this.state.mode !== "idle") {
@@ -432,6 +491,7 @@ export class StateManager {
     this.state.audio.currentTime = 0;
     this.state.audio.src = null;
     this.state.audio.name = null;
+    this.state.audio.role = "background";
     this.notifyStateChange();
   }
 
@@ -451,15 +511,20 @@ export class StateManager {
   updateAudioTime(time: number, duration: number) {
     this.state.audio.currentTime = time;
     this.state.audio.duration = duration;
+    const finished = duration > 0 && time >= duration;
     if (this.state.text.syncedLyrics) {
       // Go idle when synced hymn audio finishes
-      if (duration > 0 && time >= duration) {
+      if (finished) {
         this.goIdle();
         return;
       }
       const groups = this.getScreenGroups();
       const screen = getActiveScreen(groups, this.state.text.syncedLyrics!.lines, this.state.audio.currentTime);
       this.state.text.currentSlide = screen;
+    } else if (finished && this.state.audio.role === "hymn") {
+      // An instrumental ending must not clear the screen the way karaoke does —
+      // the slides are the operator's to advance, so just stop the transport.
+      this.state.audio.playing = false;
     }
     this.notifyStateChange();
   }
@@ -472,6 +537,7 @@ export class StateManager {
 
   // Image mode
   loadImage(src: string, imageId: string) {
+    this.stopHymnAudio();
     this.clearAutoAdvanceTimer();
     this.state.image = {
       src,
@@ -498,6 +564,7 @@ export class StateManager {
       fit: "fill" | "fit";
     }
   ) {
+    this.stopHymnAudio();
     this.clearAutoAdvanceTimer();
     if (images.length === 0) return;
 

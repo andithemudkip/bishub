@@ -51,12 +51,23 @@ export interface BibleContext {
   verses: BibleVerse[];
 }
 
+/**
+ * Which hymn is on screen. Hymn numbers repeat across books, so the book slug
+ * is part of the identity — matching on the number alone (or on the rendered
+ * title) collides once more than one hymnal is loaded.
+ */
+export interface HymnRef {
+  book: string;
+  number: string;
+}
+
 export interface TextState {
   title: string;
   slides: string[];
   currentSlide: number;
   contentType: TextContentType;
   bibleContext?: BibleContext;
+  hymnRef?: HymnRef;
   syncedLyrics?: ParsedTTML;
 }
 
@@ -69,6 +80,15 @@ export interface VideoState {
   volume: number;
 }
 
+/**
+ * What the loaded audio belongs to. Background audio is the idle-mode music
+ * library; hymn audio is a karaoke or instrumental track tied to the slides on
+ * screen. The two have opposite lifetimes — background audio dies when you
+ * leave idle, hymn audio dies when you leave the hymn — so the mode switches
+ * key off this rather than guessing from `TextState.syncedLyrics`.
+ */
+export type AudioRole = "background" | "hymn";
+
 export interface AudioState {
   src: string | null;
   name: string | null;
@@ -76,6 +96,7 @@ export interface AudioState {
   currentTime: number;
   duration: number;
   volume: number;
+  role: AudioRole;
 }
 
 export interface ImageState {
@@ -123,20 +144,40 @@ export interface AppSettings {
   serverPort: number;
   language: Language;
   bibleTranslation: string;
+  /** Slug of the hymnal the remote is browsing. */
+  hymnal: string;
   volume: number;
   audioVolume: number;
   openOnStartup: boolean;
   syncedLyrics: boolean;
+  /**
+   * Play the instrumental behind manually-advanced slides for hymns that have
+   * an MP3 but no synced lyrics. Separate from `syncedLyrics` on purpose —
+   * turning off word-sync shouldn't take the accompaniment away with it.
+   */
+  instrumentals: boolean;
   karaokeBannerDismissed: boolean;
 }
 
-export type SyncedAvailability = "none" | "ttml-only" | "cached";
+/** Whether a hymn's instrumental MP3 exists remotely and whether it's on disk. */
+export type HymnAudioAvailability = "none" | "downloadable" | "cached";
+
+/**
+ * How to present a hymn. `auto` picks the richest form the assets and settings
+ * allow (karaoke → instrumental → static); the rest are the operator overriding
+ * that for one hymn, and so deliberately ignore the settings — `instrumental`
+ * still plays with the instrumentals setting off, and `static` must not be
+ * re-upgraded by `auto`'s fallback. An override that the assets can't satisfy
+ * degrades to static rather than failing.
+ */
+export type HymnPlaybackMode = "auto" | "synced" | "instrumental" | "static";
 
 export type MP3DownloadStatus =
   | "queued"
   | "downloading"
   | "complete"
-  | "error";
+  | "error"
+  | "cancelled";
 
 export interface MP3DownloadProgress {
   id: string; // hymn number, for updateProgressList compatibility
@@ -168,7 +209,8 @@ export type ServerToClientEvents = {
   monitors: (monitors: MonitorInfo[]) => void;
   devices: (devices: DeviceInfo[]) => void;
   connectedDeviceIds: (ids: string[]) => void;
-  hymns: (hymns: Hymn[]) => void;
+  hymns: (slug: string, hymns: Hymn[]) => void;
+  hymnSearchResults: (results: HymnSearchResult[]) => void;
   bibleBooks: (
     books: { id: string; name: string; chapterCount: number }[]
   ) => void;
@@ -215,6 +257,7 @@ export type ClientToServerEvents = {
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;
   setSyncedLyrics: (enabled: boolean) => void;
+  setInstrumentals: (enabled: boolean) => void;
   getMonitors: () => void;
   goIdle: () => void;
   // Devices
@@ -222,8 +265,14 @@ export type ClientToServerEvents = {
   renameDevice: (deviceId: string, name: string) => void;
   revokeDevice: (deviceId: string) => void;
   // Hymns
-  getHymns: () => void;
-  loadHymn: (hymnNumber: string, synced?: boolean) => void;
+  getHymns: (slug: string) => void;
+  loadHymn: (
+    slug: string,
+    hymnNumber: string,
+    playbackMode?: HymnPlaybackMode,
+  ) => void;
+  setHymnal: (slug: string) => void;
+  searchAllHymns: (query: string) => void;
   // Bible
   getBibleBooks: () => void;
   getBibleChapter: (bookId: string, chapter: number) => void;
@@ -336,6 +385,7 @@ export const DEFAULT_STATE: DisplayState = {
     currentTime: 0,
     duration: 0,
     volume: 1,
+    role: "background",
   },
   image: {
     src: null,
@@ -355,22 +405,45 @@ export const DEFAULT_SETTINGS: AppSettings = {
   serverPort: 3847,
   language: "ro",
   bibleTranslation: "ron-rccv",
+  hymnal: "imnuri-crestine",
   volume: 1,
   audioVolume: 1,
   openOnStartup: false,
   syncedLyrics: true,
+  instrumentals: true,
   karaokeBannerDismissed: false,
 };
 
 // Hymn types
+export type HymnBlockKind = "verse" | "chorus" | "bridge";
+
+export interface HymnBlock {
+  kind: HymnBlockKind;
+  text: string;
+}
+
+/** A hymn plus the book it came from, for cross-book search results. */
+export interface HymnSearchResult {
+  book: string;
+  bookName: string;
+  hymn: Hymn;
+}
+
 export interface Hymn {
   number: string;
   title: string;
-  chorus: string;
-  verses: string[];
-  /** Hymns that open on the chorus rather than on verse 1. */
-  chorusFirst?: boolean;
-  syncedAvailability?: SyncedAvailability;
+  /** Distinct stanzas, deduplicated — a chorus is stored once however often it recurs. */
+  blocks: HymnBlock[];
+  /**
+   * Indices into `blocks`, in performance order. Repeats are expressed by
+   * repeating an index, so irregular layouts (chorus first, bridges, a chorus
+   * that only follows some verses) are data rather than flags.
+   */
+  sequence: number[];
+  /** Only annotated for the book that has karaoke assets. */
+  audioAvailability?: HymnAudioAvailability;
+  /** Whether word-synced lyrics exist for this hymn (karaoke, not just instrumental). */
+  hasSyncedLyrics?: boolean;
 }
 
 // Bible types

@@ -125,7 +125,10 @@ export default function App() {
             textState={api.state.text}
             isTextMode={api.state.mode === "text"}
             hymns={api.hymns}
+            hymnsSlug={api.hymnsSlug}
             onLoadHymn={api.loadHymn}
+            onSelectHymnal={api.setHymnal}
+            onSearchAllHymns={api.searchAllHymns}
             settings={api.settings}
             audioState={api.state.audio}
             onPlayAudio={api.playAudio}
@@ -202,6 +205,7 @@ export default function App() {
             audioVolume={api.state.audio.volume}
             onSetLanguage={api.setLanguage}
             onSetBibleTranslation={api.setBibleTranslation}
+            onSetHymnal={api.setHymnal}
             bibleDownloadStatus={api.bibleDownloadStatus}
             downloadedTranslations={api.downloadedTranslations}
             onSetWallpaper={api.setIdleWallpaper}
@@ -211,6 +215,7 @@ export default function App() {
             onSetVolume={api.setVolume}
             onSetAudioVolume={api.setAudioVolume}
             onSetSyncedLyrics={api.setSyncedLyrics}
+            onSetInstrumentals={api.setInstrumentals}
             onSetDisplayMonitor={api.setDisplayMonitor}
             appVersion={appVersion}
             updateStatus={updateStatus}

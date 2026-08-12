@@ -7,12 +7,14 @@ import { initUpdater, checkForUpdates, quitAndInstall } from "./updater";
 import {
   loadHymns,
   searchHymns,
-  resolveHymnDisplay,
+  searchAllHymns,
   getBibleBooks,
   getBibleChapter,
   formatBibleChapterForDisplay,
   searchBibleVerses,
 } from "./dataLoader";
+import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
+import { isValidHymnalSlug } from "../src/shared/hymnals";
 import {
   downloadMP3,
   downloadAllMissingMP3s,
@@ -44,6 +46,7 @@ import type {
   DisplayMode,
   ClockPosition,
   AudioWidgetPosition,
+  HymnPlaybackMode,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 
@@ -218,6 +221,10 @@ function setupIPC() {
     stateManager.setSyncedLyrics(enabled);
   });
 
+  ipcMain.handle("set-instrumentals", (_event, enabled: boolean) => {
+    stateManager.setInstrumentals(enabled);
+  });
+
   ipcMain.handle("set-open-on-startup", (_event, openOnStartup: boolean) => {
     stateManager.setOpenOnStartup(openOnStartup);
 
@@ -286,29 +293,37 @@ function setupIPC() {
   );
 
   // Hymn handlers
-  ipcMain.handle("get-hymns", () => {
-    return loadHymns();
+  ipcMain.handle("get-hymns", (_event, slug?: string) => {
+    return loadHymns(resolveHymnalSlug(stateManager, slug));
   });
 
-  ipcMain.handle("search-hymns", (_event, query: string) => {
-    return searchHymns(query);
+  ipcMain.handle("search-hymns", (_event, query: string, slug?: string) => {
+    return searchHymns(query, resolveHymnalSlug(stateManager, slug));
   });
 
-  ipcMain.handle("load-hymn", (_event, hymnNumber: string, synced?: boolean) => {
-    const useSynced = synced ?? stateManager.getSettings().syncedLyrics;
-    const language = stateManager.getSettings().language;
-    const resolved = resolveHymnDisplay(hymnNumber, useSynced, language);
-    if (!resolved) return;
-    if (resolved.kind === "synced") {
-      stateManager.loadSyncedHymn(
-        resolved.title,
-        resolved.slides,
-        resolved.ttml,
-        resolved.audioPath,
+  ipcMain.handle(
+    "load-hymn",
+    (
+      _event,
+      slug: string,
+      hymnNumber: string,
+      playbackMode?: HymnPlaybackMode,
+    ) => {
+      presentHymn(
+        stateManager,
+        resolveHymnalSlug(stateManager, slug),
+        hymnNumber,
+        playbackMode,
       );
-    } else {
-      stateManager.loadText(resolved.title, resolved.slides.join("\n\n"), "hymn");
-    }
+    },
+  );
+
+  ipcMain.handle("search-all-hymns", (_event, query: string) => {
+    return searchAllHymns(query);
+  });
+
+  ipcMain.handle("set-hymnal", (_event, slug: string) => {
+    if (isValidHymnalSlug(slug)) stateManager.setHymnal(slug);
   });
 
   onMP3DownloadProgress((progress) => {
@@ -316,8 +331,8 @@ function setupIPC() {
   });
 
   onHymnAssetsUpdated(() => {
-    const language = stateManager.getSettings().language;
-    windowManager.broadcastToAll("hymns-update", loadHymns(language));
+    const slug = resolveHymnalSlug(stateManager);
+    windowManager.broadcastToAll("hymns-update", slug, loadHymns(slug));
     windowManager.broadcastToAll(
       "hymn-mp3-cache-stats",
       getMP3CacheStats(),
