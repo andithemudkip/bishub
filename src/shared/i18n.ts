@@ -88,6 +88,8 @@ export interface Translations {
     chapter: string;
     verse: string;
     tapToJump: string;
+    prevChapter: string;
+    nextChapter: string;
     currentlyDisplaying: string;
     currentlyLoaded: string;
     viewVerses: string;
@@ -479,6 +481,8 @@ const ro: Translations = {
     chapter: "Capitol",
     verse: "Versetul",
     tapToJump: "Atinge un verset pentru a sări la el",
+    prevChapter: "Capitolul anterior",
+    nextChapter: "Capitolul următor",
     currentlyDisplaying: "Se afișează",
     currentlyLoaded: "Versete încărcate",
     viewVerses: "Vezi versetele",
@@ -851,6 +855,8 @@ const en: Translations = {
     chapter: "Chapter",
     verse: "Verse",
     tapToJump: "Tap a verse to jump to it",
+    prevChapter: "Previous chapter",
+    nextChapter: "Next chapter",
     currentlyDisplaying: "Currently displaying",
     currentlyLoaded: "Currently loaded verses",
     viewVerses: "View verses",

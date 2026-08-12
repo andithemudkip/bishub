@@ -3,6 +3,7 @@ import type { BibleVerse, TextState } from "../../../shared/types";
 import { getTranslations } from "../../../shared/i18n";
 import type { Language } from "../../../shared/i18n";
 import { useShortcut } from "../../hooks/useShortcut";
+import { ChevronLeftIcon, ChevronRightIcon } from "../icons/ui";
 
 interface VerseListContext {
   bookId: string;
@@ -25,6 +26,10 @@ interface Props {
   ) => void;
   goToSlide: (index: number) => void;
   onBack: () => void;
+  /** Number of chapters in the current book — 0 when unknown */
+  chapterCount: number;
+  /** Browse to another chapter of the same book; does not touch the display */
+  onSelectChapter: (chapter: number) => void;
   language: Language;
 }
 
@@ -37,6 +42,8 @@ export default function VerseListView({
   loadBibleVerses,
   goToSlide,
   onBack,
+  chapterCount,
+  onSelectChapter,
   language,
 }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
@@ -131,15 +138,42 @@ export default function VerseListView({
               />
             </svg>
           </button>
-          <h1 className="text-xl font-semibold">
+          <h1 className="text-xl font-semibold truncate">
             {context.bookName} {context.chapter}
           </h1>
-          {isDisplayingThisChapter && !isIdle && (
-            <span className="ml-auto text-sm text-gray-400">
-              {t.bible.verse} {textState.currentSlide + 1} {t.hymns.of}{" "}
-              {textState.slides.length}
-            </span>
-          )}
+          <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+            {isDisplayingThisChapter && !isIdle && (
+              <span className="hidden sm:inline text-sm text-gray-400">
+                {t.bible.verse} {textState.currentSlide + 1} {t.hymns.of}{" "}
+                {textState.slides.length}
+              </span>
+            )}
+            {chapterCount > 1 && (
+              <div className="flex items-center bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => onSelectChapter(context.chapter - 1)}
+                  disabled={context.chapter <= 1}
+                  aria-label={t.bible.prevChapter}
+                  title={t.bible.prevChapter}
+                  className="px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                >
+                  <ChevronLeftIcon className="w-4 h-4" />
+                </button>
+                <span className="text-xs text-gray-400 px-2 whitespace-nowrap tabular-nums border-x border-gray-700/50">
+                  {context.chapter} / {chapterCount}
+                </span>
+                <button
+                  onClick={() => onSelectChapter(context.chapter + 1)}
+                  disabled={context.chapter >= chapterCount}
+                  aria-label={t.bible.nextChapter}
+                  title={t.bible.nextChapter}
+                  className="px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                >
+                  <ChevronRightIcon className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <p className="text-xs text-gray-500 mt-1 ml-8">{t.bible.tapToJump}</p>
       </div>

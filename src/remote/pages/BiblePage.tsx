@@ -1,4 +1,11 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { useFocusSearch } from "../hooks/useFocusSearch";
 import type {
   BibleVerse,
@@ -25,6 +32,14 @@ export interface SearchHistoryEntry {
   verse: number;
   query: string;
   timestamp: number;
+}
+
+// The page content lives inside a scrolling container owned by Layout
+function findScrollParent(el: HTMLElement | null): HTMLElement | null {
+  for (let node = el?.parentElement; node; node = node.parentElement) {
+    if (/auto|scroll/.test(getComputedStyle(node).overflowY)) return node;
+  }
+  return null;
 }
 
 const HISTORY_KEY = "bishub-bible-search-history";
@@ -101,6 +116,7 @@ export default function BiblePage({
   const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>(loadHistory);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchViewRef = useRef<HTMLDivElement>(null);
   const t = getTranslations(settings.language);
   const currentTranslation = getTranslationById(settings.bibleTranslation);
 
@@ -116,6 +132,14 @@ export default function BiblePage({
   useEffect(() => {
     getBibleBooks().then(setBooks);
   }, [settings.bibleTranslation]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The verse list leaves the scroll container wherever it auto-scrolled to;
+  // coming back to the search view must always land on the search bar
+  useLayoutEffect(() => {
+    if (view.type !== "search") return;
+    const scroller = findScrollParent(searchViewRef.current);
+    if (scroller) scroller.scrollTop = 0;
+  }, [view.type]);
 
   // F5 focus event
   useFocusSearch(searchInputRef, () => {
@@ -233,14 +257,19 @@ export default function BiblePage({
 
   // Verse list view
   if (view.type === "verseList") {
+    const ctx = view.context;
     return (
       <VerseListView
-        context={view.context}
+        context={ctx}
         textState={textState}
         isIdle={isIdle}
         loadBibleVerses={loadBibleVerses}
         goToSlide={goToSlide}
         onBack={() => setView({ type: "search" })}
+        chapterCount={books.find((b) => b.id === ctx.bookId)?.chapterCount ?? 0}
+        onSelectChapter={(chapter) =>
+          navigateToVerseList(ctx.bookId, ctx.bookName, chapter, 1)
+        }
         language={settings.language}
       />
     );
@@ -248,7 +277,7 @@ export default function BiblePage({
 
   // Search view
   return (
-    <div className="space-y-4 max-w-2xl mx-auto w-full">
+    <div ref={searchViewRef} className="space-y-4 max-w-2xl mx-auto w-full">
       {/* Smart search bar — sticky */}
       <div className="sticky -top-4 bg-gray-900 pt-4 pb-3 -mx-4 px-4 z-10">
         {currentTranslation && (
