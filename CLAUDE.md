@@ -29,6 +29,21 @@ When adding an action, check the sibling hook (`useVideoLibrary`, `useAudioLibra
 
 `LivePreview` renders a scaled-down replica of the display at a virtual 1920×1080, then CSS-scales it. Any change to layout or font sizing in `src/display/modes/TextMode.tsx` must be mirrored in `ScaledSlide` inside `src/remote/components/preview/LivePreview.tsx`, or the preview will drift from the real display.
 
+### Mirror karaoke timing: `applyLyricsTuning` ↔ `stage2.py`
+
+Timing corrections are implemented twice. `applyLyricsTuning` in `src/shared/ttmlParser.ts` applies them live as the operator nudges; `_word_deltas` / `to_ttml` in `scripts/score-extract/stage2.py` bake the same corrections into generated TTML. **A drift between them is silent** — a correction sounds right while tuning and wrong once regenerated. Change one, change the other, then run:
+
+```bash
+node scripts/score-extract/check-tuning-parity.mjs <score.json> <recording.mp3>
+```
+
+Two rules both sides must keep:
+
+- **A word's `end` moves with the *next* word's delta, not its own.** The display animates `begin → end` and adjacent words adjoin (one word's end is the next word's begin), so shifting a word's own end leaves the previous word running past the moment the next one starts, or freezes it in a gap.
+- Keyframes are `{ fromWord, delta }` indexed over words in performance order, sorted, and **cumulative** from their anchor onwards.
+
+A hand correction is applied **exactly**, never re-fitted onto nearby onsets — the operator set it by ear, and re-snapping would both second-guess them and break parity with what they heard.
+
 ### Do NOT mutate cached data objects
 
 Hymns (`assets/hymnals/{slug}.json`) and Bible data (`assets/bible.xml`, USFX format) are parsed once and cached in memory. Treat cached objects as immutable — clone before modifying.
@@ -96,6 +111,10 @@ Styling conventions:
 - `src/shared/i18n.ts` — translations (always route UI text through this)
 - `src/shared/utils.ts` — shared utilities (check before duplicating)
 - `src/display/modes/TextMode.tsx` ↔ `src/remote/components/preview/LivePreview.tsx` — must stay in sync
+- `src/shared/ttmlParser.ts` ↔ `scripts/score-extract/stage2.py` — karaoke timing, must stay in sync (see invariant)
+- `electron/lyricsTuning.ts` — persists timing corrections to `userData/lyric-tuning.json`
+- `src/remote/components/LyricsTuningRow.tsx` — the tuning controls; `Settings → Timing tuning` reveals them
+- `scripts/score-extract/` — the karaoke TTML generator; its README is the runbook
 
 Everything else is discoverable via Grep / Glob.
 
@@ -116,6 +135,7 @@ npm run release:mac
 npm run release:win
 npm run build:preload   # Rebundle preload.ts manually
 npm run build:ttml      # Rebundle TTML hymns manually
+npm run pull-lyric-tuning  # Fold in-app timing corrections into the generator's overrides
 ```
 
 No test scripts exist — verify work by running `npm run build`, which chains `typecheck → lint → bundle`. Either step failing aborts the build, so `build` green ≈ code is shippable. For faster iteration during a change, run `npm run typecheck` and `npm run lint` directly.

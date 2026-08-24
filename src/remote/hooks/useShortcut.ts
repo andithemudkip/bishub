@@ -10,6 +10,10 @@ interface ShortcutOptions {
   preventDefault?: boolean;
   /** Require Cmd (Mac) / Ctrl (other) modifier */
   mod?: boolean;
+  /** Require Shift. Defaults to requiring Shift *not* be held, so a
+   *  Shift-modified press falls through to whichever shortcut declares it
+   *  rather than triggering the unmodified one as well. */
+  shift?: boolean;
   /** Only active when true (default: true) */
   enabled?: boolean;
 }
@@ -32,6 +36,7 @@ export function useShortcut(
     ignoreInputs = true,
     preventDefault = false,
     mod = false,
+    shift = false,
     enabled = true,
   } = options;
 
@@ -39,9 +44,14 @@ export function useShortcut(
   const handlerRef = useRef(handler);
   handlerRef.current = handler;
 
-  const keys = Array.isArray(shortcutOrKeys)
-    ? shortcutOrKeys
-    : SHORTCUTS[shortcutOrKeys].keys;
+  const definition = Array.isArray(shortcutOrKeys)
+    ? null
+    : SHORTCUTS[shortcutOrKeys];
+  const keys = definition ? definition.keys : (shortcutOrKeys as string[]);
+  // A shortcut that declares Shift in the registry shouldn't have to repeat it
+  // at every call site.
+  const needsShift =
+    shift || (definition && "shift" in definition ? !!definition.shift : false);
 
   // Stable key set string for dependency
   const keySet = keys.join(",");
@@ -62,6 +72,7 @@ export function useShortcut(
       }
 
       if (!keySetParsed.has(e.key)) return;
+      if (e.shiftKey !== needsShift) return;
 
       if (mod) {
         const modPressed = navigator.platform.includes("Mac")
@@ -76,5 +87,5 @@ export function useShortcut(
 
     window.addEventListener("keydown", listener, capture);
     return () => window.removeEventListener("keydown", listener, capture);
-  }, [keySet, capture, ignoreInputs, preventDefault, mod, enabled]);
+  }, [keySet, capture, ignoreInputs, preventDefault, mod, needsShift, enabled]);
 }

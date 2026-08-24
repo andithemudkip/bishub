@@ -66,6 +66,15 @@ export interface Translations {
     defaultToggleHint: string;
     instrumentalsToggleLabel: string;
     instrumentalsToggleHint: string;
+    tuningToggleLabel: string;
+    tuningToggleHint: string;
+    tuningTitle: string;
+    tuningOffset: string;
+    tuningFromHere: string;
+    tuningFromHereFirstScreen: string;
+    tuningReset: string;
+    tuningSave: string;
+    tuningSaved: string;
     cacheStats: string; // {count}, {total}, {size}
     downloadAll: string;
     downloadAllConfirm: string; // {size}
@@ -131,6 +140,8 @@ export interface Translations {
     keyboardShortcuts: string;
     nextSlide: string;
     previousSlide: string;
+    scrubBack: string;
+    scrubForward: string;
     goToIdle: string;
     volume: string;
     securityKey: string;
@@ -469,6 +480,17 @@ const ro: Translations = {
     instrumentalsToggleLabel: "Instrumental",
     instrumentalsToggleHint:
       "Imnurile fără lirică sincronizată pornesc automat instrumentalul.",
+    tuningToggleLabel: "Ajustare sincronizare",
+    tuningToggleHint:
+      "Arată comenzi în bara de redare pentru a corecta momentul liricii în timp real.",
+    tuningTitle: "Sincronizare",
+    tuningOffset: "Decalaj",
+    tuningFromHere: "De aici înainte",
+    tuningFromHereFirstScreen:
+      "Pe primul ecran ar fi același lucru cu decalajul. Disponibil de la ecranul următor.",
+    tuningReset: "Resetează",
+    tuningSave: "Salvează corecția",
+    tuningSaved: "Salvat",
     cacheStats: "{count} din {total} instrumentale descărcate · {size}",
     downloadAll: "Descarcă tot",
     downloadAllConfirm: "Descarcă {size}? Asta poate dura câteva minute.",
@@ -531,6 +553,8 @@ const ro: Translations = {
     keyboardShortcuts: "Scurtături tastatură",
     nextSlide: "Slide următor",
     previousSlide: "Slide anterior",
+    scrubBack: "Derulează înapoi 0,1s",
+    scrubForward: "Derulează înainte 0,1s",
     goToIdle: "Întrerupe afișarea",
     volume: "Volum",
     focusSearch: "Focalizează câmpul de căutare",
@@ -850,6 +874,17 @@ const en: Translations = {
     instrumentalsToggleLabel: "Instrumental",
     instrumentalsToggleHint:
       "Hymns without synced lyrics play the instrumental while you advance the slides by hand, as usual.",
+    tuningToggleLabel: "Timing tuning",
+    tuningToggleHint:
+      "Show controls in the playback bar for correcting lyric timing as it plays.",
+    tuningTitle: "Timing",
+    tuningOffset: "Offset",
+    tuningFromHere: "From here on",
+    tuningFromHereFirstScreen:
+      "On the first screen this would be the same as the offset. Available from the next screen on.",
+    tuningReset: "Reset",
+    tuningSave: "Save correction",
+    tuningSaved: "Saved",
     cacheStats: "{count} of {total} instrumentals downloaded · {size}",
     downloadAll: "Download all",
     downloadAllConfirm:
@@ -914,6 +949,8 @@ const en: Translations = {
     keyboardShortcuts: "Keyboard Shortcuts",
     nextSlide: "Next slide",
     previousSlide: "Previous slide",
+    scrubBack: "Nudge back 0.1s",
+    scrubForward: "Nudge forward 0.1s",
     goToIdle: "Go to idle",
     volume: "Volume",
     focusSearch: "Focus search input",

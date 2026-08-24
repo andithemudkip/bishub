@@ -75,6 +75,68 @@ export function parseTTML(xml: string): ParsedTTML {
 
 // Determine which screen is active based on currentTime.
 // Advances to next screen when the last word on the current screen ends.
+/**
+ * Shift word times by the operator's live corrections.
+ *
+ * Applied per word rather than to the playhead, because a correction can start
+ * anywhere: keyframes accumulate from their `fromWord` onwards, so a hymn that
+ * drifts halfway through a line can be fixed at exactly that word. Line bounds
+ * are recomputed from the shifted words, since a keyframe inside a line moves
+ * its end but not its beginning.
+ */
+export function applyLyricsTuning(
+  lines: TTMLLine[],
+  tuning?: { offset: number; breakpoints: { fromWord: number; delta: number }[] }
+): TTMLLine[] {
+  if (!tuning) return lines;
+  const { offset, breakpoints } = tuning;
+  if (!offset && breakpoints.length === 0) return lines;
+
+  // Cumulative shift for each word, in performance order.
+  const ordered = [...breakpoints].sort((a, b) => a.fromWord - b.fromWord);
+  const total = lines.reduce((n, line) => n + line.words.length, 0);
+  const deltas = new Array<number>(total);
+  let cursor = 0;
+  let running = offset;
+  for (let i = 0; i < total; i++) {
+    while (cursor < ordered.length && ordered[cursor].fromWord <= i) {
+      running += ordered[cursor].delta;
+      cursor++;
+    }
+    deltas[i] = running;
+  }
+
+  // A word's *end* moves with the word that follows it, not with itself. What
+  // the display animates is begin→end, and in generated timings one word's end
+  // is the next word's begin — so shifting a word's own end would leave the
+  // previous word still running past the moment the next one starts, or open a
+  // gap. Dragging the boundary keeps them adjoining, which is what makes
+  // "this word runs on too long" fixable by moving the next word earlier.
+  let index = 0;
+  return lines.map((line) => {
+    const words = line.words.map((word) => {
+      const beginDelta = deltas[index];
+      const endDelta = index + 1 < total ? deltas[index + 1] : beginDelta;
+      index++;
+      if (!beginDelta && !endDelta) return word;
+      const begin = word.begin + beginDelta;
+      return {
+        text: word.text,
+        begin,
+        // Never let a boundary invert: a keyframe can pull the next word back
+        // past this one's start, which would otherwise give a negative span and
+        // a nonsensical progress fraction.
+        end: Math.max(word.end + endDelta, begin),
+      };
+    });
+    return {
+      words,
+      begin: words.length ? words[0].begin : line.begin,
+      end: words.length ? words[words.length - 1].end : line.end,
+    };
+  });
+}
+
 export function getActiveScreen(
   groups: number[][],
   lines: TTMLLine[],

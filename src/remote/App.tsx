@@ -138,6 +138,8 @@ export default function App() {
             mp3CacheStats={api.mp3CacheStats}
             onDownloadHymnMP3={api.downloadHymnMP3}
             onDismissKaraokeBanner={() => api.setKaraokeBannerDismissed(true)}
+            onSetLyricsTuning={api.setLyricsTuning}
+            onSaveLyricsTuning={api.saveLyricsTuning}
             onOpenKaraokeSettings={() => navigateTo("settings")}
           />
         );
@@ -215,6 +217,7 @@ export default function App() {
             onSetVolume={api.setVolume}
             onSetAudioVolume={api.setAudioVolume}
             onSetSyncedLyrics={api.setSyncedLyrics}
+            onSetKaraokeTuning={api.setKaraokeTuning}
             onSetInstrumentals={api.setInstrumentals}
             onSetDisplayMonitor={api.setDisplayMonitor}
             appVersion={appVersion}

@@ -47,6 +47,7 @@ import type {
   ClockPosition,
   AudioWidgetPosition,
   HymnPlaybackMode,
+  LyricsTuning,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 
@@ -223,6 +224,18 @@ function setupIPC() {
 
   ipcMain.handle("set-instrumentals", (_event, enabled: boolean) => {
     stateManager.setInstrumentals(enabled);
+  });
+
+  ipcMain.handle("set-karaoke-tuning", (_event, enabled: boolean) => {
+    stateManager.setKaraokeTuning(enabled);
+  });
+
+  ipcMain.handle("set-lyrics-tuning", (_event, tuning: LyricsTuning) => {
+    stateManager.setLyricsTuning(tuning);
+  });
+
+  ipcMain.handle("save-lyrics-tuning", () => {
+    stateManager.saveLyricsTuning();
   });
 
   ipcMain.handle("set-open-on-startup", (_event, openOnStartup: boolean) => {

@@ -14,6 +14,7 @@ import type { WindowManager } from "./windowManager";
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
+  LyricsTuning,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 import {
@@ -647,6 +648,18 @@ export function createServer(
 
     socket.on("setLanguage", (language: Language) => {
       stateManager.setLanguage(language);
+    });
+
+    socket.on("setKaraokeTuning", (enabled: boolean) => {
+      stateManager.setKaraokeTuning(enabled);
+    });
+
+    socket.on("setLyricsTuning", (tuning: LyricsTuning) => {
+      stateManager.setLyricsTuning(tuning);
+    });
+
+    socket.on("saveLyricsTuning", () => {
+      stateManager.saveLyricsTuning();
     });
 
     socket.on("setSyncedLyrics", (enabled: boolean) => {

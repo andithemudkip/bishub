@@ -1,0 +1,7 @@
+{
+  "_readme": "Hand corrections, applied after the automatic fit and never second-guessed by it. `shift` moves the result N seconds later (negative = earlier) and is usually the easier call by ear; `offset` states where the first sung word begins. Re-run batch2.py to apply.",
+  "004": {
+    "shift": 2.77,
+    "note": "reported early. The three candidates a bar apart score 6.662 / 6.576 / 6.667; the fit picks the middle one, this moves it to the highest-scoring position one bar later."
+  }
+}

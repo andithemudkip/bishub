@@ -7,9 +7,15 @@ import type {
   TextContentType,
   HymnRef,
   BibleContext,
+  LyricsTuning,
 } from "../src/shared/types";
 import type { ParsedTTML } from "../src/shared/ttmlParser";
-import { buildScreenGroups, getActiveScreen } from "../src/shared/ttmlParser";
+import {
+  applyLyricsTuning,
+  buildScreenGroups,
+  getActiveScreen,
+} from "../src/shared/ttmlParser";
+import { loadSavedTuning, saveTuning } from "./lyricsTuning";
 import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
 import Store from "electron-store";
@@ -158,6 +164,7 @@ export class StateManager {
   goIdle() {
     this.stopHymnAudio();
     this.state.text.syncedLyrics = undefined;
+    this.state.text.lyricsTuning = undefined;
     this.cachedScreenGroups = [];
     this.state.mode = "idle";
     this.state.video.playing = false;
@@ -207,6 +214,7 @@ export class StateManager {
       bibleContext: undefined,
       hymnRef,
       syncedLyrics,
+      lyricsTuning: loadSavedTuning(hymnRef),
     };
     // Load audio without switching to idle mode
     this.state.audio = {
@@ -280,9 +288,21 @@ export class StateManager {
     return this.cachedScreenGroups;
   }
 
+  /**
+   * Lyric lines with the operator's live timing corrections applied. Slide
+   * advancement here has to read the same times the display highlights by, or
+   * a tuned hymn would change screens off the words it is showing.
+   */
+  private tunedLines() {
+    return applyLyricsTuning(
+      this.state.text.syncedLyrics!.lines,
+      this.state.text.lyricsTuning
+    );
+  }
+
   // Get the time at the end of a screen's last word
   private getScreenEndTime(groups: number[][], screenIndex: number) {
-    const lines = this.state.text.syncedLyrics!.lines;
+    const lines = this.tunedLines();
     const lastLineIdx = groups[screenIndex][groups[screenIndex].length - 1];
     const lastLine = lines[lastLineIdx];
     return lastLine.words[lastLine.words.length - 1].end;
@@ -291,7 +311,7 @@ export class StateManager {
   nextSlide() {
     if (this.state.text.syncedLyrics) {
       const groups = this.getScreenGroups();
-      const current = getActiveScreen(groups, this.state.text.syncedLyrics!.lines, this.state.audio.currentTime);
+      const current = getActiveScreen(groups, this.tunedLines(), this.state.audio.currentTime);
       if (current < groups.length - 1) {
         // Seek to end of current screen's last word — lets people hear the bridge
         this.seekAudio(this.getScreenEndTime(groups, current));
@@ -307,7 +327,7 @@ export class StateManager {
   prevSlide() {
     if (this.state.text.syncedLyrics) {
       const groups = this.getScreenGroups();
-      const current = getActiveScreen(groups, this.state.text.syncedLyrics!.lines, this.state.audio.currentTime);
+      const current = getActiveScreen(groups, this.tunedLines(), this.state.audio.currentTime);
       if (current > 0) {
         // Seek to end of the screen before the previous one, so prev screen plays from its intro
         const target = current - 1;
@@ -406,6 +426,28 @@ export class StateManager {
   setInstrumentals(enabled: boolean) {
     this.settings.instrumentals = enabled;
     this.notifySettingsChange();
+  }
+
+  setKaraokeTuning(enabled: boolean) {
+    this.settings.karaokeTuning = enabled;
+    this.notifySettingsChange();
+  }
+
+  /**
+   * Live timing correction for the hymn on screen. Applied at render time, so
+   * the effect is audible immediately rather than after regenerating the TTML.
+   */
+  setLyricsTuning(tuning: LyricsTuning) {
+    if (!this.state.text.syncedLyrics) return;
+    this.state.text.lyricsTuning = tuning;
+    this.notifyStateChange();
+  }
+
+  /** Persist the current correction so it survives reload and can be exported. */
+  saveLyricsTuning() {
+    const { hymnRef, lyricsTuning } = this.state.text;
+    if (!hymnRef || !lyricsTuning) return;
+    saveTuning(hymnRef, lyricsTuning);
   }
 
   setKaraokeBannerDismissed(dismissed: boolean) {

@@ -9,9 +9,13 @@ import type {
   MP3DownloadProgress,
   MP3CacheStats,
   HymnPlaybackMode,
+  LyricsTuning,
 } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 import { normalizeForSearch, formatDuration, summarizeHymn } from "../../shared/utils";
+import { applyLyricsTuning } from "../../shared/ttmlParser";
+import { useShortcut } from "../hooks/useShortcut";
+import LyricsTuningRow from "../components/LyricsTuningRow";
 import {
   CloseIcon,
   PlayIcon,
@@ -52,7 +56,12 @@ interface Props {
   onDownloadHymnMP3: (hymnNumber: string) => void;
   onDismissKaraokeBanner: () => void;
   onOpenKaraokeSettings: () => void;
+  onSetLyricsTuning: (tuning: LyricsTuning) => void;
+  onSaveLyricsTuning: () => void;
 }
+
+/** Seconds per Shift+Arrow press — fine enough to land on a single word. */
+const SCRUB_STEP = 0.1;
 
 export default function HymnsPage({
   textState,
@@ -72,6 +81,8 @@ export default function HymnsPage({
   onDownloadHymnMP3,
   onDismissKaraokeBanner,
   onOpenKaraokeSettings,
+  onSetLyricsTuning,
+  onSaveLyricsTuning,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
@@ -215,6 +226,107 @@ export default function HymnsPage({
     textState.hymnRef?.number === hymn.number;
 
   const isSynced = !!textState.syncedLyrics;
+
+  // Timing tuning. `saved` resets on any further change so the button always
+  // reflects whether what is on screen has been written down.
+  // Memoised: the fallback literal would otherwise be a fresh object each
+  // render, invalidating everything derived from it on every audio tick.
+  const tuning = useMemo(
+    () => textState.lyricsTuning ?? { offset: 0, breakpoints: [] },
+    [textState.lyricsTuning],
+  );
+  const [tuningSaved, setTuningSaved] = useState(false);
+  useEffect(() => {
+    setTuningSaved(false);
+  }, [tuning.offset, tuning.breakpoints.length, textState.hymnRef?.number]);
+
+  // A keyframe anchors to the word playing right now, so "from here on" means
+  // the moment being heard rather than the screen it happens to sit on. Read
+  // off the *tuned* times, since that is what is actually sounding.
+  const tunedLines = useMemo(
+    () =>
+      textState.syncedLyrics
+        ? applyLyricsTuning(textState.syncedLyrics.lines, tuning)
+        : [],
+    [textState.syncedLyrics, tuning],
+  );
+
+  const { currentWordIndex, currentWordText } = useMemo(() => {
+    let index = 0;
+    let text = "";
+    let seen = 0;
+    for (const line of tunedLines) {
+      for (const word of line.words) {
+        if (word.begin <= audioState.currentTime) {
+          index = seen;
+          text = word.text;
+        }
+        seen++;
+      }
+    }
+    return { currentWordIndex: index, currentWordText: text };
+  }, [tunedLines, audioState.currentTime]);
+
+  // What the playhead is actually shifted by: the whole-hymn offset plus every
+  // keyframe at or before this word. Diverges from `offset` once keyframes
+  // exist, and is the number the operator is hearing.
+  const effectiveOffset = useMemo(
+    () =>
+      tuning.breakpoints.reduce(
+        (total, b) => (b.fromWord <= currentWordIndex ? total + b.delta : total),
+        tuning.offset,
+      ),
+    [tuning.offset, tuning.breakpoints, currentWordIndex],
+  );
+
+  const nudgeTuning = (delta: number) =>
+    onSetLyricsTuning({
+      ...tuning,
+      offset: Math.round((tuning.offset + delta) * 100) / 100,
+    });
+
+  // Fine scrubbing, for the pause-then-tune workflow: land the playhead on the
+  // exact word a keyframe should anchor to. Live whenever a hymn track is
+  // loaded — Shift+Arrow was unbound, and the plain arrows still change slide.
+  const scrub = useCallback(
+    (delta: number) => {
+      const next = Math.min(
+        Math.max(audioState.currentTime + delta, 0),
+        audioState.duration || Number.MAX_SAFE_INTEGER,
+      );
+      onSeekAudio(next);
+    },
+    [audioState.currentTime, audioState.duration, onSeekAudio],
+  );
+  const canScrub = audioState.role === "hymn" && !!audioState.src;
+  useShortcut("scrubBack", () => scrub(-SCRUB_STEP), {
+    enabled: canScrub,
+    preventDefault: true,
+  });
+  useShortcut("scrubForward", () => scrub(SCRUB_STEP), {
+    enabled: canScrub,
+    preventDefault: true,
+  });
+
+  const splitTuning = (delta: number) => {
+    const existing = tuning.breakpoints.some(
+      (b) => b.fromWord === currentWordIndex,
+    );
+    const breakpoints = existing
+      ? tuning.breakpoints
+          .map((b) =>
+            b.fromWord === currentWordIndex
+              ? { ...b, delta: Math.round((b.delta + delta) * 100) / 100 }
+              : b,
+          )
+          .filter((b) => b.delta !== 0)
+      : [
+          ...tuning.breakpoints,
+          { fromWord: currentWordIndex, delta },
+        ].sort((a, b) => a.fromWord - b.fromWord);
+    onSetLyricsTuning({ ...tuning, breakpoints });
+  };
+
   // Karaoke and instrumental both hang a track off the hymn; only karaoke ties
   // the slides to it, so the transport bar is shared but the slide counter and
   // the seek-on-next behaviour are not.
@@ -449,17 +561,71 @@ export default function HymnsPage({
               {formatDuration(audioState.currentTime)}
             </span>
 
-            <button
-              onClick={audioState.playing ? onPauseAudio : onPlayAudio}
-              className="px-4 py-1.5 rounded-lg text-sm font-medium bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-600/40"
-            >
-              {audioState.playing ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Fine scrub, mirroring Shift+Arrow. Present as buttons too so a
+                  phone remote — which has no Shift key — can still land the
+                  playhead on an exact word. */}
+              {settings.karaokeTuning && (
+                <button
+                  onClick={() => scrub(-SCRUB_STEP)}
+                  title={t.settings.scrubBack}
+                  aria-label={t.settings.scrubBack}
+                  className="px-2 py-1.5 rounded-lg bg-gray-600/20 text-gray-400 hover:bg-gray-600/30 border border-gray-600/40 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
+                >
+                  <ChevronLeftIcon className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                onClick={audioState.playing ? onPauseAudio : onPlayAudio}
+                className="px-4 py-1.5 rounded-lg text-sm font-medium bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-600/40"
+              >
+                {audioState.playing ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
+              </button>
+              {settings.karaokeTuning && (
+                <button
+                  onClick={() => scrub(SCRUB_STEP)}
+                  title={t.settings.scrubForward}
+                  aria-label={t.settings.scrubForward}
+                  className="px-2 py-1.5 rounded-lg bg-gray-600/20 text-gray-400 hover:bg-gray-600/30 border border-gray-600/40 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
+                >
+                  <ChevronRightIcon className="w-4 h-4" />
+                </button>
+              )}
+            </div>
 
             <span className="text-xs text-gray-400">
               {formatDuration(audioState.duration)}
             </span>
           </div>
+
+          {settings.karaokeTuning && isSynced && (
+            <LyricsTuningRow
+              offset={tuning.offset}
+              effectiveOffset={effectiveOffset}
+              anchorWord={currentWordText}
+              breakpointCount={tuning.breakpoints.length}
+              canSplit={currentWordIndex > 0}
+              saved={tuningSaved}
+              onNudge={nudgeTuning}
+              onSplit={splitTuning}
+              onReset={() =>
+                onSetLyricsTuning({ offset: 0, breakpoints: [] })
+              }
+              onSave={() => {
+                onSaveLyricsTuning();
+                setTuningSaved(true);
+              }}
+              labels={{
+                title: t.karaoke.tuningTitle,
+                offset: t.karaoke.tuningOffset,
+                fromHere: t.karaoke.tuningFromHere,
+                fromHereFirstScreen: t.karaoke.tuningFromHereFirstScreen,
+                reset: t.karaoke.tuningReset,
+                save: t.karaoke.tuningSave,
+                saved: t.karaoke.tuningSaved,
+              }}
+            />
+          )}
         </StatusBanner>
       )}
 

@@ -8,6 +8,9 @@ export interface ShortcutDefinition {
   display: string[];
   /** Requires Cmd (Mac) / Ctrl (other) modifier */
   mod?: boolean;
+  /** Requires Shift. Shortcuts without it only match when Shift is *not* held,
+   *  so Shift+Arrow can scrub without also advancing the slide. */
+  shift?: boolean;
   label: (t: Translations) => string;
 }
 
@@ -21,6 +24,18 @@ export const SHORTCUTS = {
     keys: ["ArrowLeft", "ArrowUp", "PageUp"],
     display: ["←", "↑", "PgUp"],
     label: (t: Translations) => t.settings.previousSlide,
+  },
+  scrubBack: {
+    keys: ["ArrowLeft"],
+    display: ["←"],
+    shift: true,
+    label: (t: Translations) => t.settings.scrubBack,
+  },
+  scrubForward: {
+    keys: ["ArrowRight"],
+    display: ["→"],
+    shift: true,
+    label: (t: Translations) => t.settings.scrubForward,
   },
   goIdle: {
     keys: ["Escape"],

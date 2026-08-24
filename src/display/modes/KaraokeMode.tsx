@@ -1,7 +1,11 @@
 import { useMemo, useRef, useLayoutEffect, useState, useEffect } from "react";
 import type { TextState, AudioState } from "../../shared/types";
 import { findOptimalFontSize } from "../../shared/utils";
-import { buildScreenGroups, getActiveScreen } from "../../shared/ttmlParser";
+import {
+  applyLyricsTuning,
+  buildScreenGroups,
+  getActiveScreen,
+} from "../../shared/ttmlParser";
 
 interface Props {
   config: TextState;
@@ -44,9 +48,12 @@ function useInterpolatedTime(audioState: AudioState): number {
 
 export default function KaraokeMode({ config, audioState }: Props) {
   const { syncedLyrics } = config;
+  // Timing corrections shift the line and word times themselves rather than the
+  // playhead, because a correction can differ per line -- a hymn whose first
+  // verse is late but whose later verses are right needs exactly that.
   const lines = useMemo(
-    () => syncedLyrics?.lines ?? [],
-    [syncedLyrics?.lines]
+    () => applyLyricsTuning(syncedLyrics?.lines ?? [], config.lyricsTuning),
+    [syncedLyrics?.lines, config.lyricsTuning]
   );
   const currentTime = useInterpolatedTime(audioState);
 

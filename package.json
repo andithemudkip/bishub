@@ -9,6 +9,7 @@
     "build:preload": "esbuild electron/preload.ts --bundle --platform=node --outfile=dist-electron/preload.js --external:electron --format=cjs",
     "build:ttml": "node scripts/build-ttml-bundle.js",
     "rename-mp3s": "node scripts/rename-mp3s.js",
+    "pull-lyric-tuning": "node scripts/pull-lyric-tuning.js",
     "upload-assets": "node scripts/upload-assets.js",
     "dev": "npm run build:ttml && npm run build:preload && vite",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p electron/tsconfig.json --noEmit",

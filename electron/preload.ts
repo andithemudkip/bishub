@@ -18,6 +18,7 @@ import type {
   BinaryInfo,
   DeviceInfo,
   HymnPlaybackMode,
+  LyricsTuning,
 } from "../src/shared/types";
 import type {
   VideoItem,
@@ -111,6 +112,12 @@ const electronAPI = {
     ipcRenderer.invoke("set-synced-lyrics", enabled),
   setInstrumentals: (enabled: boolean): Promise<void> =>
     ipcRenderer.invoke("set-instrumentals", enabled),
+  setKaraokeTuning: (enabled: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-karaoke-tuning", enabled),
+  setLyricsTuning: (tuning: LyricsTuning): Promise<void> =>
+    ipcRenderer.invoke("set-lyrics-tuning", tuning),
+  saveLyricsTuning: (): Promise<void> =>
+    ipcRenderer.invoke("save-lyrics-tuning"),
   setOpenOnStartup: (openOnStartup: boolean): Promise<void> =>
     ipcRenderer.invoke("set-open-on-startup", openOnStartup),
   getOpenOnStartup: (): Promise<boolean> =>

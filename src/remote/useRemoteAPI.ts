@@ -16,6 +16,7 @@ import type {
   MP3CacheStats,
   DeviceInfo,
   HymnPlaybackMode,
+  LyricsTuning,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
@@ -56,6 +57,9 @@ interface RemoteAPI {
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;
   setSyncedLyrics: (enabled: boolean) => void;
+  setKaraokeTuning: (enabled: boolean) => void;
+  setLyricsTuning: (tuning: LyricsTuning) => void;
+  saveLyricsTuning: () => void;
   setInstrumentals: (enabled: boolean) => void;
   goIdle: () => void;
   // Hymns
@@ -474,6 +478,27 @@ export function useRemoteAPI(): RemoteAPI {
       },
       [isElectron]
     ),
+
+    setKaraokeTuning: useCallback(
+      (enabled: boolean) => {
+        if (isElectron) window.electronAPI!.setKaraokeTuning(enabled);
+        else socketRef.current?.emit("setKaraokeTuning", enabled);
+      },
+      [isElectron]
+    ),
+
+    setLyricsTuning: useCallback(
+      (tuning: LyricsTuning) => {
+        if (isElectron) window.electronAPI!.setLyricsTuning(tuning);
+        else socketRef.current?.emit("setLyricsTuning", tuning);
+      },
+      [isElectron]
+    ),
+
+    saveLyricsTuning: useCallback(() => {
+      if (isElectron) window.electronAPI!.saveLyricsTuning();
+      else socketRef.current?.emit("saveLyricsTuning");
+    }, [isElectron]),
 
     setInstrumentals: useCallback(
       (enabled: boolean) => {

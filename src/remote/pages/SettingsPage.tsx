@@ -164,6 +164,7 @@ interface Props {
   onSetAudioVolume: (volume: number) => void;
   onSetSyncedLyrics: (enabled: boolean) => void;
   onSetInstrumentals: (enabled: boolean) => void;
+  onSetKaraokeTuning: (enabled: boolean) => void;
   onSetDisplayMonitor: (monitorId: number) => void;
   appVersion: string;
   updateStatus: UpdateStatus;
@@ -198,6 +199,7 @@ export default function SettingsPage({
   onSetAudioVolume,
   onSetSyncedLyrics,
   onSetInstrumentals,
+  onSetKaraokeTuning,
   onSetDisplayMonitor,
   appVersion,
   updateStatus,
@@ -421,6 +423,24 @@ export default function SettingsPage({
               type="checkbox"
               checked={settings.instrumentals}
               onChange={(e) => onSetInstrumentals(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </div>
+        </label>
+
+        <label className="flex items-start justify-between cursor-pointer gap-4 mt-5">
+          <div className="flex-1 min-w-0">
+            <div className="font-medium">{t.karaoke.tuningToggleLabel}</div>
+            <p className="text-sm text-gray-400 mt-1">
+              {t.karaoke.tuningToggleHint}
+            </p>
+          </div>
+          <div className="relative flex-shrink-0 mt-1">
+            <input
+              type="checkbox"
+              checked={settings.karaokeTuning}
+              onChange={(e) => onSetKaraokeTuning(e.target.checked)}
               className="sr-only peer"
             />
             <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -924,6 +944,14 @@ export default function SettingsPage({
             >
               <span className="text-gray-400">{shortcut.label(t)}</span>
               <div className="flex items-center gap-1">
+                {"shift" in shortcut && shortcut.shift && (
+                  <>
+                    <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
+                      Shift
+                    </kbd>
+                    <span className="text-gray-500">+</span>
+                  </>
+                )}
                 {"mod" in shortcut && shortcut.mod ? (
                   <>
                     <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">

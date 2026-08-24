@@ -61,6 +61,25 @@ export interface HymnRef {
   number: string;
 }
 
+/**
+ * Live corrections to karaoke timing, applied at render time so the operator can
+ * hear the effect immediately instead of regenerating the TTML.
+ *
+ * `offset` shifts the whole hymn. A keyframe shifts every word from `fromWord`
+ * onwards and they accumulate, so corrections can be as fine as one word —
+ * enough for a hymn that drifts partway through a line, which a per-verse or
+ * even per-line correction cannot express. `fromWord` indexes words in
+ * performance order across the whole hymn.
+ *
+ * All values are seconds, positive meaning the words appear later — matching
+ * the `shift` convention of scripts/score-extract/overrides.json, so a value
+ * tuned by ear can be baked into the generator unchanged.
+ */
+export interface LyricsTuning {
+  offset: number;
+  breakpoints: { fromWord: number; delta: number }[];
+}
+
 export interface TextState {
   title: string;
   slides: string[];
@@ -69,6 +88,7 @@ export interface TextState {
   bibleContext?: BibleContext;
   hymnRef?: HymnRef;
   syncedLyrics?: ParsedTTML;
+  lyricsTuning?: LyricsTuning;
 }
 
 export interface VideoState {
@@ -157,6 +177,8 @@ export interface AppSettings {
    */
   instrumentals: boolean;
   karaokeBannerDismissed: boolean;
+  /** Show the karaoke timing controls in the transport bar. Off by default. */
+  karaokeTuning: boolean;
 }
 
 /** Whether a hymn's instrumental MP3 exists remotely and whether it's on disk. */
@@ -258,6 +280,9 @@ export type ClientToServerEvents = {
   setLanguage: (language: Language) => void;
   setSyncedLyrics: (enabled: boolean) => void;
   setInstrumentals: (enabled: boolean) => void;
+  setKaraokeTuning: (enabled: boolean) => void;
+  setLyricsTuning: (tuning: LyricsTuning) => void;
+  saveLyricsTuning: () => void;
   getMonitors: () => void;
   goIdle: () => void;
   // Devices
@@ -412,6 +437,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   syncedLyrics: true,
   instrumentals: true,
   karaokeBannerDismissed: false,
+  karaokeTuning: false,
 };
 
 // Hymn types
