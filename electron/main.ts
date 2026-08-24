@@ -34,6 +34,7 @@ import {
 import { getTranslationById } from "../src/shared/bibleTranslations";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
+import { getAudioPlaylists } from "./audioPlaylists";
 import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS_NO_DOT } from "../src/shared/imageLibrary.types";
 import type { VideoItem } from "../src/shared/videoLibrary.types";
@@ -624,6 +625,141 @@ function setupIPC() {
       stateManager.setAudioWidgetPosition(position);
     }
   );
+
+  // Audio Playlists + Up Next queue
+  const audioPlaylists = getAudioPlaylists();
+
+  audioPlaylists.onPlaylistsChange((playlists) => {
+    windowManager.broadcastToAll("audio-playlists-update", playlists);
+    const queue = stateManager.getState().audio.queue;
+    if (queue.source === "playlist" && queue.playlistId) {
+      const playlist = playlists.find((p) => p.id === queue.playlistId);
+      if (playlist) {
+        stateManager.syncQueueFromSource(
+          stateManager.resolveQueueTracks(playlist.audioIds)
+        );
+      }
+    }
+  });
+
+  audioPlaylists.onQueueChange((audioIds) => {
+    windowManager.broadcastToAll("audio-queue-update", audioIds);
+    const queue = stateManager.getState().audio.queue;
+    if (queue.source === "ephemeral") {
+      stateManager.syncQueueFromSource(
+        stateManager.resolveQueueTracks(audioIds)
+      );
+    }
+  });
+
+  ipcMain.handle("get-audio-playlists", () => {
+    return audioPlaylists.getAll();
+  });
+
+  ipcMain.handle(
+    "create-audio-playlist",
+    (_event, name: string, audioIds: string[]) => {
+      return audioPlaylists.create(name, audioIds);
+    }
+  );
+
+  ipcMain.handle(
+    "rename-audio-playlist",
+    (_event, playlistId: string, name: string) => {
+      return audioPlaylists.rename(playlistId, name);
+    }
+  );
+
+  ipcMain.handle("delete-audio-playlist", (_event, playlistId: string) => {
+    return audioPlaylists.delete(playlistId);
+  });
+
+  ipcMain.handle(
+    "set-audio-playlist-loop",
+    (_event, playlistId: string, loop: boolean) => {
+      const queue = stateManager.getState().audio.queue;
+      if (queue.source === "playlist" && queue.playlistId === playlistId) {
+        stateManager.setQueueLoop(loop);
+        return audioPlaylists.getById(playlistId);
+      }
+      return audioPlaylists.setLoop(playlistId, loop);
+    }
+  );
+
+  ipcMain.handle(
+    "add-tracks-to-playlist",
+    (_event, playlistId: string, audioIds: string[]) => {
+      return audioPlaylists.addTracks(playlistId, audioIds);
+    }
+  );
+
+  ipcMain.handle(
+    "remove-track-from-playlist",
+    (_event, playlistId: string, audioId: string) => {
+      return audioPlaylists.removeTrack(playlistId, audioId);
+    }
+  );
+
+  ipcMain.handle(
+    "reorder-playlist",
+    (_event, playlistId: string, orderedAudioIds: string[]) => {
+      return audioPlaylists.reorder(playlistId, orderedAudioIds);
+    }
+  );
+
+  ipcMain.handle("get-audio-queue", () => {
+    return audioPlaylists.getQueue();
+  });
+
+  ipcMain.handle("add-to-queue", (_event, audioIds: string[]) => {
+    audioPlaylists.addToQueue(audioIds);
+  });
+
+  ipcMain.handle("play-next-in-queue", (_event, audioIds: string[]) => {
+    const queue = stateManager.getState().audio.queue;
+    const afterIndex = queue.source === "ephemeral" ? queue.index : -1;
+    audioPlaylists.playNext(audioIds, afterIndex);
+  });
+
+  ipcMain.handle("remove-from-queue", (_event, audioId: string) => {
+    audioPlaylists.removeFromQueue(audioId);
+  });
+
+  ipcMain.handle("reorder-queue", (_event, orderedAudioIds: string[]) => {
+    audioPlaylists.reorderQueue(orderedAudioIds);
+  });
+
+  ipcMain.handle("clear-queue", () => {
+    audioPlaylists.clearQueue();
+  });
+
+  // Queue transport
+  ipcMain.handle(
+    "play-audio-playlist",
+    (_event, playlistId: string, startIndex?: number) => {
+      stateManager.playPlaylist(playlistId, startIndex);
+    }
+  );
+
+  ipcMain.handle("play-audio-queue", (_event, startIndex?: number) => {
+    stateManager.playQueue(startIndex);
+  });
+
+  ipcMain.handle("next-track", () => {
+    stateManager.nextTrack();
+  });
+
+  ipcMain.handle("previous-track", () => {
+    stateManager.previousTrack();
+  });
+
+  ipcMain.handle("set-queue-loop", (_event, loop: boolean) => {
+    stateManager.setQueueLoop(loop);
+  });
+
+  ipcMain.handle("audio-ended", () => {
+    stateManager.handleAudioEnded();
+  });
 
   // Audio Scheduling
   ipcMain.handle("get-audio-schedules", () => {

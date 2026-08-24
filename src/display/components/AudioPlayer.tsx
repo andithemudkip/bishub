@@ -5,9 +5,10 @@ import { getFileUrl } from "../../shared/utils";
 interface Props {
   config: AudioState;
   onTimeUpdate: (time: number, duration: number) => void;
+  onEnded?: () => void;
 }
 
-export default function AudioPlayer({ config, onTimeUpdate }: Props) {
+export default function AudioPlayer({ config, onTimeUpdate, onEnded }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const lastSeekedTime = useRef<number | null>(null);
 
@@ -53,7 +54,9 @@ export default function AudioPlayer({ config, onTimeUpdate }: Props) {
   const handleEnded = () => {
     const audio = audioRef.current;
     if (!audio) return;
+    // Karaoke depends on this call happening even though onEnded also fires below.
     onTimeUpdate(audio.duration || 0, audio.duration || 0);
+    onEnded?.();
   };
 
   if (!config.src) return null;

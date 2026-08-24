@@ -8,6 +8,7 @@ import { getTranslations } from "@shared/i18n";
 import { normalizeForSearch, getApiUrl, formatFileSize } from "@shared/utils";
 import { Card } from "../components/ui/Card";
 import { renderTip } from "../components/ui/renderTip";
+import { SortableList } from "../components/ui/SortableList";
 import {
   ChevronLeftIcon,
   CloseIcon,
@@ -200,26 +201,6 @@ export default function ImageLibraryPage({
       loop: isLive ? imageState.loop : slideshow.loop,
     };
 
-    const handleMoveUp = (index: number) => {
-      if (index === 0) return;
-      const ordered = slideshowImages.map((i) => i.id);
-      [ordered[index - 1], ordered[index]] = [
-        ordered[index],
-        ordered[index - 1],
-      ];
-      library.reorderSlideshowImages(slideshow.id, ordered);
-    };
-
-    const handleMoveDown = (index: number) => {
-      if (index >= slideshowImages.length - 1) return;
-      const ordered = slideshowImages.map((i) => i.id);
-      [ordered[index], ordered[index + 1]] = [
-        ordered[index + 1],
-        ordered[index],
-      ];
-      library.reorderSlideshowImages(slideshow.id, ordered);
-    };
-
     return (
       <div className="min-w-0 w-full min-h-full flex flex-col">
         <div className="max-w-2xl mx-auto w-full space-y-4 sm:space-y-6 mb-4">
@@ -380,12 +361,16 @@ export default function ImageLibraryPage({
                 <p className="text-gray-500 text-sm">{t.imageLibrary.emptySlideshowHint}</p>
               </div>
             ) : (
-            <div className="space-y-2">
-              {slideshowImages.map((image, index) => (
-                <div
-                  key={image.id}
-                  className="flex items-center gap-3 bg-gray-900/50 border border-gray-700/30 rounded-lg p-2"
-                >
+            <SortableList
+              items={slideshowImages}
+              getId={(image) => image.id}
+              onReorder={(orderedIds) =>
+                library.reorderSlideshowImages(slideshow.id, orderedIds)
+              }
+              moveUpLabel={t.imageLibrary.moveUp}
+              moveDownLabel={t.imageLibrary.moveDown}
+              renderItem={(image) => (
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-16 h-10 rounded flex-shrink-0 bg-gray-800 overflow-hidden">
                     {getImageThumbnailUrl(image) && (
                       <img
@@ -398,70 +383,28 @@ export default function ImageLibraryPage({
                   <span className="text-sm text-gray-300 flex-1 truncate">
                     {image.name}
                   </span>
-
-                  {/* Reorder buttons */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  {window.electronAPI && (
                     <button
-                      onClick={() => handleMoveUp(index)}
-                      disabled={index === 0}
-                      className="p-1.5 rounded hover:bg-gray-700 disabled:opacity-30 transition-colors"
+                      onClick={() => window.electronAPI?.showItemInFolder(image.path)}
+                      className="p-1.5 rounded hover:bg-gray-700 text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0"
+                      title={t.imageLibrary.openFileLocation}
+                      aria-label={t.imageLibrary.openFileLocation}
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 15l7-7 7 7"
-                        />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                       </svg>
                     </button>
-                    <button
-                      onClick={() => handleMoveDown(index)}
-                      disabled={index === slideshowImages.length - 1}
-                      className="p-1.5 rounded hover:bg-gray-700 disabled:opacity-30 transition-colors"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                    {window.electronAPI && (
-                      <button
-                        onClick={() => window.electronAPI?.showItemInFolder(image.path)}
-                        className="p-1.5 rounded hover:bg-gray-700 text-gray-500 hover:text-gray-300 transition-colors"
-                        title={t.imageLibrary.openFileLocation}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                        </svg>
-                      </button>
-                    )}
-                    <button
-                      onClick={() =>
-                        library.removeImageFromSlideshow(image.id)
-                      }
-                      className="p-1.5 rounded hover:bg-red-600/20 text-gray-500 hover:text-red-400 transition-colors"
-                    >
-                      <CloseIcon className="w-4 h-4" />
-                    </button>
-                  </div>
+                  )}
+                  <button
+                    onClick={() => library.removeImageFromSlideshow(image.id)}
+                    className="p-1.5 rounded hover:bg-red-600/20 text-gray-500 hover:text-red-400 transition-colors flex-shrink-0"
+                    aria-label={t.imageLibrary.delete}
+                  >
+                    <CloseIcon className="w-4 h-4" />
+                  </button>
                 </div>
-              ))}
-            </div>
+              )}
+            />
             )}
 
             {/* Add images button */}

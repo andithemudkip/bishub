@@ -190,6 +190,11 @@ export default function App() {
             stopAudio={api.stopAudio}
             seekAudio={api.seekAudio}
             setAudioVolume={api.setAudioVolume}
+            playAudioPlaylist={api.playAudioPlaylist}
+            playAudioQueue={api.playAudioQueue}
+            nextTrack={api.nextTrack}
+            previousTrack={api.previousTrack}
+            setQueueLoop={api.setQueueLoop}
             settings={api.settings}
           />
         );

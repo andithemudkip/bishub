@@ -94,6 +94,12 @@ interface RemoteAPI {
   stopAudio: () => void;
   seekAudio: (time: number) => void;
   setAudioVolume: (volume: number) => void;
+  // Audio queue transport (Up Next + playlists)
+  playAudioPlaylist: (playlistId: string, startIndex?: number) => void;
+  playAudioQueue: (startIndex?: number) => void;
+  nextTrack: () => void;
+  previousTrack: () => void;
+  setQueueLoop: (loop: boolean) => void;
   // Image
   loadImage: (src: string, imageId: string) => void;
   loadSlideshow: (slideshowId: string) => void;
@@ -639,6 +645,42 @@ export function useRemoteAPI(): RemoteAPI {
       (volume) => {
         if (isElectron) window.electronAPI!.setAudioVolume(volume);
         else socketRef.current?.emit("setAudioVolume", volume);
+      },
+      [isElectron]
+    ),
+
+    playAudioPlaylist: useCallback(
+      (playlistId, startIndex) => {
+        if (isElectron)
+          window.electronAPI!.playAudioPlaylist(playlistId, startIndex);
+        else
+          socketRef.current?.emit("playAudioPlaylist", playlistId, startIndex);
+      },
+      [isElectron]
+    ),
+
+    playAudioQueue: useCallback(
+      (startIndex) => {
+        if (isElectron) window.electronAPI!.playAudioQueue(startIndex);
+        else socketRef.current?.emit("playAudioQueue", startIndex);
+      },
+      [isElectron]
+    ),
+
+    nextTrack: useCallback(() => {
+      if (isElectron) window.electronAPI!.nextTrack();
+      else socketRef.current?.emit("nextTrack");
+    }, [isElectron]),
+
+    previousTrack: useCallback(() => {
+      if (isElectron) window.electronAPI!.previousTrack();
+      else socketRef.current?.emit("previousTrack");
+    }, [isElectron]),
+
+    setQueueLoop: useCallback(
+      (loop) => {
+        if (isElectron) window.electronAPI!.setQueueLoop(loop);
+        else socketRef.current?.emit("setQueueLoop", loop);
       },
       [isElectron]
     ),

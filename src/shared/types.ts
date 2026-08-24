@@ -22,6 +22,7 @@ import type {
   ImageUploadProgress,
 } from "./imageLibrary.types";
 import type { ParsedTTML } from "./ttmlParser";
+import type { AudioPlaylist, AudioQueueState } from "./audioPlaylist.types";
 
 export type DisplayMode = "idle" | "text" | "video" | "image";
 
@@ -97,6 +98,8 @@ export interface AudioState {
   duration: number;
   volume: number;
   role: AudioRole;
+  /** The live playback queue — a projection of a playlist or the ephemeral Up Next list. */
+  queue: AudioQueueState;
 }
 
 export interface ImageState {
@@ -226,6 +229,9 @@ export type ServerToClientEvents = {
   audioLibrary: (audios: AudioItem[]) => void;
   audioUploadProgress: (progress: AudioUploadProgress) => void;
   audioDownloadProgress: (progress: AudioDownloadProgress) => void;
+  // Audio Playlists + Up Next queue
+  audioPlaylists: (playlists: AudioPlaylist[]) => void;
+  audioQueue: (audioIds: string[]) => void;
   // Audio Scheduling
   audioSchedules: (schedules: AudioSchedule[]) => void;
   audioPresets: (presets: AudioSchedulePreset[]) => void;
@@ -304,6 +310,28 @@ export type ClientToServerEvents = {
   stopAudio: () => void;
   seekAudio: (time: number) => void;
   setAudioVolume: (volume: number) => void;
+  // Audio Playlists
+  getAudioPlaylists: () => void;
+  createAudioPlaylist: (name: string, audioIds: string[]) => void;
+  renameAudioPlaylist: (playlistId: string, name: string) => void;
+  deleteAudioPlaylist: (playlistId: string) => void;
+  setAudioPlaylistLoop: (playlistId: string, loop: boolean) => void;
+  addTracksToPlaylist: (playlistId: string, audioIds: string[]) => void;
+  removeTrackFromPlaylist: (playlistId: string, audioId: string) => void;
+  reorderPlaylist: (playlistId: string, orderedAudioIds: string[]) => void;
+  // Up Next (ephemeral queue)
+  getAudioQueue: () => void;
+  addToQueue: (audioIds: string[]) => void;
+  playNextInQueue: (audioIds: string[]) => void;
+  removeFromQueue: (audioId: string) => void;
+  reorderQueue: (orderedAudioIds: string[]) => void;
+  clearQueue: () => void;
+  // Queue transport
+  playAudioPlaylist: (playlistId: string, startIndex?: number) => void;
+  playAudioQueue: (startIndex?: number) => void;
+  nextTrack: () => void;
+  previousTrack: () => void;
+  setQueueLoop: (loop: boolean) => void;
   // Audio Scheduling
   getAudioSchedules: () => void;
   getAudioPresets: () => void;
@@ -386,6 +414,14 @@ export const DEFAULT_STATE: DisplayState = {
     duration: 0,
     volume: 1,
     role: "background",
+    queue: {
+      source: null,
+      playlistId: null,
+      name: null,
+      tracks: [],
+      index: 0,
+      loop: false,
+    },
   },
   image: {
     src: null,

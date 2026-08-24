@@ -311,6 +311,16 @@ function AudioOverlay({ audio }: { audio: DisplayState["audio"] }) {
   const progress =
     audio.duration > 0 ? (audio.currentTime / audio.duration) * 100 : 0;
 
+  const { queue } = audio;
+  const hasQueue = queue.source !== null && queue.tracks.length > 0;
+  const upNextName = hasQueue
+    ? queue.index + 1 < queue.tracks.length
+      ? queue.tracks[queue.index + 1].name
+      : queue.loop
+        ? queue.tracks[0].name
+        : null
+    : null;
+
   return (
     <div className="absolute bottom-2 right-2 z-10 bg-black/60 backdrop-blur-sm rounded px-2 py-1 max-w-[60%]">
       <div className="flex items-center gap-1.5">
@@ -318,9 +328,21 @@ function AudioOverlay({ audio }: { audio: DisplayState["audio"] }) {
           {audio.playing ? "♫" : "❚❚"}
         </span>
         <div className="flex-1 min-w-0">
-          <div className="text-[7px] text-white/60 truncate">
-            {audio.name || "Audio"}
+          <div className="flex items-center justify-between gap-1">
+            <div className="text-[7px] text-white/60 truncate">
+              {audio.name || "Audio"}
+            </div>
+            {hasQueue && (
+              <div className="text-[6px] text-white/40 flex-shrink-0 tabular-nums">
+                {queue.index + 1}/{queue.tracks.length}
+              </div>
+            )}
           </div>
+          {hasQueue && upNextName && (
+            <div className="text-[6px] text-white/35 truncate">
+              {upNextName}
+            </div>
+          )}
           <div className="h-[3px] bg-white/20 rounded-full overflow-hidden mt-0.5">
             <div
               className="h-full bg-white/70 rounded-full transition-all duration-200"

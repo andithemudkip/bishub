@@ -21,13 +21,38 @@ export default function AudioWidget({ config, position }: Props) {
   const positionClass = WIDGET_POSITION_CLASSES[position] || WIDGET_POSITION_CLASSES["bottom-right"];
   const progress = config.duration > 0 ? (config.currentTime / config.duration) * 100 : 0;
 
+  const { queue } = config;
+  const hasQueue = queue.source !== null && queue.tracks.length > 0;
+  const upNextName = hasQueue
+    ? queue.index + 1 < queue.tracks.length
+      ? queue.tracks[queue.index + 1].name
+      : queue.loop
+        ? queue.tracks[0].name
+        : null
+    : null;
+
   return (
     <div className={`absolute ${positionClass} z-20`}>
       <div className="bg-black/50 backdrop-blur-md rounded-lg p-4 text-white min-w-[280px] max-w-[400px] shadow-2xl">
-        {/* Audio name */}
-        <div className="text-sm font-medium truncate mb-3 opacity-90">
-          {config.name || config.src?.split("/").pop() || "Audio"}
+        {/* Audio name + queue position */}
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="text-sm font-medium truncate opacity-90">
+            {config.name || config.src?.split("/").pop() || "Audio"}
+          </div>
+          {hasQueue && (
+            <div className="text-xs text-white/50 flex-shrink-0 tabular-nums">
+              {queue.index + 1}/{queue.tracks.length}
+            </div>
+          )}
         </div>
+
+        {/* Up next line */}
+        {hasQueue && (
+          <div className="text-xs text-white/40 truncate mb-3">
+            {upNextName ?? ""}
+          </div>
+        )}
+        {!hasQueue && <div className="mb-3" />}
 
         {/* Progress bar */}
         <div className="h-1.5 bg-white/20 rounded-full overflow-hidden mb-2">

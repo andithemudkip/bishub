@@ -3,7 +3,10 @@ import type { AppSettings, AudioState } from "../../shared/types";
 import type { AudioItem } from "../../shared/audioLibrary.types";
 import { useAudioLibrary } from "../useAudioLibrary";
 import { useAudioScheduler } from "../useAudioScheduler";
+import { useAudioPlaylists } from "../useAudioPlaylists";
 import AudioLibraryList from "../components/AudioLibraryList";
+import AudioQueueStrip from "../components/AudioQueueStrip";
+import AudioPlaylistsTab from "../components/AudioPlaylistsTab";
 import MediaUploader from "../components/MediaUploader";
 import YouTubeDownloader from "../components/YouTubeDownloader";
 import AudioScheduleSection from "../components/AudioScheduleSection";
@@ -12,7 +15,7 @@ import { getTranslations } from "@shared/i18n";
 import { formatFileSize } from "@shared/utils";
 import { Card } from "../components/ui/Card";
 import { renderTip } from "../components/ui/renderTip";
-import { YouTubeIcon } from "../components/icons/ui";
+import { YouTubeIcon, CloseIcon } from "../components/icons/ui";
 
 
 interface Props {
@@ -23,6 +26,11 @@ interface Props {
   stopAudio: () => void;
   seekAudio: (time: number) => void;
   setAudioVolume: (volume: number) => void;
+  playAudioPlaylist: (playlistId: string, startIndex?: number) => void;
+  playAudioQueue: (startIndex?: number) => void;
+  nextTrack: () => void;
+  previousTrack: () => void;
+  setQueueLoop: (loop: boolean) => void;
   settings: AppSettings;
 }
 
@@ -34,15 +42,30 @@ export default function AudioLibraryPage({
   stopAudio,
   seekAudio,
   setAudioVolume,
+  playAudioPlaylist,
+  playAudioQueue,
+  nextTrack,
+  previousTrack,
+  setQueueLoop,
   settings,
 }: Props) {
   const library = useAudioLibrary(loadAudio);
   const scheduler = useAudioScheduler();
+  const playlists = useAudioPlaylists();
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
-  const [pageTab, setPageTab] = useState<"library" | "schedule">("library");
+  const [pageTab, setPageTab] = useState<"library" | "playlists" | "schedule">("library");
   const [addPanel, setAddPanel] = useState<"upload" | "youtube" | null>(null);
+  const [newPlaylistPrompt, setNewPlaylistPrompt] = useState<string[] | null>(null);
+  const [newPlaylistName, setNewPlaylistName] = useState("");
 
   const t = getTranslations(settings.language);
+
+  const handleCreatePlaylistFromTracks = () => {
+    if (!newPlaylistPrompt || !newPlaylistName.trim()) return;
+    playlists.createPlaylist(newPlaylistName.trim(), newPlaylistPrompt);
+    setNewPlaylistPrompt(null);
+    setNewPlaylistName("");
+  };
 
   const youtubeLabels = useMemo(
     () => ({
@@ -64,10 +87,29 @@ export default function AudioLibraryPage({
     playAudio();
   };
 
+  const { queue } = audioState;
+  const queueInfo =
+    queue.source !== null && queue.tracks.length > 0
+      ? {
+          index: queue.index,
+          total: queue.tracks.length,
+          loop: queue.loop,
+          upNextName:
+            queue.index + 1 < queue.tracks.length
+              ? queue.tracks[queue.index + 1].name
+              : queue.loop
+                ? queue.tracks[0].name
+                : null,
+          onNext: nextTrack,
+          onPrevious: previousTrack,
+          onToggleLoop: setQueueLoop,
+        }
+      : undefined;
+
   return (
     <div className="min-w-0 w-full min-h-full flex flex-col">
       <div className="max-w-2xl mx-auto w-full space-y-4 sm:space-y-6 mb-4">
-        {/* Tabs — Library / Schedule */}
+        {/* Tabs — Library / Playlists / Schedule */}
         <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
           <button
             onClick={() => setPageTab("library")}
@@ -78,6 +120,16 @@ export default function AudioLibraryPage({
             }`}
           >
             {t.audioLibrary.libraryTab}
+          </button>
+          <button
+            onClick={() => setPageTab("playlists")}
+            className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+              pageTab === "playlists"
+                ? "bg-gray-700 text-white"
+                : "text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            {t.audioLibrary.playlistsTab}
           </button>
           <button
             onClick={() => setPageTab("schedule")}
@@ -101,6 +153,63 @@ export default function AudioLibraryPage({
 
           return (
           <>
+            {/* Up Next strip */}
+            <AudioQueueStrip
+              queueAudioIds={playlists.queueAudioIds}
+              audios={library.audios}
+              onPlay={() => playAudioQueue(0)}
+              onClear={playlists.clearQueue}
+              onReorder={playlists.reorderQueue}
+              onRemove={playlists.removeFromQueue}
+              onPlayTrack={(index) => playAudioQueue(index)}
+              isLive={queue.source === "ephemeral"}
+              nowPlayingAudioId={
+                queue.source === "ephemeral"
+                  ? (queue.tracks[queue.index]?.audioId ?? null)
+                  : null
+              }
+              t={t}
+            />
+
+            {/* New playlist prompt (from library selection) */}
+            {newPlaylistPrompt && (
+              <Card compact>
+                <p className="text-sm text-gray-300 mb-2">{t.audioLibrary.playlistName}</p>
+                <div className="flex gap-2">
+                  <input
+                    autoFocus
+                    value={newPlaylistName}
+                    onChange={(e) => setNewPlaylistName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleCreatePlaylistFromTracks();
+                      if (e.key === "Escape") {
+                        setNewPlaylistPrompt(null);
+                        setNewPlaylistName("");
+                      }
+                    }}
+                    placeholder={t.audioLibrary.playlistName}
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={handleCreatePlaylistFromTracks}
+                    disabled={!newPlaylistName.trim()}
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 disabled:opacity-40 transition-colors"
+                  >
+                    {t.audioLibrary.newPlaylist}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNewPlaylistPrompt(null);
+                      setNewPlaylistName("");
+                    }}
+                    className="p-2 rounded-lg hover:bg-gray-700 text-gray-500 transition-colors"
+                  >
+                    <CloseIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </Card>
+            )}
+
             {/* Add audio section */}
             <Card compact tip={renderTip(t.audioLibrary.addTip)}>
               {/* Toolbar */}
@@ -325,12 +434,40 @@ export default function AudioLibraryPage({
                 onOpenFileLocation={(filePath) =>
                   window.electronAPI?.showItemInFolder(filePath)
                 }
+                playlists={playlists.playlists}
+                onPlayNext={playlists.playNextInQueue}
+                onAddToQueue={playlists.addToQueue}
+                onAddToPlaylist={(playlistId, audioIds) =>
+                  playlists.addTracksToPlaylist(playlistId, audioIds)
+                }
+                onRequestNewPlaylist={(audioIds) => {
+                  setNewPlaylistPrompt(audioIds);
+                  setNewPlaylistName("");
+                }}
                 t={t}
               />
             </Card>
           </>
           );
         })()}
+
+        {/* Playlists tab */}
+        {pageTab === "playlists" && (
+          <AudioPlaylistsTab
+            playlists={playlists.playlists}
+            audios={library.audios}
+            audioState={audioState}
+            onCreatePlaylist={playlists.createPlaylist}
+            onRenamePlaylist={playlists.renamePlaylist}
+            onDeletePlaylist={playlists.deletePlaylist}
+            onSetLoop={playlists.setPlaylistLoop}
+            onAddTracks={playlists.addTracksToPlaylist}
+            onRemoveTrack={playlists.removeTrackFromPlaylist}
+            onReorderTracks={playlists.reorderPlaylist}
+            onPlayPlaylist={playAudioPlaylist}
+            t={t}
+          />
+        )}
 
         {/* Schedule tab */}
         {pageTab === "schedule" && (
@@ -361,12 +498,18 @@ export default function AudioLibraryPage({
           onStop={stopAudio}
           onSeek={seekAudio}
           onVolumeChange={setAudioVolume}
+          queue={queueInfo}
           labels={{
             nowPlaying: t.audioLibrary.nowPlaying,
             play: t.audioLibrary.play,
             pause: t.audioLibrary.pause,
             stop: t.audioLibrary.stop,
             volume: t.audioLibrary.volume,
+            nextTrack: t.audioLibrary.nextTrack,
+            previousTrack: t.audioLibrary.previousTrack,
+            loop: t.audioLibrary.loop,
+            upNext: t.audioLibrary.upNext,
+            queueEmpty: t.audioLibrary.queueEmpty,
           }}
         />
       )}

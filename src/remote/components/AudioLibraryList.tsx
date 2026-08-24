@@ -1,7 +1,10 @@
 import { useState } from "react";
 import type { AudioItem } from "../../shared/audioLibrary.types";
+import type { AudioPlaylist } from "../../shared/audioPlaylist.types";
 import type { Translations } from "../../shared/i18n";
 import { formatFileSize, formatDuration, formatDate } from "../../shared/utils";
+import AudioTrackAddMenu from "./AudioTrackAddMenu";
+import { CheckIcon } from "./icons/ui";
 
 interface Props {
   audios: AudioItem[];
@@ -10,6 +13,11 @@ interface Props {
   onDelete: (audioId: string) => void;
   onRename: (audioId: string, newName: string) => void;
   onOpenFileLocation: (filePath: string) => void;
+  playlists: AudioPlaylist[];
+  onPlayNext: (audioIds: string[]) => void;
+  onAddToQueue: (audioIds: string[]) => void;
+  onAddToPlaylist: (playlistId: string, audioIds: string[]) => void;
+  onRequestNewPlaylist: (audioIds: string[]) => void;
   t: Translations;
 }
 
@@ -58,12 +66,19 @@ export default function AudioLibraryList({
   onDelete,
   onRename,
   onOpenFileLocation,
+  playlists,
+  onPlayNext,
+  onAddToQueue,
+  onAddToPlaylist,
+  onRequestNewPlaylist,
   t,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filteredAudios = audios.filter((a) =>
     a.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -86,31 +101,87 @@ export default function AudioLibraryList({
     setConfirmDeleteId(null);
   };
 
+  const toggleSelectMode = () => {
+    setConfirmDeleteId(null);
+    if (selectMode) {
+      setSelectMode(false);
+      setSelectedIds(new Set());
+    } else {
+      setSelectMode(true);
+    }
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   return (
     <div className="space-y-3 sm:space-y-4">
-      {/* Search bar */}
-      <div className="relative">
-        <input
-          type="text"
-          placeholder={t.audioLibrary.searchPlaceholder}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 pl-9 sm:px-4 sm:pl-10 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <svg
-          className="absolute left-2.5 sm:left-3 top-2.5 w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      {/* Search bar + select toggle */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            placeholder={t.audioLibrary.searchPlaceholder}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 pl-9 sm:px-4 sm:pl-10 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </svg>
+          <svg
+            className="absolute left-2.5 sm:left-3 top-2.5 w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+        <button
+          type="button"
+          onClick={toggleSelectMode}
+          className={`px-3 py-2 rounded-lg text-sm border transition-colors flex-shrink-0 ${
+            selectMode
+              ? "bg-blue-600/20 text-blue-400 border-blue-600/40"
+              : "bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700"
+          }`}
+        >
+          {t.audioLibrary.select}
+        </button>
       </div>
+
+      {/* Bulk action bar */}
+      {selectMode && selectedIds.size > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-400">
+            {t.audioLibrary.selectedCount.replace("{count}", String(selectedIds.size))}
+          </span>
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={() => onAddToQueue([...selectedIds])}
+            className="px-3 py-1.5 rounded-lg text-sm bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:bg-gray-700/50 transition-colors"
+          >
+            + {t.audioLibrary.addToQueue}
+          </button>
+          <button
+            type="button"
+            onClick={() => onRequestNewPlaylist([...selectedIds])}
+            className="px-3 py-1.5 rounded-lg text-sm bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 transition-colors"
+          >
+            + {t.audioLibrary.newPlaylist}
+          </button>
+        </div>
+      )}
 
       {/* Audio list */}
       <div className="space-y-2 max-h-[350px] sm:max-h-[400px] overflow-y-auto overflow-x-hidden p-1">
@@ -145,29 +216,35 @@ export default function AudioLibraryList({
             <div
               key={audio.id}
               className={`bg-gray-900/50 border rounded-lg p-2.5 sm:p-3 cursor-pointer transition-colors overflow-hidden ${
-                selectedAudioId === audio.id
-                  ? "border-blue-500/50 bg-blue-950/20"
-                  : "border-gray-700/30 hover:border-gray-600/50 hover:bg-gray-800/50"
+                selectMode
+                  ? selectedIds.has(audio.id)
+                    ? "border-blue-500/50 bg-blue-950/20"
+                    : "border-gray-700/30 hover:border-gray-600/50"
+                  : selectedAudioId === audio.id
+                    ? "border-blue-500/50 bg-blue-950/20"
+                    : "border-gray-700/30 hover:border-gray-600/50 hover:bg-gray-800/50"
               }`}
-              onClick={() => onSelect(audio)}
+              onClick={() =>
+                selectMode ? toggleSelected(audio.id) : onSelect(audio)
+              }
             >
-              <div className="flex gap-2 sm:gap-3 min-w-0">
-                {/* Music icon */}
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-800/50 rounded-lg flex-shrink-0 flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                {/* Audio has no artwork, so the row leads with the name rather
+                    than a placeholder thumbnail. The checkbox stands on its own
+                    instead of being pinned to a corner of that thumbnail. */}
+                {selectMode && (
+                  <div
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                      selectedIds.has(audio.id)
+                        ? "bg-blue-500 border-blue-500"
+                        : "border-gray-500 bg-gray-900"
+                    }`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-                    />
-                  </svg>
-                </div>
+                    {selectedIds.has(audio.id) && (
+                      <CheckIcon className="w-3 h-3 text-white" />
+                    )}
+                  </div>
+                )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
@@ -207,10 +284,21 @@ export default function AudioLibraryList({
                 </div>
 
                 {/* Actions */}
+                {!selectMode && (
                 <div
                   className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  <AudioTrackAddMenu
+                    playlists={playlists}
+                    onPlayNext={() => onPlayNext([audio.id])}
+                    onAddToQueue={() => onAddToQueue([audio.id])}
+                    onAddToPlaylist={(playlistId) =>
+                      onAddToPlaylist(playlistId, [audio.id])
+                    }
+                    onCreatePlaylist={() => onRequestNewPlaylist([audio.id])}
+                    t={t}
+                  />
                   <button
                     onClick={() => handleStartRename(audio)}
                     className="p-2 sm:p-2.5 hover:bg-gray-700 rounded transition-colors"
@@ -289,6 +377,7 @@ export default function AudioLibraryList({
                     </button>
                   )}
                 </div>
+                )}
               </div>
             </div>
           ))

@@ -30,6 +30,7 @@ import type {
   AudioDownloadProgress,
   DirectoryImportProgress,
 } from "../src/shared/audioLibrary.types";
+import type { AudioPlaylist } from "../src/shared/audioPlaylist.types";
 import type {
   AudioSchedule,
   AudioSchedulePreset,
@@ -297,6 +298,85 @@ const electronAPI = {
     ipcRenderer.invoke("audio-time-update", time, duration),
   setAudioWidgetPosition: (position: string): Promise<void> =>
     ipcRenderer.invoke("set-audio-widget-position", position),
+
+  // Audio Playlists
+  getAudioPlaylists: (): Promise<AudioPlaylist[]> =>
+    ipcRenderer.invoke("get-audio-playlists"),
+  createAudioPlaylist: (
+    name: string,
+    audioIds: string[]
+  ): Promise<AudioPlaylist> =>
+    ipcRenderer.invoke("create-audio-playlist", name, audioIds),
+  renameAudioPlaylist: (
+    playlistId: string,
+    name: string
+  ): Promise<AudioPlaylist | null> =>
+    ipcRenderer.invoke("rename-audio-playlist", playlistId, name),
+  deleteAudioPlaylist: (playlistId: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-audio-playlist", playlistId),
+  setAudioPlaylistLoop: (
+    playlistId: string,
+    loop: boolean
+  ): Promise<AudioPlaylist | null> =>
+    ipcRenderer.invoke("set-audio-playlist-loop", playlistId, loop),
+  addTracksToPlaylist: (
+    playlistId: string,
+    audioIds: string[]
+  ): Promise<AudioPlaylist | null> =>
+    ipcRenderer.invoke("add-tracks-to-playlist", playlistId, audioIds),
+  removeTrackFromPlaylist: (
+    playlistId: string,
+    audioId: string
+  ): Promise<AudioPlaylist | null> =>
+    ipcRenderer.invoke("remove-track-from-playlist", playlistId, audioId),
+  reorderPlaylist: (
+    playlistId: string,
+    orderedAudioIds: string[]
+  ): Promise<AudioPlaylist | null> =>
+    ipcRenderer.invoke("reorder-playlist", playlistId, orderedAudioIds),
+
+  onAudioPlaylistsUpdate: (
+    callback: (playlists: AudioPlaylist[]) => void
+  ) => {
+    ipcRenderer.on(
+      "audio-playlists-update",
+      (_event: IpcRendererEvent, playlists: AudioPlaylist[]) =>
+        callback(playlists)
+    );
+    return () => { ipcRenderer.removeAllListeners("audio-playlists-update"); };
+  },
+
+  // Up Next (ephemeral queue)
+  getAudioQueue: (): Promise<string[]> =>
+    ipcRenderer.invoke("get-audio-queue"),
+  addToQueue: (audioIds: string[]): Promise<void> =>
+    ipcRenderer.invoke("add-to-queue", audioIds),
+  playNextInQueue: (audioIds: string[]): Promise<void> =>
+    ipcRenderer.invoke("play-next-in-queue", audioIds),
+  removeFromQueue: (audioId: string): Promise<void> =>
+    ipcRenderer.invoke("remove-from-queue", audioId),
+  reorderQueue: (orderedAudioIds: string[]): Promise<void> =>
+    ipcRenderer.invoke("reorder-queue", orderedAudioIds),
+  clearQueue: (): Promise<void> => ipcRenderer.invoke("clear-queue"),
+
+  onAudioQueueUpdate: (callback: (audioIds: string[]) => void) => {
+    ipcRenderer.on(
+      "audio-queue-update",
+      (_event: IpcRendererEvent, audioIds: string[]) => callback(audioIds)
+    );
+    return () => { ipcRenderer.removeAllListeners("audio-queue-update"); };
+  },
+
+  // Queue transport
+  playAudioPlaylist: (playlistId: string, startIndex?: number): Promise<void> =>
+    ipcRenderer.invoke("play-audio-playlist", playlistId, startIndex),
+  playAudioQueue: (startIndex?: number): Promise<void> =>
+    ipcRenderer.invoke("play-audio-queue", startIndex),
+  nextTrack: (): Promise<void> => ipcRenderer.invoke("next-track"),
+  previousTrack: (): Promise<void> => ipcRenderer.invoke("previous-track"),
+  setQueueLoop: (loop: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-queue-loop", loop),
+  audioEnded: (): Promise<void> => ipcRenderer.invoke("audio-ended"),
 
   onAudioLibraryUpdate: (callback: (audios: AudioItem[]) => void) => {
     ipcRenderer.on("audio-library-update", (_event: IpcRendererEvent, audios: AudioItem[]) =>

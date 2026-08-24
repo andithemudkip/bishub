@@ -241,6 +241,32 @@ export interface Translations {
     addTip: string;
     libraryTab: string;
     scheduleTab: string;
+    // Playlists + Up Next queue
+    playlistsTab: string;
+    upNext: string;
+    queueOnHold: string;
+    addToQueue: string;
+    playNext: string;
+    addToPlaylist: string;
+    newPlaylist: string;
+    playlistName: string;
+    clearQueue: string;
+    queueEmpty: string;
+    playlists: string;
+    noPlaylists: string;
+    noPlaylistsHint: string;
+    tracks: string;
+    addTracks: string;
+    emptyPlaylistHint: string;
+    loop: string;
+    nextTrack: string;
+    previousTrack: string;
+    select: string;
+    selectedCount: string;
+    deletePlaylist: string;
+    moveUp: string;
+    moveDown: string;
+    removeFromPlaylist: string;
   };
 
   // Audio scheduling
@@ -293,6 +319,8 @@ export interface Translations {
     tooLarge: string;
     uploadFailed: string;
     openFileLocation: string;
+    moveUp: string;
+    moveDown: string;
     addTip: string;
     // Slideshow
     slideshow: string;
@@ -641,6 +669,31 @@ const ro: Translations = {
       "**Adaugă fișier** alege un fișier audio de pe acest calculator. **Adaugă folder** importă toate fișierele audio dintr-un folder. **Încarcă** trimite audio de pe telefon sau alt dispozitiv. **YouTube** descarcă doar track-ul audio dintr-un videoclip.",
     libraryTab: "Bibliotecă",
     scheduleTab: "Programare",
+    playlistsTab: "Playlisturi",
+    upNext: "Urmează",
+    queueOnHold: "Coadă",
+    addToQueue: "Adaugă la coadă",
+    playNext: "Redă următor",
+    addToPlaylist: "Adaugă la playlist",
+    newPlaylist: "Playlist nou",
+    playlistName: "Nume playlist",
+    clearQueue: "Golește coada",
+    queueEmpty: "Nimic în așteptare",
+    playlists: "Playlisturi",
+    noPlaylists: "Niciun playlist",
+    noPlaylistsHint: "Creează un playlist pentru a grupa mai multe piese audio",
+    tracks: "{count} piese",
+    addTracks: "Adaugă piese",
+    emptyPlaylistHint: "Acest playlist nu are piese. Adaugă piese mai jos.",
+    loop: "Repetare",
+    nextTrack: "Piesa următoare",
+    previousTrack: "Piesa anterioară",
+    select: "Selectare",
+    selectedCount: "{count} selectate",
+    deletePlaylist: "Șterge playlistul",
+    moveUp: "Mută în sus",
+    moveDown: "Mută în jos",
+    removeFromPlaylist: "Elimină din playlist",
   },
   audioSchedule: {
     title: "Programare audio",
@@ -689,6 +742,8 @@ const ro: Translations = {
     tooLarge: "Fișierul este prea mare",
     uploadFailed: "Încărcarea a eșuat. Te rog încearcă din nou.",
     openFileLocation: "Deschide locația fișierului",
+    moveUp: "Mută în sus",
+    moveDown: "Mută în jos",
     addTip:
       "**Adaugă fișier** alege o imagine de pe acest calculator. **Încarcă** trimite o imagine de pe telefon sau alt dispozitiv.",
     slideshow: "Prezentare",
@@ -1024,6 +1079,31 @@ const en: Translations = {
       "**Add file** picks an audio file from this computer. **Add folder** imports all audio files from a folder at once. **Upload** sends audio from your phone or another device. **YouTube** downloads just the audio track from a video.",
     libraryTab: "Library",
     scheduleTab: "Schedule",
+    playlistsTab: "Playlists",
+    upNext: "Up Next",
+    queueOnHold: "Queue",
+    addToQueue: "Add to queue",
+    playNext: "Play next",
+    addToPlaylist: "Add to playlist",
+    newPlaylist: "New playlist",
+    playlistName: "Playlist name",
+    clearQueue: "Clear queue",
+    queueEmpty: "Nothing queued",
+    playlists: "Playlists",
+    noPlaylists: "No playlists",
+    noPlaylistsHint: "Create a playlist to group multiple audio tracks",
+    tracks: "{count} tracks",
+    addTracks: "Add tracks",
+    emptyPlaylistHint: "This playlist has no tracks. Add tracks below.",
+    loop: "Loop",
+    nextTrack: "Next track",
+    previousTrack: "Previous track",
+    select: "Select",
+    selectedCount: "{count} selected",
+    deletePlaylist: "Delete playlist",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    removeFromPlaylist: "Remove from playlist",
   },
   audioSchedule: {
     title: "Audio Scheduling",
@@ -1072,6 +1152,8 @@ const en: Translations = {
     tooLarge: "File is too large",
     uploadFailed: "Upload failed. Please try again.",
     openFileLocation: "Open file location",
+    moveUp: "Move up",
+    moveDown: "Move down",
     addTip:
       "**Add file** picks an image from this computer. **Upload** sends an image from your phone or another device.",
     slideshow: "Slideshow",

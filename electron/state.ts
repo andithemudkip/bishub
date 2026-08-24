@@ -12,6 +12,9 @@ import type { ParsedTTML } from "../src/shared/ttmlParser";
 import { buildScreenGroups, getActiveScreen } from "../src/shared/ttmlParser";
 import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
+import type { QueueTrack, AudioQueueState } from "../src/shared/audioPlaylist.types";
+import { getAudioLibrary } from "./audioLibrary";
+import { getAudioPlaylists } from "./audioPlaylists";
 import Store from "electron-store";
 import crypto from "crypto";
 
@@ -48,7 +51,7 @@ export class StateManager {
       idle: { ...DEFAULT_STATE.idle },
       text: { ...DEFAULT_STATE.text, slides: [] },
       video: { ...DEFAULT_STATE.video },
-      audio: { ...DEFAULT_STATE.audio },
+      audio: { ...DEFAULT_STATE.audio, queue: this.emptyQueue() },
       image: { ...DEFAULT_STATE.image, slideshowImages: [] },
     };
 
@@ -217,6 +220,7 @@ export class StateManager {
       duration: 0,
       volume: this.state.audio.volume,
       role: "hymn",
+      queue: this.emptyQueue(),
     };
     this.cachedScreenGroups = buildScreenGroups(slides, syncedLyrics.lines.length);
     this.state.mode = "text";
@@ -252,6 +256,7 @@ export class StateManager {
       duration: 0,
       volume: this.state.audio.volume,
       role: "hymn",
+      queue: this.emptyQueue(),
     };
     this.state.mode = "text";
     this.notifyStateChange();
@@ -458,6 +463,8 @@ export class StateManager {
 
   // Audio mode (plays during idle)
   loadAudio(src: string, name: string) {
+    // Tapping a library row means "play this now" — the queue, if any, is
+    // abandoned rather than silently continued.
     this.state.audio = {
       src,
       name,
@@ -466,6 +473,7 @@ export class StateManager {
       duration: 0,
       volume: this.state.audio.volume,
       role: "background",
+      queue: this.emptyQueue(),
     };
     // Ensure we're in idle mode for audio
     if (this.state.mode !== "idle") {
@@ -482,6 +490,7 @@ export class StateManager {
   }
 
   pauseAudio() {
+    // Queue is intentionally left intact — pausing is not abandoning it.
     this.state.audio.playing = false;
     this.notifyStateChange();
   }
@@ -492,6 +501,7 @@ export class StateManager {
     this.state.audio.src = null;
     this.state.audio.name = null;
     this.state.audio.role = "background";
+    this.state.audio.queue = this.emptyQueue();
     this.notifyStateChange();
   }
 
@@ -526,6 +536,192 @@ export class StateManager {
       // the slides are the operator's to advance, so just stop the transport.
       this.state.audio.playing = false;
     }
+    this.notifyStateChange();
+  }
+
+  /**
+   * Fired by the display's native <audio> "ended" event — a separate signal
+   * from updateAudioTime()'s time-threshold `finished` detection, which is
+   * fragile and must not grow a queue branch (would double-fire). The
+   * syncedLyrics/hymn branches below just replicate updateAudioTime()'s
+   * existing behavior so this handler is idempotent alongside it; queue
+   * playback is always role "background" with no syncedLyrics, so those
+   * branches and the queue branch can never both apply to the same track.
+   */
+  handleAudioEnded() {
+    if (this.state.text.syncedLyrics) {
+      this.goIdle();
+      return;
+    }
+    if (this.state.audio.role === "hymn") {
+      this.state.audio.playing = false;
+      this.notifyStateChange();
+      return;
+    }
+    if (
+      this.state.audio.queue.source !== null &&
+      this.state.audio.queue.tracks.length > 0
+    ) {
+      this.nextTrack();
+      return;
+    }
+    this.state.audio.playing = false;
+    this.notifyStateChange();
+  }
+
+  private emptyQueue(): AudioQueueState {
+    return {
+      source: null,
+      playlistId: null,
+      name: null,
+      tracks: [],
+      index: 0,
+      loop: false,
+    };
+  }
+
+  /** Resolves audioIds to playable QueueTrack snapshots, dropping ids that no longer exist. */
+  resolveQueueTracks(audioIds: string[]): QueueTrack[] {
+    const library = getAudioLibrary();
+    const tracks: QueueTrack[] = [];
+    for (const audioId of audioIds) {
+      const item = library.getById(audioId);
+      if (item) {
+        tracks.push({
+          audioId: item.id,
+          src: item.path,
+          name: item.name,
+          duration: item.duration,
+        });
+      }
+    }
+    return tracks;
+  }
+
+  /** Sets the live audio src/name/transport for the track at `index` in the current queue, without touching the queue itself. */
+  private loadQueueTrack(index: number, autoplay = true) {
+    const track = this.state.audio.queue.tracks[index];
+    if (!track) return;
+
+    this.state.audio.queue.index = index;
+    this.state.audio.src = track.src;
+    this.state.audio.name = track.name;
+    this.state.audio.currentTime = 0;
+    this.state.audio.duration = 0;
+    this.state.audio.playing = autoplay;
+    this.state.audio.role = "background";
+    if (this.state.mode !== "idle") {
+      this.state.mode = "idle";
+    }
+    this.notifyStateChange();
+  }
+
+  playPlaylist(playlistId: string, startIndex = 0) {
+    const playlist = getAudioPlaylists().getById(playlistId);
+    if (!playlist) return;
+    const tracks = this.resolveQueueTracks(playlist.audioIds);
+    if (tracks.length === 0) return;
+
+    const index = Math.max(0, Math.min(startIndex, tracks.length - 1));
+    this.state.audio.queue = {
+      source: "playlist",
+      playlistId,
+      name: playlist.name,
+      tracks,
+      index,
+      loop: playlist.loop,
+    };
+    this.loadQueueTrack(index);
+  }
+
+  playQueue(startIndex = 0) {
+    const audioIds = getAudioPlaylists().getQueue();
+    const tracks = this.resolveQueueTracks(audioIds);
+    if (tracks.length === 0) return;
+
+    const index = Math.max(0, Math.min(startIndex, tracks.length - 1));
+    const preserveLoop = this.state.audio.queue.source === "ephemeral";
+    this.state.audio.queue = {
+      source: "ephemeral",
+      playlistId: null,
+      name: null,
+      tracks,
+      index,
+      loop: preserveLoop ? this.state.audio.queue.loop : false,
+    };
+    this.loadQueueTrack(index);
+  }
+
+  nextTrack() {
+    const { queue } = this.state.audio;
+    if (queue.tracks.length === 0) return;
+
+    let nextIndex = queue.index + 1;
+    if (nextIndex >= queue.tracks.length) {
+      if (queue.loop) {
+        nextIndex = 0;
+      } else {
+        // Queue finished. Rewind to the top rather than sitting on the last
+        // track, so pressing Play restarts the set instead of replaying the
+        // final song. Paused, so finishing never auto-restarts.
+        this.loadQueueTrack(0, false);
+        return;
+      }
+    }
+    this.loadQueueTrack(nextIndex);
+  }
+
+  previousTrack() {
+    const { queue, currentTime } = this.state.audio;
+    if (queue.tracks.length === 0) return;
+
+    // Standard media behavior: past a few seconds in, "previous" restarts the track.
+    if (currentTime > 3) {
+      this.seekAudio(0);
+      return;
+    }
+
+    let prevIndex = queue.index - 1;
+    if (prevIndex < 0) {
+      if (queue.loop) {
+        prevIndex = queue.tracks.length - 1;
+      } else {
+        this.seekAudio(0);
+        return;
+      }
+    }
+    this.loadQueueTrack(prevIndex);
+  }
+
+  setQueueLoop(loop: boolean) {
+    this.state.audio.queue.loop = loop;
+    if (this.state.audio.queue.source === "playlist" && this.state.audio.queue.playlistId) {
+      getAudioPlaylists().setLoop(this.state.audio.queue.playlistId, loop);
+    }
+    this.notifyStateChange();
+  }
+
+  /**
+   * Re-projects the live queue after the underlying source (playlist or Up
+   * Next) was edited, preserving the currently playing track by audioId so
+   * reordering during a live service never skips or restarts it. If the
+   * playing track was removed from the source, playback continues to its end
+   * — the queue snapshot keeps it alive even though it's gone from `tracks`.
+   */
+  syncQueueFromSource(tracks: QueueTrack[]) {
+    const { queue } = this.state.audio;
+    if (queue.source === null) return;
+
+    const playingAudioId = queue.tracks[queue.index]?.audioId ?? null;
+    const foundIndex = playingAudioId
+      ? tracks.findIndex((t) => t.audioId === playingAudioId)
+      : -1;
+    const index =
+      foundIndex !== -1
+        ? foundIndex
+        : Math.min(queue.index, Math.max(0, tracks.length - 1));
+
+    this.state.audio.queue = { ...queue, tracks, index };
     this.notifyStateChange();
   }
 

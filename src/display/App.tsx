@@ -37,6 +37,10 @@ export default function App() {
     window.electronAPI?.audioTimeUpdate(time, duration);
   };
 
+  const handleAudioEnded = () => {
+    window.electronAPI?.audioEnded();
+  };
+
   return (
     <div className="display-container">
       {state.mode === "idle" && (
@@ -57,7 +61,11 @@ export default function App() {
       {state.mode === "image" && <ImageMode config={state.image} />}
 
       {/* Audio player always rendered so playback works in any mode */}
-      <AudioPlayer config={state.audio} onTimeUpdate={handleAudioTimeUpdate} />
+      <AudioPlayer
+        config={state.audio}
+        onTimeUpdate={handleAudioTimeUpdate}
+        onEnded={handleAudioEnded}
+      />
     </div>
   );
 }

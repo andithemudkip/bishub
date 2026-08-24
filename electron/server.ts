@@ -44,6 +44,7 @@ import {
 import { getTranslationById } from "../src/shared/bibleTranslations";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
+import { getAudioPlaylists } from "./audioPlaylists";
 import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
@@ -368,6 +369,18 @@ export function createServer(
 
   audioLibrary.onDownloadProgress((progress) => {
     io.emit("audioDownloadProgress", progress);
+  });
+
+  // Audio Playlists + Up Next queue — broadcast only; the sync-live-queue
+  // side effect is wired once in electron/main.ts to avoid double-firing.
+  const audioPlaylists = getAudioPlaylists();
+
+  audioPlaylists.onPlaylistsChange((playlists) => {
+    io.emit("audioPlaylists", playlists);
+  });
+
+  audioPlaylists.onQueueChange((audioIds) => {
+    io.emit("audioQueue", audioIds);
   });
 
   // Image Library setup
@@ -852,6 +865,92 @@ export function createServer(
 
     socket.on("setAudioVolume", (volume) => {
       stateManager.setAudioVolume(volume);
+    });
+
+    // Audio Playlists
+    socket.on("getAudioPlaylists", () => {
+      socket.emit("audioPlaylists", audioPlaylists.getAll());
+    });
+
+    socket.on("createAudioPlaylist", (name, audioIds) => {
+      audioPlaylists.create(name, audioIds);
+    });
+
+    socket.on("renameAudioPlaylist", (playlistId, name) => {
+      audioPlaylists.rename(playlistId, name);
+    });
+
+    socket.on("deleteAudioPlaylist", (playlistId) => {
+      audioPlaylists.delete(playlistId);
+    });
+
+    socket.on("setAudioPlaylistLoop", (playlistId, loop) => {
+      const queue = stateManager.getState().audio.queue;
+      if (queue.source === "playlist" && queue.playlistId === playlistId) {
+        stateManager.setQueueLoop(loop);
+      } else {
+        audioPlaylists.setLoop(playlistId, loop);
+      }
+    });
+
+    socket.on("addTracksToPlaylist", (playlistId, audioIds) => {
+      audioPlaylists.addTracks(playlistId, audioIds);
+    });
+
+    socket.on("removeTrackFromPlaylist", (playlistId, audioId) => {
+      audioPlaylists.removeTrack(playlistId, audioId);
+    });
+
+    socket.on("reorderPlaylist", (playlistId, orderedAudioIds) => {
+      audioPlaylists.reorder(playlistId, orderedAudioIds);
+    });
+
+    // Up Next (ephemeral queue)
+    socket.on("getAudioQueue", () => {
+      socket.emit("audioQueue", audioPlaylists.getQueue());
+    });
+
+    socket.on("addToQueue", (audioIds) => {
+      audioPlaylists.addToQueue(audioIds);
+    });
+
+    socket.on("playNextInQueue", (audioIds) => {
+      const queue = stateManager.getState().audio.queue;
+      const afterIndex = queue.source === "ephemeral" ? queue.index : -1;
+      audioPlaylists.playNext(audioIds, afterIndex);
+    });
+
+    socket.on("removeFromQueue", (audioId) => {
+      audioPlaylists.removeFromQueue(audioId);
+    });
+
+    socket.on("reorderQueue", (orderedAudioIds) => {
+      audioPlaylists.reorderQueue(orderedAudioIds);
+    });
+
+    socket.on("clearQueue", () => {
+      audioPlaylists.clearQueue();
+    });
+
+    // Queue transport
+    socket.on("playAudioPlaylist", (playlistId, startIndex) => {
+      stateManager.playPlaylist(playlistId, startIndex);
+    });
+
+    socket.on("playAudioQueue", (startIndex) => {
+      stateManager.playQueue(startIndex);
+    });
+
+    socket.on("nextTrack", () => {
+      stateManager.nextTrack();
+    });
+
+    socket.on("previousTrack", () => {
+      stateManager.previousTrack();
+    });
+
+    socket.on("setQueueLoop", (loop) => {
+      stateManager.setQueueLoop(loop);
     });
 
     // Audio Scheduling
