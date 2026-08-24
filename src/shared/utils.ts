@@ -177,10 +177,13 @@ export function uploadWithProgress(
   });
 }
 
+// yt-dlp handles every one of these forms natively (they all resolve to the same
+// video id), so we pass the URL through untouched — this list only exists to give
+// the user an error before a download starts. Keep it in sync with what yt-dlp's
+// YouTube extractor accepts rather than rewriting URLs ourselves.
 const YOUTUBE_URL_PATTERNS = [
-  /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]+/,
+  /^https?:\/\/(www\.|m\.|music\.)?youtube\.com\/(watch\?|shorts\/|live\/|embed\/|v\/)/,
   /^https?:\/\/youtu\.be\/[\w-]+/,
-  /^https?:\/\/(www\.)?youtube\.com\/shorts\/[\w-]+/,
 ];
 
 export function isValidYouTubeUrl(url: string): boolean {

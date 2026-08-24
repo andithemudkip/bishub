@@ -325,6 +325,34 @@ async function probeBinaries(): Promise<BinaryInfo[]> {
   ];
 }
 
+// yt-dlp appends to a --print-to-file target, and `before_dl` fires once per
+// downloaded format (video + audio are separate), so take the first non-empty line.
+function readPrintedTitle(file: string): string | null {
+  try {
+    const lines = fs.readFileSync(file, "utf-8").split("\n");
+    return lines.map((l) => l.trim()).find((l) => l.length > 0) ?? null;
+  } catch {
+    return null; // yt-dlp never got far enough to write it
+  }
+}
+
+function discardPrintedTitle(file: string): void {
+  try {
+    fs.rmSync(file, { force: true });
+  } catch {
+    // Best effort — a stray temp file is harmless.
+  }
+}
+
+// Fallback title when yt-dlp didn't report one: --restrict-filenames maps every
+// non-ASCII character to "_", so this loses diacritics ("mănâncă" -> "m nanc").
+function titleFromFilename(filePath: string): string {
+  return path
+    .basename(filePath, path.extname(filePath))
+    .replace(/_/g, " ")
+    .trim();
+}
+
 function startYoutubeDownload(url: string, mode: DownloadMode): InternalProgress {
   const downloadId = uuidv4();
 
@@ -368,6 +396,12 @@ function startYoutubeDownload(url: string, mode: DownloadMode): InternalProgress
       : getAudioLibrary().getAudiosDir();
   const outputTemplate = path.join(outputDir, "%(title)s.%(ext)s");
 
+  // Filenames stay ASCII (--restrict-filenames below) so they're safe on every
+  // platform, which means they can't carry the real title. Have yt-dlp write the
+  // untouched title to a temp file instead. --print-to-file, unlike --print, does
+  // not imply --quiet, so the progress lines parsed below still come through.
+  const titleFile = path.join(app.getPath("temp"), `bishub-yt-title-${downloadId}.txt`);
+
   // Mode-specific format / post-processing. Video prefers H.264 (avc1) so it
   // plays in Electron; audio extracts to mp3 via ffmpeg at best quality.
   const modeArgs =
@@ -401,6 +435,9 @@ function startYoutubeDownload(url: string, mode: DownloadMode): InternalProgress
     "--progress",
     "--no-playlist",
     "--restrict-filenames",
+    "--print-to-file",
+    "before_dl:%(title)s",
+    titleFile,
     "--no-js-runtimes",
     "--js-runtimes",
     `quickjs:${getQjsPath()}`,
@@ -445,13 +482,10 @@ function startYoutubeDownload(url: string, mode: DownloadMode): InternalProgress
     const destMatch = output.match(/\[download\] Destination: (.+)/);
     if (destMatch) {
       outputFilePath = destMatch[1].trim();
-      // Expose the title (from the filename yt-dlp chose) so the UI can
-      // switch from URL to title as soon as the download starts.
-      const basename = path.basename(
-        outputFilePath,
-        path.extname(outputFilePath),
-      );
-      progress.filename = basename.replace(/_/g, " ");
+      // Expose the title so the UI can switch from URL to title as soon as
+      // the download starts (yt-dlp writes titleFile before the first byte).
+      progress.filename =
+        readPrintedTitle(titleFile) ?? titleFromFilename(outputFilePath);
       setStage("downloading");
     }
 
@@ -477,11 +511,8 @@ function startYoutubeDownload(url: string, mode: DownloadMode): InternalProgress
     );
     if (alreadyMatch) {
       outputFilePath = alreadyMatch[1].trim();
-      const basename = path.basename(
-        outputFilePath,
-        path.extname(outputFilePath),
-      );
-      progress.filename = basename.replace(/_/g, " ");
+      progress.filename =
+        readPrintedTitle(titleFile) ?? titleFromFilename(outputFilePath);
     }
   });
 
@@ -491,6 +522,9 @@ function startYoutubeDownload(url: string, mode: DownloadMode): InternalProgress
 
   proc.on("close", async (code) => {
     activeDownloads.delete(downloadId);
+
+    const printedTitle = readPrintedTitle(titleFile);
+    discardPrintedTitle(titleFile);
 
     // Fallback: if we missed the destination line, or if the captured path
     // no longer exists (yt-dlp deletes the intermediate after audio extract),
@@ -521,13 +555,7 @@ function startYoutubeDownload(url: string, mode: DownloadMode): InternalProgress
       progress.progress = 100;
       notify(mode, progress);
 
-      // yt-dlp uses the video title as filename (with --restrict-filenames
-      // which replaces spaces with underscores), so convert back for display.
-      const basename = path.basename(
-        outputFilePath,
-        path.extname(outputFilePath)
-      );
-      const title = basename.replace(/_/g, " ");
+      const title = printedTitle ?? titleFromFilename(outputFilePath);
 
       try {
         if (mode === "video") {
@@ -564,6 +592,7 @@ function startYoutubeDownload(url: string, mode: DownloadMode): InternalProgress
 
   proc.on("error", (err) => {
     activeDownloads.delete(downloadId);
+    discardPrintedTitle(titleFile);
     progress.status = "error";
     progress.error = `Process error: ${err.message}`;
     notify(mode, progress);
