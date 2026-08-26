@@ -8,6 +8,11 @@ interface Props {
 
 const MAX_FONT_SIZE = 120;
 const MIN_FONT_SIZE = 24;
+// `scrollWidth` is rounded to the nearest integer, so a line that is really
+// 1824.4px wide reports 1824 and passes a `<= 1824` fit test — then wraps for
+// real once it is laid out. Shave a pixel off so sub-pixel overflow can't slip
+// through.
+const WIDTH_SAFETY_MARGIN = 1;
 
 export default function TextMode({ config }: Props) {
   const [visible, setVisible] = useState(true);
@@ -58,7 +63,10 @@ export default function TextMode({ config }: Props) {
 
       optimalSize = findOptimalFontSize(MIN_FONT_SIZE, MAX_FONT_SIZE, (size) => {
         text.style.fontSize = `${size}px`;
-        return text.scrollHeight <= availableHeight && text.scrollWidth <= availableWidth;
+        return (
+          text.scrollHeight <= availableHeight &&
+          text.scrollWidth <= availableWidth - WIDTH_SAFETY_MARGIN
+        );
       });
 
       wrapper.style.maxWidth = origMaxWidth;
@@ -74,6 +82,11 @@ export default function TextMode({ config }: Props) {
       });
     }
 
+    // The binary search leaves the *last probed* size on the element, which is
+    // often one step above the optimum. Normally the re-render below overwrites
+    // it, but when optimalSize equals the current state React bails out and the
+    // oversized probe sticks — making the text wrap. Write the result directly.
+    text.style.fontSize = `${optimalSize}px`;
     setFontSize(optimalSize);
   }, [currentText, displayedSlide, config.contentType]);
 

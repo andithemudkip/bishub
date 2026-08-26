@@ -11,6 +11,11 @@ const VIRTUAL_HEIGHT = 1080;
 // Must match TextMode.tsx constants
 const MAX_FONT_SIZE = 120;
 const MIN_FONT_SIZE = 24;
+// `scrollWidth` is rounded to the nearest integer, so a line that is really
+// 1824.4px wide reports 1824 and passes a `<= 1824` fit test — then wraps for
+// real once it is laid out. Shave a pixel off so sub-pixel overflow can't slip
+// through.
+const WIDTH_SAFETY_MARGIN = 1;
 
 interface Props {
   state: DisplayState;
@@ -71,6 +76,9 @@ function ScaledSlide({
   const textRef = useRef<HTMLParagraphElement>(null);
   const [scale, setScale] = useState(0);
   const [fontSize, setFontSize] = useState(MAX_FONT_SIZE);
+  // The virtual slide only has a real layout once the container has been
+  // measured; until then sizing the text is meaningless.
+  const mounted = scale > 0;
 
   // Track preview container size to compute scale
   useEffect(() => {
@@ -95,7 +103,7 @@ function ScaledSlide({
   useLayoutEffect(() => {
     const wrapper = wrapperRef.current;
     const text = textRef.current;
-    if (!wrapper || !text || !content || scale === 0) return;
+    if (!wrapper || !text || !content || !mounted) return;
 
     const isHymn = contentType === "hymn";
     const availableHeight = VIRTUAL_HEIGHT - 160;
@@ -112,7 +120,10 @@ function ScaledSlide({
 
       optimalSize = findOptimalFontSize(MIN_FONT_SIZE, MAX_FONT_SIZE, (size) => {
         text.style.fontSize = `${size}px`;
-        return text.scrollHeight <= availableHeight && text.scrollWidth <= availableWidth;
+        return (
+          text.scrollHeight <= availableHeight &&
+          text.scrollWidth <= availableWidth - WIDTH_SAFETY_MARGIN
+        );
       });
 
       wrapper.style.maxWidth = origMaxWidth;
@@ -127,8 +138,16 @@ function ScaledSlide({
       });
     }
 
+    // The binary search leaves the *last probed* size on the element, which is
+    // often one step above the optimum. Normally the re-render below overwrites
+    // it, but when optimalSize equals the current state React bails out and the
+    // oversized probe sticks — making the text wrap. Write the result directly.
+    text.style.fontSize = `${optimalSize}px`;
     setFontSize(optimalSize);
-  }, [content, contentType, scale]);
+    // Deliberately keyed on `mounted`, not `scale`: measurement happens at the
+    // fixed virtual resolution, so it is scale-independent. Re-running it on
+    // every container resize only produced redundant reflows.
+  }, [content, contentType, mounted]);
 
   return (
     <div ref={outerRef} className="w-full h-full overflow-hidden relative">
