@@ -52,8 +52,8 @@ export default function App() {
       )}
       {state.mode === "text" && (
         state.text.syncedLyrics
-          ? <KaraokeMode config={state.text} audioState={state.audio} />
-          : <TextMode config={state.text} />
+          ? <KaraokeMode config={state.text} audioState={state.audio} settings={settings} />
+          : <TextMode config={state.text} settings={settings} />
       )}
       {state.mode === "video" && (
         <VideoMode config={state.video} onTimeUpdate={handleVideoTimeUpdate} />

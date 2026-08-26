@@ -220,6 +220,9 @@ export default function App() {
             onSetVolume={api.setVolume}
             onSetAudioVolume={api.setAudioVolume}
             onSetSyncedLyrics={api.setSyncedLyrics}
+            onSetChromeSize={api.setChromeSize}
+            onSetSlideBackground={api.setSlideBackground}
+            onSetBibleBackground={api.setBibleBackground}
             onSetInstrumentals={api.setInstrumentals}
             onSetDisplayMonitor={api.setDisplayMonitor}
             appVersion={appVersion}

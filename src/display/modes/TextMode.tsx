@@ -1,9 +1,20 @@
-import { useEffect, useState, useRef, useLayoutEffect } from "react";
-import type { TextState } from "../../shared/types";
-import { findOptimalFontSize } from "../../shared/utils";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
+import type { TextState, AppSettings } from "../../shared/types";
+import {
+  findOptimalFontSize,
+  getChromeMetrics,
+  reservedChromeHeight,
+} from "../../shared/utils";
+import {
+  resolveSlideTheme,
+  slideBackgroundStyle,
+  SLIDE_TEXT_TRANSITION,
+} from "../../shared/slideTheme";
+import SlideIndicator from "../../components/SlideIndicator";
 
 interface Props {
   config: TextState;
+  settings: AppSettings;
 }
 
 const MAX_FONT_SIZE = 120;
@@ -14,7 +25,7 @@ const MIN_FONT_SIZE = 24;
 // through.
 const WIDTH_SAFETY_MARGIN = 1;
 
-export default function TextMode({ config }: Props) {
+export default function TextMode({ config, settings }: Props) {
   const [visible, setVisible] = useState(true);
   const [displayedSlide, setDisplayedSlide] = useState(config.currentSlide);
   const [fontSize, setFontSize] = useState(MAX_FONT_SIZE);
@@ -22,8 +33,13 @@ export default function TextMode({ config }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const dotsRef = useRef<HTMLDivElement>(null);
+  const counterRef = useRef<HTMLDivElement>(null);
 
   const currentText = config.slides[displayedSlide] || "";
+  const chrome = getChromeMetrics(settings);
+  const theme = resolveSlideTheme(settings, config.contentType);
 
   // Handle slide transitions
   useEffect(() => {
@@ -46,8 +62,16 @@ export default function TextMode({ config }: Props) {
 
     const isHymn = config.contentType === "hymn";
 
-    // Get available space
-    const availableHeight = container.clientHeight - 160; // Reserve space for title and slide indicators
+    // Get available space. The chrome is measured rather than assumed a fixed
+    // height, so a larger title (or one that wraps) shrinks the body instead of
+    // colliding with it.
+    const availableHeight =
+      container.clientHeight -
+      reservedChromeHeight(
+        titleRef.current?.offsetHeight ?? 0,
+        dotsRef.current?.offsetHeight ?? 0,
+        counterRef.current?.offsetHeight ?? 0,
+      );
     const availableWidth = container.clientWidth - 96; // container padding already applied
 
     // For hymns: prevent line wrapping to keep each line on one line
@@ -88,17 +112,38 @@ export default function TextMode({ config }: Props) {
     // oversized probe sticks — making the text wrap. Write the result directly.
     text.style.fontSize = `${optimalSize}px`;
     setFontSize(optimalSize);
-  }, [currentText, displayedSlide, config.contentType]);
+    // The chrome metrics are dependencies because they change how much room is
+    // left for the body — the refs above are read after React has committed the
+    // new sizes.
+  }, [
+    currentText,
+    displayedSlide,
+    config.contentType,
+    config.title,
+    chrome.titleLineHeight,
+    chrome.counterLineHeight,
+    chrome.dotSize,
+  ]);
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-12"
+      className="w-full h-full flex flex-col items-center justify-center p-12"
+      style={slideBackgroundStyle(theme) as React.CSSProperties}
     >
       {/* Title */}
       {config.title && (
-        <div className="absolute top-8 left-0 right-0 text-center">
-          <h1 className="text-3xl font-light text-white/60 tracking-wide">
+        <div ref={titleRef} className="absolute top-8 left-0 right-0 text-center px-12">
+          <h1
+            style={{
+              fontSize: `${chrome.titleFontSize}px`,
+              lineHeight: `${chrome.titleLineHeight}px`,
+              color: theme.title,
+              textShadow: theme.textShadow,
+              transition: SLIDE_TEXT_TRANSITION,
+            }}
+            className="font-light tracking-wide"
+          >
             {config.title}
           </h1>
         </div>
@@ -113,27 +158,39 @@ export default function TextMode({ config }: Props) {
       >
         <p
           ref={textRef}
-          style={{ fontSize: `${fontSize}px` }}
-          className="font-display leading-relaxed text-white whitespace-pre-line"
+          style={{
+            fontSize: `${fontSize}px`,
+            color: theme.body,
+            textShadow: theme.textShadow,
+            transition: SLIDE_TEXT_TRANSITION,
+          }}
+          className="font-display leading-relaxed whitespace-pre-line"
         >
           {currentText}
         </p>
       </div>
 
       {/* Slide indicator */}
-      <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2">
-        {config.slides.map((_, index) => (
-          <div
-            key={index}
-            className={`w-2 h-2 rounded-full transition-all ${
-              index === displayedSlide ? "bg-white w-6" : "bg-white/30"
-            }`}
-          />
-        ))}
-      </div>
+      <SlideIndicator
+        ref={dotsRef}
+        count={config.slides.length}
+        current={displayedSlide}
+        chrome={chrome}
+        theme={theme}
+      />
 
       {/* Slide number */}
-      <div className="absolute bottom-8 right-8 text-white/40 text-lg">
+      <div
+        ref={counterRef}
+        className="absolute bottom-8 right-8"
+        style={{
+          fontSize: `${chrome.counterFontSize}px`,
+          lineHeight: `${chrome.counterLineHeight}px`,
+          color: theme.counter,
+          textShadow: theme.textShadow,
+          transition: SLIDE_TEXT_TRANSITION,
+        }}
+      >
         {displayedSlide + 1} / {config.slides.length}
       </div>
     </div>

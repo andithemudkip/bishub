@@ -14,6 +14,7 @@ import type { WindowManager } from "./windowManager";
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
+  ChromeSizeKey,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 import {
@@ -669,6 +670,21 @@ export function createServer(
     socket.on("setInstrumentals", (enabled: boolean) => {
       stateManager.setInstrumentals(enabled);
     });
+
+    socket.on("setChromeSize", (key: ChromeSizeKey, size: number) => {
+      stateManager.setChromeSize(key, size);
+    });
+
+    socket.on("setSlideBackground", (from: string, to: string) => {
+      stateManager.setSlideBackground(from, to);
+    });
+
+    socket.on(
+      "setBibleBackground",
+      (enabled: boolean, from: string, to: string) => {
+        stateManager.setBibleBackground(enabled, from, to);
+      },
+    );
 
     // Hymns
     socket.on("getHymns", (slug) => {

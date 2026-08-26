@@ -1,7 +1,23 @@
-import { useEffect, useState, useRef, useLayoutEffect } from "react";
-import type { DisplayState, AppSettings } from "../../../shared/types";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
+import type {
+  DisplayState,
+  AppSettings,
+  TextContentType,
+} from "../../../shared/types";
 import { getTranslations, type Language } from "../../../shared/i18n";
-import { formatDuration, findOptimalFontSize, getApiUrl } from "../../../shared/utils";
+import {
+  formatDuration,
+  findOptimalFontSize,
+  getApiUrl,
+  getChromeMetrics,
+  reservedChromeHeight,
+} from "../../../shared/utils";
+import {
+  resolveSlideTheme,
+  slideBackgroundStyle,
+  SLIDE_TEXT_TRANSITION,
+} from "../../../shared/slideTheme";
+import SlideIndicator from "../../../components/SlideIndicator";
 import { ImageIcon } from "../icons/image";
 
 // Virtual resolution matching a typical display (used for scaled-down preview)
@@ -64,16 +80,23 @@ function ScaledSlide({
   contentType,
   slides,
   currentSlide,
+  settings,
 }: {
   content: string;
   title: string;
-  contentType: string;
+  contentType: TextContentType;
   slides: string[];
   currentSlide: number;
+  settings: AppSettings;
 }) {
   const outerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const dotsRef = useRef<HTMLDivElement>(null);
+  const counterRef = useRef<HTMLDivElement>(null);
+  const chrome = getChromeMetrics(settings);
+  const theme = resolveSlideTheme(settings, contentType);
   const [scale, setScale] = useState(0);
   const [fontSize, setFontSize] = useState(MAX_FONT_SIZE);
   // The virtual slide only has a real layout once the container has been
@@ -106,7 +129,15 @@ function ScaledSlide({
     if (!wrapper || !text || !content || !mounted) return;
 
     const isHymn = contentType === "hymn";
-    const availableHeight = VIRTUAL_HEIGHT - 160;
+    // `offsetHeight` ignores the CSS scale on the ancestor, so these are the
+    // same virtual-resolution pixels TextMode measures on the real display.
+    const availableHeight =
+      VIRTUAL_HEIGHT -
+      reservedChromeHeight(
+        titleRef.current?.offsetHeight ?? 0,
+        dotsRef.current?.offsetHeight ?? 0,
+        counterRef.current?.offsetHeight ?? 0,
+      );
     const availableWidth = VIRTUAL_WIDTH - 96;
 
     let optimalSize: number;
@@ -147,7 +178,15 @@ function ScaledSlide({
     // Deliberately keyed on `mounted`, not `scale`: measurement happens at the
     // fixed virtual resolution, so it is scale-independent. Re-running it on
     // every container resize only produced redundant reflows.
-  }, [content, contentType, mounted]);
+  }, [
+    content,
+    contentType,
+    mounted,
+    title,
+    chrome.titleLineHeight,
+    chrome.counterLineHeight,
+    chrome.dotSize,
+  ]);
 
   return (
     <div ref={outerRef} className="w-full h-full overflow-hidden relative">
@@ -160,10 +199,25 @@ function ScaledSlide({
         }}
       >
         {/* Exact replica of TextMode's render output */}
-        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-12">
+        <div
+          className="w-full h-full flex flex-col items-center justify-center p-12"
+          style={slideBackgroundStyle(theme) as React.CSSProperties}
+        >
           {title && (
-            <div className="absolute top-8 left-0 right-0 text-center">
-              <h1 className="text-3xl font-light text-white/60 tracking-wide">
+            <div
+              ref={titleRef}
+              className="absolute top-8 left-0 right-0 text-center px-12"
+            >
+              <h1
+                style={{
+                  fontSize: `${chrome.titleFontSize}px`,
+                  lineHeight: `${chrome.titleLineHeight}px`,
+                  color: theme.title,
+                  textShadow: theme.textShadow,
+                  transition: SLIDE_TEXT_TRANSITION,
+                }}
+                className="font-light tracking-wide"
+              >
                 {title}
               </h1>
             </div>
@@ -177,25 +231,38 @@ function ScaledSlide({
           >
             <p
               ref={textRef}
-              style={{ fontSize: `${fontSize}px` }}
-              className="font-display leading-relaxed text-white whitespace-pre-line"
+              style={{
+                fontSize: `${fontSize}px`,
+                color: theme.body,
+                textShadow: theme.textShadow,
+                transition: SLIDE_TEXT_TRANSITION,
+              }}
+              className="font-display leading-relaxed whitespace-pre-line"
             >
               {content}
             </p>
           </div>
 
-          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2">
-            {slides.map((_, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentSlide ? "bg-white w-6" : "bg-white/30"
-                }`}
-              />
-            ))}
-          </div>
+          <SlideIndicator
+            ref={dotsRef}
+            count={slides.length}
+            current={currentSlide}
+            chrome={chrome}
+            theme={theme}
+            width={VIRTUAL_WIDTH}
+          />
 
-          <div className="absolute bottom-8 right-8 text-white/40 text-lg">
+          <div
+            ref={counterRef}
+            className="absolute bottom-8 right-8"
+            style={{
+              fontSize: `${chrome.counterFontSize}px`,
+              lineHeight: `${chrome.counterLineHeight}px`,
+              color: theme.counter,
+              textShadow: theme.textShadow,
+              transition: SLIDE_TEXT_TRANSITION,
+            }}
+          >
             {currentSlide + 1} / {slides.length}
           </div>
         </div>
@@ -235,6 +302,7 @@ function TextPreview({
             contentType={text.contentType}
             slides={text.slides}
             currentSlide={text.currentSlide}
+            settings={settings}
           />
         </div>
       </div>
@@ -255,6 +323,7 @@ function TextPreview({
                 contentType={text.contentType}
                 slides={text.slides}
                 currentSlide={text.currentSlide + 1}
+                settings={settings}
               />
             </div>
           ) : (

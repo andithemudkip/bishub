@@ -1,4 +1,5 @@
 import type { Language } from "./i18n";
+import { DEFAULT_SLIDE_BACKGROUND, DEFAULT_BIBLE_BACKGROUND } from "./slideTheme";
 import type {
   VideoItem,
   DownloadProgress,
@@ -160,7 +161,35 @@ export interface AppSettings {
    */
   instrumentals: boolean;
   karaokeBannerDismissed: boolean;
+  /**
+   * Sizes of the display's chrome — the title, the slide counter and the slide
+   * dots — as percentages of the built-in size (100 = default), clamped to
+   * `CHROME_SIZE_MIN`..`CHROME_SIZE_MAX`. The body text is fitted around
+   * whatever these resolve to, so raising them shrinks the text rather than
+   * letting the two collide.
+   */
+  titleSize: number;
+  slideCounterSize: number;
+  slideDotsSize: number;
+  /**
+   * Gradient behind text and karaoke slides, top → bottom, as `#rrggbb`. Only
+   * the background is stored: every foreground on the slide is derived from
+   * these two stops by `getSlideTheme`, so the two can never fall out of step.
+   */
+  slideBackgroundFrom: string;
+  slideBackgroundTo: string;
+  /**
+   * Bible slides may opt out of the global background. Only Bible gets an
+   * override — the global background is already the hymn background, and it
+   * lets an operator tell a reading from a hymn at a glance.
+   */
+  bibleBackgroundEnabled: boolean;
+  bibleBackgroundFrom: string;
+  bibleBackgroundTo: string;
 }
+
+/** The chrome elements whose size the operator can tune. */
+export type ChromeSizeKey = "titleSize" | "slideCounterSize" | "slideDotsSize";
 
 /** Whether a hymn's instrumental MP3 exists remotely and whether it's on disk. */
 export type HymnAudioAvailability = "none" | "downloadable" | "cached";
@@ -264,6 +293,13 @@ export type ClientToServerEvents = {
   setLanguage: (language: Language) => void;
   setSyncedLyrics: (enabled: boolean) => void;
   setInstrumentals: (enabled: boolean) => void;
+  setChromeSize: (key: ChromeSizeKey, size: number) => void;
+  setSlideBackground: (from: string, to: string) => void;
+  setBibleBackground: (
+    enabled: boolean,
+    from: string,
+    to: string,
+  ) => void;
   getMonitors: () => void;
   goIdle: () => void;
   // Devices
@@ -448,6 +484,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   syncedLyrics: true,
   instrumentals: true,
   karaokeBannerDismissed: false,
+  titleSize: 100,
+  slideCounterSize: 100,
+  slideDotsSize: 100,
+  slideBackgroundFrom: DEFAULT_SLIDE_BACKGROUND.from,
+  slideBackgroundTo: DEFAULT_SLIDE_BACKGROUND.to,
+  bibleBackgroundEnabled: false,
+  bibleBackgroundFrom: DEFAULT_BIBLE_BACKGROUND.from,
+  bibleBackgroundTo: DEFAULT_BIBLE_BACKGROUND.to,
 };
 
 // Hymn types

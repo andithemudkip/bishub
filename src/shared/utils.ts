@@ -74,6 +74,153 @@ export function findOptimalFontSize(
   return optimalSize;
 }
 
+/* ------------------------------------------------------------------ *
+ * Display chrome sizing (title, slide counter, slide dots)
+ *
+ * Shared by `TextMode`, `KaraokeMode` and `ScaledSlide` in `LivePreview` so
+ * the preview keeps matching the real display.
+ * ------------------------------------------------------------------ */
+
+/** Percentage bounds for the user-tunable chrome sizes. 100 = built-in size. */
+export const CHROME_SIZE_MIN = 50;
+export const CHROME_SIZE_MAX = 250;
+export const CHROME_SIZE_STEP = 10;
+
+/** `top-8` / `bottom-8` — how far the chrome sits from the display edge. */
+const CHROME_EDGE_INSET = 32;
+/** Breathing room kept between the chrome and the body text. */
+const CHROME_CLEARANCE = 12;
+
+/** Pixel sizes at 100%, matching the Tailwind classes the chrome used to hardcode. */
+const BASE = {
+  /** `text-3xl` */
+  titleFontSize: 30,
+  titleLineHeight: 36,
+  /** `text-lg` */
+  counterFontSize: 18,
+  counterLineHeight: 28,
+  /** `w-2 h-2`, active `w-6`, `gap-2` */
+  dotSize: 8,
+  dotActiveWidth: 24,
+  dotGap: 8,
+};
+
+export interface ChromeSizeSettings {
+  titleSize: number;
+  slideCounterSize: number;
+  slideDotsSize: number;
+}
+
+export interface ChromeMetrics {
+  titleFontSize: number;
+  titleLineHeight: number;
+  counterFontSize: number;
+  counterLineHeight: number;
+  dotSize: number;
+  dotActiveWidth: number;
+  dotGap: number;
+}
+
+const clampPercent = (pct: number): number =>
+  Math.max(CHROME_SIZE_MIN, Math.min(CHROME_SIZE_MAX, pct || 100));
+
+/** Resolve the stored percentages into the pixel values the chrome renders at. */
+export function getChromeMetrics(settings: ChromeSizeSettings): ChromeMetrics {
+  const title = clampPercent(settings.titleSize) / 100;
+  const counter = clampPercent(settings.slideCounterSize) / 100;
+  const dots = clampPercent(settings.slideDotsSize) / 100;
+
+  return {
+    titleFontSize: BASE.titleFontSize * title,
+    titleLineHeight: BASE.titleLineHeight * title,
+    counterFontSize: BASE.counterFontSize * counter,
+    counterLineHeight: BASE.counterLineHeight * counter,
+    dotSize: BASE.dotSize * dots,
+    dotActiveWidth: BASE.dotActiveWidth * dots,
+    dotGap: BASE.dotGap * dots,
+  };
+}
+
+/** `right-8` — how far the slide counter sits from the right edge. */
+const COUNTER_EDGE_INSET = 32;
+/** Gap kept between the counter and the nearest dot. */
+const COUNTER_CLEARANCE = 16;
+
+/** Width the dot row needs to lay `count` dots out at these metrics. */
+export function dotsRowWidth(count: number, chrome: ChromeMetrics): number {
+  if (count <= 0) return 0;
+  if (count === 1) return chrome.dotActiveWidth;
+  // One active dot plus `count - 1` inactive ones, with a gap between each pair.
+  return chrome.dotActiveWidth + (count - 1) * (chrome.dotSize + chrome.dotGap);
+}
+
+/**
+ * Horizontal space to keep clear at each edge so the centred dot row can never
+ * slide under the slide counter.
+ *
+ * The counter's width is estimated from its font size rather than measured:
+ * measuring would mean a render → measure → re-render round trip in three
+ * components, and the estimate only has to be an over-estimate. Tabular digits
+ * run around 0.6em; erring high costs a slightly narrower dot band, erring low
+ * puts dots underneath the counter, which is the bug this exists to prevent.
+ */
+export function slideCounterGutter(count: number, chrome: ChromeMetrics): number {
+  const widestLabel = `${count} / ${count}`;
+  const estimatedWidth = widestLabel.length * chrome.counterFontSize * 0.62;
+  return COUNTER_EDGE_INSET + estimatedWidth + COUNTER_CLEARANCE;
+}
+
+export interface SlideIndicatorLayout {
+  /**
+   * `dots` while they fit the band between the gutters; `bar` once they don't.
+   * A Bible chapter is one slide per verse, so the count is the verse count —
+   * Psalm 119 is 176 dots, which overflows a 1080p display even at 100%. Past
+   * the fit point individual dots convey nothing anyway, and the counter
+   * already gives the exact position.
+   */
+  mode: "dots" | "bar";
+  /** Width available between the two gutters. */
+  available: number;
+}
+
+export function getSlideIndicatorLayout(
+  count: number,
+  containerWidth: number,
+  chrome: ChromeMetrics,
+): SlideIndicatorLayout {
+  const gutter = slideCounterGutter(count, chrome);
+  const available = Math.max(0, containerWidth - 2 * gutter);
+  return {
+    mode: dotsRowWidth(count, chrome) <= available ? "dots" : "bar",
+    available,
+  };
+}
+
+/**
+ * Vertical space the chrome claims, as a total to subtract from the container
+ * height before fitting the body text.
+ *
+ * The body is vertically centred, so it grows equally towards the top and the
+ * bottom — whichever side's chrome is taller is what constrains it, and the
+ * budget is twice that. Heights are measured from the live DOM (via
+ * `offsetHeight`, which transforms don't affect) so a title that wraps onto a
+ * second line is accounted for like any other.
+ *
+ * With every size at 100% and a title present this yields 160 — the constant
+ * these call sites used to hardcode.
+ */
+export function reservedChromeHeight(
+  titleHeight: number,
+  dotsHeight: number,
+  counterHeight: number,
+): number {
+  const top = titleHeight > 0 ? CHROME_EDGE_INSET + titleHeight + CHROME_CLEARANCE : 0;
+  const bottomChrome = Math.max(dotsHeight, counterHeight);
+  const bottom =
+    bottomChrome > 0 ? CHROME_EDGE_INSET + bottomChrome + CHROME_CLEARANCE : 0;
+  return 2 * Math.max(top, bottom);
+}
+
 /**
  * Format a timestamp as a relative time string (e.g. "just now", "5m ago", "2h ago").
  * Requires the `common` translations object with justNow, minutesAgo, hoursAgo, daysAgo keys.

@@ -16,6 +16,7 @@ import type {
   MP3CacheStats,
   DeviceInfo,
   HymnPlaybackMode,
+  ChromeSizeKey,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
@@ -57,6 +58,9 @@ interface RemoteAPI {
   setLanguage: (language: Language) => void;
   setSyncedLyrics: (enabled: boolean) => void;
   setInstrumentals: (enabled: boolean) => void;
+  setChromeSize: (key: ChromeSizeKey, size: number) => void;
+  setSlideBackground: (from: string, to: string) => void;
+  setBibleBackground: (enabled: boolean, from: string, to: string) => void;
   goIdle: () => void;
   // Hymns
   loadHymn: (
@@ -485,6 +489,30 @@ export function useRemoteAPI(): RemoteAPI {
       (enabled: boolean) => {
         if (isElectron) window.electronAPI!.setInstrumentals(enabled);
         else socketRef.current?.emit("setInstrumentals", enabled);
+      },
+      [isElectron]
+    ),
+
+    setChromeSize: useCallback(
+      (key: ChromeSizeKey, size: number) => {
+        if (isElectron) window.electronAPI!.setChromeSize(key, size);
+        else socketRef.current?.emit("setChromeSize", key, size);
+      },
+      [isElectron]
+    ),
+
+    setSlideBackground: useCallback(
+      (from: string, to: string) => {
+        if (isElectron) window.electronAPI!.setSlideBackground(from, to);
+        else socketRef.current?.emit("setSlideBackground", from, to);
+      },
+      [isElectron]
+    ),
+
+    setBibleBackground: useCallback(
+      (enabled: boolean, from: string, to: string) => {
+        if (isElectron) window.electronAPI!.setBibleBackground(enabled, from, to);
+        else socketRef.current?.emit("setBibleBackground", enabled, from, to);
       },
       [isElectron]
     ),

@@ -120,6 +120,30 @@ export interface Translations {
     selectMonitorHint: string;
     autoResolvedTo: string;
     resetToAuto: string;
+    // On-screen element sizes (title, slide counter, slide dots)
+    chromeSizes: string;
+    chromeSizesHint: string;
+    titleSize: string;
+    slideCounterSize: string;
+    slideDotsSize: string;
+    resetToDefault: string;
+    // Slide background
+    slideBackground: string;
+    slideBackgroundHint: string;
+    customColors: string;
+    gradientTop: string;
+    gradientBottom: string;
+    lowContrastWarning: string;
+    bibleBackgroundLabel: string;
+    bibleBackgroundHint: string;
+    backgroundPresets: {
+      midnight: string;
+      charcoal: string;
+      ocean: string;
+      plum: string;
+      forest: string;
+      parchment: string;
+    };
     monitorPrimary: string;
     monitorInternal: string;
     onlyMonitor: string;
@@ -548,6 +572,32 @@ const ro: Translations = {
     selectMonitorHint: "Apasă pe monitorul pe care vrei să afișezi conținutul",
     autoResolvedTo: "Auto → ",
     resetToAuto: "Înapoi la auto",
+    chromeSizes: "Dimensiuni pe ecran",
+    chromeSizesHint:
+      "Ajustează cât de mare să apară elementele pe ecran.",
+    titleSize: "Titlu",
+    slideCounterSize: "Contor slide-uri",
+    slideDotsSize: "Puncte slide-uri",
+    resetToDefault: "Resetează",
+    slideBackground: "Fundal slide-uri",
+    slideBackgroundHint:
+      "Culoarea textului, a titlului și a evidențierii karaoke se adaptează automat la fundalul ales.",
+    customColors: "Culori personalizate",
+    gradientTop: "Sus",
+    gradientBottom: "Jos",
+    lowContrastWarning:
+      "Contrast scăzut — textul ar putea fi greu de citit pe videoproiector.",
+    bibleBackgroundLabel: "Fundal separat pentru Biblie",
+    bibleBackgroundHint:
+      "Versetele primesc propriul fundal, ca să se distingă de imnuri.",
+    backgroundPresets: {
+      midnight: "Miezul nopții",
+      charcoal: "Cărbune",
+      ocean: "Ocean",
+      plum: "Prună",
+      forest: "Pădure",
+      parchment: "Pergament",
+    },
     monitorPrimary: "Principal",
     monitorInternal: "Intern",
     onlyMonitor: "Singurul monitor",
@@ -958,6 +1008,32 @@ const en: Translations = {
     selectMonitorHint: "Tap a monitor to display content on it",
     autoResolvedTo: "Auto → ",
     resetToAuto: "Reset to auto",
+    chromeSizes: "On-screen sizes",
+    chromeSizesHint:
+      "Adjust how large the items should appear on the display.",
+    titleSize: "Title",
+    slideCounterSize: "Slide counter",
+    slideDotsSize: "Slide dots",
+    resetToDefault: "Reset",
+    slideBackground: "Slide background",
+    slideBackgroundHint:
+      "Text, title and karaoke highlight colours adapt automatically to the background you pick.",
+    customColors: "Custom colours",
+    gradientTop: "Top",
+    gradientBottom: "Bottom",
+    lowContrastWarning:
+      "Low contrast — text may be hard to read on a projector.",
+    bibleBackgroundLabel: "Separate background for Bible",
+    bibleBackgroundHint:
+      "Give readings their own background so they stand apart from hymns at a glance.",
+    backgroundPresets: {
+      midnight: "Midnight",
+      charcoal: "Charcoal",
+      ocean: "Ocean",
+      plum: "Plum",
+      forest: "Forest",
+      parchment: "Parchment",
+    },
     monitorPrimary: "Primary",
     monitorInternal: "Internal",
     onlyMonitor: "Only monitor",

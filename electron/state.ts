@@ -7,11 +7,18 @@ import type {
   TextContentType,
   HymnRef,
   BibleContext,
+  ChromeSizeKey,
 } from "../src/shared/types";
 import type { ParsedTTML } from "../src/shared/ttmlParser";
 import { buildScreenGroups, getActiveScreen } from "../src/shared/ttmlParser";
 import type { Language } from "../src/shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../src/shared/types";
+import { CHROME_SIZE_MIN, CHROME_SIZE_MAX } from "../src/shared/utils";
+import {
+  normalizeHex,
+  DEFAULT_SLIDE_BACKGROUND,
+  DEFAULT_BIBLE_BACKGROUND,
+} from "../src/shared/slideTheme";
 import type { QueueTrack, AudioQueueState } from "../src/shared/audioPlaylist.types";
 import { getAudioLibrary } from "./audioLibrary";
 import { getAudioPlaylists } from "./audioPlaylists";
@@ -410,6 +417,43 @@ export class StateManager {
 
   setInstrumentals(enabled: boolean) {
     this.settings.instrumentals = enabled;
+    this.notifySettingsChange();
+  }
+
+  /** Size of one display chrome element (title / slide counter / slide dots), in %. */
+  setChromeSize(key: ChromeSizeKey, size: number) {
+    this.settings[key] = Math.max(
+      CHROME_SIZE_MIN,
+      Math.min(CHROME_SIZE_MAX, Math.round(size)),
+    );
+    this.notifySettingsChange();
+  }
+
+  /** Gradient behind text/karaoke slides. Hex is validated here because it
+   * arrives from a colour input, a web remote, or an older persisted config. */
+  setSlideBackground(from: string, to: string) {
+    this.settings.slideBackgroundFrom = normalizeHex(
+      from,
+      DEFAULT_SLIDE_BACKGROUND.from,
+    );
+    this.settings.slideBackgroundTo = normalizeHex(
+      to,
+      DEFAULT_SLIDE_BACKGROUND.to,
+    );
+    this.notifySettingsChange();
+  }
+
+  /** Optional separate gradient for Bible slides. */
+  setBibleBackground(enabled: boolean, from: string, to: string) {
+    this.settings.bibleBackgroundEnabled = enabled;
+    this.settings.bibleBackgroundFrom = normalizeHex(
+      from,
+      DEFAULT_BIBLE_BACKGROUND.from,
+    );
+    this.settings.bibleBackgroundTo = normalizeHex(
+      to,
+      DEFAULT_BIBLE_BACKGROUND.to,
+    );
     this.notifySettingsChange();
   }
 

@@ -1,11 +1,22 @@
-import { useMemo, useRef, useLayoutEffect, useState, useEffect } from "react";
-import type { TextState, AudioState } from "../../shared/types";
-import { findOptimalFontSize } from "../../shared/utils";
+import React, { useMemo, useRef, useLayoutEffect, useState, useEffect } from "react";
+import type { TextState, AudioState, AppSettings } from "../../shared/types";
+import {
+  findOptimalFontSize,
+  getChromeMetrics,
+  reservedChromeHeight,
+} from "../../shared/utils";
+import {
+  resolveSlideTheme,
+  slideBackgroundStyle,
+  SLIDE_TEXT_TRANSITION,
+} from "../../shared/slideTheme";
+import SlideIndicator from "../../components/SlideIndicator";
 import { buildScreenGroups, getActiveScreen } from "../../shared/ttmlParser";
 
 interface Props {
   config: TextState;
   audioState: AudioState;
+  settings: AppSettings;
 }
 
 const MAX_FONT_SIZE = 100;
@@ -42,7 +53,7 @@ function useInterpolatedTime(audioState: AudioState): number {
   return time;
 }
 
-export default function KaraokeMode({ config, audioState }: Props) {
+export default function KaraokeMode({ config, audioState, settings }: Props) {
   const { syncedLyrics } = config;
   const lines = useMemo(
     () => syncedLyrics?.lines ?? [],
@@ -52,6 +63,12 @@ export default function KaraokeMode({ config, audioState }: Props) {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const dotsRef = useRef<HTMLDivElement>(null);
+  const counterRef = useRef<HTMLDivElement>(null);
+
+  const chrome = getChromeMetrics(settings);
+  const theme = resolveSlideTheme(settings, config.contentType);
 
   const [fontSize, setFontSize] = useState(60);
   const [visible, setVisible] = useState(true);
@@ -72,7 +89,15 @@ export default function KaraokeMode({ config, audioState }: Props) {
     const measure = measureRef.current;
     if (!container || !measure || lines.length === 0 || screenGroups.length === 0) return;
 
-    const availableHeight = container.clientHeight - 160;
+    // Measured rather than assumed, so a larger title shrinks the lyrics
+    // instead of colliding with them.
+    const availableHeight =
+      container.clientHeight -
+      reservedChromeHeight(
+        titleRef.current?.offsetHeight ?? 0,
+        dotsRef.current?.offsetHeight ?? 0,
+        counterRef.current?.offsetHeight ?? 0,
+      );
     const availableWidth = container.clientWidth - 96;
 
     measure.style.whiteSpace = "pre";
@@ -93,7 +118,14 @@ export default function KaraokeMode({ config, audioState }: Props) {
 
     measure.textContent = "";
     setFontSize(minSize);
-  }, [lines, screenGroups]);
+  }, [
+    lines,
+    screenGroups,
+    config.title,
+    chrome.titleLineHeight,
+    chrome.counterLineHeight,
+    chrome.dotSize,
+  ]);
 
   const targetScreen = useMemo(
     () => getActiveScreen(screenGroups, lines, currentTime),
@@ -132,7 +164,8 @@ export default function KaraokeMode({ config, audioState }: Props) {
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-12 relative"
+      className="w-full h-full flex flex-col items-center justify-center p-12 relative"
+      style={slideBackgroundStyle(theme) as React.CSSProperties}
     >
       <div
         ref={measureRef}
@@ -141,8 +174,17 @@ export default function KaraokeMode({ config, audioState }: Props) {
       />
 
       {config.title && (
-        <div className="absolute top-8 left-0 right-0 text-center">
-          <h1 className="text-3xl font-light text-white/60 tracking-wide">
+        <div ref={titleRef} className="absolute top-8 left-0 right-0 text-center px-12">
+          <h1
+            style={{
+              fontSize: `${chrome.titleFontSize}px`,
+              lineHeight: `${chrome.titleLineHeight}px`,
+              color: theme.title,
+              textShadow: theme.textShadow,
+              transition: SLIDE_TEXT_TRANSITION,
+            }}
+            className="font-light tracking-wide"
+          >
             {config.title}
           </h1>
         </div>
@@ -169,7 +211,7 @@ export default function KaraokeMode({ config, audioState }: Props) {
               style={{ opacity: lineUpcoming ? 0.4 : lineSung ? 0.6 : 1 }}
             >
               {screenIdx === 0 && screenLabel && (
-                <span className="text-white/40">{screenLabel} </span>
+                <span style={{ color: theme.karaokeLabel }}>{screenLabel} </span>
               )}
               {line.words.map((word, wordIdx) => {
                 const highlighted = currentTime >= word.begin;
@@ -184,10 +226,16 @@ export default function KaraokeMode({ config, audioState }: Props) {
                     ((currentTime - word.begin) / (word.end - word.begin)) * 100;
                 }
 
+                // The halo, when the background needs one, rides alongside the
+                // glow rather than replacing it — both are text-shadows.
+                const glow = `0 0 12px ${
+                  highlighted ? theme.karaokeGlowOn : theme.karaokeGlowOff
+                }`;
                 const glowStyle = {
-                  textShadow: highlighted
-                    ? "0 0 12px rgba(253, 224, 71, 0.5)"
-                    : "0 0 12px rgba(253, 224, 71, 0)",
+                  textShadow:
+                    theme.textShadow === "none"
+                      ? glow
+                      : `${glow}, ${theme.textShadow}`,
                   transition: "text-shadow 0.3s ease-out",
                 };
 
@@ -196,22 +244,27 @@ export default function KaraokeMode({ config, audioState }: Props) {
                     {wordIdx > 0 && " "}
                     {active ? (
                       <span className="relative inline-block" style={glowStyle}>
-                        <span className="text-white/70">{word.text}</span>
+                        <span style={{ color: theme.karaokeUnsung }}>
+                          {word.text}
+                        </span>
                         <span
-                          className="text-yellow-300 absolute left-0 top-0 overflow-hidden whitespace-nowrap"
-                          style={{ width: `${fillPercent}%` }}
+                          className="absolute left-0 top-0 overflow-hidden whitespace-nowrap"
+                          style={{
+                            width: `${fillPercent}%`,
+                            color: theme.karaokeSung,
+                          }}
                         >
                           {word.text}
                         </span>
                       </span>
                     ) : (
                       <span
-                        className={
-                          highlighted
-                            ? "text-yellow-300"
-                            : "text-white/70"
-                        }
-                        style={glowStyle}
+                        style={{
+                          ...glowStyle,
+                          color: highlighted
+                            ? theme.karaokeSung
+                            : theme.karaokeUnsung,
+                        }}
                       >
                         {word.text}
                       </span>
@@ -226,20 +279,27 @@ export default function KaraokeMode({ config, audioState }: Props) {
       </div>
 
       {screenGroups.length > 1 && (
-        <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2">
-          {screenGroups.map((_, index) => (
-            <div
-              key={index}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === displayedScreen ? "bg-white w-6" : "bg-white/30"
-              }`}
-            />
-          ))}
-        </div>
+        <SlideIndicator
+          ref={dotsRef}
+          count={screenGroups.length}
+          current={displayedScreen}
+          chrome={chrome}
+          theme={theme}
+        />
       )}
 
       {screenGroups.length > 1 && (
-        <div className="absolute bottom-8 right-8 text-white/40 text-lg">
+        <div
+          ref={counterRef}
+          className="absolute bottom-8 right-8"
+          style={{
+            fontSize: `${chrome.counterFontSize}px`,
+            lineHeight: `${chrome.counterLineHeight}px`,
+            color: theme.counter,
+            textShadow: theme.textShadow,
+            transition: SLIDE_TEXT_TRANSITION,
+          }}
+        >
           {displayedScreen + 1} / {screenGroups.length}
         </div>
       )}

@@ -18,6 +18,7 @@ import type {
   BinaryInfo,
   DeviceInfo,
   HymnPlaybackMode,
+  ChromeSizeKey,
 } from "../src/shared/types";
 import type {
   VideoItem,
@@ -112,6 +113,16 @@ const electronAPI = {
     ipcRenderer.invoke("set-synced-lyrics", enabled),
   setInstrumentals: (enabled: boolean): Promise<void> =>
     ipcRenderer.invoke("set-instrumentals", enabled),
+  setChromeSize: (key: ChromeSizeKey, size: number): Promise<void> =>
+    ipcRenderer.invoke("set-chrome-size", key, size),
+  setSlideBackground: (from: string, to: string): Promise<void> =>
+    ipcRenderer.invoke("set-slide-background", from, to),
+  setBibleBackground: (
+    enabled: boolean,
+    from: string,
+    to: string,
+  ): Promise<void> =>
+    ipcRenderer.invoke("set-bible-background", enabled, from, to),
   setOpenOnStartup: (openOnStartup: boolean): Promise<void> =>
     ipcRenderer.invoke("set-open-on-startup", openOnStartup),
   getOpenOnStartup: (): Promise<boolean> =>

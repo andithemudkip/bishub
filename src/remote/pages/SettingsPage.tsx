@@ -16,8 +16,15 @@ import type {
   MP3DownloadProgress,
   BinaryInfo,
   DeviceInfo,
+  ChromeSizeKey,
 } from "../../shared/types";
-import { formatFileSize, formatTimeAgo } from "../../shared/utils";
+import {
+  formatFileSize,
+  formatTimeAgo,
+  CHROME_SIZE_MIN,
+  CHROME_SIZE_MAX,
+  CHROME_SIZE_STEP,
+} from "../../shared/utils";
 import { CheckIcon } from "../components/icons/ui";
 import {
   getTranslations,
@@ -29,12 +36,135 @@ import { SHORTCUTS } from "../../shared/shortcuts";
 import { getTranslationsByLanguage } from "../../shared/bibleTranslations";
 import { BibleTranslationPicker } from "../components/ui/BibleTranslationPicker";
 import { HYMNALS } from "../../shared/hymnals";
+import {
+  SLIDE_BACKGROUND_PRESETS,
+  getSlideTheme,
+  findPreset,
+  presetGradient,
+  DEFAULT_SLIDE_BACKGROUND,
+  DEFAULT_BIBLE_BACKGROUND,
+} from "../../shared/slideTheme";
 
 interface BibleDownloadStatus {
   translationId: string;
   status: "downloading" | "ready" | "error";
   progress?: number;
   error?: string;
+}
+
+/** One percentage slider for a piece of display chrome (title / counter / dots). */
+function ChromeSizeSlider({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (size: number) => void;
+}) {
+  return (
+    <div>
+      <label className="text-sm text-gray-400 flex items-center justify-between gap-2 mb-2">
+        <span>{label}</span>
+        <span className="tabular-nums text-gray-500">{value}%</span>
+      </label>
+      <input
+        type="range"
+        min={CHROME_SIZE_MIN}
+        max={CHROME_SIZE_MAX}
+        step={CHROME_SIZE_STEP}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full"
+      />
+    </div>
+  );
+}
+
+/**
+ * Preset swatches + custom stops for one gradient. Used twice — the global
+ * background and the optional Bible override — so the two can't drift.
+ */
+function BackgroundPicker({
+  from,
+  to,
+  onChange,
+  t,
+}: {
+  from: string;
+  to: string;
+  onChange: (from: string, to: string) => void;
+  t: ReturnType<typeof getTranslations>;
+}) {
+  const activePreset = findPreset(from, to);
+  const theme = getSlideTheme(from, to);
+
+  return (
+    <div>
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {SLIDE_BACKGROUND_PRESETS.map((preset) => {
+          const selected = activePreset?.id === preset.id;
+          const name =
+            t.settings.backgroundPresets[
+              preset.id as keyof typeof t.settings.backgroundPresets
+            ];
+          return (
+            <button
+              key={preset.id}
+              type="button"
+              onClick={() => onChange(preset.from, preset.to)}
+              aria-pressed={selected}
+              className={`rounded-lg border overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors ${
+                selected
+                  ? "border-blue-500/70 ring-2 ring-blue-500/40"
+                  : "border-gray-700/50 hover:border-gray-600"
+              }`}
+            >
+              <span
+                className="block h-10 w-full"
+                style={{ background: presetGradient(preset) }}
+              />
+              <span className="block text-[11px] text-gray-400 truncate px-1 py-1">
+                {name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-4">
+        <div className="text-sm text-gray-400 mb-2">
+          {t.settings.customColors}
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <label className="flex items-center gap-2 text-sm text-gray-400">
+            <input
+              type="color"
+              value={from}
+              onChange={(e) => onChange(e.target.value, to)}
+              className="w-10 h-8 bg-gray-800 border border-gray-700 rounded cursor-pointer"
+            />
+            {t.settings.gradientTop}
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-400">
+            <input
+              type="color"
+              value={to}
+              onChange={(e) => onChange(from, e.target.value)}
+              className="w-10 h-8 bg-gray-800 border border-gray-700 rounded cursor-pointer"
+            />
+            {t.settings.gradientBottom}
+          </label>
+        </div>
+      </div>
+
+      {theme.minContrast < 4.5 && (
+        <p className="mt-3 text-sm text-amber-400">
+          {t.settings.lowContrastWarning}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function DeviceRow({
@@ -164,6 +294,9 @@ interface Props {
   onSetAudioVolume: (volume: number) => void;
   onSetSyncedLyrics: (enabled: boolean) => void;
   onSetInstrumentals: (enabled: boolean) => void;
+  onSetChromeSize: (key: ChromeSizeKey, size: number) => void;
+  onSetSlideBackground: (from: string, to: string) => void;
+  onSetBibleBackground: (enabled: boolean, from: string, to: string) => void;
   onSetDisplayMonitor: (monitorId: number) => void;
   appVersion: string;
   updateStatus: UpdateStatus;
@@ -198,6 +331,9 @@ export default function SettingsPage({
   onSetAudioVolume,
   onSetSyncedLyrics,
   onSetInstrumentals,
+  onSetChromeSize,
+  onSetSlideBackground,
+  onSetBibleBackground,
   onSetDisplayMonitor,
   appVersion,
   updateStatus,
@@ -275,6 +411,24 @@ export default function SettingsPage({
   const handleAudioWidgetPositionChange = (position: AudioWidgetPosition) => {
     onSetAudioWidgetPosition(position);
   };
+
+  const CHROME_SIZE_KEYS: ChromeSizeKey[] = [
+    "titleSize",
+    "slideCounterSize",
+    "slideDotsSize",
+  ];
+  const chromeSizesChanged = CHROME_SIZE_KEYS.some(
+    (key) => settings[key] !== 100
+  );
+
+  const handleResetChromeSizes = () => {
+    CHROME_SIZE_KEYS.forEach((key) => onSetChromeSize(key, 100));
+  };
+
+  const backgroundIsDefault =
+    settings.slideBackgroundFrom === DEFAULT_SLIDE_BACKGROUND.from &&
+    settings.slideBackgroundTo === DEFAULT_SLIDE_BACKGROUND.to &&
+    !settings.bibleBackgroundEnabled;
 
   const handleVideoVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSetVolume(Number(e.target.value));
@@ -579,6 +733,122 @@ export default function SettingsPage({
               >
                 {t.settings.resetToAuto}
               </button>
+            )}
+          </div>
+        </div>
+
+        {/* On-screen element sizes */}
+        <div className="mt-6 pt-6 border-t border-gray-700/50">
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <h3 className="text-sm font-medium text-gray-300">
+              {t.settings.chromeSizes}
+            </h3>
+            {chromeSizesChanged && (
+              <button
+                type="button"
+                onClick={handleResetChromeSizes}
+                className="text-sm text-blue-400 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1"
+              >
+                {t.settings.resetToDefault}
+              </button>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            {t.settings.chromeSizesHint}
+          </p>
+          <div className="space-y-4">
+            <ChromeSizeSlider
+              label={t.settings.titleSize}
+              value={settings.titleSize}
+              onChange={(size) => onSetChromeSize("titleSize", size)}
+            />
+            <ChromeSizeSlider
+              label={t.settings.slideCounterSize}
+              value={settings.slideCounterSize}
+              onChange={(size) => onSetChromeSize("slideCounterSize", size)}
+            />
+            <ChromeSizeSlider
+              label={t.settings.slideDotsSize}
+              value={settings.slideDotsSize}
+              onChange={(size) => onSetChromeSize("slideDotsSize", size)}
+            />
+          </div>
+        </div>
+
+        {/* Slide background */}
+        <div className="mt-6 pt-6 border-t border-gray-700/50">
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <h3 className="text-sm font-medium text-gray-300">
+              {t.settings.slideBackground}
+            </h3>
+            {!backgroundIsDefault && (
+              <button
+                type="button"
+                onClick={() => {
+                  onSetSlideBackground(
+                    DEFAULT_SLIDE_BACKGROUND.from,
+                    DEFAULT_SLIDE_BACKGROUND.to,
+                  );
+                  onSetBibleBackground(
+                    false,
+                    DEFAULT_BIBLE_BACKGROUND.from,
+                    DEFAULT_BIBLE_BACKGROUND.to,
+                  );
+                }}
+                className="text-sm text-blue-400 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1"
+              >
+                {t.settings.resetToDefault}
+              </button>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            {t.settings.slideBackgroundHint}
+          </p>
+
+          <BackgroundPicker
+            from={settings.slideBackgroundFrom}
+            to={settings.slideBackgroundTo}
+            onChange={onSetSlideBackground}
+            t={t}
+          />
+
+          {/* Optional separate background for Bible readings */}
+          <div className="mt-5 pt-5 border-t border-gray-700/30">
+            <label className="flex items-start justify-between cursor-pointer gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm">
+                  {t.settings.bibleBackgroundLabel}
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  {t.settings.bibleBackgroundHint}
+                </p>
+              </div>
+              <div className="relative flex-shrink-0 mt-1">
+                <input
+                  type="checkbox"
+                  checked={settings.bibleBackgroundEnabled}
+                  onChange={(e) =>
+                    onSetBibleBackground(
+                      e.target.checked,
+                      settings.bibleBackgroundFrom,
+                      settings.bibleBackgroundTo,
+                    )
+                  }
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </div>
+            </label>
+
+            {settings.bibleBackgroundEnabled && (
+              <div className="mt-4">
+                <BackgroundPicker
+                  from={settings.bibleBackgroundFrom}
+                  to={settings.bibleBackgroundTo}
+                  onChange={(from, to) => onSetBibleBackground(true, from, to)}
+                  t={t}
+                />
+              </div>
             )}
           </div>
         </div>

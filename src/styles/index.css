@@ -122,6 +122,23 @@ input[type="range"]:active::-moz-range-thumb {
   transform: scale(1.15);
 }
 
+/* Slide background stops.
+   Registered as <color> so the gradient cross-fades when the operator switches
+   theme or a Bible slide follows a hymn. Without @property the two gradients are
+   uninterpolatable background *images* and the swap is instant — which is the
+   graceful fallback on browsers that lack it. */
+@property --slide-bg-from {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #111827;
+}
+
+@property --slide-bg-to {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #000000;
+}
+
 /* Display styles */
 .display-container {
   @apply w-screen h-screen overflow-hidden bg-black text-white;

@@ -48,6 +48,7 @@ import type {
   ClockPosition,
   AudioWidgetPosition,
   HymnPlaybackMode,
+  ChromeSizeKey,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 
@@ -225,6 +226,21 @@ function setupIPC() {
   ipcMain.handle("set-instrumentals", (_event, enabled: boolean) => {
     stateManager.setInstrumentals(enabled);
   });
+
+  ipcMain.handle("set-chrome-size", (_event, key: ChromeSizeKey, size: number) => {
+    stateManager.setChromeSize(key, size);
+  });
+
+  ipcMain.handle("set-slide-background", (_event, from: string, to: string) => {
+    stateManager.setSlideBackground(from, to);
+  });
+
+  ipcMain.handle(
+    "set-bible-background",
+    (_event, enabled: boolean, from: string, to: string) => {
+      stateManager.setBibleBackground(enabled, from, to);
+    },
+  );
 
   ipcMain.handle("set-open-on-startup", (_event, openOnStartup: boolean) => {
     stateManager.setOpenOnStartup(openOnStartup);
