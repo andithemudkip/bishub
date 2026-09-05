@@ -14,6 +14,7 @@ import {
   MusicNoteIcon,
   EqualizerIcon,
   LoopIcon,
+  ShuffleIcon,
 } from "./icons/ui";
 
 interface Props {
@@ -62,6 +63,14 @@ export default function AudioPlaylistsTab({
       .filter((a): a is AudioItem => !!a);
     const totalDuration = tracks.reduce((sum, a) => sum + (a.duration ?? 0), 0);
     return { tracks, totalDuration };
+  };
+
+  // Shuffle is a random *entry point* into the playlist's existing order, not
+  // a reshuffle of it: the queue snapshot stays in playlist order, so
+  // next/previous and the track list still line up with what's on screen.
+  const handleShufflePlay = (playlistId: string, trackCount: number) => {
+    if (trackCount === 0) return;
+    onPlayPlaylist(playlistId, Math.floor(Math.random() * trackCount));
   };
 
   const handleCreatePlaylist = () => {
@@ -146,18 +155,30 @@ export default function AudioPlaylistsTab({
             </label>
           </Card>
 
-          {/* Play button */}
-          <button
-            onClick={() => onPlayPlaylist(playlist.id, 0)}
-            disabled={tracks.length === 0}
-            className="w-full py-3 rounded-lg text-sm font-medium bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-          >
-            <PlayIcon className="w-4 h-4" />
-            {t.audioLibrary.play}
-            {tracks.length > 0 && (
-              <span className="text-blue-400/60">· {formatDuration(totalDuration)}</span>
-            )}
-          </button>
+          {/* Play buttons */}
+          <div className="flex items-stretch gap-2">
+            <button
+              onClick={() => onPlayPlaylist(playlist.id, 0)}
+              disabled={tracks.length === 0}
+              className="flex-1 py-3 rounded-lg text-sm font-medium bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              <PlayIcon className="w-4 h-4" />
+              {t.audioLibrary.play}
+              {tracks.length > 0 && (
+                <span className="text-blue-400/60">· {formatDuration(totalDuration)}</span>
+              )}
+            </button>
+            <button
+              onClick={() => handleShufflePlay(playlist.id, tracks.length)}
+              disabled={tracks.length === 0}
+              className="px-4 py-3 rounded-lg text-sm font-medium bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              title={t.audioLibrary.shuffle}
+              aria-label={t.audioLibrary.shuffle}
+            >
+              <ShuffleIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">{t.audioLibrary.shuffle}</span>
+            </button>
+          </div>
 
           {/* Track list */}
           <Card compact>
@@ -405,6 +426,19 @@ export default function AudioPlaylistsTab({
                         )}
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShufflePlay(playlist.id, tracks.length);
+                      }}
+                      disabled={tracks.length === 0}
+                      className="p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 border border-gray-700/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                      title={t.audioLibrary.shuffle}
+                      aria-label={t.audioLibrary.shuffle}
+                    >
+                      <ShuffleIcon className="w-3.5 h-3.5" />
+                    </button>
                     <button
                       type="button"
                       onClick={(e) => {

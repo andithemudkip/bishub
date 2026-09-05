@@ -283,6 +283,7 @@ export interface Translations {
     addTracks: string;
     emptyPlaylistHint: string;
     loop: string;
+    shuffle: string;
     nextTrack: string;
     previousTrack: string;
     select: string;
@@ -759,6 +760,7 @@ const ro: Translations = {
     addTracks: "Adaugă piese",
     emptyPlaylistHint: "Acest playlist nu are piese. Adaugă piese mai jos.",
     loop: "Repetare",
+    shuffle: "Redare aleatorie",
     nextTrack: "Piesa următoare",
     previousTrack: "Piesa anterioară",
     select: "Selectare",
@@ -1216,6 +1218,7 @@ const en: Translations = {
     addTracks: "Add tracks",
     emptyPlaylistHint: "This playlist has no tracks. Add tracks below.",
     loop: "Loop",
+    shuffle: "Shuffle play",
     nextTrack: "Next track",
     previousTrack: "Previous track",
     select: "Select",
