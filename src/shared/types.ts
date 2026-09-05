@@ -456,6 +456,7 @@ export const DEFAULT_STATE: DisplayState = {
       name: null,
       tracks: [],
       index: 0,
+      orphanedAt: null,
       loop: false,
     },
   },

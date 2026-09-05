@@ -84,10 +84,12 @@ export default function AudioPlaylistsTab({
       audioState.queue.source === "playlist" &&
       audioState.queue.playlistId === playlist.id;
     const effectiveLoop = isLive ? audioState.queue.loop : playlist.loop;
-    // Read from the live snapshot, not from `tracks` — if the playing track was
-    // removed from the playlist it keeps playing but must not highlight a row.
+    // Matched on the live src, not read off the cursor — a track removed from
+    // the playlist keeps playing while the cursor moves to its successor, so
+    // `tracks[index]` would highlight the wrong row rather than no row.
     const nowPlayingAudioId = isLive
-      ? (audioState.queue.tracks[audioState.queue.index]?.audioId ?? null)
+      ? (audioState.queue.tracks.find((t) => t.src === audioState.src)
+          ?.audioId ?? null)
       : null;
 
     return (

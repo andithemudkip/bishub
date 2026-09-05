@@ -388,6 +388,7 @@ const electronAPI = {
   setQueueLoop: (loop: boolean): Promise<void> =>
     ipcRenderer.invoke("set-queue-loop", loop),
   audioEnded: (): Promise<void> => ipcRenderer.invoke("audio-ended"),
+  audioError: (): Promise<void> => ipcRenderer.invoke("audio-error"),
 
   onAudioLibraryUpdate: (callback: (audios: AudioItem[]) => void) => {
     ipcRenderer.on("audio-library-update", (_event: IpcRendererEvent, audios: AudioItem[]) =>

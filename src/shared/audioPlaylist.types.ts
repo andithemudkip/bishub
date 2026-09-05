@@ -27,5 +27,14 @@ export interface AudioQueueState {
   name: string | null; // playlist name; null for Up Next
   tracks: QueueTrack[]; // SNAPSHOT
   index: number;
+  /**
+   * Set when the on-air track has been removed from the source: it plays on
+   * to its end but is gone from `tracks`, and this is the slot it vacated —
+   * where the *next* track comes from, which is `tracks.length` if it was
+   * removed from the end. Null in the normal case, where the on-air track is
+   * in `tracks` at `index`. Consumers that mean "what is playing" must not
+   * read `tracks[index]` while this is set; match on `AudioState.src`.
+   */
+  orphanedAt: number | null;
   loop: boolean;
 }

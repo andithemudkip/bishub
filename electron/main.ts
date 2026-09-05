@@ -538,9 +538,6 @@ function setupIPC() {
   // Audio Library handlers
   const audioLibrary = getAudioLibrary();
 
-  // Validate library on startup
-  audioLibrary.validateLibrary();
-
   // Notify renderers of library changes
   audioLibrary.onLibraryChange((audios) => {
     windowManager.broadcastToAll("audio-library-update", audios);
@@ -681,6 +678,19 @@ function setupIPC() {
     }
   });
 
+  // Deleting audio has to clear the playlists and Up Next entries pointing at
+  // it, and get the display off it if it was playing. Registered here, after
+  // the two handlers above, because the purge drives the live queue through
+  // them. Both the IPC and Socket.io delete paths funnel into deleteAudio(),
+  // so this one listener covers the Electron and web remotes alike.
+  audioLibrary.onAudioDeleted((audio) => {
+    stateManager.handleAudioDeleted(audio);
+  });
+
+  // Validate on startup: files that vanished while the app was closed are
+  // pruned through the same path, so playlists never keep dead entries.
+  audioLibrary.validateLibrary();
+
   ipcMain.handle("get-audio-playlists", () => {
     return audioPlaylists.getAll();
   });
@@ -788,6 +798,10 @@ function setupIPC() {
 
   ipcMain.handle("audio-ended", () => {
     stateManager.handleAudioEnded();
+  });
+
+  ipcMain.handle("audio-error", () => {
+    stateManager.handleAudioError();
   });
 
   // Audio Scheduling

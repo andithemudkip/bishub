@@ -178,6 +178,33 @@ export class AudioPlaylistManager {
     return playlists[index];
   }
 
+  /**
+   * Purges a deleted library item from every playlist and from Up Next.
+   * Playlists reference audio by id from a separate store, so unlike
+   * slideshows — whose membership lives on the ImageItem itself and is fixed
+   * up by deleting it — nothing else would ever clear the dangling entries.
+   * Fires the normal change events, so a live queue re-projects for free.
+   */
+  removeAudioEverywhere(audioId: string): void {
+    const playlists = this.getAll();
+    const now = Date.now();
+    let changed = false;
+
+    for (const playlist of playlists) {
+      if (!playlist.audioIds.includes(audioId)) continue;
+      playlist.audioIds = playlist.audioIds.filter((a) => a !== audioId);
+      playlist.updatedAt = now;
+      changed = true;
+    }
+
+    if (changed) {
+      this.store.set("playlists", playlists);
+      this.notifyPlaylistsChange();
+    }
+
+    this.removeFromQueue(audioId);
+  }
+
   // Ephemeral "Up Next" queue — never persisted.
   getQueue(): string[] {
     return [...this.ephemeral];

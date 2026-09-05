@@ -20,6 +20,7 @@ import {
   DEFAULT_BIBLE_BACKGROUND,
 } from "../src/shared/slideTheme";
 import type { QueueTrack, AudioQueueState } from "../src/shared/audioPlaylist.types";
+import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getAudioLibrary } from "./audioLibrary";
 import { getAudioPlaylists } from "./audioPlaylists";
 import Store from "electron-store";
@@ -47,6 +48,8 @@ export class StateManager {
   private securityKey: string;
   private autoAdvanceTimer: NodeJS.Timeout | null = null;
   private cachedScreenGroups: number[][] = [];
+  /** Consecutive failed audio loads; reset by updateAudioTime(). See handleAudioError(). */
+  private consecutiveAudioErrors = 0;
 
   constructor() {
     // Generate random security key for web remote authentication
@@ -563,6 +566,9 @@ export class StateManager {
   }
 
   updateAudioTime(time: number, duration: number) {
+    // The display only reports time for a track it actually loaded, so this
+    // is the signal that clears handleAudioError()'s give-up counter.
+    this.consecutiveAudioErrors = 0;
     this.state.audio.currentTime = time;
     this.state.audio.duration = duration;
     const finished = duration > 0 && time >= duration;
@@ -613,6 +619,27 @@ export class StateManager {
     this.notifyStateChange();
   }
 
+  /**
+   * The display could not load the current src — the file was moved or
+   * deleted outside the app, so "ended" will never fire and the transport
+   * would otherwise sit on a dead track forever. Skip ahead so one missing
+   * file can't strand a whole set, but stop once we've been round the queue,
+   * or a wholesale-missing library (a moved audio folder, an unmounted
+   * drive) would chase itself through dead tracks indefinitely.
+   */
+  handleAudioError() {
+    const { queue } = this.state.audio;
+    this.consecutiveAudioErrors += 1;
+
+    if (queue.source !== null && this.consecutiveAudioErrors < queue.tracks.length) {
+      this.nextTrack();
+      return;
+    }
+
+    this.state.audio.playing = false;
+    this.notifyStateChange();
+  }
+
   private emptyQueue(): AudioQueueState {
     return {
       source: null,
@@ -620,6 +647,7 @@ export class StateManager {
       name: null,
       tracks: [],
       index: 0,
+      orphanedAt: null,
       loop: false,
     };
   }
@@ -648,6 +676,8 @@ export class StateManager {
     if (!track) return;
 
     this.state.audio.queue.index = index;
+    // Loading a track that is in `tracks` resolves any orphaned cursor.
+    this.state.audio.queue.orphanedAt = null;
     this.state.audio.src = track.src;
     this.state.audio.name = track.name;
     this.state.audio.currentTime = 0;
@@ -673,6 +703,7 @@ export class StateManager {
       name: playlist.name,
       tracks,
       index,
+      orphanedAt: null,
       loop: playlist.loop,
     };
     this.loadQueueTrack(index);
@@ -691,16 +722,29 @@ export class StateManager {
       name: null,
       tracks,
       index,
+      orphanedAt: null,
       loop: preserveLoop ? this.state.audio.queue.loop : false,
     };
     this.loadQueueTrack(index);
   }
 
   nextTrack() {
+    this.advanceQueue(true);
+  }
+
+  /**
+   * Moves the queue on by one. `autoplay` is false only where a paused track
+   * was displaced out from under the cursor, so the transport keeps the
+   * paused state the operator left it in.
+   */
+  private advanceQueue(autoplay: boolean) {
     const { queue } = this.state.audio;
     if (queue.tracks.length === 0) return;
 
-    let nextIndex = queue.index + 1;
+    // An orphaned cursor already sits on the successor — the slot the removed
+    // track vacated — so advancing means loading it, not stepping past it,
+    // which is what used to drop that track from the set entirely.
+    let nextIndex = queue.orphanedAt ?? queue.index + 1;
     if (nextIndex >= queue.tracks.length) {
       if (queue.loop) {
         nextIndex = 0;
@@ -712,7 +756,7 @@ export class StateManager {
         return;
       }
     }
-    this.loadQueueTrack(nextIndex);
+    this.loadQueueTrack(nextIndex, autoplay);
   }
 
   previousTrack() {
@@ -725,7 +769,9 @@ export class StateManager {
       return;
     }
 
-    let prevIndex = queue.index - 1;
+    // Same correction as advanceQueue(): while orphaned the cursor is one
+    // slot ahead of where the on-air track sat.
+    let prevIndex = (queue.orphanedAt ?? queue.index) - 1;
     if (prevIndex < 0) {
       if (queue.loop) {
         prevIndex = queue.tracks.length - 1;
@@ -747,26 +793,81 @@ export class StateManager {
 
   /**
    * Re-projects the live queue after the underlying source (playlist or Up
-   * Next) was edited, preserving the currently playing track by audioId so
-   * reordering during a live service never skips or restarts it. If the
-   * playing track was removed from the source, playback continues to its end
-   * — the queue snapshot keeps it alive even though it's gone from `tracks`.
+   * Next) was edited, preserving the currently playing track so reordering
+   * during a live service never skips or restarts it. If the playing track
+   * was removed from the source, playback continues to its end — the queue
+   * snapshot keeps it alive even though it's gone from `tracks` — and
+   * `orphanedAt` records the slot it vacated so the next/previous cursor
+   * doesn't step over its successor.
    */
   syncQueueFromSource(tracks: QueueTrack[]) {
     const { queue } = this.state.audio;
     if (queue.source === null) return;
 
-    const playingAudioId = queue.tracks[queue.index]?.audioId ?? null;
-    const foundIndex = playingAudioId
-      ? tracks.findIndex((t) => t.audioId === playingAudioId)
+    // Located by src, not by `tracks[index]`: an already-orphaned cursor
+    // points at the successor, so trusting it would mistake that track for
+    // the one on air and quietly re-anchor the queue to it.
+    const playingSrc = this.state.audio.src;
+    const foundIndex = playingSrc
+      ? tracks.findIndex((t) => t.src === playingSrc)
       : -1;
+
+    // The vacated slot is the cursor as it stood: everything after the removed
+    // track has shifted down into its place. It is deliberately left unclamped
+    // — equal to tracks.length when the track went from the end — so
+    // advanceQueue() can tell "successor" from "end of the set".
+    const orphanedAt =
+      playingSrc !== null && foundIndex === -1
+        ? (queue.orphanedAt ?? queue.index)
+        : null;
     const index =
       foundIndex !== -1
         ? foundIndex
         : Math.min(queue.index, Math.max(0, tracks.length - 1));
 
-    this.state.audio.queue = { ...queue, tracks, index };
+    this.state.audio.queue = { ...queue, tracks, index, orphanedAt };
     this.notifyStateChange();
+  }
+
+  /**
+   * A library item was deleted, or pruned because its file vanished — either
+   * way its bytes are gone. Purges it from every playlist and Up Next, which
+   * re-projects the live queue through syncQueueFromSource(), then rescues
+   * playback if the deleted track was the one on air. That rescue is the
+   * deliberate exception to syncQueueFromSource()'s "let a removed track play
+   * to its end": right for a playlist edit, where the file still exists,
+   * impossible here — the transport would sit on a src that 404s.
+   */
+  handleAudioDeleted(audio: AudioItem) {
+    const wasOnAir = this.state.audio.src === audio.path;
+    const wasPlaying = this.state.audio.playing;
+    const { source } = this.state.audio.queue;
+
+    getAudioPlaylists().removeAudioEverywhere(audio.id);
+
+    if (!wasOnAir) return;
+    if (source === null) {
+      // Played straight from the library row, with no queue to fall back to.
+      this.stopAudio();
+      return;
+    }
+
+    // The purge only re-projects the snapshot when the track was still listed
+    // in the source; drop it by hand otherwise, so the advance below can never
+    // pick the dead track back up.
+    if (this.state.audio.queue.tracks.some((t) => t.audioId === audio.id)) {
+      this.syncQueueFromSource(
+        this.state.audio.queue.tracks.filter((t) => t.audioId !== audio.id)
+      );
+    }
+
+    if (this.state.audio.queue.tracks.length === 0) {
+      this.stopAudio();
+      return;
+    }
+    // The re-projection parked the cursor on the vacated slot, so this is the
+    // same move the queue would have made had the track simply ended.
+    this.advanceQueue(wasPlaying);
   }
 
   setAudioWidgetPosition(position: AudioWidgetPosition) {

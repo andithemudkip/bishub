@@ -6,9 +6,16 @@ interface Props {
   config: AudioState;
   onTimeUpdate: (time: number, duration: number) => void;
   onEnded?: () => void;
+  /** The src failed to load — the file is gone from disk. */
+  onError?: () => void;
 }
 
-export default function AudioPlayer({ config, onTimeUpdate, onEnded }: Props) {
+export default function AudioPlayer({
+  config,
+  onTimeUpdate,
+  onEnded,
+  onError,
+}: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const lastSeekedTime = useRef<number | null>(null);
 
@@ -59,6 +66,13 @@ export default function AudioPlayer({ config, onTimeUpdate, onEnded }: Props) {
     onEnded?.();
   };
 
+  const handleError = () => {
+    // "ended" never fires for a src that failed to load, so without this the
+    // queue would stall here rather than moving past the missing file.
+    console.error("[AudioPlayer] Failed to load:", config.src);
+    onError?.();
+  };
+
   if (!config.src) return null;
 
   const audioSrc = getFileUrl(config.src);
@@ -70,6 +84,7 @@ export default function AudioPlayer({ config, onTimeUpdate, onEnded }: Props) {
       onTimeUpdate={handleTimeUpdate}
       onLoadedMetadata={handleTimeUpdate}
       onEnded={handleEnded}
+      onError={handleError}
     />
   );
 }

@@ -41,6 +41,10 @@ export default function App() {
     window.electronAPI?.audioEnded();
   };
 
+  const handleAudioError = () => {
+    window.electronAPI?.audioError();
+  };
+
   return (
     <div className="display-container">
       {state.mode === "idle" && (
@@ -65,6 +69,7 @@ export default function App() {
         config={state.audio}
         onTimeUpdate={handleAudioTimeUpdate}
         onEnded={handleAudioEnded}
+        onError={handleAudioError}
       />
     </div>
   );

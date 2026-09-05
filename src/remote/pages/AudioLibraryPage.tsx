@@ -88,6 +88,9 @@ export default function AudioLibraryPage({
   };
 
   const { queue } = audioState;
+  // While the queue is orphaned the cursor already sits on the successor, so
+  // what plays next is the track at that slot rather than one past `index`.
+  const upNextIndex = queue.orphanedAt ?? queue.index + 1;
   const queueInfo =
     queue.source !== null && queue.tracks.length > 0
       ? {
@@ -95,8 +98,8 @@ export default function AudioLibraryPage({
           total: queue.tracks.length,
           loop: queue.loop,
           upNextName:
-            queue.index + 1 < queue.tracks.length
-              ? queue.tracks[queue.index + 1].name
+            upNextIndex < queue.tracks.length
+              ? queue.tracks[upNextIndex].name
               : queue.loop
                 ? queue.tracks[0].name
                 : null,
@@ -165,7 +168,8 @@ export default function AudioLibraryPage({
               isLive={queue.source === "ephemeral"}
               nowPlayingAudioId={
                 queue.source === "ephemeral"
-                  ? (queue.tracks[queue.index]?.audioId ?? null)
+                  ? (queue.tracks.find((t) => t.src === audioState.src)
+                      ?.audioId ?? null)
                   : null
               }
               t={t}

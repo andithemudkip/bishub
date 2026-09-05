@@ -18,6 +18,7 @@ interface AudioLibrarySchema {
 }
 
 type AudioLibraryChangeCallback = (audios: AudioItem[]) => void;
+type AudioDeletedCallback = (audio: AudioItem) => void;
 type UploadProgressCallback = (progress: AudioUploadProgress) => void;
 type DownloadProgressCallback = (progress: AudioDownloadProgress) => void;
 type DirectoryImportProgressCallback = (
@@ -30,6 +31,7 @@ export class AudioLibraryManager {
   private store: Store<AudioLibrarySchema>;
   private audiosDir: string;
   private changeListeners: AudioLibraryChangeCallback[] = [];
+  private audioDeletedListeners: AudioDeletedCallback[] = [];
   private uploadProgressListeners: UploadProgressCallback[] = [];
   private downloadProgressListeners: DownloadProgressCallback[] = [];
   private directoryImportListeners: DirectoryImportProgressCallback[] = [];
@@ -68,6 +70,25 @@ export class AudioLibraryManager {
         (cb) => cb !== callback
       );
     };
+  }
+
+  /**
+   * Fires once per item that leaves the library, with the item as it was.
+   * Distinct from onLibraryChange, which only carries the survivors — callers
+   * cleaning up references (playlists, the live queue) need to know *which*
+   * item went away, and its path, to tell whether it was the one on air.
+   */
+  onAudioDeleted(callback: AudioDeletedCallback): () => void {
+    this.audioDeletedListeners.push(callback);
+    return () => {
+      this.audioDeletedListeners = this.audioDeletedListeners.filter(
+        (cb) => cb !== callback
+      );
+    };
+  }
+
+  private notifyAudioDeleted(audio: AudioItem): void {
+    this.audioDeletedListeners.forEach((cb) => cb(audio));
   }
 
   onUploadProgress(callback: UploadProgressCallback): () => void {
@@ -316,6 +337,7 @@ export class AudioLibraryManager {
     this.store.set("audios", filtered);
 
     this.notifyLibraryChange();
+    this.notifyAudioDeleted(audio);
     return true;
   }
 
@@ -353,6 +375,7 @@ export class AudioLibraryManager {
   async validateLibrary(): Promise<void> {
     const audios = this.store.get("audios", []);
     const validAudios: AudioItem[] = [];
+    const missing: AudioItem[] = [];
 
     for (const audio of audios) {
       if (fs.existsSync(audio.path)) {
@@ -368,15 +391,20 @@ export class AudioLibraryManager {
           });
         }
       } else {
+        missing.push(audio);
         console.warn(
           `[AudioLibrary] Audio file missing, removing from library: ${audio.path}`
         );
       }
     }
 
-    if (validAudios.length !== audios.length) {
+    if (missing.length > 0) {
       this.store.set("audios", validAudios);
       this.notifyLibraryChange();
+      // Pruning a vanished file is a deletion like any other, so it has to
+      // clean up references too — otherwise moving the audio folder leaves
+      // every playlist that used it holding ids that resolve to nothing.
+      missing.forEach((audio) => this.notifyAudioDeleted(audio));
     }
   }
 }
