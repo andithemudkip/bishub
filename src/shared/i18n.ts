@@ -465,6 +465,29 @@ export interface Translations {
     extracting: string;
     merging: string;
   };
+
+  // Native application menu (Electron only)
+  menu: {
+    file: string;
+    edit: string;
+    view: string;
+    window: string;
+    quit: string;
+    undo: string;
+    redo: string;
+    cut: string;
+    copy: string;
+    paste: string;
+    selectAll: string;
+    reload: string;
+    toggleDevTools: string;
+    actualSize: string;
+    zoomIn: string;
+    zoomOut: string;
+    toggleFullscreen: string;
+    minimize: string;
+    close: string;
+  };
 }
 
 const ro: Translations = {
@@ -898,6 +921,27 @@ const ro: Translations = {
     revokeConfirm: "Revocă accesul?",
     revokeCancel: "Anulează",
     renameHint: "Apasă pentru a redenumi",
+  },
+  menu: {
+    file: "Fișier",
+    edit: "Editare",
+    view: "Vizualizare",
+    window: "Fereastră",
+    quit: "Ieșire",
+    undo: "Anulează",
+    redo: "Refă",
+    cut: "Decupează",
+    copy: "Copiază",
+    paste: "Lipește",
+    selectAll: "Selectează tot",
+    reload: "Reîncarcă",
+    toggleDevTools: "Instrumente de dezvoltare",
+    actualSize: "Dimensiune reală",
+    zoomIn: "Mărește",
+    zoomOut: "Micșorează",
+    toggleFullscreen: "Ecran complet",
+    minimize: "Minimizează",
+    close: "Închide",
   },
 };
 
@@ -1334,6 +1378,27 @@ const en: Translations = {
     revokeConfirm: "Revoke access?",
     revokeCancel: "Cancel",
     renameHint: "Click to rename",
+  },
+  menu: {
+    file: "File",
+    edit: "Edit",
+    view: "View",
+    window: "Window",
+    quit: "Quit",
+    undo: "Undo",
+    redo: "Redo",
+    cut: "Cut",
+    copy: "Copy",
+    paste: "Paste",
+    selectAll: "Select All",
+    reload: "Reload",
+    toggleDevTools: "Developer Tools",
+    actualSize: "Actual Size",
+    zoomIn: "Zoom In",
+    zoomOut: "Zoom Out",
+    toggleFullscreen: "Full Screen",
+    minimize: "Minimize",
+    close: "Close",
   },
 };
 

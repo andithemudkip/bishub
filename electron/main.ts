@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
 import os from "os";
 import { createServer, closeServer } from "./server";
 import { WindowManager } from "./windowManager";
+import { buildAppMenu, installZoomKeyShim } from "./menu";
 import { StateManager } from "./state";
 import { initUpdater, checkForUpdates, quitAndInstall } from "./updater";
 import {
@@ -72,8 +73,20 @@ async function createWindows() {
   stateManager = new StateManager();
   windowManager = new WindowManager(stateManager);
 
+  // Must be installed before any window exists so every webContents is covered
+  installZoomKeyShim();
+
   // Sync login item settings with stored preference
   const settings = stateManager.getSettings();
+
+  // Rebuild the native menu whenever the language changes (Electron or web remote)
+  let menuLanguage = settings.language;
+  buildAppMenu(menuLanguage);
+  stateManager.onSettingsChange((next) => {
+    if (next.language === menuLanguage) return;
+    menuLanguage = next.language;
+    buildAppMenu(menuLanguage);
+  });
   app.setLoginItemSettings({
     openAtLogin: settings.openOnStartup,
     openAsHidden: false,
