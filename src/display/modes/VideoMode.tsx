@@ -84,7 +84,7 @@ export default function VideoMode({ config, onTimeUpdate }: Props) {
       <video
         ref={videoRef}
         src={videoSrc}
-        className="max-w-full max-h-full"
+        className="w-full h-full object-contain"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleTimeUpdate}
         onError={handleError}
