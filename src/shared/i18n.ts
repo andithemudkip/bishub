@@ -298,27 +298,50 @@ export interface Translations {
   audioSchedule: {
     title: string;
     newSchedule: string;
-    atTime: string;
-    inMinutes: string;
-    schedule: string;
-    saveAsPreset: string;
-    presets: string;
-    noPresets: string;
-    pendingSchedules: string;
-    noPendingSchedules: string;
-    scheduledFor: string;
-    inXMinutes: string;
-    cancel: string;
-    activate: string;
-    delete: string;
-    presetName: string;
+    editSchedule: string;
     selectAudio: string;
-    enterTime: string;
-    enterMinutes: string;
-    willPlayAt: string;
-    skippedNotIdle: string;
-    triggered: string;
-    expired: string;
+    nameOptional: string;
+    namePlaceholder: string;
+    repeat: string;
+    repeatOnce: string;
+    repeatDaily: string;
+    repeatWeekly: string;
+    time: string;
+    onDays: string;
+    pickADay: string;
+    quickPick: string;
+    inMinutesShort: string;
+    inHoursShort: string;
+    nextRun: string;
+    save: string;
+    saveChanges: string;
+    cancel: string;
+    edit: string;
+    delete: string;
+    confirmDelete: string;
+    enableLabel: string;
+    paused: string;
+    noSchedules: string;
+    noSchedulesHint: string;
+    needAudioFirst: string;
+    audioMissing: string;
+    dueNow: string;
+    everyDayAt: string;
+    everyDaysAt: string;
+    onceAt: string;
+    todayAt: string;
+    tomorrowAt: string;
+    dayAt: string;
+    lastPlayed: string;
+    lastSkipped: string;
+    lastMissed: string;
+    lastUnavailable: string;
+    unitDay: string;
+    unitHour: string;
+    unitMinute: string;
+    unitSecond: string;
+    weekdaysShort: string[];
+    weekdaysLong: string[];
     tip: string;
   };
 
@@ -773,28 +796,59 @@ const ro: Translations = {
   audioSchedule: {
     title: "Programare audio",
     newSchedule: "Programare nouă",
-    atTime: "La ora",
-    inMinutes: "Peste minute",
-    schedule: "Programează",
-    saveAsPreset: "Salvează ca preset",
-    presets: "Presetări",
-    noPresets: "Nicio presetare salvată",
-    pendingSchedules: "Programări active",
-    noPendingSchedules: "Nicio programare activă",
-    scheduledFor: "Programat pentru",
-    inXMinutes: "peste {minutes} minute",
+    editSchedule: "Modifică programarea",
+    selectAudio: "Fișier audio",
+    nameOptional: "Nume (opțional)",
+    namePlaceholder: "ex. Început program",
+    repeat: "Repetare",
+    repeatOnce: "O singură dată",
+    repeatDaily: "Zilnic",
+    repeatWeekly: "Săptămânal",
+    time: "Ora",
+    onDays: "În zilele",
+    pickADay: "Alege cel puțin o zi",
+    quickPick: "Rapid",
+    inMinutesShort: "+{minutes} min",
+    inHoursShort: "+{hours} h",
+    nextRun: "Următoarea redare",
+    save: "Programează",
+    saveChanges: "Salvează",
     cancel: "Anulează",
-    activate: "Activează",
+    edit: "Modifică",
     delete: "Șterge",
-    presetName: "Nume preset",
-    selectAudio: "Selectează fișierul audio",
-    enterTime: "Introdu ora (HH:MM)",
-    enterMinutes: "Minute de acum",
-    willPlayAt: "Va reda la",
-    skippedNotIdle: "Omis (nu e în modul inactiv)",
-    triggered: "Redat",
-    expired: "Expirat",
-    tip: "Programează redarea audio automat la o anumită oră sau după un număr de minute. Audio-ul se redă doar când ecranul este **inactiv**. Salvează programări ca **presetări** pentru reutilizare rapidă.",
+    confirmDelete: "Ștergi programarea „{name}”?",
+    enableLabel: "Activează programarea",
+    paused: "În pauză",
+    noSchedules: "Nicio programare",
+    noSchedulesHint: "Apasă „Programare nouă” pentru a reda un fișier audio la o anumită oră.",
+    needAudioFirst: "Adaugă întâi un fișier în biblioteca audio.",
+    audioMissing: "Fișierul audio nu mai există",
+    dueNow: "acum",
+    everyDayAt: "În fiecare zi la {time}",
+    everyDaysAt: "În fiecare {days} la {time}",
+    onceAt: "O dată la {time}",
+    todayAt: "Astăzi la {time}",
+    tomorrowAt: "Mâine la {time}",
+    dayAt: "{day} la {time}",
+    lastPlayed: "Redat ultima dată {time}",
+    lastSkipped: "Omis {time} — ecranul era în folosință",
+    lastMissed: "Ratat {time} — aplicația era închisă",
+    lastUnavailable: "Eșuat {time} — fișierul audio lipsește",
+    unitDay: "z",
+    unitHour: "h",
+    unitMinute: "m",
+    unitSecond: "s",
+    weekdaysShort: ["Du", "Lu", "Ma", "Mi", "Jo", "Vi", "Sâ"],
+    weekdaysLong: [
+      "duminică",
+      "luni",
+      "marți",
+      "miercuri",
+      "joi",
+      "vineri",
+      "sâmbătă",
+    ],
+    tip: "Programează redarea automată a unui fișier audio — **o singură dată**, **zilnic** sau în anumite **zile ale săptămânii** (ex. în fiecare sâmbătă la 10:25). Audio-ul pornește doar când ecranul este **inactiv**. Folosește comutatorul pentru a pune o programare în pauză fără a o șterge.",
   },
   imageLibrary: {
     addLocalFiles: "Adaugă fișiere",
@@ -1230,29 +1284,60 @@ const en: Translations = {
   },
   audioSchedule: {
     title: "Audio Scheduling",
-    newSchedule: "New Schedule",
-    atTime: "At time",
-    inMinutes: "In minutes",
-    schedule: "Schedule",
-    saveAsPreset: "Save as Preset",
-    presets: "Presets",
-    noPresets: "No presets saved",
-    pendingSchedules: "Pending Schedules",
-    noPendingSchedules: "No scheduled audio",
-    scheduledFor: "Scheduled for",
-    inXMinutes: "in {minutes} minutes",
+    newSchedule: "New schedule",
+    editSchedule: "Edit schedule",
+    selectAudio: "Audio file",
+    nameOptional: "Name (optional)",
+    namePlaceholder: "e.g. Call to service",
+    repeat: "Repeat",
+    repeatOnce: "Once",
+    repeatDaily: "Daily",
+    repeatWeekly: "Weekly",
+    time: "Time",
+    onDays: "On days",
+    pickADay: "Pick at least one day",
+    quickPick: "Quick",
+    inMinutesShort: "+{minutes} min",
+    inHoursShort: "+{hours} h",
+    nextRun: "Next run",
+    save: "Schedule",
+    saveChanges: "Save",
     cancel: "Cancel",
-    activate: "Activate",
+    edit: "Edit",
     delete: "Delete",
-    presetName: "Preset name",
-    selectAudio: "Select audio file",
-    enterTime: "Enter time (HH:MM)",
-    enterMinutes: "Minutes from now",
-    willPlayAt: "Will play at",
-    skippedNotIdle: "Skipped (not in idle mode)",
-    triggered: "Played",
-    expired: "Expired",
-    tip: "Schedule audio to play automatically at a set time or after a number of minutes. Audio only plays when the display is **idle**. Save schedules as **presets** for quick reuse.",
+    confirmDelete: "Delete the schedule “{name}”?",
+    enableLabel: "Enable schedule",
+    paused: "Paused",
+    noSchedules: "No schedules yet",
+    noSchedulesHint: "Tap “New schedule” to play an audio file at a set time.",
+    needAudioFirst: "Add a file to the audio library first.",
+    audioMissing: "Audio file no longer exists",
+    dueNow: "now",
+    everyDayAt: "Every day at {time}",
+    everyDaysAt: "Every {days} at {time}",
+    onceAt: "Once at {time}",
+    todayAt: "Today at {time}",
+    tomorrowAt: "Tomorrow at {time}",
+    dayAt: "{day} at {time}",
+    lastPlayed: "Last played {time}",
+    lastSkipped: "Skipped {time} — display was in use",
+    lastMissed: "Missed {time} — the app was closed",
+    lastUnavailable: "Failed {time} — the audio file is missing",
+    unitDay: "d",
+    unitHour: "h",
+    unitMinute: "m",
+    unitSecond: "s",
+    weekdaysShort: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+    weekdaysLong: [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ],
+    tip: "Schedule audio to play automatically — **once**, **daily**, or on chosen **days of the week** (e.g. every Saturday at 10:25). Audio only starts when the display is **idle**. Use the switch to pause a schedule without deleting it.",
   },
   imageLibrary: {
     addLocalFiles: "Add files",

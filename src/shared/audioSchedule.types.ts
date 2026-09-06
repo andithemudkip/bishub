@@ -1,4 +1,14 @@
-export type ScheduleTimeType = "absolute" | "relative";
+/** How often a schedule fires. */
+export type ScheduleRepeat = "once" | "daily" | "weekly";
+
+/** Outcome of the most recent run attempt. */
+export type ScheduleRunStatus =
+  | "triggered"
+  | "skipped"
+  /** Came due while the app was closed or the machine asleep. */
+  | "missed"
+  /** The audio file is gone from disk. */
+  | "unavailable";
 
 export interface AudioSchedule {
   id: string;
@@ -6,64 +16,54 @@ export interface AudioSchedule {
   audioName: string;
   audioPath: string;
 
-  // Time configuration
-  timeType: ScheduleTimeType;
-  scheduledTime: number; // Unix timestamp when audio should play
+  /** Optional user-given name ("Chemare la slujbă"). Falls back to audioName in the UI. */
+  label?: string;
 
-  // For relative schedules, store the original input for display
-  relativeMinutes?: number;
+  repeat: ScheduleRepeat;
+  /** Time of day, local. */
+  hour: number; // 0-23
+  minute: number; // 0-59
+  /** Weekly only. 0 = Sunday … 6 = Saturday (matches Date.getDay()). Empty behaves like daily. */
+  daysOfWeek: number[];
 
-  // Status
-  status: "pending" | "triggered" | "skipped" | "expired";
-  skipReason?: "not_idle" | "cancelled";
+  /** Disabled schedules stay in the list but never fire. */
+  enabled: boolean;
+  /** Next fire time; null when disabled or finished. */
+  nextRunAt: number | null;
 
-  // Metadata
-  createdAt: number;
-  triggeredAt?: number;
-}
-
-export interface AudioSchedulePreset {
-  id: string;
-  name: string;
-  audioId: string;
-  audioName: string;
-
-  // Time configuration (template - will be converted to schedule)
-  timeType: ScheduleTimeType;
-
-  // For absolute: hour/minute (like "10:25")
-  hour?: number; // 0-23
-  minute?: number; // 0-59
-
-  // For relative: minutes from now
-  relativeMinutes?: number;
+  lastRunAt?: number;
+  lastStatus?: ScheduleRunStatus;
 
   createdAt: number;
 }
 
 export interface ScheduleEvent {
-  type: "created" | "triggered" | "skipped" | "cancelled" | "expired";
+  type: "created" | "triggered" | "skipped" | "missed" | "deleted";
   schedule: AudioSchedule;
   timestamp: number;
 }
 
-// Parameters for creating a schedule
 export interface CreateScheduleParams {
   audioId: string;
   audioName: string;
   audioPath: string;
-  timeType: ScheduleTimeType;
-  absoluteTime?: string; // ISO string for absolute time
-  relativeMinutes?: number;
+  label?: string;
+  repeat: ScheduleRepeat;
+  hour: number;
+  minute: number;
+  daysOfWeek?: number[];
 }
 
-// Parameters for creating a preset
-export interface CreatePresetParams {
-  name: string;
-  audioId: string;
-  audioName: string;
-  timeType: ScheduleTimeType;
+/** Partial edit; only the provided fields change. */
+export interface UpdateScheduleParams {
+  id: string;
+  audioId?: string;
+  audioName?: string;
+  audioPath?: string;
+  label?: string;
+  repeat?: ScheduleRepeat;
   hour?: number;
   minute?: number;
-  relativeMinutes?: number;
+  daysOfWeek?: number[];
+  enabled?: boolean;
 }

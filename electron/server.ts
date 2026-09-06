@@ -974,33 +974,16 @@ export function createServer(
       socket.emit("audioSchedules", getAudioScheduler()?.getSchedules() || []);
     });
 
-    socket.on("getAudioPresets", () => {
-      socket.emit("audioPresets", getAudioScheduler()?.getPresets() || []);
-    });
-
     socket.on("createAudioSchedule", (params) => {
-      getAudioScheduler()?.createSchedule({
-        ...params,
-        absoluteTime: params.absoluteTime
-          ? new Date(params.absoluteTime)
-          : undefined,
-      });
+      getAudioScheduler()?.createSchedule(params);
     });
 
-    socket.on("cancelAudioSchedule", (scheduleId) => {
-      getAudioScheduler()?.cancelSchedule(scheduleId);
+    socket.on("updateAudioSchedule", (params) => {
+      getAudioScheduler()?.updateSchedule(params);
     });
 
-    socket.on("createAudioPreset", (params) => {
-      getAudioScheduler()?.createPreset(params);
-    });
-
-    socket.on("activateAudioPreset", (presetId, audioPath) => {
-      getAudioScheduler()?.activatePreset(presetId, audioPath);
-    });
-
-    socket.on("deleteAudioPreset", (presetId) => {
-      getAudioScheduler()?.deletePreset(presetId);
+    socket.on("deleteAudioSchedule", (scheduleId) => {
+      getAudioScheduler()?.deleteSchedule(scheduleId);
     });
 
     // Image Library
@@ -1120,9 +1103,6 @@ export function createServer(
   if (scheduler) {
     scheduler.onScheduleChange((schedules) => {
       io.emit("audioSchedules", schedules);
-    });
-    scheduler.onPresetChange((presets) => {
-      io.emit("audioPresets", presets);
     });
     scheduler.onScheduleEvent((event) => {
       io.emit("audioScheduleEvent", event);

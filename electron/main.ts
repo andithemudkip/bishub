@@ -42,6 +42,10 @@ import type { VideoItem } from "../src/shared/videoLibrary.types";
 import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getTransferManager } from "./transferManager";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
+import type {
+  CreateScheduleParams,
+  UpdateScheduleParams,
+} from "../src/shared/audioSchedule.types";
 import { startDownload, startAudioDownload, cancelDownload, getActiveDownloads, getActiveAudioDownloads, killAllDownloads, checkForBinaryUpdates, getBinaryInfo } from "./ytdlp";
 import { getDeviceRegistry } from "./deviceRegistry";
 import type {
@@ -96,9 +100,6 @@ async function createWindows() {
   const audioScheduler = initAudioScheduler(stateManager);
   audioScheduler.onScheduleChange((schedules) => {
     windowManager.broadcastToAll("audio-schedules-update", schedules);
-  });
-  audioScheduler.onPresetChange((presets) => {
-    windowManager.broadcastToAll("audio-presets-update", presets);
   });
   audioScheduler.onScheduleEvent((event) => {
     windowManager.broadcastToAll("audio-schedule-event", event);
@@ -809,63 +810,22 @@ function setupIPC() {
     return getAudioScheduler()?.getSchedules() || [];
   });
 
-  ipcMain.handle("get-audio-presets", () => {
-    return getAudioScheduler()?.getPresets() || [];
-  });
-
   ipcMain.handle(
     "create-audio-schedule",
-    (
-      _event,
-      params: {
-        audioId: string;
-        audioName: string;
-        audioPath: string;
-        timeType: "absolute" | "relative";
-        absoluteTime?: string;
-        relativeMinutes?: number;
-      }
-    ) => {
-      return getAudioScheduler()?.createSchedule({
-        ...params,
-        absoluteTime: params.absoluteTime
-          ? new Date(params.absoluteTime)
-          : undefined,
-      });
-    }
-  );
-
-  ipcMain.handle("cancel-audio-schedule", (_event, scheduleId: string) => {
-    return getAudioScheduler()?.cancelSchedule(scheduleId);
-  });
-
-  ipcMain.handle(
-    "create-audio-preset",
-    (
-      _event,
-      params: {
-        name: string;
-        audioId: string;
-        audioName: string;
-        timeType: "absolute" | "relative";
-        hour?: number;
-        minute?: number;
-        relativeMinutes?: number;
-      }
-    ) => {
-      return getAudioScheduler()?.createPreset(params);
+    (_event, params: CreateScheduleParams) => {
+      return getAudioScheduler()?.createSchedule(params);
     }
   );
 
   ipcMain.handle(
-    "activate-audio-preset",
-    (_event, presetId: string, audioPath: string) => {
-      return getAudioScheduler()?.activatePreset(presetId, audioPath);
+    "update-audio-schedule",
+    (_event, params: UpdateScheduleParams) => {
+      return getAudioScheduler()?.updateSchedule(params);
     }
   );
 
-  ipcMain.handle("delete-audio-preset", (_event, presetId: string) => {
-    return getAudioScheduler()?.deletePreset(presetId);
+  ipcMain.handle("delete-audio-schedule", (_event, scheduleId: string) => {
+    return getAudioScheduler()?.deleteSchedule(scheduleId);
   });
 
   // Image Library handlers

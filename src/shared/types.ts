@@ -8,10 +8,9 @@ import type {
 import type { AudioItem, AudioUploadProgress, AudioDownloadProgress } from "./audioLibrary.types";
 import type {
   AudioSchedule,
-  AudioSchedulePreset,
   ScheduleEvent,
   CreateScheduleParams,
-  CreatePresetParams,
+  UpdateScheduleParams,
 } from "./audioSchedule.types";
 import type {
   TransferItem,
@@ -263,7 +262,6 @@ export type ServerToClientEvents = {
   audioQueue: (audioIds: string[]) => void;
   // Audio Scheduling
   audioSchedules: (schedules: AudioSchedule[]) => void;
-  audioPresets: (presets: AudioSchedulePreset[]) => void;
   audioScheduleEvent: (event: ScheduleEvent) => void;
   // Image Library
   imageLibrary: (images: ImageItem[]) => void;
@@ -370,12 +368,9 @@ export type ClientToServerEvents = {
   setQueueLoop: (loop: boolean) => void;
   // Audio Scheduling
   getAudioSchedules: () => void;
-  getAudioPresets: () => void;
   createAudioSchedule: (params: CreateScheduleParams) => void;
-  cancelAudioSchedule: (scheduleId: string) => void;
-  createAudioPreset: (params: CreatePresetParams) => void;
-  activateAudioPreset: (presetId: string, audioPath: string) => void;
-  deleteAudioPreset: (presetId: string) => void;
+  updateAudioSchedule: (params: UpdateScheduleParams) => void;
+  deleteAudioSchedule: (scheduleId: string) => void;
   // Image Library
   getImageLibrary: () => void;
   getSlideshows: () => void;

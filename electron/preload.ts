@@ -34,10 +34,9 @@ import type {
 import type { AudioPlaylist } from "../src/shared/audioPlaylist.types";
 import type {
   AudioSchedule,
-  AudioSchedulePreset,
   ScheduleEvent,
   CreateScheduleParams,
-  CreatePresetParams,
+  UpdateScheduleParams,
 } from "../src/shared/audioSchedule.types";
 import type { TransferItem } from "../src/shared/transfer.types";
 import type {
@@ -432,23 +431,14 @@ const electronAPI = {
   // Audio Scheduling
   getAudioSchedules: (): Promise<AudioSchedule[]> =>
     ipcRenderer.invoke("get-audio-schedules"),
-  getAudioPresets: (): Promise<AudioSchedulePreset[]> =>
-    ipcRenderer.invoke("get-audio-presets"),
   createAudioSchedule: (params: CreateScheduleParams): Promise<AudioSchedule> =>
     ipcRenderer.invoke("create-audio-schedule", params),
-  cancelAudioSchedule: (scheduleId: string): Promise<boolean> =>
-    ipcRenderer.invoke("cancel-audio-schedule", scheduleId),
-  createAudioPreset: (
-    params: CreatePresetParams
-  ): Promise<AudioSchedulePreset> =>
-    ipcRenderer.invoke("create-audio-preset", params),
-  activateAudioPreset: (
-    presetId: string,
-    audioPath: string
-  ): Promise<AudioSchedule> =>
-    ipcRenderer.invoke("activate-audio-preset", presetId, audioPath),
-  deleteAudioPreset: (presetId: string): Promise<boolean> =>
-    ipcRenderer.invoke("delete-audio-preset", presetId),
+  updateAudioSchedule: (
+    params: UpdateScheduleParams
+  ): Promise<AudioSchedule | null> =>
+    ipcRenderer.invoke("update-audio-schedule", params),
+  deleteAudioSchedule: (scheduleId: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-audio-schedule", scheduleId),
 
   onAudioSchedulesUpdate: (callback: (schedules: AudioSchedule[]) => void) => {
     ipcRenderer.on(
@@ -456,15 +446,6 @@ const electronAPI = {
       (_event: IpcRendererEvent, schedules: AudioSchedule[]) => callback(schedules)
     );
     return () => { ipcRenderer.removeAllListeners("audio-schedules-update"); };
-  },
-  onAudioPresetsUpdate: (
-    callback: (presets: AudioSchedulePreset[]) => void
-  ) => {
-    ipcRenderer.on(
-      "audio-presets-update",
-      (_event: IpcRendererEvent, presets: AudioSchedulePreset[]) => callback(presets)
-    );
-    return () => { ipcRenderer.removeAllListeners("audio-presets-update"); };
   },
   onAudioScheduleEvent: (callback: (event: ScheduleEvent) => void) => {
     ipcRenderer.on(

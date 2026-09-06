@@ -478,12 +478,9 @@ export default function AudioLibraryPage({
           <AudioScheduleSection
             audios={library.audios}
             schedules={scheduler.schedules}
-            presets={scheduler.presets}
             onCreateSchedule={scheduler.createSchedule}
-            onCancelSchedule={scheduler.cancelSchedule}
-            onCreatePreset={scheduler.createPreset}
-            onActivatePreset={scheduler.activatePreset}
-            onDeletePreset={scheduler.deletePreset}
+            onUpdateSchedule={scheduler.updateSchedule}
+            onDeleteSchedule={scheduler.deleteSchedule}
             t={t}
           />
         )}

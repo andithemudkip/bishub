@@ -2,9 +2,9 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import type {
   AudioSchedule,
-  AudioSchedulePreset,
+  CreateScheduleParams,
   ScheduleEvent,
-  ScheduleTimeType,
+  UpdateScheduleParams,
 } from "../shared/audioSchedule.types";
 import type {
   ServerToClientEvents,
@@ -16,39 +16,16 @@ type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 interface AudioSchedulerAPI {
   schedules: AudioSchedule[];
-  presets: AudioSchedulePreset[];
-  pendingSchedules: AudioSchedule[];
   recentEvents: ScheduleEvent[];
   isElectron: boolean;
 
-  createSchedule: (params: {
-    audioId: string;
-    audioName: string;
-    audioPath: string;
-    timeType: ScheduleTimeType;
-    absoluteTime?: Date;
-    relativeMinutes?: number;
-  }) => Promise<AudioSchedule | null>;
-  cancelSchedule: (scheduleId: string) => Promise<boolean>;
-  createPreset: (params: {
-    name: string;
-    audioId: string;
-    audioName: string;
-    timeType: ScheduleTimeType;
-    hour?: number;
-    minute?: number;
-    relativeMinutes?: number;
-  }) => Promise<AudioSchedulePreset | null>;
-  activatePreset: (
-    presetId: string,
-    audioPath: string
-  ) => Promise<AudioSchedule | null>;
-  deletePreset: (presetId: string) => Promise<boolean>;
+  createSchedule: (params: CreateScheduleParams) => Promise<AudioSchedule | null>;
+  updateSchedule: (params: UpdateScheduleParams) => Promise<AudioSchedule | null>;
+  deleteSchedule: (scheduleId: string) => Promise<boolean>;
 }
 
 export function useAudioScheduler(): AudioSchedulerAPI {
   const [schedules, setSchedules] = useState<AudioSchedule[]>([]);
-  const [presets, setPresets] = useState<AudioSchedulePreset[]>([]);
   const [recentEvents, setRecentEvents] = useState<ScheduleEvent[]>([]);
 
   const socketRef = useRef<SocketType | null>(null);
@@ -65,17 +42,14 @@ export function useAudioScheduler(): AudioSchedulerAPI {
     if (isElectron) {
       // Use Electron IPC
       window.electronAPI!.getAudioSchedules().then(setSchedules);
-      window.electronAPI!.getAudioPresets().then(setPresets);
 
       const unsubSchedules =
         window.electronAPI!.onAudioSchedulesUpdate(setSchedules);
-      const unsubPresets = window.electronAPI!.onAudioPresetsUpdate(setPresets);
       const unsubEvent =
         window.electronAPI!.onAudioScheduleEvent(handleScheduleEvent);
 
       return () => {
         unsubSchedules();
-        unsubPresets();
         unsubEvent();
       };
     } else {
@@ -88,11 +62,9 @@ export function useAudioScheduler(): AudioSchedulerAPI {
 
       socket.on("connect", () => {
         socket.emit("getAudioSchedules");
-        socket.emit("getAudioPresets");
       });
 
       socket.on("audioSchedules", setSchedules);
-      socket.on("audioPresets", setPresets);
       socket.on("audioScheduleEvent", handleScheduleEvent);
 
       return () => {
@@ -101,79 +73,45 @@ export function useAudioScheduler(): AudioSchedulerAPI {
     }
   }, [isElectron, handleScheduleEvent]);
 
-  const pendingSchedules = schedules.filter((s) => s.status === "pending");
+  const createSchedule = useCallback(
+    async (params: CreateScheduleParams) => {
+      if (isElectron) {
+        return window.electronAPI!.createAudioSchedule(params);
+      }
+      socketRef.current?.emit("createAudioSchedule", params);
+      return null;
+    },
+    [isElectron]
+  );
 
-  const api: AudioSchedulerAPI = {
+  const updateSchedule = useCallback(
+    async (params: UpdateScheduleParams) => {
+      if (isElectron) {
+        return window.electronAPI!.updateAudioSchedule(params);
+      }
+      socketRef.current?.emit("updateAudioSchedule", params);
+      return null;
+    },
+    [isElectron]
+  );
+
+  const deleteSchedule = useCallback(
+    async (scheduleId: string) => {
+      if (isElectron) {
+        return window.electronAPI!.deleteAudioSchedule(scheduleId);
+      }
+      socketRef.current?.emit("deleteAudioSchedule", scheduleId);
+      return true;
+    },
+    [isElectron]
+  );
+
+  return {
     schedules,
-    presets,
-    pendingSchedules,
     recentEvents,
     isElectron,
-
-    createSchedule: useCallback(
-      async (params) => {
-        const scheduleParams = {
-          audioId: params.audioId,
-          audioName: params.audioName,
-          audioPath: params.audioPath,
-          timeType: params.timeType,
-          absoluteTime: params.absoluteTime?.toISOString(),
-          relativeMinutes: params.relativeMinutes,
-        };
-
-        if (isElectron) {
-          return window.electronAPI!.createAudioSchedule(scheduleParams);
-        }
-        socketRef.current?.emit("createAudioSchedule", scheduleParams);
-        return null;
-      },
-      [isElectron]
-    ),
-
-    cancelSchedule: useCallback(
-      async (scheduleId) => {
-        if (isElectron) {
-          return window.electronAPI!.cancelAudioSchedule(scheduleId);
-        }
-        socketRef.current?.emit("cancelAudioSchedule", scheduleId);
-        return true;
-      },
-      [isElectron]
-    ),
-
-    createPreset: useCallback(
-      async (params) => {
-        if (isElectron) {
-          return window.electronAPI!.createAudioPreset(params);
-        }
-        socketRef.current?.emit("createAudioPreset", params);
-        return null;
-      },
-      [isElectron]
-    ),
-
-    activatePreset: useCallback(
-      async (presetId, audioPath) => {
-        if (isElectron) {
-          return window.electronAPI!.activateAudioPreset(presetId, audioPath);
-        }
-        socketRef.current?.emit("activateAudioPreset", presetId, audioPath);
-        return null;
-      },
-      [isElectron]
-    ),
-
-    deletePreset: useCallback(
-      async (presetId) => {
-        if (isElectron) {
-          return window.electronAPI!.deleteAudioPreset(presetId);
-        }
-        socketRef.current?.emit("deleteAudioPreset", presetId);
-        return true;
-      },
-      [isElectron]
-    ),
+    createSchedule,
+    updateSchedule,
+    deleteSchedule,
   };
-
-  return api;
 }
