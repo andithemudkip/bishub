@@ -22,6 +22,7 @@ import type {
   ImageUploadProgress,
 } from "./imageLibrary.types";
 import type { ParsedTTML } from "./ttmlParser";
+import type { HymnalInfo } from "./hymnals";
 import type { AudioPlaylist, AudioQueueState } from "./audioPlaylist.types";
 
 export type DisplayMode = "idle" | "text" | "video" | "image";
@@ -241,6 +242,8 @@ export type ServerToClientEvents = {
   devices: (devices: DeviceInfo[]) => void;
   connectedDeviceIds: (ids: string[]) => void;
   hymns: (slug: string, hymns: Hymn[]) => void;
+  /** The merged book list: bundled hymnals plus the user's own books. */
+  hymnals: (hymnals: HymnalInfo[]) => void;
   hymnSearchResults: (results: HymnSearchResult[]) => void;
   bibleBooks: (
     books: { id: string; name: string; chapterCount: number }[]
@@ -299,6 +302,7 @@ export type ClientToServerEvents = {
     to: string,
   ) => void;
   getMonitors: () => void;
+  getHymnals: () => void;
   goIdle: () => void;
   // Devices
   getDevices: () => void;
@@ -520,6 +524,73 @@ export interface Hymn {
   audioAvailability?: HymnAudioAvailability;
   /** Whether word-synced lyrics exist for this hymn (karaoke, not just instrumental). */
   hasSyncedLyrics?: boolean;
+  /**
+   * Where a user's hymn came from. Only ever present on hymns in custom books;
+   * bundled hymnals never carry it.
+   *
+   * Written from the first release even though nothing reads it yet: it is the
+   * one thing that is expensive to retrofit once someone has hundreds of local
+   * hymns, and it is what makes "update this from the registry", "don't clobber
+   * my edits" and "where did this come from?" possible later.
+   */
+  source?: HymnSource;
+}
+
+export interface HymnSource {
+  kind: "pptx" | "manual" | "registry";
+  /** ISO timestamp. */
+  importedAt: string;
+  /** For kind "pptx". */
+  fileName?: string;
+  /** For kind "registry". */
+  registryId?: string;
+  registryVersion?: number;
+  /** Set once the user edits a hymn after importing it. */
+  edited?: boolean;
+}
+
+/** A user-created hymn book, stored in userData rather than shipped in assets. */
+export interface CustomHymnalMeta {
+  slug: string;
+  name: string;
+  shortName: string;
+  language: string;
+  languageName: string;
+  /** Bumped when the on-disk shape changes, so a migration has something to read. */
+  version: number;
+  createdAt: string;
+}
+
+// PPTX hymn import
+// The parser runs in the main process, but ParsedDeck crosses IPC/Socket.io to the
+// renderer, which maps it to a Hymn locally on every slide de-selection. Both sides
+// need these, so they live here rather than in electron/pptxParser.ts.
+
+/** Why a .pptx could not be read. Crosses the wire as a code, never as English. */
+export type PptxParseReason =
+  | "legacy-ppt"
+  | "not-a-pptx"
+  | "no-text-found"
+  | "too-large";
+
+export interface ParsedSlide {
+  /**
+   * One entry per <p:txBody> in document order, empty ones dropped.
+   * Deliberately NOT joined: on most real decks the title is its own shape
+   * above verse 1, and welding them together corrupts the lyrics.
+   */
+  shapes: string[];
+}
+
+export interface ParsedDeck {
+  /** Slides in presentation order, which is not slideN.xml order. */
+  slides: ParsedSlide[];
+  /**
+   * docProps/core.xml <dc:title>. Unreliable in practice — often a leftover from
+   * the deck a file was copied from, or a dump of slide 1 — so treat it as the
+   * last title candidate, not the first.
+   */
+  docTitle?: string;
 }
 
 // Bible types
