@@ -93,8 +93,18 @@ export default function HymnImportFlow({
   const [textOverrides, setTextOverrides] = useState<ReadonlyMap<string, string>>(new Map());
   const [titleEdit, setTitleEdit] = useState<string | null>(null);
   const [numberEdit, setNumberEdit] = useState<string | null>(null);
-  const [editingBlock, setEditingBlock] = useState<number | null>(null);
-  const [kindMenu, setKindMenu] = useState<number | null>(null);
+  // Keyed by row — "<slide>:<stanza>" — not by block. A block can be on screen
+  // four times over; keying by block turned every one of them into a textarea at
+  // once and autofocused the last, scrolling the user away from the row they
+  // tapped. The edit still applies to the block; only one row hosts it.
+  // Near-duplicate stanzas are joined by default and the notice says so, with
+  // one tap to undo. The detector only fires on blocks that are identical once
+  // accents and punctuation are stripped, so it cannot fuse two genuinely
+  // different stanzas — and leaving them apart is what produced four
+  // identical-looking choruses cross-referencing each other.
+  const [merge, setMerge] = useState(true);
+  const [editingRow, setEditingRow] = useState<string | null>(null);
+  const [kindMenuRow, setKindMenuRow] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -105,8 +115,9 @@ export default function HymnImportFlow({
     setTextOverrides(new Map());
     setTitleEdit(null);
     setNumberEdit(null);
-    setEditingBlock(null);
-    setKindMenu(null);
+    setMerge(true);
+    setEditingRow(null);
+    setKindMenuRow(null);
     setSaveError(null);
     scrollRef.current?.scrollTo({ top: 0 });
   }, []);
@@ -141,8 +152,36 @@ export default function HymnImportFlow({
       textOverrides,
       title: titleEdit ?? undefined,
       number: numberEdit ?? undefined,
+      mergeNearDuplicates: merge,
     });
-  }, [current, nextNumber, excluded, included, kindOverrides, textOverrides, titleEdit, numberEdit]);
+  }, [current, nextNumber, excluded, included, kindOverrides, textOverrides, titleEdit, numberEdit, merge]);
+
+  /**
+   * Which slides carry the near-duplicate stanzas, for the notice.
+   *
+   * Only the *unmerged* draft can answer this — once merged, the groups are one
+   * block and the flag carries a count rather than the members. It is a second
+   * pass over a deck of a few dozen slides, which is nothing.
+   */
+  const duplicateSlides: number[] = useMemo(() => {
+    if (!current?.ok) return [];
+    const plain = buildDraft(current.deck, {
+      fileName: current.fileName,
+      nextNumber,
+      excluded,
+      included,
+    });
+    const flag = plain.flags.find((f) => f.code === "near-duplicate-blocks");
+    if (!flag?.detail) return [];
+    const grouped = new Set(
+      flag.detail.split(",").flatMap((group) => group.split("+").map(Number))
+    );
+    const slides: number[] = [];
+    plain.slides.forEach((slide, position) => {
+      if (slide.blockIndices.some((index) => grouped.has(index))) slides.push(position + 1);
+    });
+    return slides;
+  }, [current, nextNumber, excluded, included]);
 
   // ── the queue ──────────────────────────────────────────────────────────────
 
@@ -261,8 +300,8 @@ export default function HymnImportFlow({
   });
 
   const toggleSlide = (index: number, wasIncluded: boolean) => {
-    setEditingBlock(null);
-    setKindMenu(null);
+    setEditingRow(null);
+    setKindMenuRow(null);
     if (wasIncluded) {
       setExcluded((prev) => new Set(prev).add(index));
       setIncluded((prev) => {
@@ -283,7 +322,7 @@ export default function HymnImportFlow({
   const setKind = (blockIndex: number, kind: HymnBlockKind) => {
     const key = deck.blockKeys[blockIndex];
     setKindOverrides((prev) => new Map(prev).set(key, kind));
-    setKindMenu(null);
+    setKindMenuRow(null);
   };
 
   const setText = (blockIndex: number, text: string) => {
@@ -332,6 +371,19 @@ export default function HymnImportFlow({
 
         {/* Anything the heuristics were unsure about, said plainly. */}
         {deck.flags.length > 0 && <Warnings flags={deck.flags} t={t} />}
+
+        {duplicateSlides.length > 0 && (
+          <MergeNotice
+            t={t}
+            slides={duplicateSlides}
+            merged={merge}
+            onToggle={() => {
+              setMerge((value) => !value);
+              setEditingRow(null);
+              setKindMenuRow(null);
+            }}
+          />
+        )}
 
         {/* Title and number. Prefilled guesses, always overridable. */}
         <div className="space-y-3">
@@ -444,24 +496,25 @@ export default function HymnImportFlow({
                           const block = deck.blocks[blockIndex];
                           const firstSlide = firstSlideOfBlock.get(blockIndex) ?? number;
                           const isRepeat = firstSlide !== number;
+                          const row = `${slide.index}:${occurrence}`;
                           return (
                             <Stanza
-                              key={`${blockIndex}:${occurrence}`}
+                              key={row}
                               t={t}
                               text={block.text}
                               kind={block.kind}
                               isRepeat={isRepeat}
                               firstSlide={firstSlide}
-                              editing={editingBlock === blockIndex}
-                              kindMenuOpen={kindMenu === blockIndex}
+                              editing={editingRow === row}
+                              kindMenuOpen={kindMenuRow === row}
                               onEdit={() => {
-                                setEditingBlock(blockIndex);
-                                setKindMenu(null);
+                                setEditingRow(row);
+                                setKindMenuRow(null);
                               }}
-                              onEditDone={() => setEditingBlock(null)}
+                              onEditDone={() => setEditingRow(null)}
                               onTextChange={(text) => setText(blockIndex, text)}
                               onToggleKindMenu={() =>
-                                setKindMenu(kindMenu === blockIndex ? null : blockIndex)
+                                setKindMenuRow(kindMenuRow === row ? null : row)
                               }
                               onKind={(kind) => setKind(blockIndex, kind)}
                             />
@@ -637,6 +690,63 @@ function Stanza({
   );
 }
 
+/**
+ * The one case where the app cannot just report and move on.
+ *
+ * A chorus retyped on each slide drifts — `Se-arată zorii` has it four times,
+ * two of them missing an accent — and exact dedupe then yields two chorus
+ * blocks that look identical on screen and cross-reference each other's slide
+ * numbers. Joining them is the right answer often enough to be the default, but
+ * it changes the user's own words, so it says what it did and offers the way
+ * back in the same breath.
+ */
+function MergeNotice({
+  t,
+  slides,
+  merged,
+  onToggle,
+}: {
+  t: ReturnType<typeof getTranslations>["hymnImport"];
+  slides: number[];
+  merged: boolean;
+  onToggle: () => void;
+}) {
+  // "2, 4, 6 și 8". Intl.ListFormat would do this, but it is ES2021 and the
+  // project targets ES2020 — not worth widening the lib for one string.
+  const list =
+    slides.length > 1
+      ? `${slides.slice(0, -1).join(", ")} ${t.listAnd} ${slides[slides.length - 1]}`
+      : String(slides[0] ?? "");
+
+  return (
+    <StatusBanner color={merged ? "blue" : "yellow"}>
+      <div className="flex gap-3">
+        <WarningIcon
+          className={`w-5 h-5 flex-shrink-0 mt-0.5 ${merged ? "text-blue-400" : "text-yellow-400"}`}
+        />
+        <div className="min-w-0">
+          <p
+            className={`text-sm leading-relaxed ${merged ? "text-blue-100/90" : "text-yellow-100/90"}`}
+          >
+            {(merged ? t.mergedNotice : t.mergeOffer).replace("{slides}", list)}
+          </p>
+          <button
+            type="button"
+            onClick={onToggle}
+            className={`mt-2 px-3 py-1.5 rounded-lg text-xs font-medium border focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none ${
+              merged
+                ? "bg-gray-700/40 text-gray-200 hover:bg-gray-700 border-gray-600/40"
+                : "bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border-blue-600/40"
+            }`}
+          >
+            {merged ? t.mergeUndo : t.mergeAction}
+          </button>
+        </div>
+      </div>
+    </StatusBanner>
+  );
+}
+
 function Warnings({
   flags,
   t,
@@ -679,8 +789,6 @@ function flagMessage(
       return t.warnAllIdentical;
     case "many-slides":
       return t.warnManySlides.replace("{count}", flag.detail ?? "");
-    case "near-duplicate-blocks":
-      return t.warnNearDuplicate;
     case "foreign-number":
       return t.warnForeignNumber.replace("{number}", flag.detail ?? "");
     case "empty-slides":

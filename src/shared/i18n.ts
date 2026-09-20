@@ -133,7 +133,12 @@ export interface Translations {
     warnSingleSlide: string;
     warnAllIdentical: string;
     warnManySlides: string; // {count}
-    warnNearDuplicate: string;
+    /** Joins the last two slide numbers in a list: "2, 4, 6 and 8". */
+    listAnd: string;
+    mergeOffer: string; // {slides}
+    mergeAction: string;
+    mergedNotice: string; // {slides}
+    mergeUndo: string;
     warnForeignNumber: string; // {number}
     warnEmptySlides: string; // {count}
     // Outcome
@@ -701,8 +706,13 @@ const ro: Translations = {
     warnSingleSlide: "Tot imnul este pe un singur slide.",
     warnAllIdentical: "Toate slide-urile au aceleași cuvinte.",
     warnManySlides: "Fișierul are multe slide-uri ({count}). Verifică-le pe toate.",
-    warnNearDuplicate:
-      "Unele strofe sunt aproape la fel. Verifică-le — poate fi aceeași strofă scrisă de două ori.",
+    listAnd: "și",
+    mergeOffer:
+      "Aceleași cuvinte apar pe slide-urile {slides}, scrise puțin diferit — de obicei lipsesc niște diacritice.",
+    mergeAction: "Unește-le",
+    mergedNotice:
+      "Slide-urile {slides} aveau aceleași cuvinte, scrise puțin diferit. Le-am unit într-una singură, păstrând scrierea cu diacritice.",
+    mergeUndo: "Nu le uni",
     warnForeignNumber:
       "În fișier scria numărul {number}. Nu l-am folosit — aici numerele sunt ale cărții tale.",
     warnEmptySlides: "{count} slide-uri nu au cuvinte și au rămas nebifate.",
@@ -1256,8 +1266,13 @@ const en: Translations = {
     warnSingleSlide: "The whole hymn is on a single slide.",
     warnAllIdentical: "Every slide has the same words.",
     warnManySlides: "This file has a lot of slides ({count}). Check them all.",
-    warnNearDuplicate:
-      "Some verses are nearly the same. Check them — it may be one verse typed twice.",
+    listAnd: "and",
+    mergeOffer:
+      "The same words appear on slides {slides}, written slightly differently — usually a missing accent or two.",
+    mergeAction: "Join them",
+    mergedNotice:
+      "Slides {slides} had the same words written slightly differently. We joined them into one, keeping the spelling with accents.",
+    mergeUndo: "Keep them separate",
     warnForeignNumber:
       "The file had the number {number} on it. We didn't use it — numbers here belong to your own book.",
     warnEmptySlides: "{count} slides have no words and were left unticked.",
