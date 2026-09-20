@@ -45,6 +45,8 @@ interface RemoteAPI {
   /** Which book `hymns` holds — lags `settings.hymnal` while a fetch is in flight. */
   hymnsSlug: string;
   isConnected: boolean;
+  /** Running inside the desktop app, where native pickers are available. */
+  isElectron: boolean;
   isPaired: boolean;
   authError: boolean;
   authFailed: boolean;
@@ -448,6 +450,7 @@ export function useRemoteAPI(): RemoteAPI {
     hymns: hymnData.hymns,
     hymnsSlug: hymnData.slug,
     isConnected,
+    isElectron,
     isPaired,
     authError,
     authFailed: authError && authAttempted.current,

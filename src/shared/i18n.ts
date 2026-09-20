@@ -85,11 +85,77 @@ export interface Translations {
   };
 
   // Hymn import (PowerPoint decks → the user's own book)
+  // Deliberately plain language throughout: the people using this are church
+  // volunteers, not computer users. No "blocks", no "parse", no "slug" — slides,
+  // words, verses and chorus, which is what they see in PowerPoint.
   hymnImport: {
     /** Name of the book imports land in. Stored when the book is first created,
      *  not translated at render time — the same as the books we ship. */
     myHymns: string;
     myHymnsShort: string;
+    // Entry points
+    importButton: string;
+    importShort: string;
+    emptyTitle: string;
+    emptyBody: string;
+    reading: string;
+    // Review screen
+    reviewHeading: string;
+    queuePosition: string; // {current}, {total}
+    skipFile: string;
+    close: string;
+    save: string; // {book}
+    saving: string;
+    titleLabel: string;
+    titlePlaceholder: string;
+    numberLabel: string;
+    numberTaken: string; // {number}
+    summarySlides: string; // {count}
+    nothingSelected: string;
+    needTitle: string;
+    slidesHeading: string;
+    slideLabel: string; // {n}
+    includeLabel: string;
+    excludedLabel: string;
+    reasonTitleSlide: string;
+    reasonEmpty: string;
+    noWords: string;
+    useAsTitle: string;
+    sameAsSlide: string; // {n}
+    sameAsSlideHint: string;
+    editWords: string;
+    doneEditing: string;
+    kindVerse: string;
+    kindChorus: string;
+    kindBridge: string;
+    changeKind: string;
+    // Warnings raised by the draft
+    warnSingleSlide: string;
+    warnAllIdentical: string;
+    warnManySlides: string; // {count}
+    warnNearDuplicate: string;
+    warnForeignNumber: string; // {number}
+    warnEmptySlides: string; // {count}
+    // Outcome
+    doneHeading: string;
+    savedNone: string;
+    savedCount: string; // {count}, {book}
+    savedRenumbered: string; // {title}, {number}
+    viewBook: string; // {book}
+    finish: string;
+    // Failures — one per PptxParseReason, plus the commit failures
+    cannotImport: string;
+    errorLegacyPpt: string;
+    errorNotAPptx: string;
+    errorNoTextFound: string;
+    errorTooLarge: string;
+    errorUnreadable: string;
+    errorSaveFailed: string;
+    errorInvalidHymn: string;
+    // Managing what was imported
+    deleteHymn: string;
+    confirmDelete: string; // {title}
+    deleteFailed: string;
   };
 
   // Bible page
@@ -597,6 +663,68 @@ const ro: Translations = {
   hymnImport: {
     myHymns: "Imnurile Mele",
     myHymnsShort: "Ale Mele",
+    importButton: "Adaugă din PowerPoint",
+    importShort: "Adaugă",
+    emptyTitle: "Încă nu ai niciun imn aici",
+    emptyBody:
+      "Adaugă un imn pe care îl ai deja ca fișier PowerPoint. Luăm doar cuvintele — fiecare slide devine o strofă.",
+    reading: "Se citesc fișierele...",
+    reviewHeading: "Verifică înainte de salvare",
+    queuePosition: "{current} din {total}",
+    skipFile: "Sari peste",
+    close: "Renunță",
+    save: "Salvează în {book}",
+    saving: "Se salvează...",
+    titleLabel: "Titlu",
+    titlePlaceholder: "Titlul imnului",
+    numberLabel: "Număr",
+    numberTaken: "Numărul {number} este deja folosit. Îl schimbăm automat la salvare.",
+    summarySlides: "{count} slide-uri",
+    nothingSelected: "Bifează cel puțin un slide ca să poți salva imnul.",
+    needTitle: "Scrie un titlu ca să poți salva imnul.",
+    slidesHeading: "Slide-uri",
+    slideLabel: "Slide {n}",
+    includeLabel: "Se include",
+    excludedLabel: "Nu se include",
+    reasonTitleSlide: "Pare a fi slide-ul cu titlul",
+    reasonEmpty: "Slide-ul acesta nu are cuvinte",
+    noWords: "(fără cuvinte)",
+    useAsTitle: "Folosește ca titlu",
+    sameAsSlide: "La fel ca slide-ul {n}",
+    sameAsSlideHint: "Dacă schimbi cuvintele aici, se schimbă în ambele locuri.",
+    editWords: "Schimbă cuvintele",
+    doneEditing: "Gata",
+    kindVerse: "Strofă",
+    kindChorus: "Refren",
+    kindBridge: "Punte",
+    changeKind: "Schimbă tipul",
+    warnSingleSlide: "Tot imnul este pe un singur slide.",
+    warnAllIdentical: "Toate slide-urile au aceleași cuvinte.",
+    warnManySlides: "Fișierul are multe slide-uri ({count}). Verifică-le pe toate.",
+    warnNearDuplicate:
+      "Unele strofe sunt aproape la fel. Verifică-le — poate fi aceeași strofă scrisă de două ori.",
+    warnForeignNumber:
+      "În fișier scria numărul {number}. Nu l-am folosit — aici numerele sunt ale cărții tale.",
+    warnEmptySlides: "{count} slide-uri nu au cuvinte și au rămas nebifate.",
+    doneHeading: "Gata",
+    savedNone: "Nu s-a adăugat niciun imn.",
+    savedCount: "{count} imnuri adăugate în {book}.",
+    savedRenumbered: "„{title}” a fost salvat cu numărul {number}.",
+    viewBook: "Vezi {book}",
+    finish: "Închide",
+    cannotImport: "Acest fișier nu poate fi adăugat",
+    errorLegacyPpt:
+      "Acesta este un fișier PowerPoint mai vechi (.ppt). Deschide-l în PowerPoint, alege „Salvare ca” și salvează-l ca prezentare PowerPoint (.pptx), apoi încearcă din nou.",
+    errorNotAPptx: "Acesta nu pare să fie un fișier PowerPoint.",
+    errorNoTextFound:
+      "În acest fișier nu sunt cuvinte de citit — versurile sunt imagini, nu text.",
+    errorTooLarge: "Fișierul este prea mare (peste 50 MB).",
+    errorUnreadable: "Fișierul nu a putut fi citit.",
+    errorSaveFailed: "Imnul nu a putut fi salvat. Încearcă din nou.",
+    errorInvalidHymn: "Ceva nu este în regulă cu acest imn și nu poate fi salvat.",
+    deleteHymn: "Șterge",
+    confirmDelete: "Ștergi „{title}”? Această acțiune nu poate fi anulată.",
+    deleteFailed: "Imnul nu a putut fi șters.",
   },
   bible: {
     searchPlaceholder: "Tastează o referință sau caută text...",
@@ -1090,6 +1218,68 @@ const en: Translations = {
   hymnImport: {
     myHymns: "My Hymns",
     myHymnsShort: "Mine",
+    importButton: "Add from PowerPoint",
+    importShort: "Add",
+    emptyTitle: "No hymns here yet",
+    emptyBody:
+      "Add a hymn you already have as a PowerPoint file. We take just the words — each slide becomes a verse.",
+    reading: "Reading files...",
+    reviewHeading: "Check before saving",
+    queuePosition: "{current} of {total}",
+    skipFile: "Skip",
+    close: "Cancel",
+    save: "Save to {book}",
+    saving: "Saving...",
+    titleLabel: "Title",
+    titlePlaceholder: "Hymn title",
+    numberLabel: "Number",
+    numberTaken: "Number {number} is already taken. We'll pick another one when saving.",
+    summarySlides: "{count} slides",
+    nothingSelected: "Tick at least one slide to save this hymn.",
+    needTitle: "Give the hymn a title to save it.",
+    slidesHeading: "Slides",
+    slideLabel: "Slide {n}",
+    includeLabel: "Included",
+    excludedLabel: "Not included",
+    reasonTitleSlide: "Looks like a title slide",
+    reasonEmpty: "This slide has no words",
+    noWords: "(no words)",
+    useAsTitle: "Use as title",
+    sameAsSlide: "Same as slide {n}",
+    sameAsSlideHint: "Change the words here and they change in both places.",
+    editWords: "Change the words",
+    doneEditing: "Done",
+    kindVerse: "Verse",
+    kindChorus: "Chorus",
+    kindBridge: "Bridge",
+    changeKind: "Change type",
+    warnSingleSlide: "The whole hymn is on a single slide.",
+    warnAllIdentical: "Every slide has the same words.",
+    warnManySlides: "This file has a lot of slides ({count}). Check them all.",
+    warnNearDuplicate:
+      "Some verses are nearly the same. Check them — it may be one verse typed twice.",
+    warnForeignNumber:
+      "The file had the number {number} on it. We didn't use it — numbers here belong to your own book.",
+    warnEmptySlides: "{count} slides have no words and were left unticked.",
+    doneHeading: "All done",
+    savedNone: "No hymns were added.",
+    savedCount: "{count} hymns added to {book}.",
+    savedRenumbered: "\u201c{title}\u201d was saved as number {number}.",
+    viewBook: "Open {book}",
+    finish: "Close",
+    cannotImport: "This file can't be added",
+    errorLegacyPpt:
+      "This is an older PowerPoint file (.ppt). Open it in PowerPoint, choose Save As, save it as a PowerPoint Presentation (.pptx), and try again.",
+    errorNotAPptx: "This doesn't look like a PowerPoint file.",
+    errorNoTextFound:
+      "There are no words to read in this file — the lyrics are pictures, not text.",
+    errorTooLarge: "This file is too big (over 50 MB).",
+    errorUnreadable: "The file couldn't be read.",
+    errorSaveFailed: "The hymn couldn't be saved. Please try again.",
+    errorInvalidHymn: "Something is wrong with this hymn and it can't be saved.",
+    deleteHymn: "Delete",
+    confirmDelete: "Delete \u201c{title}\u201d? This can't be undone.",
+    deleteFailed: "That hymn couldn't be deleted.",
   },
   bible: {
     searchPlaceholder: "Type a reference or search text...",

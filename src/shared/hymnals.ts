@@ -25,6 +25,15 @@ export interface HymnalInfo {
 export const DEFAULT_HYMNAL_SLUG = "imnuri-crestine";
 
 /**
+ * The book imported hymns land in.
+ *
+ * Lives here rather than beside the storage layer because the renderer needs it
+ * too — to offer the import, to show the book's empty state, and to know which
+ * rows may be deleted — and it cannot import anything under electron/.
+ */
+export const MY_HYMNS_SLUG = "my-hymns";
+
+/**
  * The books we ship.
  *
  * This is the *bundled* catalog, not the full list the app shows: user-created

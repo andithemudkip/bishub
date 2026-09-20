@@ -140,6 +140,10 @@ export default function App() {
             onDownloadHymnMP3={api.downloadHymnMP3}
             onDismissKaraokeBanner={() => api.setKaraokeBannerDismissed(true)}
             onOpenKaraokeSettings={() => navigateTo("settings")}
+            isElectron={api.isElectron}
+            onImportPptx={api.importPptx}
+            onCommitHymnImport={api.commitHymnImport}
+            onDeleteCustomHymn={api.deleteCustomHymn}
           />
         );
       case "bible":

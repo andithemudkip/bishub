@@ -27,7 +27,7 @@ interface CustomHymnalsSchema {
 const SCHEMA_VERSION = 1;
 
 /** The one book v1 creates; the format is per-slug so more can come later. */
-export const MY_HYMNS_SLUG = "my-hymns";
+export { MY_HYMNS_SLUG } from "../src/shared/hymnals";
 
 /** The slug that changed, so a listener can refresh just that book. */
 type ChangeCallback = (slug: string) => void;

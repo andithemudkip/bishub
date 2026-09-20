@@ -209,6 +209,19 @@ function titleFromFileName(fileName: string): string {
 }
 
 /** ALL-CAPS deck titles are common; never ship a shouting title. */
+/**
+ * A line reduced to a title: repeat markers flattened, whitespace collapsed, and
+ * a leading hymn number split off rather than kept — a number on a church deck
+ * belongs to whatever book it was copied from, not to ours.
+ */
+function strip(raw: string): { text: string; number: string | null } {
+  const bare = raw.replace(/\(:\s*|\s*:\)/g, " ").replace(/\s+/g, " ").trim();
+  const match = LEADING_NUMBER.exec(bare);
+  return match
+    ? { text: bare.slice(match[0].length).trim(), number: match[1] }
+    : { text: bare, number: null };
+}
+
 function softenCaps(title: string): string {
   const letters = title.replace(/[^A-Za-zĂÂÎȘȚăâîșț]/g, "");
   if (letters.length < 4 || letters !== letters.toUpperCase()) return title;
@@ -299,6 +312,12 @@ export interface HymnImportDraft {
   number: string;
   slides: DraftSlide[];
   blocks: HymnBlock[];
+  /**
+   * The key of each block, parallel to `blocks`. This is what `kindOverrides`
+   * and `textOverrides` are keyed by, and the review screen cannot re-derive it
+   * once a block's text has been edited — the key stays the original text.
+   */
+  blockKeys: string[];
   sequence: number[];
   flags: DraftFlag[];
   /** Where the title came from, so the review screen can say so. */
@@ -325,6 +344,15 @@ export interface BuildDraftOptions {
    * indices shift as slides are toggled, the text does not.
    */
   kindOverrides?: ReadonlyMap<string, HymnBlockKind>;
+  /**
+   * Per-block text edits, keyed the same way and for the same reason.
+   *
+   * Keyed by block rather than by slide so that fixing a typo in a chorus fixes
+   * every occurrence of it — which is what the review screen promises when it
+   * labels a repeat "same as slide 3". The key stays the ORIGINAL normalised
+   * text, so an edit survives further toggling and further editing.
+   */
+  textOverrides?: ReadonlyMap<string, string>;
   /** User-edited title/number, which always win. */
   title?: string;
   number?: string;
@@ -487,6 +515,13 @@ export function buildDraft(
     }
     const override = opts.kindOverrides?.get(blockKeys[index]);
     if (override) block.kind = override;
+    const edited = opts.textOverrides?.get(blockKeys[index]);
+    // Canonicalised like any other slide text: a user typing into the review
+    // screen is as likely to paste a cedilla as PowerPoint is to emit one.
+    if (edited !== undefined) {
+      const text = canonicalizeHymnText(edited);
+      if (text) block.text = text;
+    }
   });
 
   // 6 ─ title and number.
@@ -529,6 +564,7 @@ export function buildDraft(
     number: opts.number ?? fileNumber ?? opts.nextNumber,
     slides,
     blocks,
+    blockKeys,
     sequence,
     flags,
     titleSource,
@@ -665,15 +701,6 @@ function resolveTitle(
   titleSource: HymnImportDraft["titleSource"];
   foreignNumber: string | null;
 } {
-  const strip = (
-    raw: string
-  ): { text: string; number: string | null } => {
-    const bare = raw.replace(/\(:\s*|\s*:\)/g, " ").replace(/\s+/g, " ").trim();
-    const match = LEADING_NUMBER.exec(bare);
-    return match
-      ? { text: bare.slice(match[0].length).trim(), number: match[1] }
-      : { text: bare, number: null };
-  };
 
   // 1. The slide-1 title shape — the dominant pattern in native .pptx.
   if (found.shapeTitle) {
@@ -708,6 +735,19 @@ function resolveTitle(
   }
 
   return { title: "", titleSource: "filename", foreignNumber: null };
+}
+
+/**
+ * A title taken from the text of a slide — what the review screen's "use this
+ * slide as the title" action produces.
+ *
+ * Exported so that action gives exactly what the automatic path would have
+ * given: the longest line, any leading hymn number removed, and ALL CAPS
+ * softened. Church title slides shout (`ASTEPTAM MAREA ZI`), and a user who
+ * taps a button should not be the one who ends up shipping it that way.
+ */
+export function titleFromSlideText(text: string): string {
+  return softenCaps(strip(longestLine(text)).text);
 }
 
 /**
