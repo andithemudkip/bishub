@@ -26,8 +26,12 @@ export class PptxParseError extends Error {
   }
 }
 
-/** Refuse absurd input rather than stalling the main process on it. */
-const MAX_BYTES = 50 * 1024 * 1024;
+/**
+ * Refuse absurd input rather than stalling the main process on it. Exported
+ * because the web upload endpoint caps at the same number — two different caps
+ * would mean an upload accepted over HTTP and then rejected by the parser.
+ */
+export const MAX_PPTX_BYTES = 50 * 1024 * 1024;
 const MAX_SLIDES = 200;
 
 /** OLE compound-file magic — a legacy binary .ppt wearing any extension. */
@@ -160,7 +164,7 @@ function extractDocTitle(files: Record<string, Uint8Array>): string | undefined 
  * English string, since the reason crosses IPC/Socket.io to the renderer.
  */
 export function parsePptx(buf: Buffer | Uint8Array): ParsedDeck {
-  if (buf.length > MAX_BYTES) throw new PptxParseError("too-large");
+  if (buf.length > MAX_PPTX_BYTES) throw new PptxParseError("too-large");
 
   if (OLE_MAGIC.every((byte, i) => buf[i] === byte)) {
     // A legacy binary .ppt. Out of scope by design: tell the user to re-save it

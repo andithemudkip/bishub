@@ -724,3 +724,71 @@ export function draftToHymn(draft: HymnImportDraft): Hymn | null {
     sequence: [...draft.sequence],
   };
 }
+
+// ── commit ───────────────────────────────────────────────────────────────────
+
+const BLOCK_KINDS = new Set<string>(["verse", "chorus", "bridge"]);
+
+/** Caps, so a malformed or hostile payload cannot be written to the user's book. */
+const MAX_BLOCKS = 200;
+const MAX_SEQUENCE = 400;
+const MAX_TITLE = 200;
+const MAX_NUMBER = 16;
+
+/**
+ * Validate and clean a Hymn arriving from a client — null when it is not one.
+ *
+ * The commit payload is a plain `Hymn` assembled in the renderer, and on the web
+ * path it comes from a browser we do not control, so every invariant
+ * scripts/verify-hymnals.js enforces on the books we ship is re-checked here
+ * rather than trusted.
+ *
+ * It also *rebuilds* the object from known fields instead of spreading the
+ * input: `audioAvailability` and `hasSyncedLyrics` are ours to annotate (they
+ * key karaoke assets by bare hymn number, which only one book may use), and
+ * `source` provenance is stamped by the main process — neither is a client's to
+ * claim.
+ */
+export function sanitizeImportedHymn(raw: unknown): Hymn | null {
+  if (!raw || typeof raw !== "object") return null;
+  const input = raw as Record<string, unknown>;
+
+  const number = typeof input.number === "string" ? input.number.trim() : "";
+  const title = typeof input.title === "string" ? input.title.trim() : "";
+  if (!number || number.length > MAX_NUMBER) return null;
+  if (!title || title.length > MAX_TITLE) return null;
+
+  const rawBlocks = input.blocks;
+  const rawSequence = input.sequence;
+  if (!Array.isArray(rawBlocks) || !Array.isArray(rawSequence)) return null;
+  if (rawBlocks.length === 0 || rawBlocks.length > MAX_BLOCKS) return null;
+  if (rawSequence.length === 0 || rawSequence.length > MAX_SEQUENCE) return null;
+
+  const blocks: HymnBlock[] = [];
+  for (const entry of rawBlocks as unknown[]) {
+    if (!entry || typeof entry !== "object") return null;
+    const block = entry as Record<string, unknown>;
+    if (typeof block.kind !== "string" || !BLOCK_KINDS.has(block.kind)) return null;
+    if (typeof block.text !== "string") return null;
+    // Canonicalise rather than reject: this is the same pass buildDraft already
+    // ran, so it is a no-op for an honest client, and it repairs the cedillas
+    // and stray \r that verify-hymnals treats as hard failures for any other.
+    const text = canonicalizeHymnText(block.text);
+    if (!text) return null;
+    blocks.push({ kind: block.kind as HymnBlockKind, text });
+  }
+
+  const sequence: number[] = [];
+  for (const index of rawSequence as unknown[]) {
+    if (!Number.isInteger(index)) return null;
+    const at = index as number;
+    if (at < 0 || at >= blocks.length) return null;
+    sequence.push(at);
+  }
+
+  // Every block must be reachable. Indices are already known to be in range and
+  // integral, so the set covers 0..n-1 exactly when its size matches.
+  if (new Set(sequence).size !== blocks.length) return null;
+
+  return { number, title: canonicalizeHymnText(title), blocks, sequence };
+}

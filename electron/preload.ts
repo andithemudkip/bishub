@@ -19,6 +19,8 @@ import type {
   DeviceInfo,
   HymnPlaybackMode,
   ChromeSizeKey,
+  PptxImportResult,
+  HymnCommitResult,
 } from "../src/shared/types";
 import type {
   VideoItem,
@@ -159,6 +161,18 @@ const electronAPI = {
     ipcRenderer.invoke("search-all-hymns", query),
   setHymnal: (slug: string): Promise<void> =>
     ipcRenderer.invoke("set-hymnal", slug),
+
+  // Hymn import. Opens the native picker and returns one result per chosen
+  // file; the web remote uploads to /api/hymns/import for the same shape.
+  importPptx: (): Promise<PptxImportResult[]> =>
+    ipcRenderer.invoke("import-pptx"),
+  commitHymnImport: (
+    hymn: Hymn,
+    fileName?: string,
+  ): Promise<HymnCommitResult> =>
+    ipcRenderer.invoke("commit-hymn-import", hymn, fileName),
+  deleteCustomHymn: (slug: string, hymnNumber: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-custom-hymn", slug, hymnNumber),
 
   // Hymn karaoke MP3 cache
   downloadHymnMP3: (hymnNumber: string): Promise<void> =>

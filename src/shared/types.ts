@@ -244,6 +244,10 @@ export type ServerToClientEvents = {
   hymns: (slug: string, hymns: Hymn[]) => void;
   /** The merged book list: bundled hymnals plus the user's own books. */
   hymnals: (hymnals: HymnalInfo[]) => void;
+  /** Outcome of a commit, sent only to the socket that asked for it. */
+  hymnImportCommitted: (result: HymnCommitResult) => void;
+  /** Outcome of a delete, sent only to the socket that asked for it. */
+  customHymnDeleted: (slug: string, number: string, deleted: boolean) => void;
   hymnSearchResults: (results: HymnSearchResult[]) => void;
   bibleBooks: (
     books: { id: string; name: string; chapterCount: number }[]
@@ -317,6 +321,14 @@ export type ClientToServerEvents = {
   ) => void;
   setHymnal: (slug: string) => void;
   searchAllHymns: (query: string) => void;
+  /**
+   * Hymn import. There is no parse event here on purpose: a deck arrives over
+   * HTTP at POST /api/hymns/import, because a .pptx is megabytes of binary and
+   * Socket.io is the wrong pipe for it. Only the finished Hymn comes back this
+   * way, and `fileName` is recorded as provenance — the server stamps the rest.
+   */
+  commitHymnImport: (hymn: Hymn, fileName?: string) => void;
+  deleteCustomHymn: (slug: string, number: string) => void;
   // Bible
   getBibleBooks: () => void;
   getBibleChapter: (bookId: string, chapter: number) => void;
@@ -571,7 +583,9 @@ export type PptxParseReason =
   | "legacy-ppt"
   | "not-a-pptx"
   | "no-text-found"
-  | "too-large";
+  | "too-large"
+  /** The bytes never arrived — an unreadable path, a failed upload. */
+  | "unreadable";
 
 export interface ParsedSlide {
   /**
@@ -592,6 +606,29 @@ export interface ParsedDeck {
    */
   docTitle?: string;
 }
+
+/**
+ * One file's outcome from an import request.
+ *
+ * Failures are per file, not per request: picking five decks and having one turn
+ * out to be a legacy .ppt must not lose the other four.
+ */
+export type PptxImportResult =
+  | { ok: true; fileName: string; deck: ParsedDeck }
+  | { ok: false; fileName: string; reason: PptxParseReason };
+
+/** Why a commit was refused. Crosses the wire as a code, never as English. */
+export type HymnCommitReason = "invalid-hymn" | "write-failed";
+
+/**
+ * On success `hymn` is the hymn **as stored**, whose number may differ from the
+ * one committed: two imports can race, so the storage layer re-checks and bumps
+ * on collision rather than refusing. The UI should read the number back from
+ * here rather than assuming the one it sent.
+ */
+export type HymnCommitResult =
+  | { ok: true; slug: string; hymn: Hymn }
+  | { ok: false; reason: HymnCommitReason };
 
 // Bible types
 export interface BibleVerse {

@@ -19,7 +19,13 @@ import { getCustomHymnals } from "./customHymnals";
  * "shared hymn registry".
  */
 
-type ChangeCallback = (hymnals: HymnalInfo[]) => void;
+/**
+ * Called with the merged list and the slug of the book that changed. The slug
+ * matters: adding a hymn changes that book's contents as well as its songCount,
+ * and a listener that only re-sent the book list would leave an open book
+ * showing stale hymns.
+ */
+type ChangeCallback = (hymnals: HymnalInfo[], slug: string) => void;
 
 const changeListeners: ChangeCallback[] = [];
 let unsubscribeFromStorage: (() => void) | null = null;
@@ -74,9 +80,9 @@ export function getFallbackHymnalSlug(language: string): string {
 export function onHymnalsChange(callback: ChangeCallback): () => void {
   changeListeners.push(callback);
   if (!unsubscribeFromStorage) {
-    unsubscribeFromStorage = getCustomHymnals().onChange(() => {
+    unsubscribeFromStorage = getCustomHymnals().onChange((slug) => {
       const hymnals = getHymnals();
-      changeListeners.forEach((cb) => cb(hymnals));
+      changeListeners.forEach((cb) => cb(hymnals, slug));
     });
   }
   return () => {

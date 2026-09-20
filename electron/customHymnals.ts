@@ -29,7 +29,8 @@ const SCHEMA_VERSION = 1;
 /** The one book v1 creates; the format is per-slug so more can come later. */
 export const MY_HYMNS_SLUG = "my-hymns";
 
-type ChangeCallback = () => void;
+/** The slug that changed, so a listener can refresh just that book. */
+type ChangeCallback = (slug: string) => void;
 
 export class CustomHymnalManager {
   private store: Store<CustomHymnalsSchema>;
@@ -53,8 +54,8 @@ export class CustomHymnalManager {
     };
   }
 
-  private notifyChange(): void {
-    this.changeListeners.forEach((cb) => cb());
+  private notifyChange(slug: string): void {
+    this.changeListeners.forEach((cb) => cb(slug));
   }
 
   // ── paths ─────────────────────────────────────────────────────────────────
@@ -98,7 +99,7 @@ export class CustomHymnalManager {
     if (!fs.existsSync(this.getHymnalPath(book.slug))) {
       this.writeHymns(book.slug, []);
     }
-    this.notifyChange();
+    this.notifyChange(book.slug);
     return book;
   }
 
@@ -111,7 +112,7 @@ export class CustomHymnalManager {
     const file = this.getHymnalPath(slug);
     if (fs.existsSync(file)) fs.unlinkSync(file);
     this.cache.delete(slug);
-    this.notifyChange();
+    this.notifyChange(slug);
     return true;
   }
 
@@ -175,7 +176,7 @@ export class CustomHymnalManager {
       number: taken.has(hymn.number) ? this.nextNumber(slug) : hymn.number,
     };
     this.writeHymns(slug, sortByNumber([...hymns, stored]));
-    this.notifyChange();
+    this.notifyChange(slug);
     return stored;
   }
 
@@ -198,7 +199,7 @@ export class CustomHymnalManager {
     const next = [...hymns];
     next[index] = updated;
     this.writeHymns(slug, next);
-    this.notifyChange();
+    this.notifyChange(slug);
     return updated;
   }
 
@@ -207,7 +208,7 @@ export class CustomHymnalManager {
     const remaining = hymns.filter((hymn) => hymn.number !== number);
     if (remaining.length === hymns.length) return false;
     this.writeHymns(slug, remaining);
-    this.notifyChange();
+    this.notifyChange(slug);
     return true;
   }
 }

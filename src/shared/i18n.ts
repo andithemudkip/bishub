@@ -84,6 +84,14 @@ export interface Translations {
     statusCancelled: string;
   };
 
+  // Hymn import (PowerPoint decks → the user's own book)
+  hymnImport: {
+    /** Name of the book imports land in. Stored when the book is first created,
+     *  not translated at render time — the same as the books we ship. */
+    myHymns: string;
+    myHymnsShort: string;
+  };
+
   // Bible page
   bible: {
     searchPlaceholder: string;
@@ -586,6 +594,10 @@ const ro: Translations = {
     statusQueued: "În așteptare",
     statusCancelled: "Anulat",
   },
+  hymnImport: {
+    myHymns: "Imnurile Mele",
+    myHymnsShort: "Ale Mele",
+  },
   bible: {
     searchPlaceholder: "Tastează o referință sau caută text...",
     go: "Du-te",
@@ -1074,6 +1086,10 @@ const en: Translations = {
     errorDiskSpace: "Insufficient disk space",
     statusQueued: "Queued",
     statusCancelled: "Cancelled",
+  },
+  hymnImport: {
+    myHymns: "My Hymns",
+    myHymnsShort: "Mine",
   },
   bible: {
     searchPlaceholder: "Type a reference or search text...",
