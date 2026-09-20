@@ -40,6 +40,10 @@ export const BUNDLED_HYMNALS: HymnalInfo[] = [
   { slug: "imnuri-companioni", name: "Imnuri Companioni", shortName: "Companioni", language: "ro", languageName: "Română", songCount: 63 },
   { slug: "imnuri-amicus", name: "Imnuri Amicus", shortName: "Amicus", language: "ro", languageName: "Română", songCount: 36 },
   { slug: "imnuri-licurici", name: "Imnuri Licurici", shortName: "Licurici", language: "ro", languageName: "Română", songCount: 86 },
+  // Hymns we ship that are in no official hymnal, built from PowerPoint decks by
+  // scripts/build-pptx-hymnal.js. No karaoke: MP3/TTML are keyed by bare hymn
+  // number, which only stays unambiguous while one book uses them.
+  { slug: "alte-imnuri", name: "Alte Imnuri", shortName: "Alte", language: "ro", languageName: "Română", songCount: 75 },
   // English
   { slug: "sda-hymnal", name: "Seventh-Day Adventist Hymnal", shortName: "SDA Hymnal", language: "en", languageName: "English", songCount: 695, isDefault: true },
   // Spanish

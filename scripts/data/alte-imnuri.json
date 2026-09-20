@@ -1,0 +1,454 @@
+{
+  "slug": "alte-imnuri",
+  "version": 1,
+  "note": "Pins hymn numbers to source decks so adding a deck later cannot renumber existing hymns. `skip` excludes a deck with a reason; `duplicateOf` records a transcription that lost to a better one.",
+  "entries": [
+    {
+      "file": "bundle_1/Am cunoscut un nume.pptx",
+      "number": "2",
+      "title": "Am cunoscut un nume.."
+    },
+    {
+      "file": "bundle_1/ASTEPTAM  MAREA  ZI.pptx",
+      "number": "4",
+      "title": "Asteptam Marea Zi"
+    },
+    {
+      "file": "bundle_1/Aur, argint si palate.pptx",
+      "duplicateOf": "bundle_2/Aur, argint și palate.pptx"
+    },
+    {
+      "file": "bundle_1/Azi m-am intors.pptx",
+      "number": "6",
+      "title": "Azi m-am intors"
+    },
+    {
+      "file": "bundle_1/Azi m’am întors.pptx",
+      "duplicateOf": "bundle_1/Azi m-am intors.pptx"
+    },
+    {
+      "file": "bundle_1/Bucurati-va de soare bucurati-va in zori - Bucurati-va.pptx",
+      "number": "7",
+      "title": "Bucurati-va de soare bucurati-va in zori - Bucurati-va"
+    },
+    {
+      "file": "bundle_1/Bucuria iubirii ne prinde uniti.pptx",
+      "number": "8",
+      "title": "Bucuria iubirii ne prinde uniti"
+    },
+    {
+      "file": "bundle_1/Cand colecta se va strange (in Sabatul treisprezece).pptx",
+      "duplicateOf": "bundle_2/In sabatul treisprezece.pptx"
+    },
+    {
+      "file": "bundle_1/Cand Isus Hristos m-a mantuit.pptx",
+      "number": "11",
+      "title": "Când Isus Hristos m-a mântuit"
+    },
+    {
+      "file": "bundle_1/Cand mama ne chema pe toti.pptx",
+      "number": "12",
+      "title": "Când mama ne chema pe toți"
+    },
+    {
+      "file": "bundle_1/Ce pace solemna.pptx",
+      "number": "14",
+      "title": "Ce pace solemna"
+    },
+    {
+      "file": "bundle_1/Cineva se’ngrijeste de mine.pptx",
+      "number": "15",
+      "title": "Cineva se’ngrijeste de mine"
+    },
+    {
+      "file": "bundle_1/Cu Domnul meu.pptx",
+      "number": "16",
+      "title": "Cu Domnul meu"
+    },
+    {
+      "file": "bundle_1/Doamne cata fericire 2.pptx",
+      "skip": "no slides at all — the deck's slides were deleted and only a [trash]/ entry remains; `Doamne cata fericire.pptx` is the good copy"
+    },
+    {
+      "file": "bundle_1/Doamne cata fericire.pptx",
+      "number": "23",
+      "title": "Doamne cata fericire"
+    },
+    {
+      "file": "bundle_1/Doamne,Tu-n necazuri....pptx",
+      "number": "26",
+      "title": "Doamne,Tu-n necazuri..."
+    },
+    {
+      "file": "bundle_1/Doar o coliba aici jos imi ajunge.pptx",
+      "number": "27",
+      "title": "Doar o coliba aici jos imi ajunge"
+    },
+    {
+      "file": "bundle_1/Dragoste divina, sfanta.pptx",
+      "number": "29",
+      "title": "Dragoste divina, sfanta"
+    },
+    {
+      "file": "bundle_1/e noapte sfanta.pptx",
+      "skip": "unfinished — a single slide holding 17 words, with the same line repeated twice"
+    },
+    {
+      "file": "bundle_1/E-o minune când soarele apune.pptx",
+      "number": "30",
+      "title": "E-o minune când soarele apune"
+    },
+    {
+      "file": "bundle_1/Fara hotar.pptx",
+      "number": "31",
+      "title": "Fără hotar"
+    },
+    {
+      "file": "bundle_1/FRUMOS CA SENINUL.pptx",
+      "number": "34",
+      "title": "Frumos Ca Seninul"
+    },
+    {
+      "file": "bundle_1/Incet, pe-ntreg pamant se face noapte.pptx",
+      "number": "35",
+      "title": "Incet, pe-ntreg pamant se face noapte"
+    },
+    {
+      "file": "bundle_1/Iubirea LUI.pptx",
+      "number": "37",
+      "title": "Iubirea LUI"
+    },
+    {
+      "file": "bundle_1/Judecata cea din ceruri.pptx",
+      "duplicateOf": "bundle_2/Judecata cea eterna.pptx"
+    },
+    {
+      "file": "bundle_1/LA APA DE VIATA.pptx",
+      "number": "42",
+      "title": "La Apa De Viata"
+    },
+    {
+      "file": "bundle_1/Mi-e dor de vesnicie.pptx",
+      "number": "45",
+      "title": "Mi-e dor de veșnicie"
+    },
+    {
+      "file": "bundle_1/Mult mi-e dor de caminul de aur.pptx",
+      "number": "46",
+      "title": "Mult mi-e dor de caminul de aur"
+    },
+    {
+      "file": "bundle_1/NE PREGĂTIM DE DRUM.pptx",
+      "number": "47",
+      "title": "Ne Pregătim De Drum"
+    },
+    {
+      "file": "bundle_1/Nu eu, ci Domnul.pptx",
+      "number": "48",
+      "title": "Nu eu, ci Domnul"
+    },
+    {
+      "file": "bundle_1/Nu te-ndoi, ci crede.pptx",
+      "duplicateOf": "bundle_2/Nu te-ndoi, ci crede.pptx"
+    },
+    {
+      "file": "bundle_1/O cântare de mărire.pptx",
+      "duplicateOf": "bundle_2/O cantare de marire.pptx"
+    },
+    {
+      "file": "bundle_1/Prieten cu Imparatul.pptx",
+      "number": "55",
+      "title": "Prieten cu Imparatul"
+    },
+    {
+      "file": "bundle_1/Să ai pace.pptx",
+      "number": "57",
+      "title": "Să ai pace.."
+    },
+    {
+      "file": "bundle_1/Se-arată zorii.pptx",
+      "number": "59",
+      "title": "Se-arată zorii"
+    },
+    {
+      "file": "bundle_1/SINGUR IN NOAPTE.pptx",
+      "number": "61",
+      "title": "Singur In Noapte"
+    },
+    {
+      "file": "bundle_1/Te iubesc nu te teme.pptx",
+      "number": "64",
+      "title": "Te iubesc, nu te teme!"
+    },
+    {
+      "file": "bundle_1/Tine-ma in mana Ta.pptx",
+      "number": "65",
+      "title": "Tine-ma in mana Ta"
+    },
+    {
+      "file": "bundle_1/Tu esti Creatorul meu.pptx",
+      "number": "66",
+      "title": "Tu esti Creatorul meu"
+    },
+    {
+      "file": "bundle_1/va bucurati Isus e Domn.pptx",
+      "number": "68",
+      "title": "va bucurati Isus e Domn"
+    },
+    {
+      "file": "bundle_1/Valuri muginde.pptx",
+      "duplicateOf": "bundle_2/Valuri muginde.pptx"
+    },
+    {
+      "file": "bundle_1/versuri cante pamantul si cerul.pptx",
+      "number": "71",
+      "title": "versuri cante pamantul si cerul"
+    },
+    {
+      "file": "bundle_1/Vine iar.pptx",
+      "number": "72",
+      "title": "Vine iar.."
+    },
+    {
+      "file": "bundle_1/Vino mai curand.pptx",
+      "number": "73",
+      "title": "Vino mai curand"
+    },
+    {
+      "file": "bundle_1/Vreau sa ma,ntorc.pptx",
+      "number": "74",
+      "title": "Vreau sa ma-ntorc azi acasa"
+    },
+    {
+      "file": "bundle_2/Această lume tristă.pptx",
+      "number": "1",
+      "title": "Această lume tristă"
+    },
+    {
+      "file": "bundle_2/Am cunoscut un nume cald, duios.pptx",
+      "duplicateOf": "bundle_1/Am cunoscut un nume.pptx"
+    },
+    {
+      "file": "bundle_2/Am plecat spre Patria de sus.pptx",
+      "number": "3",
+      "title": "Am plecat spre Patria de sus"
+    },
+    {
+      "file": "bundle_2/Aur, argint și palate.pptx",
+      "number": "5",
+      "title": "Aur, argint și palate"
+    },
+    {
+      "file": "bundle_2/Ca stropii de rouă.pptx",
+      "number": "9",
+      "title": "Ca stropii de rouă"
+    },
+    {
+      "file": "bundle_2/Când amintiri.pptx",
+      "number": "10",
+      "title": "Când amintiri"
+    },
+    {
+      "file": "bundle_2/Cand Isus Hristos m-a mantuit.pptx",
+      "duplicateOf": "bundle_1/Cand Isus Hristos m-a mantuit.pptx"
+    },
+    {
+      "file": "bundle_2/Când mama ne chema pe toți la masă.pptx",
+      "duplicateOf": "bundle_1/Cand mama ne chema pe toti.pptx"
+    },
+    {
+      "file": "bundle_2/Cand sub cruce.pptx",
+      "number": "13",
+      "title": "Când sub cruce"
+    },
+    {
+      "file": "bundle_2/Cu Isus in asta lume.pptx",
+      "number": "17",
+      "title": "Cu Isus în astă lume"
+    },
+    {
+      "file": "bundle_2/Cu Tine prin credință.pptx",
+      "number": "18",
+      "title": "Cu Tine prin credință"
+    },
+    {
+      "file": "bundle_2/De iubesti pe Domnul.pptx",
+      "number": "19",
+      "title": "De iubești pe Domnul"
+    },
+    {
+      "file": "bundle_2/De ziua ta, mămico.pptx",
+      "number": "20",
+      "title": "De ziua ta, mămico"
+    },
+    {
+      "file": "bundle_2/De-as putea ca vulturul sa zbor.pptx",
+      "number": "21",
+      "title": "De-aș putea ca vulturul să zbor"
+    },
+    {
+      "file": "bundle_2/Destinul tău.pptx",
+      "number": "22",
+      "title": "Destinul tău"
+    },
+    {
+      "file": "bundle_2/Doamne, cât e de frumos.pptx",
+      "number": "24",
+      "title": "Doamne, cât e de frumos"
+    },
+    {
+      "file": "bundle_2/Doamne, câtă fericire.pptx",
+      "duplicateOf": "bundle_1/Doamne cata fericire.pptx"
+    },
+    {
+      "file": "bundle_2/Doamne, Tu ne-ajuta.pptx",
+      "number": "25",
+      "title": "Doamne, Tu ne-ajută"
+    },
+    {
+      "file": "bundle_2/Doar o colibă.pptx",
+      "duplicateOf": "bundle_1/Doar o coliba aici jos imi ajunge.pptx"
+    },
+    {
+      "file": "bundle_2/Domnul bate la ușa ta.pptx",
+      "number": "28",
+      "title": "Domnul bate la ușa ta"
+    },
+    {
+      "file": "bundle_2/Fii lăudat.pptx",
+      "number": "32",
+      "title": "Fii lăudat"
+    },
+    {
+      "file": "bundle_2/Fost-a-un timp....pptx",
+      "number": "33",
+      "title": "Fost-a-un timp..."
+    },
+    {
+      "file": "bundle_2/In sabatul treisprezece.pptx",
+      "number": "40",
+      "title": "În sabatul treisprezece"
+    },
+    {
+      "file": "bundle_2/Isuse, dintre toti Te-aleg.pptx",
+      "number": "36",
+      "title": "Isuse, dintre toți"
+    },
+    {
+      "file": "bundle_2/Iubirea Ta....pptx",
+      "number": "38",
+      "title": "Iubirea Ta..."
+    },
+    {
+      "file": "bundle_2/Judecata cea eterna.pptx",
+      "number": "41",
+      "title": "Judecata cea eternă"
+    },
+    {
+      "file": "bundle_2/Mantuirea ni s-a dat.pptx",
+      "number": "43",
+      "title": "Mântuirea ni s-a dat"
+    },
+    {
+      "file": "bundle_2/Mi-a spus odata, mama.pptx",
+      "number": "44",
+      "title": "Mi-a spus odată, mama..."
+    },
+    {
+      "file": "bundle_2/Mi-e dor de vesnicie.pptx",
+      "duplicateOf": "bundle_1/Mi-e dor de vesnicie.pptx"
+    },
+    {
+      "file": "bundle_2/Minunatul Eden.pptx",
+      "skip": "lyrics are baked into background images, one line per slide across 28 slides — no text runs exist, so nothing is recoverable without OCR (an explicit non-goal)"
+    },
+    {
+      "file": "bundle_2/Mult mi-e dor de caminul de aur.pptx",
+      "duplicateOf": "bundle_1/Mult mi-e dor de caminul de aur.pptx"
+    },
+    {
+      "file": "bundle_2/Nu te-ndoi, ci crede.pptx",
+      "number": "49",
+      "title": "Nu te-ndoi, ci crede"
+    },
+    {
+      "file": "bundle_2/Nu va fi o veste mai frumoasă.pptx",
+      "number": "50",
+      "title": "Nu va fi o veste mai frumoasă"
+    },
+    {
+      "file": "bundle_2/O cantare de marire.pptx",
+      "number": "51",
+      "title": "O cântare de mărire"
+    },
+    {
+      "file": "bundle_2/O chemare vine din întunecimi.pptx",
+      "number": "52",
+      "title": "O chemare vine din întunecimi"
+    },
+    {
+      "file": "bundle_2/Parinti si copii.pptx",
+      "number": "53",
+      "title": "Parinti si copii"
+    },
+    {
+      "file": "bundle_2/Pe-Isus doresc să-l vad eu cel dintai.pptx",
+      "number": "39",
+      "title": "În ceruri sus"
+    },
+    {
+      "file": "bundle_2/Predare.pptx",
+      "number": "54",
+      "title": "Predare"
+    },
+    {
+      "file": "bundle_2/Primavara a sosit.pptx",
+      "number": "56",
+      "title": "Primăvara a sosit"
+    },
+    {
+      "file": "bundle_2/Sa ai pace.pptx",
+      "duplicateOf": "bundle_1/Să ai pace.pptx"
+    },
+    {
+      "file": "bundle_2/Să nu te temi.pptx",
+      "number": "58",
+      "title": "Să nu te temi"
+    },
+    {
+      "file": "bundle_2/Simtind incet cum harul.pptx",
+      "number": "60",
+      "title": "Simțind încet cum harul"
+    },
+    {
+      "file": "bundle_2/Stiu un drum plin de lumina.pptx",
+      "number": "63",
+      "title": "Știu un drum plin de lumină"
+    },
+    {
+      "file": "bundle_2/Suntem calatori.pptx",
+      "number": "62",
+      "title": "Suntem călători"
+    },
+    {
+      "file": "bundle_2/Tu esti, Isuse, al meu Prieten.pptx",
+      "number": "67",
+      "title": "Tu ești, Isuse, al meu Prieten"
+    },
+    {
+      "file": "bundle_2/Valuri muginde.pptx",
+      "number": "69",
+      "title": "Valuri muginde"
+    },
+    {
+      "file": "bundle_2/Vedeți ce dragoste minunată.pptx",
+      "number": "70",
+      "title": "Vedeți ce dragoste minunată"
+    },
+    {
+      "file": "bundle_2/Vreau să-Ți văd fața.pptx",
+      "number": "75",
+      "title": "Vreau să-Ți văd fața"
+    }
+  ]
+}
