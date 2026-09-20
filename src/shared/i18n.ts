@@ -711,7 +711,7 @@ const ro: Translations = {
       "Aceleași cuvinte apar pe slide-urile {slides}, scrise puțin diferit — de obicei lipsesc niște diacritice.",
     mergeAction: "Unește-le",
     mergedNotice:
-      "Slide-urile {slides} aveau aceleași cuvinte, scrise puțin diferit. Le-am unit într-una singură, păstrând scrierea cu diacritice.",
+      "Slide-urile {slides} aveau aceleași cuvinte, scrise puțin diferit. Le-am unit într-unul singur.",
     mergeUndo: "Nu le uni",
     warnForeignNumber:
       "În fișier scria numărul {number}. Nu l-am folosit — aici numerele sunt ale cărții tale.",

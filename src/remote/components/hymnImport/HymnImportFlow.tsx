@@ -9,6 +9,7 @@ import type {
 import {
   buildDraft,
   draftToHymn,
+  remapTextOverrides,
   titleFromSlideText,
   type DraftFlag,
   type HymnImportDraft,
@@ -330,6 +331,26 @@ export default function HymnImportFlow({
     setTextOverrides((prev) => new Map(prev).set(key, text));
   };
 
+  const toggleMerge = () => {
+    setEditingRow(null);
+    setKindMenuRow(null);
+    const next = !merge;
+    if (textOverrides.size > 0 && current.ok) {
+      const rebuilt = buildDraft(current.deck, {
+        fileName: current.fileName,
+        nextNumber,
+        excluded,
+        included,
+        kindOverrides,
+        title: titleEdit ?? undefined,
+        number: numberEdit ?? undefined,
+        mergeNearDuplicates: next,
+      });
+      setTextOverrides(remapTextOverrides(deck, rebuilt, textOverrides));
+    }
+    setMerge(next);
+  };
+
   const save = async () => {
     if (!hymn || saving) return;
     setSaving(true);
@@ -377,11 +398,7 @@ export default function HymnImportFlow({
             t={t}
             slides={duplicateSlides}
             merged={merge}
-            onToggle={() => {
-              setMerge((value) => !value);
-              setEditingRow(null);
-              setKindMenuRow(null);
-            }}
+            onToggle={() => toggleMerge()}
           />
         )}
 

@@ -738,6 +738,58 @@ function resolveTitle(
 }
 
 /**
+ * Carry text edits across a merge toggle.
+ *
+ * Overrides are keyed by block text, and joining or separating stanzas rewrites
+ * exactly that — so without this an edit made before the toggle would silently
+ * vanish (or, worse, survive by coincidence when the repaired text happened to
+ * equal one of the variants). Each edit is re-anchored to the slide it was made
+ * on, which is the thing the user actually pointed at and the one identity that
+ * both drafts agree on.
+ *
+ * Separating merged stanzas leaves the edit on the slide it came from; the other
+ * copies go back to their own words, which is what "keep them separate" means.
+ * Joining several edited copies keeps the earliest, since one of them has to win.
+ */
+export function remapTextOverrides(
+  from: HymnImportDraft,
+  to: HymnImportDraft,
+  overrides: ReadonlyMap<string, string>
+): Map<string, string> {
+  const next = new Map<string, string>();
+  if (overrides.size === 0) return next;
+
+  const byBlock = new Map<number, string>();
+  from.blockKeys.forEach((key, index) => {
+    const text = overrides.get(key);
+    if (text !== undefined) byBlock.set(index, text);
+  });
+
+  // Slide order, so the earliest edit wins when two collapse into one.
+  const placed = new Set<number>();
+  for (const slide of from.slides) {
+    const target = to.slides.find((candidate) => candidate.index === slide.index);
+    if (!target) continue;
+    slide.blockIndices.forEach((blockIndex, position) => {
+      const text = byBlock.get(blockIndex);
+      if (text === undefined) return;
+      // Only the first row showing an edited stanza carries it across. Following
+      // every occurrence would push the edit onto all of them, which is the
+      // opposite of what "keep them separate" asks for — and would leave two
+      // blocks holding identical words.
+      if (placed.has(blockIndex)) return;
+      const movedTo = target.blockIndices[position];
+      if (movedTo === undefined) return;
+      const key = to.blockKeys[movedTo];
+      if (key === undefined) return;
+      placed.add(blockIndex);
+      if (!next.has(key)) next.set(key, text);
+    });
+  }
+  return next;
+}
+
+/**
  * A title taken from the text of a slide — what the review screen's "use this
  * slide as the title" action produces.
  *
