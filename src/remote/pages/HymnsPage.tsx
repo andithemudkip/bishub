@@ -23,14 +23,14 @@ import {
 } from "../components/icons/ui";
 import { StatusBanner } from "../components/ui/Card";
 import {
-  HYMNALS,
   getHymnalBySlug,
   getHymnalsForLanguage,
+  type HymnalInfo,
 } from "../../shared/hymnals";
 
-const HYMNAL_COUNT = HYMNALS.length;
-
 interface Props {
+  /** The merged book list, which grows when the user creates a book. */
+  allHymnals: HymnalInfo[];
   textState: TextState;
   isTextMode: boolean;
   hymns: Hymn[];
@@ -55,6 +55,7 @@ interface Props {
 }
 
 export default function HymnsPage({
+  allHymnals,
   textState,
   isTextMode,
   hymns,
@@ -85,9 +86,12 @@ export default function HymnsPage({
   // stays short (Romanian has six, the others one). Switching to another
   // language's hymnal happens in Settings, which lists all of them.
   const hymnals = useMemo(() => {
-    const current = getHymnalBySlug(settings.hymnal);
-    return getHymnalsForLanguage(current?.language ?? settings.language);
-  }, [settings.hymnal, settings.language]);
+    const current = getHymnalBySlug(allHymnals, settings.hymnal);
+    return getHymnalsForLanguage(
+      allHymnals,
+      current?.language ?? settings.language
+    );
+  }, [allHymnals, settings.hymnal, settings.language]);
 
   // F5 focus event
   useFocusSearch(searchInputRef);
@@ -238,7 +242,7 @@ export default function HymnsPage({
         : "instrumental";
 
   // Karaoke assets exist for one book only, so don't advertise them elsewhere.
-  const bookHasKaraoke = !!getHymnalBySlug(hymnsSlug)?.karaoke;
+  const bookHasKaraoke = !!getHymnalBySlug(allHymnals, hymnsSlug)?.karaoke;
   const showKaraokeBanner =
     bookHasKaraoke &&
     !settings.karaokeBannerDismissed &&
@@ -341,7 +345,7 @@ export default function HymnsPage({
           )}
         </div>
 
-        {HYMNAL_COUNT > 1 && searchQuery.trim() && (
+        {allHymnals.length > 1 && searchQuery.trim() && (
           <div className="flex items-center gap-1 bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden p-1 w-fit">
             {[false, true].map((all) => (
               <button
@@ -357,7 +361,7 @@ export default function HymnsPage({
               >
                 {all
                   ? t.hymns.allHymnals
-                  : (getHymnalBySlug(hymnsSlug)?.shortName ?? t.hymns.hymnal)}
+                  : (getHymnalBySlug(allHymnals, hymnsSlug)?.shortName ?? t.hymns.hymnal)}
               </button>
             ))}
           </div>
@@ -528,7 +532,7 @@ export default function HymnsPage({
                   </span>
                   {showingAllBooks && (
                     <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-700/60 text-gray-300">
-                      {getHymnalBySlug(book)?.shortName ?? book}
+                      {getHymnalBySlug(allHymnals, book)?.shortName ?? book}
                     </span>
                   )}
                   <span className="ml-auto flex items-center gap-2 flex-shrink-0">

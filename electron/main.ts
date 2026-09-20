@@ -15,7 +15,11 @@ import {
   searchBibleVerses,
 } from "./dataLoader";
 import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
-import { isValidHymnalSlug } from "../src/shared/hymnals";
+import {
+  getHymnals,
+  isValidHymnalSlug,
+  onHymnalsChange,
+} from "./hymnalRegistry";
 import {
   downloadMP3,
   downloadAllMissingMP3s,
@@ -96,6 +100,11 @@ async function createWindows() {
     openAsHidden: false,
   });
 
+  // Custom books change the list of hymnals every client shows.
+  onHymnalsChange((hymnals) => {
+    windowManager.broadcastToAll("hymnals-update", hymnals);
+  });
+
   // Initialize audio scheduler
   const audioScheduler = initAudioScheduler(stateManager);
   audioScheduler.onScheduleChange((schedules) => {
@@ -159,6 +168,10 @@ function setupIPC() {
 
   ipcMain.handle("get-monitors", () => {
     return windowManager.getMonitors();
+  });
+
+  ipcMain.handle("get-hymnals", () => {
+    return getHymnals();
   });
 
   ipcMain.handle("get-local-ip", () => {

@@ -26,7 +26,11 @@ import {
   searchBibleVerses,
 } from "./dataLoader";
 import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
-import { isValidHymnalSlug } from "../src/shared/hymnals";
+import {
+  getHymnals,
+  isValidHymnalSlug,
+  onHymnalsChange,
+} from "./hymnalRegistry";
 import {
   downloadMP3,
   downloadAllMissingMP3s,
@@ -286,6 +290,11 @@ export function createServer(
     } else {
       res.status(404).send("Video not found");
     }
+  });
+
+  // The book list changes whenever a user book is created, filled or removed.
+  onHymnalsChange((hymnals) => {
+    io.emit("hymnals", hymnals);
   });
 
   // Broadcast video library changes to all Socket.io clients
@@ -587,6 +596,7 @@ export function createServer(
     socket.emit("stateUpdate", stateManager.getState());
     socket.emit("settingsUpdate", stateManager.getSettings());
     socket.emit("monitors", windowManager.getMonitors());
+    socket.emit("hymnals", getHymnals());
 
     // Devices
     socket.on("getDevices", () => {
@@ -657,6 +667,10 @@ export function createServer(
 
     socket.on("getMonitors", () => {
       socket.emit("monitors", windowManager.getMonitors());
+    });
+
+    socket.on("getHymnals", () => {
+      socket.emit("hymnals", getHymnals());
     });
 
     socket.on("setLanguage", (language: Language) => {

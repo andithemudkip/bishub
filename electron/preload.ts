@@ -39,6 +39,7 @@ import type {
   UpdateScheduleParams,
 } from "../src/shared/audioSchedule.types";
 import type { TransferItem } from "../src/shared/transfer.types";
+import type { HymnalInfo } from "../src/shared/hymnals";
 import type {
   ImageItem,
   Slideshow,
@@ -49,6 +50,7 @@ const electronAPI = {
   getState: (): Promise<DisplayState> => ipcRenderer.invoke("get-state"),
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke("get-settings"),
   getMonitors: (): Promise<MonitorInfo[]> => ipcRenderer.invoke("get-monitors"),
+  getHymnals: (): Promise<HymnalInfo[]> => ipcRenderer.invoke("get-hymnals"),
   getLocalIP: (): Promise<string> => ipcRenderer.invoke("get-local-ip"),
   getSecurityKey: (): Promise<string> => ipcRenderer.invoke("get-security-key"),
 
@@ -571,6 +573,13 @@ const electronAPI = {
       callback(monitors)
     );
     return () => { ipcRenderer.removeAllListeners("monitors-update"); };
+  },
+
+  onHymnalsUpdate: (callback: (hymnals: HymnalInfo[]) => void) => {
+    ipcRenderer.on("hymnals-update", (_event: IpcRendererEvent, hymnals: HymnalInfo[]) =>
+      callback(hymnals)
+    );
+    return () => { ipcRenderer.removeAllListeners("hymnals-update"); };
   },
 };
 

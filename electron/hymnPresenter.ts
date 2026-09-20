@@ -2,10 +2,9 @@ import type { StateManager } from "./state";
 import type { HymnPlaybackMode } from "../src/shared/types";
 import { resolveHymnDisplay } from "./dataLoader";
 import {
-  DEFAULT_HYMNAL_SLUG,
-  getDefaultHymnal,
+  getFallbackHymnalSlug,
   isValidHymnalSlug,
-} from "../src/shared/hymnals";
+} from "./hymnalRegistry";
 
 /**
  * Presenting a hymn is identical for the Electron remote (IPC) and web remotes
@@ -27,7 +26,7 @@ export function resolveHymnalSlug(
   if (settings.hymnal && isValidHymnalSlug(settings.hymnal)) {
     return settings.hymnal;
   }
-  return getDefaultHymnal(settings.language)?.slug ?? DEFAULT_HYMNAL_SLUG;
+  return getFallbackHymnalSlug(settings.language);
 }
 
 /**

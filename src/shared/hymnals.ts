@@ -1,5 +1,5 @@
 export interface HymnalInfo {
-  /** Matches the filename in assets/hymnals/{slug}.json */
+  /** Matches the filename in assets/hymnals/{slug}.json, or userData/hymnals/{slug}.json when custom */
   slug: string;
   name: string;
   /** Short label for tight spaces (book pills on narrow screens) */
@@ -15,11 +15,24 @@ export interface HymnalInfo {
    * one hymnal. Adding a second means re-keying the assets by slug.
    */
   karaoke?: boolean;
+  /**
+   * User-created book living in userData rather than assets. Absent on every
+   * bundled book, so `!!custom` is the test for which directory to read.
+   */
+  custom?: boolean;
 }
 
 export const DEFAULT_HYMNAL_SLUG = "imnuri-crestine";
 
-export const HYMNALS: HymnalInfo[] = [
+/**
+ * The books we ship.
+ *
+ * This is the *bundled* catalog, not the full list the app shows: user-created
+ * books are merged in at runtime by electron/hymnalRegistry.ts and pushed to the
+ * renderer. Use it directly only as a seed value before that list arrives, or
+ * where you specifically mean "the books we ship".
+ */
+export const BUNDLED_HYMNALS: HymnalInfo[] = [
   // Romanian
   { slug: "imnuri-crestine", name: "Imnuri Creștine", shortName: "Creștine", language: "ro", languageName: "Română", songCount: 920, isDefault: true, karaoke: true },
   { slug: "imnuri-tineret", name: "Imnuri Tineret", shortName: "Tineret", language: "ro", languageName: "Română", songCount: 69 },
@@ -35,23 +48,42 @@ export const HYMNALS: HymnalInfo[] = [
   { slug: "hymnes-et-louanges", name: "Hymnes et Louanges", shortName: "Hymnes", language: "fr", languageName: "Français", songCount: 621, isDefault: true },
 ];
 
-export function getHymnalBySlug(slug: string): HymnalInfo | undefined {
-  return HYMNALS.find((h) => h.slug === slug);
+/**
+ * The helpers below take the list explicitly rather than closing over the
+ * bundled const, because the real list is runtime data once a user can create
+ * books: the main process applies them to the merged registry, the renderer to
+ * whatever list it last received.
+ */
+
+export function getHymnalBySlug(
+  hymnals: readonly HymnalInfo[],
+  slug: string
+): HymnalInfo | undefined {
+  return hymnals.find((h) => h.slug === slug);
 }
 
 /** Books available in a UI language, falling back to all when none match. */
-export function getHymnalsForLanguage(language: string): HymnalInfo[] {
-  const matching = HYMNALS.filter((h) => h.language === language);
-  return matching.length > 0 ? matching : HYMNALS;
+export function getHymnalsForLanguage(
+  hymnals: readonly HymnalInfo[],
+  language: string
+): HymnalInfo[] {
+  const matching = hymnals.filter((h) => h.language === language);
+  return matching.length > 0 ? matching : [...hymnals];
 }
 
 /** The book to open when none is selected, preferring the UI language. */
-export function getDefaultHymnal(language: string): HymnalInfo {
-  const forLanguage = getHymnalsForLanguage(language);
+export function getDefaultHymnal(
+  hymnals: readonly HymnalInfo[],
+  language: string
+): HymnalInfo | undefined {
+  const forLanguage = getHymnalsForLanguage(hymnals, language);
   return forLanguage.find((h) => h.isDefault) ?? forLanguage[0];
 }
 
 /** Whether a slug is a real book — guards values arriving over IPC/Socket.io. */
-export function isValidHymnalSlug(slug: string): boolean {
-  return HYMNALS.some((h) => h.slug === slug);
+export function isValidHymnalSlug(
+  hymnals: readonly HymnalInfo[],
+  slug: string
+): boolean {
+  return hymnals.some((h) => h.slug === slug);
 }

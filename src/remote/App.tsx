@@ -122,6 +122,7 @@ export default function App() {
       case "hymns":
         return (
           <HymnsPage
+            allHymnals={api.hymnals}
             textState={api.state.text}
             isTextMode={api.state.mode === "text"}
             hymns={api.hymns}
@@ -203,6 +204,7 @@ export default function App() {
       case "settings":
         return (
           <SettingsPage
+            hymnals={api.hymnals}
             monitors={api.monitors}
             settings={api.settings}
             idleState={api.state.idle}

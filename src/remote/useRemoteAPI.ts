@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { BUNDLED_HYMNALS, type HymnalInfo } from "../shared/hymnals";
 import { io, Socket } from "socket.io-client";
 import type {
   DisplayState,
@@ -34,6 +35,8 @@ interface RemoteAPI {
   state: DisplayState;
   settings: AppSettings;
   monitors: MonitorInfo[];
+  /** Bundled hymnals plus the user's own books, pushed from the main process. */
+  hymnals: HymnalInfo[];
   hymns: Hymn[];
   /** Which book `hymns` holds — lags `settings.hymnal` while a fetch is in flight. */
   hymnsSlug: string;
@@ -139,6 +142,9 @@ export function useRemoteAPI(): RemoteAPI {
   const [state, setState] = useState<DisplayState>(DEFAULT_STATE);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
+  // Seeded with the shipped catalog so the first paint is never an empty
+  // book list; the merged list replaces it as soon as it arrives.
+  const [hymnals, setHymnals] = useState<HymnalInfo[]>(BUNDLED_HYMNALS);
   const [hymnData, setHymnData] = useState<{ slug: string; hymns: Hymn[] }>({
     slug: "",
     hymns: [],
@@ -217,6 +223,7 @@ export function useRemoteAPI(): RemoteAPI {
       socket.on("stateUpdate", setState);
       socket.on("settingsUpdate", setSettings);
       socket.on("monitors", setMonitors);
+      socket.on("hymnals", setHymnals);
       socket.on("hymns", (slug, list) => setHymnData({ slug, hymns: list }));
       socket.on("hymnSearchResults", (results) => {
         if (hymnSearchCb.current) {
@@ -303,12 +310,14 @@ export function useRemoteAPI(): RemoteAPI {
       window.electronAPI!.getState().then(setState);
       window.electronAPI!.getSettings().then(setSettings);
       window.electronAPI!.getMonitors().then(setMonitors);
+      window.electronAPI!.getHymnals().then(setHymnals);
       window.electronAPI!.getDownloadedTranslations().then(setDownloadedTranslations);
       window.electronAPI!.getDevices?.().then(setDevices);
 
       const unsubState = window.electronAPI!.onStateUpdate(setState);
       const unsubSettings = window.electronAPI!.onSettingsUpdate(setSettings);
       const unsubMonitors = window.electronAPI!.onMonitorsUpdate(setMonitors);
+      const unsubHymnals = window.electronAPI!.onHymnalsUpdate(setHymnals);
       const unsubHymns = window.electronAPI!.onHymnsUpdate((slug, list) =>
         setHymnData({ slug, hymns: list }),
       );
@@ -328,6 +337,7 @@ export function useRemoteAPI(): RemoteAPI {
         unsubState();
         unsubSettings();
         unsubMonitors();
+        unsubHymnals();
         unsubHymns();
         unsubMP3Progress();
         unsubMP3Stats();
@@ -362,7 +372,7 @@ export function useRemoteAPI(): RemoteAPI {
   );
 
   // Hymns are fetched one book at a time rather than all at once: the full
-  // corpus is ~3 MB across nine hymnals, which every web remote would otherwise
+  // corpus is several MB across every bundled book, which each web remote would
   // pull on connect.
   const selectedHymnal = settings.hymnal;
   useEffect(() => {
@@ -380,6 +390,7 @@ export function useRemoteAPI(): RemoteAPI {
     state,
     settings,
     monitors,
+    hymnals,
     hymns: hymnData.hymns,
     hymnsSlug: hymnData.slug,
     isConnected,
