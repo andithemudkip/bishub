@@ -1,0 +1,66 @@
+{
+  "7": {
+    "reason": "the deck has no title slide or title shape, so the title fell back to the filename — which is the song's first two lines run together plus a repeat (`Bucurati-va de soare bucurati-va in zori - Bucurati-va.ppt`). Title taken from the first line instead. Too rare a shape to add a generator rule for: every other title in the book is under 37 characters.",
+    "title": "Bucurați-vă de soare"
+  },
+  "29": {
+    "reason": "diacritics the corpus pass could not settle: the corpus writes both `sfanta`/`sfântă` and `viata`/`viață`, so those were left alone, and `dăruiesti`/`spălati`/`salvati`/`păsi`/`urmarită`/`biruintei`/`sfintilor` have no unambiguous corpus form. Also `sfânt` → `sfântă` — the source deck typed the masculine, but it agrees with `dragoste` (feminine). Verse 4 keeps `Dragostea`, which is how the deck has it.",
+    "title": "Dragoste divină, sfântă",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Dragoste divină, sfântă,\nCe adânc te dăruiești!\nPentru toți și peste toate,\nDoamne, TU același ești!"
+      },
+      {
+        "kind": "chorus",
+        "text": "În curând se va deschide\nPoarta de mărgăritar\nȘi, spălați prin al Său sânge,\nVom păși salvați prin Har"
+      },
+      {
+        "kind": "verse",
+        "text": "Ca o fiară urmărită,\nCa un șoim lovit eram;\nDomnul m-a scăpat de moarte,\nPeste răni a pus balsam."
+      },
+      {
+        "kind": "verse",
+        "text": "Dragostea divină, sfântă\nMi-a iertat orice păcat;\nVoi cânta de fericire,\nToată viața, ne-ncetat!"
+      },
+      {
+        "kind": "verse",
+        "text": "Iar în clipa biruinței,\nPe al veșniciei prag,\nVoi intra, privind la Domnul,\nÎntr-al sfinților șirag.."
+      }
+    ]
+  },
+  "47": {
+    "reason": "the source deck is entirely uppercase, which would project as shouting — the only such deck in the collection, so it is corrected here rather than by an auto-lowercase rule that could damage legitimate capitals elsewhere. Also fixes the pre-1993 spelling CÎNT → cânt, and the diacritics no corpus form could settle (URMA→urmă, SA→Să, ÎNALTĂM→înălțăm, IMPARATULUI→Împăratului, NOSRU→nostru, LAUDA→laudă, ÎNDREPTAM→îndreptăm, TĂRM→țărm).",
+    "title": "Ne pregătim de drum",
+    "blocks": [
+      {
+        "kind": "verse",
+        "text": "Ne pregătim de drum, e înserare,\nE cel din urmă ceas în univers...\nMai zăbovim bucuroși de plecare,\nSă înălțăm un cânt și-un ultim vers!"
+      },
+      {
+        "kind": "chorus",
+        "text": "Domnul cel minunat\nVrednic și-adevărat\nNe-a dat vecia și cerul ne-a dat!\nA Împăratului nostru să fie\nSlavă și laudă în veac de veac!"
+      },
+      {
+        "kind": "verse",
+        "text": "Ne îndreptăm spre țărm cu nerăbdare,\nBiruitori trecând valuri și vânt\nDe mii de ani Isus e-n așteptare\nSă moștenim cu El noul pământ!"
+      },
+      {
+        "kind": "verse",
+        "text": "Al miază-nopții cer se însenină,\nCununi de slavă se aud de zor..\nPe pajiști verzi, inundate-n lumină,\nNe-așteaptă îngeri cu harpe de dor.."
+      }
+    ]
+  },
+  "71": {
+    "reason": "the deck has no title slide, so the title came from the filename `versuri cante pamantul si cerul.pptx` — `versuri` (\"lyrics\") is the file-namer's label, not part of the title. Taken from the first line instead.",
+    "title": "Cânte pământul și cerul"
+  },
+  "74": {
+    "reason": "title-only: `sa` → `să`. Left as a title fix because this deck writes `sa` throughout its lyrics too, so neither the corpus nor the hymn's own body could settle it; correcting the body as well would mean retyping the whole hymn by hand.",
+    "title": "Vreau să mă-ntorc azi acasă"
+  },
+  "37": {
+    "reason": "title-only: `LUI` -> `Lui`",
+    "title": "Iubirea Lui"
+  }
+}

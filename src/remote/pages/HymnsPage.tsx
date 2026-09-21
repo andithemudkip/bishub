@@ -9,6 +9,8 @@ import type {
   MP3DownloadProgress,
   MP3CacheStats,
   HymnPlaybackMode,
+  HymnCommitResult,
+  PptxImportResult,
 } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 import { normalizeForSearch, formatDuration, summarizeHymn } from "../../shared/utils";
@@ -20,17 +22,21 @@ import {
   CloudDownloadIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  TrashIcon,
 } from "../components/icons/ui";
 import { StatusBanner } from "../components/ui/Card";
 import {
-  HYMNALS,
   getHymnalBySlug,
   getHymnalsForLanguage,
+  MY_HYMNS_SLUG,
+  type HymnalInfo,
 } from "../../shared/hymnals";
-
-const HYMNAL_COUNT = HYMNALS.length;
+import HymnImportFlow from "../components/hymnImport/HymnImportFlow";
+import ImportTrigger from "../components/hymnImport/ImportTrigger";
 
 interface Props {
+  /** The merged book list, which grows when the user creates a book. */
+  allHymnals: HymnalInfo[];
   textState: TextState;
   isTextMode: boolean;
   hymns: Hymn[];
@@ -52,9 +58,15 @@ interface Props {
   onDownloadHymnMP3: (hymnNumber: string) => void;
   onDismissKaraokeBanner: () => void;
   onOpenKaraokeSettings: () => void;
+  /** Electron gets a native picker; a browser must use its own file input. */
+  isElectron: boolean;
+  onImportPptx: (files?: FileList) => Promise<PptxImportResult[]>;
+  onCommitHymnImport: (hymn: Hymn, fileName: string) => Promise<HymnCommitResult>;
+  onDeleteCustomHymn: (slug: string, hymnNumber: string) => Promise<boolean>;
 }
 
 export default function HymnsPage({
+  allHymnals,
   textState,
   isTextMode,
   hymns,
@@ -72,6 +84,10 @@ export default function HymnsPage({
   onDownloadHymnMP3,
   onDismissKaraokeBanner,
   onOpenKaraokeSettings,
+  isElectron,
+  onImportPptx,
+  onCommitHymnImport,
+  onDeleteCustomHymn,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
@@ -79,15 +95,24 @@ export default function HymnsPage({
   const [allBookResults, setAllBookResults] = useState<HymnSearchResult[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Import lives here rather than in its own page: a hymn the user brought in is
+  // still just a hymn, and it should arrive where they already look for hymns.
+  const [importResults, setImportResults] = useState<PptxImportResult[] | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const t = getTranslations(settings.language);
 
   // Pills cover the books sharing a language with the selected one, so the row
   // stays short (Romanian has six, the others one). Switching to another
   // language's hymnal happens in Settings, which lists all of them.
   const hymnals = useMemo(() => {
-    const current = getHymnalBySlug(settings.hymnal);
-    return getHymnalsForLanguage(current?.language ?? settings.language);
-  }, [settings.hymnal, settings.language]);
+    const current = getHymnalBySlug(allHymnals, settings.hymnal);
+    return getHymnalsForLanguage(
+      allHymnals,
+      current?.language ?? settings.language
+    );
+  }, [allHymnals, settings.hymnal, settings.language]);
 
   // F5 focus event
   useFocusSearch(searchInputRef);
@@ -193,6 +218,35 @@ export default function HymnsPage({
     onLoadHymn(book, hymn.number);
   };
 
+  // ── import ─────────────────────────────────────────────────────────────────
+
+  const myHymnsBook = getHymnalBySlug(allHymnals, MY_HYMNS_SLUG);
+  const myHymnsName = myHymnsBook?.name ?? t.hymnImport.myHymns;
+  const viewingMyHymns = hymnsSlug === MY_HYMNS_SLUG;
+  // Only trustworthy for the book currently loaded. From anywhere else the
+  // prefill starts at 1 and the main process renumbers on collision, which the
+  // review screen reports afterwards rather than guessing at wrongly here.
+  const existingNumbers = viewingMyHymns ? hymns.map((h) => h.number) : [];
+
+  const startImport = async (files?: FileList) => {
+    setImportBusy(true);
+    try {
+      const results = await onImportPptx(files);
+      // An empty list means the native picker was dismissed — say nothing.
+      if (results.length > 0) setImportResults(results);
+    } finally {
+      setImportBusy(false);
+    }
+  };
+
+  const handleDelete = async (hymn: Hymn) => {
+    const message = t.hymnImport.confirmDelete.replace("{title}", hymn.title);
+    if (!window.confirm(message)) return;
+    setDeleteError(null);
+    const deleted = await onDeleteCustomHymn(MY_HYMNS_SLUG, hymn.number);
+    if (!deleted) setDeleteError(t.hymnImport.deleteFailed);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (
       e.key === "Enter" &&
@@ -238,7 +292,7 @@ export default function HymnsPage({
         : "instrumental";
 
   // Karaoke assets exist for one book only, so don't advertise them elsewhere.
-  const bookHasKaraoke = !!getHymnalBySlug(hymnsSlug)?.karaoke;
+  const bookHasKaraoke = !!getHymnalBySlug(allHymnals, hymnsSlug)?.karaoke;
   const showKaraokeBanner =
     bookHasKaraoke &&
     !settings.karaokeBannerDismissed &&
@@ -321,27 +375,38 @@ export default function HymnsPage({
             )}
           </div>
         )}
-        <div className="relative">
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={t.hymns.searchPlaceholder}
-            className="w-full px-4 py-3 pr-10 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 min-w-0">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={t.hymns.searchPlaceholder}
+              className="w-full px-4 py-3 pr-10 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <CloseIcon />
+              </button>
+            )}
+          </div>
+          {/* Always present, on every book, so the way to add a hymn is never
+              something the user has to go and find. */}
+          <ImportTrigger
+            isElectron={isElectron}
+            onPick={startImport}
+            disabled={importBusy}
+            variant="icon"
+            label={t.hymnImport.importButton}
           />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-            >
-              <CloseIcon />
-            </button>
-          )}
         </div>
 
-        {HYMNAL_COUNT > 1 && searchQuery.trim() && (
+        {allHymnals.length > 1 && searchQuery.trim() && (
           <div className="flex items-center gap-1 bg-gray-900/50 border border-gray-700/50 rounded-lg overflow-hidden p-1 w-fit">
             {[false, true].map((all) => (
               <button
@@ -357,7 +422,7 @@ export default function HymnsPage({
               >
                 {all
                   ? t.hymns.allHymnals
-                  : (getHymnalBySlug(hymnsSlug)?.shortName ?? t.hymns.hymnal)}
+                  : (getHymnalBySlug(allHymnals, hymnsSlug)?.shortName ?? t.hymns.hymnal)}
               </button>
             ))}
           </div>
@@ -485,6 +550,51 @@ export default function HymnsPage({
         </StatusBanner>
       )}
 
+      {/* Web only. On Electron this promise is pending while the native picker
+          is open, so a "reading..." banner would be describing the wrong thing;
+          the picker is its own feedback and parsing afterwards is immediate. */}
+      {importBusy && !isElectron && (
+        <StatusBanner color="blue">
+          <div className="text-sm">{t.hymnImport.reading}</div>
+        </StatusBanner>
+      )}
+
+      {deleteError && (
+        <StatusBanner color="red">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm">{deleteError}</span>
+            <button
+              type="button"
+              onClick={() => setDeleteError(null)}
+              className="text-gray-400 hover:text-white"
+              aria-label={t.hymnImport.close}
+            >
+              <CloseIcon />
+            </button>
+          </div>
+        </StatusBanner>
+      )}
+
+      {/* An empty own-book is the moment to explain what this is for — a bare
+          "no hymns" would leave the user with nothing to do. */}
+      {viewingMyHymns && rows.length === 0 && !searchQuery && (
+        <div className="text-center py-10 px-4">
+          <h2 className="text-lg font-medium text-gray-200">
+            {t.hymnImport.emptyTitle}
+          </h2>
+          <p className="mt-2 mb-5 text-sm text-gray-400 max-w-sm mx-auto leading-relaxed">
+            {t.hymnImport.emptyBody}
+          </p>
+          <ImportTrigger
+            isElectron={isElectron}
+            onPick={startImport}
+            disabled={importBusy}
+            variant="primary"
+            label={t.hymnImport.importButton}
+          />
+        </div>
+      )}
+
       <div className="grid gap-2">
         {rows.map(({ book, hymn }) => {
           const padded = hymn.number.padStart(3, "0");
@@ -528,7 +638,7 @@ export default function HymnsPage({
                   </span>
                   {showingAllBooks && (
                     <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-700/60 text-gray-300">
-                      {getHymnalBySlug(book)?.shortName ?? book}
+                      {getHymnalBySlug(allHymnals, book)?.shortName ?? book}
                     </span>
                   )}
                   <span className="ml-auto flex items-center gap-2 flex-shrink-0">
@@ -558,6 +668,11 @@ export default function HymnsPage({
                       // download button — it sits outside this <button> to
                       // avoid invalid nested interactive content.
                       <span className="w-6" aria-hidden />
+                    )}
+                    {book === MY_HYMNS_SLUG && (
+                      // Wider than the download spacer above: the delete target
+                      // is 36px, not 24px, and a long title must not run under it.
+                      <span className="w-8" aria-hidden />
                     )}
                   </span>
                 </div>
@@ -589,6 +704,19 @@ export default function HymnsPage({
                   <CloudDownloadIcon className="w-4 h-4" />
                 </button>
               )}
+              {/* Only the user's own book is writable; bundled books have no
+                  delete because there is nothing there they put in. */}
+              {book === MY_HYMNS_SLUG && (
+                <button
+                  type="button"
+                  onClick={() => handleDelete(hymn)}
+                  title={t.hymnImport.deleteHymn}
+                  aria-label={`${t.hymnImport.deleteHymn} ${hymn.title}`}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-950/30 transition-colors focus-visible:ring-2 focus-visible:ring-red-500 focus:outline-none"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              )}
             </div>
           );
         })}
@@ -599,6 +727,22 @@ export default function HymnsPage({
           </div>
         )}
       </div>
+
+      {importResults && (
+        <HymnImportFlow
+          results={importResults}
+          language={settings.language}
+          bookName={myHymnsName}
+          existingNumbers={existingNumbers}
+          onCommit={onCommitHymnImport}
+          onClose={() => setImportResults(null)}
+          onOpenBook={() => {
+            setImportResults(null);
+            setSearchQuery("");
+            onSelectHymnal(MY_HYMNS_SLUG);
+          }}
+        />
+      )}
     </div>
   );
 }

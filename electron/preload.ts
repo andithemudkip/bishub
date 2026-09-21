@@ -19,6 +19,8 @@ import type {
   DeviceInfo,
   HymnPlaybackMode,
   ChromeSizeKey,
+  PptxImportResult,
+  HymnCommitResult,
 } from "../src/shared/types";
 import type {
   VideoItem,
@@ -39,6 +41,7 @@ import type {
   UpdateScheduleParams,
 } from "../src/shared/audioSchedule.types";
 import type { TransferItem } from "../src/shared/transfer.types";
+import type { HymnalInfo } from "../src/shared/hymnals";
 import type {
   ImageItem,
   Slideshow,
@@ -49,6 +52,7 @@ const electronAPI = {
   getState: (): Promise<DisplayState> => ipcRenderer.invoke("get-state"),
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke("get-settings"),
   getMonitors: (): Promise<MonitorInfo[]> => ipcRenderer.invoke("get-monitors"),
+  getHymnals: (): Promise<HymnalInfo[]> => ipcRenderer.invoke("get-hymnals"),
   getLocalIP: (): Promise<string> => ipcRenderer.invoke("get-local-ip"),
   getSecurityKey: (): Promise<string> => ipcRenderer.invoke("get-security-key"),
 
@@ -157,6 +161,18 @@ const electronAPI = {
     ipcRenderer.invoke("search-all-hymns", query),
   setHymnal: (slug: string): Promise<void> =>
     ipcRenderer.invoke("set-hymnal", slug),
+
+  // Hymn import. Opens the native picker and returns one result per chosen
+  // file; the web remote uploads to /api/hymns/import for the same shape.
+  importPptx: (): Promise<PptxImportResult[]> =>
+    ipcRenderer.invoke("import-pptx"),
+  commitHymnImport: (
+    hymn: Hymn,
+    fileName?: string,
+  ): Promise<HymnCommitResult> =>
+    ipcRenderer.invoke("commit-hymn-import", hymn, fileName),
+  deleteCustomHymn: (slug: string, hymnNumber: string): Promise<boolean> =>
+    ipcRenderer.invoke("delete-custom-hymn", slug, hymnNumber),
 
   // Hymn karaoke MP3 cache
   downloadHymnMP3: (hymnNumber: string): Promise<void> =>
@@ -571,6 +587,13 @@ const electronAPI = {
       callback(monitors)
     );
     return () => { ipcRenderer.removeAllListeners("monitors-update"); };
+  },
+
+  onHymnalsUpdate: (callback: (hymnals: HymnalInfo[]) => void) => {
+    ipcRenderer.on("hymnals-update", (_event: IpcRendererEvent, hymnals: HymnalInfo[]) =>
+      callback(hymnals)
+    );
+    return () => { ipcRenderer.removeAllListeners("hymnals-update"); };
   },
 };
 

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { BUNDLED_HYMNALS, type HymnalInfo } from "../shared/hymnals";
 import { io, Socket } from "socket.io-client";
 import type {
   DisplayState,
@@ -17,12 +18,16 @@ import type {
   DeviceInfo,
   HymnPlaybackMode,
   ChromeSizeKey,
+  PptxImportResult,
+  PptxParseReason,
+  HymnCommitResult,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
 import {
   getSecurityKeyFromURL,
   updateProgressList,
+  getApiUrl,
   getDeviceToken,
   setDeviceToken,
   clearDeviceToken,
@@ -34,10 +39,14 @@ interface RemoteAPI {
   state: DisplayState;
   settings: AppSettings;
   monitors: MonitorInfo[];
+  /** Bundled hymnals plus the user's own books, pushed from the main process. */
+  hymnals: HymnalInfo[];
   hymns: Hymn[];
   /** Which book `hymns` holds — lags `settings.hymnal` while a fetch is in flight. */
   hymnsSlug: string;
   isConnected: boolean;
+  /** Running inside the desktop app, where native pickers are available. */
+  isElectron: boolean;
   isPaired: boolean;
   authError: boolean;
   authFailed: boolean;
@@ -70,6 +79,15 @@ interface RemoteAPI {
   ) => void;
   setHymnal: (slug: string) => void;
   searchAllHymns: (query: string) => Promise<HymnSearchResult[]>;
+  // Hymn import
+  /**
+   * Choose decks and parse them. On Electron this opens the native picker and
+   * takes no argument; on the web the caller supplies the files from an
+   * <input type="file">. One result per file, failures included.
+   */
+  importPptx: (files?: FileList | File[]) => Promise<PptxImportResult[]>;
+  commitHymnImport: (hymn: Hymn, fileName?: string) => Promise<HymnCommitResult>;
+  deleteCustomHymn: (slug: string, hymnNumber: string) => Promise<boolean>;
   // Bible
   getBibleBooks: () => Promise<
     { id: string; name: string; chapterCount: number }[]
@@ -139,6 +157,9 @@ export function useRemoteAPI(): RemoteAPI {
   const [state, setState] = useState<DisplayState>(DEFAULT_STATE);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
+  // Seeded with the shipped catalog so the first paint is never an empty
+  // book list; the merged list replaces it as soon as it arrives.
+  const [hymnals, setHymnals] = useState<HymnalInfo[]>(BUNDLED_HYMNALS);
   const [hymnData, setHymnData] = useState<{ slug: string; hymns: Hymn[] }>({
     slug: "",
     hymns: [],
@@ -180,6 +201,27 @@ export function useRemoteAPI(): RemoteAPI {
   const hymnSearchCb = useRef<
     ((results: HymnSearchResult[]) => void) | null
   >(null);
+  /**
+   * Pending import replies, oldest first.
+   *
+   * A queue rather than the single slot the search callbacks use: importing a
+   * folder of decks can put several commits in flight, and a second one landing
+   * on a single slot would strand the first promise forever. Socket.io keeps
+   * per-socket ordering, so replies pair up with requests by arrival.
+   */
+  const commitHymnCbs = useRef<Array<(result: HymnCommitResult) => void>>([]);
+  const deleteHymnCbs = useRef<Array<(deleted: boolean) => void>>([]);
+
+  /**
+   * Adopt a pushed hymn list only for the book we are actually showing.
+   *
+   * The main process broadcasts per book — importing into "My Hymns" pushes
+   * that book — so without this guard a commit made from a phone would swap
+   * whatever book this client had open for the one that changed.
+   */
+  const applyHymnPush = useCallback((slug: string, list: Hymn[]) => {
+    setHymnData((prev) => (prev.slug === slug ? { slug, hymns: list } : prev));
+  }, []);
 
   const isElectron = isElectronEnv;
 
@@ -203,6 +245,14 @@ export function useRemoteAPI(): RemoteAPI {
 
       socket.on("disconnect", () => {
         setIsConnected(false);
+        // Answer anything still in flight rather than leaving a caller awaiting
+        // a reply that can no longer arrive. The write may well have landed —
+        // the book list broadcast on reconnect is what settles that — so this
+        // reports "we do not know", not "it failed to save".
+        for (const resolve of commitHymnCbs.current.splice(0)) {
+          resolve({ ok: false, reason: "write-failed" });
+        }
+        for (const resolve of deleteHymnCbs.current.splice(0)) resolve(false);
       });
 
       socket.on("connect_error", (err) => {
@@ -217,7 +267,14 @@ export function useRemoteAPI(): RemoteAPI {
       socket.on("stateUpdate", setState);
       socket.on("settingsUpdate", setSettings);
       socket.on("monitors", setMonitors);
-      socket.on("hymns", (slug, list) => setHymnData({ slug, hymns: list }));
+      socket.on("hymnals", setHymnals);
+      socket.on("hymns", (slug, list) => applyHymnPush(slug, list));
+      socket.on("hymnImportCommitted", (result) => {
+        commitHymnCbs.current.shift()?.(result);
+      });
+      socket.on("customHymnDeleted", (_slug, _number, deleted) => {
+        deleteHymnCbs.current.shift()?.(deleted);
+      });
       socket.on("hymnSearchResults", (results) => {
         if (hymnSearchCb.current) {
           hymnSearchCb.current(results);
@@ -253,7 +310,7 @@ export function useRemoteAPI(): RemoteAPI {
       socket.on("connectedDeviceIds", setConnectedDeviceIds);
       socket.emit("getHymnMP3CacheStats");
     },
-    [handleMP3Progress]
+    [handleMP3Progress, applyHymnPush]
   );
 
   const pairingInFlight = useRef(false);
@@ -303,14 +360,16 @@ export function useRemoteAPI(): RemoteAPI {
       window.electronAPI!.getState().then(setState);
       window.electronAPI!.getSettings().then(setSettings);
       window.electronAPI!.getMonitors().then(setMonitors);
+      window.electronAPI!.getHymnals().then(setHymnals);
       window.electronAPI!.getDownloadedTranslations().then(setDownloadedTranslations);
       window.electronAPI!.getDevices?.().then(setDevices);
 
       const unsubState = window.electronAPI!.onStateUpdate(setState);
       const unsubSettings = window.electronAPI!.onSettingsUpdate(setSettings);
       const unsubMonitors = window.electronAPI!.onMonitorsUpdate(setMonitors);
+      const unsubHymnals = window.electronAPI!.onHymnalsUpdate(setHymnals);
       const unsubHymns = window.electronAPI!.onHymnsUpdate((slug, list) =>
-        setHymnData({ slug, hymns: list }),
+        applyHymnPush(slug, list),
       );
       const unsubMP3Progress =
         window.electronAPI!.onHymnMP3DownloadProgress(handleMP3Progress);
@@ -328,6 +387,7 @@ export function useRemoteAPI(): RemoteAPI {
         unsubState();
         unsubSettings();
         unsubMonitors();
+        unsubHymnals();
         unsubHymns();
         unsubMP3Progress();
         unsubMP3Stats();
@@ -351,7 +411,13 @@ export function useRemoteAPI(): RemoteAPI {
         socketRef.current?.disconnect();
       };
     }
-  }, [isElectron, connectSocket, pairAndConnect, handleMP3Progress]);
+  }, [
+    isElectron,
+    connectSocket,
+    pairAndConnect,
+    handleMP3Progress,
+    applyHymnPush,
+  ]);
 
   const reconnectWithKey = useCallback(
     (key: string) => {
@@ -362,7 +428,7 @@ export function useRemoteAPI(): RemoteAPI {
   );
 
   // Hymns are fetched one book at a time rather than all at once: the full
-  // corpus is ~3 MB across nine hymnals, which every web remote would otherwise
+  // corpus is several MB across every bundled book, which each web remote would
   // pull on connect.
   const selectedHymnal = settings.hymnal;
   useEffect(() => {
@@ -380,9 +446,11 @@ export function useRemoteAPI(): RemoteAPI {
     state,
     settings,
     monitors,
+    hymnals,
     hymns: hymnData.hymns,
     hymnsSlug: hymnData.slug,
     isConnected,
+    isElectron,
     isPaired,
     authError,
     authFailed: authError && authAttempted.current,
@@ -537,6 +605,72 @@ export function useRemoteAPI(): RemoteAPI {
       (slug: string) => {
         if (isElectron) window.electronAPI!.setHymnal(slug);
         else socketRef.current?.emit("setHymnal", slug);
+      },
+      [isElectron],
+    ),
+
+    // Hymn import. The two halves differ only in how the deck reaches the main
+    // process: a native picker on Electron, a multipart upload on the web.
+    // Everything after that — parsing, the draft, the commit — is identical.
+    importPptx: useCallback(
+      async (files?: FileList | File[]) => {
+        if (isElectron) return window.electronAPI!.importPptx();
+
+        const chosen = files ? Array.from(files) : [];
+        if (chosen.length === 0) return [];
+
+        const body = new FormData();
+        for (const file of chosen) body.append("decks", file);
+
+        const res = await fetch(getApiUrl("/api/hymns/import"), {
+          method: "POST",
+          body,
+        });
+        if (!res.ok) {
+          // The endpoint refuses the whole request only for a bad upload; a
+          // deck that merely fails to parse comes back as a result below.
+          const payload = (await res.json().catch(() => null)) as {
+            reason?: PptxParseReason;
+          } | null;
+          const reason = payload?.reason ?? "unreadable";
+          return chosen.map((file) => ({
+            ok: false as const,
+            fileName: file.name,
+            reason,
+          }));
+        }
+        const { results } = (await res.json()) as {
+          results: PptxImportResult[];
+        };
+        return results;
+      },
+      [isElectron],
+    ),
+
+    commitHymnImport: useCallback(
+      (hymn: Hymn, fileName?: string) => {
+        if (isElectron)
+          return window.electronAPI!.commitHymnImport(hymn, fileName);
+        const socket = socketRef.current;
+        if (!socket) return Promise.resolve({ ok: false as const, reason: "write-failed" as const });
+        return new Promise<HymnCommitResult>((resolve) => {
+          commitHymnCbs.current.push(resolve);
+          socket.emit("commitHymnImport", hymn, fileName);
+        });
+      },
+      [isElectron],
+    ),
+
+    deleteCustomHymn: useCallback(
+      (slug: string, hymnNumber: string) => {
+        if (isElectron)
+          return window.electronAPI!.deleteCustomHymn(slug, hymnNumber);
+        const socket = socketRef.current;
+        if (!socket) return Promise.resolve(false);
+        return new Promise<boolean>((resolve) => {
+          deleteHymnCbs.current.push(resolve);
+          socket.emit("deleteCustomHymn", slug, hymnNumber);
+        });
       },
       [isElectron],
     ),

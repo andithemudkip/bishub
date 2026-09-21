@@ -35,7 +35,7 @@ import {
 import { SHORTCUTS } from "../../shared/shortcuts";
 import { getTranslationsByLanguage } from "../../shared/bibleTranslations";
 import { BibleTranslationPicker } from "../components/ui/BibleTranslationPicker";
-import { HYMNALS } from "../../shared/hymnals";
+import type { HymnalInfo } from "../../shared/hymnals";
 import {
   SLIDE_BACKGROUND_PRESETS,
   getSlideTheme,
@@ -276,6 +276,8 @@ function DeviceRow({
 }
 
 interface Props {
+  /** The merged book list, which grows when the user creates a book. */
+  hymnals: HymnalInfo[];
   monitors: MonitorInfo[];
   settings: AppSettings;
   idleState: IdleState;
@@ -313,6 +315,7 @@ interface Props {
 }
 
 export default function SettingsPage({
+  hymnals,
   monitors,
   settings,
   idleState,
@@ -502,10 +505,10 @@ export default function SettingsPage({
           value={settings.hymnal}
           onChange={(e) => onSetHymnal(e.target.value)}
         >
-          {Array.from(new Set(HYMNALS.map((h) => h.languageName))).map(
+          {Array.from(new Set(hymnals.map((h) => h.languageName))).map(
             (languageName) => (
               <optgroup key={languageName} label={languageName}>
-                {HYMNALS.filter((h) => h.languageName === languageName).map(
+                {hymnals.filter((h) => h.languageName === languageName).map(
                   (hymnal) => (
                     <option key={hymnal.slug} value={hymnal.slug}>
                       {hymnal.name} ({hymnal.songCount})

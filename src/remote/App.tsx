@@ -122,6 +122,7 @@ export default function App() {
       case "hymns":
         return (
           <HymnsPage
+            allHymnals={api.hymnals}
             textState={api.state.text}
             isTextMode={api.state.mode === "text"}
             hymns={api.hymns}
@@ -139,6 +140,10 @@ export default function App() {
             onDownloadHymnMP3={api.downloadHymnMP3}
             onDismissKaraokeBanner={() => api.setKaraokeBannerDismissed(true)}
             onOpenKaraokeSettings={() => navigateTo("settings")}
+            isElectron={api.isElectron}
+            onImportPptx={api.importPptx}
+            onCommitHymnImport={api.commitHymnImport}
+            onDeleteCustomHymn={api.deleteCustomHymn}
           />
         );
       case "bible":
@@ -203,6 +208,7 @@ export default function App() {
       case "settings":
         return (
           <SettingsPage
+            hymnals={api.hymnals}
             monitors={api.monitors}
             settings={api.settings}
             idleState={api.state.idle}

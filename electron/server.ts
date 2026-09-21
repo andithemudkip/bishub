@@ -26,7 +26,18 @@ import {
   searchBibleVerses,
 } from "./dataLoader";
 import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
-import { isValidHymnalSlug } from "../src/shared/hymnals";
+import {
+  commitHymn,
+  deleteCustomHymn,
+  parseDeckBuffer,
+  MAX_IMPORT_FILES,
+} from "./hymnImporter";
+import { MAX_PPTX_BYTES } from "./pptxParser";
+import {
+  getHymnals,
+  isValidHymnalSlug,
+  onHymnalsChange,
+} from "./hymnalRegistry";
 import {
   downloadMP3,
   downloadAllMissingMP3s,
@@ -286,6 +297,61 @@ export function createServer(
     } else {
       res.status(404).send("Video not found");
     }
+  });
+
+  // The book list changes whenever a user book is created, filled or removed.
+  onHymnalsChange((hymnals, slug) => {
+    io.emit("hymnals", hymnals);
+    // The book's contents changed too, not just its songCount — a client with
+    // that book open would otherwise keep showing the pre-import list.
+    io.emit("hymns", slug, loadHymns(slug));
+  });
+
+  /**
+   * Hymn import — the web half of the native picker in main.ts.
+   *
+   * Bytes are held in memory and never written to disk: we keep the extracted
+   * text, never the .pptx, and a buffer cannot leave a stray file behind when
+   * parsing throws. The cap is the parser's own, so nothing is accepted here
+   * that parsePptx would then refuse.
+   */
+  const deckUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: MAX_PPTX_BYTES, files: MAX_IMPORT_FILES },
+    fileFilter: (_req, file, cb) => {
+      // Extension only. The client-sent MIME type is not evidence and is never
+      // consulted — what the bytes actually are is settled by parsePptx, which
+      // reads the magic number and tells a .pptx, a legacy binary .ppt and
+      // "not a zip at all" apart, each with its own reason code.
+      cb(null, path.extname(file.originalname).toLowerCase() === ".pptx");
+    },
+  });
+
+  app.post("/api/hymns/import", (req, res) => {
+    deckUpload.array("decks", MAX_IMPORT_FILES)(req, res, (err: unknown) => {
+      if (err) {
+        // Multer reports an oversized file as an error rather than as a
+        // rejected file, so it lands here rather than in fileFilter.
+        const tooLarge =
+          err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE";
+        return res
+          .status(400)
+          .json({ error: "Upload failed", reason: tooLarge ? "too-large" : "not-a-pptx" });
+      }
+
+      const files = Array.isArray(req.files) ? req.files : [];
+      if (files.length === 0) {
+        // Either nothing was sent, or fileFilter dropped everything for not
+        // being a .pptx — same message, since the client knows what it sent.
+        return res.status(400).json({ error: "No .pptx file uploaded" });
+      }
+
+      res.json({
+        results: files.map((file) =>
+          parseDeckBuffer(file.originalname, file.buffer)
+        ),
+      });
+    });
   });
 
   // Broadcast video library changes to all Socket.io clients
@@ -587,6 +653,7 @@ export function createServer(
     socket.emit("stateUpdate", stateManager.getState());
     socket.emit("settingsUpdate", stateManager.getSettings());
     socket.emit("monitors", windowManager.getMonitors());
+    socket.emit("hymnals", getHymnals());
 
     // Devices
     socket.on("getDevices", () => {
@@ -659,6 +726,10 @@ export function createServer(
       socket.emit("monitors", windowManager.getMonitors());
     });
 
+    socket.on("getHymnals", () => {
+      socket.emit("hymnals", getHymnals());
+    });
+
     socket.on("setLanguage", (language: Language) => {
       stateManager.setLanguage(language);
     });
@@ -707,6 +778,27 @@ export function createServer(
 
     socket.on("setHymnal", (slug) => {
       if (isValidHymnalSlug(slug)) stateManager.setHymnal(slug);
+    });
+
+    // Import commit/delete. Parsing is not here — a deck arrives over HTTP at
+    // /api/hymns/import above. Both call the same hymnImporter functions the
+    // IPC handlers in main.ts do; the updated book list and hymns reach every
+    // client through onHymnalsChange, so only the outcome goes back to the
+    // socket that asked.
+    socket.on("commitHymnImport", (hymn, fileName) => {
+      socket.emit(
+        "hymnImportCommitted",
+        commitHymn(hymn, stateManager.getSettings().language, fileName),
+      );
+    });
+
+    socket.on("deleteCustomHymn", (slug, hymnNumber) => {
+      socket.emit(
+        "customHymnDeleted",
+        slug,
+        hymnNumber,
+        deleteCustomHymn(slug, hymnNumber),
+      );
     });
 
     socket.on("downloadHymnMP3", (hymnNumber) => {

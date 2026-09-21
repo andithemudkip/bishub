@@ -15,7 +15,16 @@ import {
   searchBibleVerses,
 } from "./dataLoader";
 import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
-import { isValidHymnalSlug } from "../src/shared/hymnals";
+import {
+  commitHymn,
+  deleteCustomHymn,
+  parseDeckFile,
+} from "./hymnImporter";
+import {
+  getHymnals,
+  isValidHymnalSlug,
+  onHymnalsChange,
+} from "./hymnalRegistry";
 import {
   downloadMP3,
   downloadAllMissingMP3s,
@@ -96,6 +105,15 @@ async function createWindows() {
     openAsHidden: false,
   });
 
+  // Custom books change the list of hymnals every client shows.
+  onHymnalsChange((hymnals, slug) => {
+    windowManager.broadcastToAll("hymnals-update", hymnals);
+    // The book's contents changed too, not just its songCount — a client with
+    // that book open would otherwise keep showing the list from before the
+    // import until it switched books.
+    windowManager.broadcastToAll("hymns-update", slug, loadHymns(slug));
+  });
+
   // Initialize audio scheduler
   const audioScheduler = initAudioScheduler(stateManager);
   audioScheduler.onScheduleChange((schedules) => {
@@ -159,6 +177,10 @@ function setupIPC() {
 
   ipcMain.handle("get-monitors", () => {
     return windowManager.getMonitors();
+  });
+
+  ipcMain.handle("get-hymnals", () => {
+    return getHymnals();
   });
 
   ipcMain.handle("get-local-ip", () => {
@@ -356,6 +378,32 @@ function setupIPC() {
   ipcMain.handle("set-hymnal", (_event, slug: string) => {
     if (isValidHymnalSlug(slug)) stateManager.setHymnal(slug);
   });
+
+  // Hymn import. The native picker is the only Electron-only piece — the web
+  // half of this is POST /api/hymns/import in server.ts, and both meet again in
+  // hymnImporter.ts. Parsing is per file so one bad deck in a multi-select does
+  // not sink the rest.
+  ipcMain.handle("import-pptx", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile", "multiSelections"],
+      filters: [{ name: "PowerPoint", extensions: ["pptx"] }],
+    });
+    return result.filePaths.map(parseDeckFile);
+  });
+
+  ipcMain.handle(
+    "commit-hymn-import",
+    (_event, hymn: unknown, fileName?: string) => {
+      return commitHymn(hymn, stateManager.getSettings().language, fileName);
+    },
+  );
+
+  ipcMain.handle(
+    "delete-custom-hymn",
+    (_event, slug: string, hymnNumber: string) => {
+      return deleteCustomHymn(slug, hymnNumber);
+    },
+  );
 
   onMP3DownloadProgress((progress) => {
     windowManager.broadcastToAll("hymn-mp3-download-progress", progress);

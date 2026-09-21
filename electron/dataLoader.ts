@@ -13,7 +13,13 @@ import { type Language, getTranslations } from "../src/shared/i18n";
 import { normalizeForSearch } from "../src/shared/utils";
 import { parseTTML, type ParsedTTML } from "../src/shared/ttmlParser";
 import { DEFAULT_TRANSLATION_ID, getTranslationById } from "../src/shared/bibleTranslations";
-import { DEFAULT_HYMNAL_SLUG, getHymnalBySlug, HYMNALS } from "../src/shared/hymnals";
+import { DEFAULT_HYMNAL_SLUG } from "../src/shared/hymnals";
+import {
+  getHymnalBySlug,
+  getHymnals,
+  isCustomHymnal,
+} from "./hymnalRegistry";
+import { getCustomHymnals } from "./customHymnals";
 import { loadTranslation } from "./bibleManager";
 import {
   downloadMP3,
@@ -36,6 +42,11 @@ function getAssetsPath(): string {
 // Raw list cached per book. Per-call re-annotation with availability state is
 // cheap (in-memory Set lookups in hymnAssets) and reflects MP3s that finished
 // downloading since the previous call.
+//
+// Custom books deliberately never enter this cache — they are served from
+// CustomHymnalManager, which drops its own entry on every write. Caching them
+// here as well would mean an edited hymn kept presenting its old text until
+// restart, since nothing invalidates this map.
 const hymnsRawCache = new Map<string, Hymn[]>();
 
 export function loadHymns(slug: string = DEFAULT_HYMNAL_SLUG): Hymn[] {
@@ -44,6 +55,9 @@ export function loadHymns(slug: string = DEFAULT_HYMNAL_SLUG): Hymn[] {
     console.error(`Unknown hymnal: ${slug}`);
     return [];
   }
+
+  // User books live in userData and change under us; see the cache note above.
+  if (isCustomHymnal(slug)) return getCustomHymnals().loadHymns(slug);
 
   let raw = hymnsRawCache.get(slug);
   if (!raw) {
@@ -167,7 +181,7 @@ export function searchHymns(
 
 /**
  * Search every book at once. Runs in the main process because the renderer
- * only ever holds one book at a time — shipping all nine to the client just to
+ * only ever holds one book at a time — shipping every book to the client just to
  * search them would undo the per-book fetch.
  */
 export function searchAllHymns(query: string): HymnSearchResult[] {
@@ -180,7 +194,7 @@ export function searchAllHymns(query: string): HymnSearchResult[] {
   // would fill up before the other books were reached and silently hide them.
   const PER_BOOK_LIMIT = 10;
   const results: HymnSearchResult[] = [];
-  for (const hymnal of HYMNALS) {
+  for (const hymnal of getHymnals()) {
     let taken = 0;
     for (const hymn of loadHymns(hymnal.slug)) {
       if (!matchesHymn(hymn, trimmed, lowerQuery)) continue;
