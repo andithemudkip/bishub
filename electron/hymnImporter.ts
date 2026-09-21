@@ -28,6 +28,26 @@ import type { HymnCommitResult, PptxImportResult } from "../src/shared/types";
  */
 export const MAX_IMPORT_FILES = 40;
 
+/**
+ * Create the user's own book if it is not there yet.
+ *
+ * Called at startup, not only on first import, because the book's pill is the
+ * only way into the import screen: leaving it out until something had been
+ * imported meant a new user could never reach the button that does the
+ * importing. An empty book costs one small file and gives the feature somewhere
+ * to introduce itself.
+ */
+export function ensureMyHymnsBook(language: Language): void {
+  const t = getTranslations(language).hymnImport;
+  getCustomHymnals().ensureBook({
+    slug: MY_HYMNS_SLUG,
+    name: t.myHymns,
+    shortName: t.myHymnsShort,
+    language,
+    languageName: LANGUAGE_NAMES[language],
+  });
+}
+
 /** Parse bytes already in hand — the web upload path. */
 export function parseDeckBuffer(
   fileName: string,
@@ -83,17 +103,10 @@ export function commitHymn(
   if (!hymn) return { ok: false, reason: "invalid-hymn" };
 
   try {
-    const manager = getCustomHymnals();
-    const t = getTranslations(language).hymnImport;
-    manager.ensureBook({
-      slug: MY_HYMNS_SLUG,
-      name: t.myHymns,
-      shortName: t.myHymnsShort,
-      language,
-      languageName: LANGUAGE_NAMES[language],
-    });
-
-    const stored = manager.addHymn(MY_HYMNS_SLUG, {
+    // Still ensured here: a commit can be the first thing that happens after an
+    // upgrade, before any startup path has run against the new storage.
+    ensureMyHymnsBook(language);
+    const stored = getCustomHymnals().addHymn(MY_HYMNS_SLUG, {
       ...hymn,
       source: {
         kind: "pptx",

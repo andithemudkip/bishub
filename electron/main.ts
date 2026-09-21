@@ -18,6 +18,7 @@ import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
 import {
   commitHymn,
   deleteCustomHymn,
+  ensureMyHymnsBook,
   parseDeckFile,
 } from "./hymnImporter";
 import {
@@ -104,6 +105,10 @@ async function createWindows() {
     openAtLogin: settings.openOnStartup,
     openAsHidden: false,
   });
+
+  // The user's own book exists from the first launch, so it always has a pill to
+  // tap — which is the only route to the import screen.
+  ensureMyHymnsBook(settings.language);
 
   // Custom books change the list of hymnals every client shows.
   onHymnalsChange((hymnals, slug) => {
