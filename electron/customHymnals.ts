@@ -153,12 +153,31 @@ export class CustomHymnalManager {
     this.cache.set(slug, hymns);
   }
 
-  /** The next unused number in the book, as a string. */
+  /**
+   * The number a new hymn gets: one past the highest in use.
+   *
+   * Deliberately not the lowest free number. A number is an identity here — it
+   * is what someone writes in a service order, and what loadHymn and deleteHymn
+   * address a hymn by — so a gap in the middle stays a gap rather than being
+   * handed to a different song, which would point a note written last week at
+   * the wrong hymn.
+   *
+   * It also keeps the promise the import screen makes: numbers run in the order
+   * hymns were added, so a hymn added today sorts last instead of appearing in
+   * the middle of the list where an old one used to be.
+   *
+   * Deleting the *newest* hymn does free its number again, since the highest in
+   * use drops back. That is the case worth allowing: deleting a deck imported by
+   * mistake and importing the right one puts it in the same place, rather than
+   * leaving a hole at the end. Never reusing anything would need a counter
+   * persisted in the book's metadata, which is not worth a schema field for a
+   * number nobody had time to write down.
+   */
   nextNumber(slug: string): string {
-    const used = new Set(this.loadHymns(slug).map((hymn) => Number(hymn.number)));
-    let next = 1;
-    while (used.has(next)) next++;
-    return String(next);
+    const used = this.loadHymns(slug)
+      .map((hymn) => Number(hymn.number))
+      .filter((value) => Number.isFinite(value));
+    return String(used.length === 0 ? 1 : Math.max(...used) + 1);
   }
 
   /**

@@ -50,11 +50,15 @@ interface Props {
   onOpenBook: () => void;
 }
 
-/** Smallest positive integer not already used, as a string. */
+/**
+ * One past the highest number in use — the same rule as CustomHymnalManager's
+ * nextNumber, which is authoritative and explains why. Not the lowest free one:
+ * filling a gap in the middle would hand a deleted hymn's number to a different
+ * song, and would drop a newly added hymn into the middle of the list.
+ */
 function nextFreeNumber(taken: ReadonlySet<string>): string {
-  let next = 1;
-  while (taken.has(String(next))) next++;
-  return String(next);
+  const used = [...taken].map(Number).filter((value) => Number.isFinite(value));
+  return String(used.length === 0 ? 1 : Math.max(...used) + 1);
 }
 
 export default function HymnImportFlow({
