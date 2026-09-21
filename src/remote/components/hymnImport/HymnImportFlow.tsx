@@ -15,7 +15,7 @@ import {
   type HymnImportDraft,
 } from "../../../shared/hymnImport";
 import { getTranslations, type Language } from "../../../shared/i18n";
-import { StatusBanner } from "../ui/Card";
+import { Card, StatusBanner } from "../ui/Card";
 import {
   CheckIcon,
   CloseIcon,
@@ -204,15 +204,25 @@ export default function HymnImportFlow({
 
   if (!current.ok) {
     return (
-      <Shell onClose={onClose} title={t.cannotImport} subtitle={position} language={language}>
-        <div className="p-4 space-y-4">
-          <div className="text-sm text-gray-400 break-words">{current.fileName}</div>
+      <Shell
+        onClose={onClose}
+        title={current.fileName}
+        subtitle={position}
+        label={t.cannotImport}
+        language={language}
+      >
+        <div className="px-3 py-4 sm:px-4 space-y-3">
           <StatusBanner color="yellow">
             <div className="flex gap-3">
               <WarningIcon className="w-5 h-5 flex-shrink-0 text-yellow-400 mt-0.5" />
-              <p className="text-sm leading-relaxed text-yellow-100/90">
-                {reasonMessage(current.reason, t)}
-              </p>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-yellow-200 mb-1">
+                  {t.cannotImport}
+                </p>
+                <p className="text-sm leading-relaxed text-yellow-100/90">
+                  {reasonMessage(current.reason, t)}
+                </p>
+              </div>
             </div>
           </StatusBanner>
         </div>
@@ -322,15 +332,46 @@ export default function HymnImportFlow({
   return (
     <Shell
       onClose={onClose}
-      title={t.reviewHeading}
+      title={current.fileName}
       subtitle={position}
+      label={t.reviewHeading}
       language={language}
       onSkip={results.length > 1 ? advance : undefined}
       skipLabel={t.skipFile}
       scrollRef={scrollRef}
     >
-      <div className="p-4 space-y-4">
-        <div className="text-xs text-gray-500 break-words">{current.fileName}</div>
+      <div className="px-3 py-4 sm:px-4 space-y-3">
+        {/* What the hymn will be called and what it will contain, together:
+            the title is the one field to check and the summary is what
+            confirms it. Card, like every other grouped thing in the app. */}
+        <Card compact>
+          <label className="block">
+            <span className="block text-xs font-medium text-gray-400 mb-1.5">
+              {t.titleLabel}
+            </span>
+            <input
+              type="text"
+              value={deck.title}
+              onChange={(event) => setTitleEdit(event.target.value)}
+              placeholder={t.titlePlaceholder}
+              className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </label>
+          <p className="mt-2 text-sm text-gray-400">
+            {includedSlides === 0 ? (
+              <span className="text-yellow-400/90">{t.nothingSelected}</span>
+            ) : (
+              <>
+                <span className="text-gray-200">
+                  {verseCount} {verseCount === 1 ? words.verse : words.verses}
+                  {hasChorus && ` + ${words.chorus}`}
+                </span>
+                {" · "}
+                {t.summarySlides.replace("{count}", String(includedSlides))}
+              </>
+            )}
+          </p>
+        </Card>
 
         {/* Anything the heuristics were unsure about, said plainly. */}
         {deck.flags.length > 0 && <Warnings flags={deck.flags} t={t} />}
@@ -344,57 +385,33 @@ export default function HymnImportFlow({
           />
         )}
 
-        {/* Title and number. Prefilled guesses, always overridable. */}
-        <div className="space-y-3">
-          <label className="block">
-            <span className="block text-xs font-medium text-gray-400 mb-1.5">
-              {t.titleLabel}
+        <section>
+          <div className="flex items-baseline justify-between gap-2 mb-2 px-0.5">
+            <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+              {t.slidesHeading}
+            </h3>
+            <span className="text-xs text-gray-500 tabular-nums">
+              {includedSlides}/{deck.slides.length}
             </span>
-            <input
-              type="text"
-              value={deck.title}
-              onChange={(event) => setTitleEdit(event.target.value)}
-              placeholder={t.titlePlaceholder}
-              className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </label>
-        </div>
+          </div>
 
-        {/* What will actually be saved, recomputed on every tick. */}
-        <div className="bg-gray-900/50 border border-gray-700/50 rounded-lg px-3 py-2.5 text-sm text-gray-300">
-          {includedSlides === 0 ? (
-            <span className="text-yellow-400/90">{t.nothingSelected}</span>
-          ) : (
-            <>
-              {verseCount} {verseCount === 1 ? words.verse : words.verses}
-              {hasChorus && ` + ${words.chorus}`}
-              <span className="text-gray-500">
-                {" · "}
-                {t.summarySlides.replace("{count}", String(includedSlides))}
-              </span>
-            </>
-          )}
-        </div>
-
-        <div>
-          <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
-            {t.slidesHeading}
-          </h3>
           <ul className="space-y-2">
             {deck.slides.map((slide) => {
               const number = slide.index + 1;
               return (
                 <li
                   key={slide.index}
-                  className={`rounded-lg border transition-colors ${
+                  className={`rounded-lg border overflow-hidden transition-colors ${
                     slide.included
                       ? "bg-gray-900/50 border-gray-700/40"
-                      : "bg-gray-900/30 border-gray-800"
+                      : "bg-gray-900/20 border-gray-800"
                   }`}
                 >
-                  <div className="flex gap-2 p-2">
-                    {/* 44px target: this is the control that decides what the
-                        congregation sees, and it is used on a phone. */}
+                  <div className="flex items-stretch">
+                    {/* Checkbox and slide number are one control in one gutter.
+                        It is the biggest target on the row — it decides what the
+                        congregation sees — and the numbers line up down the edge
+                        instead of floating above each block of text. */}
                     <button
                       type="button"
                       role="checkbox"
@@ -403,7 +420,7 @@ export default function HymnImportFlow({
                         slide.included ? t.includeLabel : t.excludedLabel
                       }`}
                       onClick={() => toggleSlide(slide.index, slide.included)}
-                      className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-700/40 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
+                      className="flex-shrink-0 w-12 flex flex-col items-center justify-start gap-1.5 pt-3 pb-3 hover:bg-gray-800/50 transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 focus:outline-none"
                     >
                       <span
                         className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
@@ -414,24 +431,16 @@ export default function HymnImportFlow({
                       >
                         <CheckIcon className="w-4 h-4" />
                       </span>
+                      <span
+                        className={`text-[11px] font-mono tabular-nums transition-colors ${
+                          slide.included ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        {number}
+                      </span>
                     </button>
 
-                    <div className="flex-1 min-w-0 py-1.5 pr-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="text-[11px] font-medium text-gray-500">
-                          {t.slideLabel.replace("{n}", String(number))}
-                        </span>
-                        {!slide.included && (
-                          <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400">
-                            {slide.autoExcluded === "title-slide"
-                              ? t.reasonTitleSlide
-                              : slide.autoExcluded === "empty"
-                                ? t.reasonEmpty
-                                : t.excludedLabel}
-                          </span>
-                        )}
-                      </div>
-
+                    <div className="flex-1 min-w-0 py-2.5 pr-3">
                       {slide.included ? (
                         slide.blockIndices.map((blockIndex, occurrence) => {
                           const block = deck.blocks[blockIndex];
@@ -462,8 +471,17 @@ export default function HymnImportFlow({
                           );
                         })
                       ) : (
-                        <>
-                          <p className="text-sm text-gray-500 whitespace-pre-line break-words line-clamp-6">
+                        <div className="border-l-2 border-l-gray-800 pl-2.5">
+                          <div className="mb-1.5">
+                            <span className="text-[11px] px-2 py-1 rounded border bg-gray-800/60 text-gray-400 border-gray-700/60">
+                              {slide.autoExcluded === "title-slide"
+                                ? t.reasonTitleSlide
+                                : slide.autoExcluded === "empty"
+                                  ? t.reasonEmpty
+                                  : t.excludedLabel}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 whitespace-pre-line break-words leading-relaxed line-clamp-6">
                             {slide.text || t.noWords}
                           </p>
                           {slide.autoExcluded === "title-slide" && slide.text && (
@@ -475,7 +493,7 @@ export default function HymnImportFlow({
                               {t.useAsTitle}
                             </button>
                           )}
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -483,17 +501,17 @@ export default function HymnImportFlow({
               );
             })}
           </ul>
-        </div>
+        </section>
       </div>
 
       <Footer>
         {saveError && (
-          <p className="w-full text-sm text-red-400 mb-2" role="alert">
+          <p className="text-sm text-red-400" role="alert">
             {saveError}
           </p>
         )}
         {blockedReason && (
-          <p className="w-full text-sm text-yellow-400/90 mb-2">{blockedReason}</p>
+          <p className="text-sm text-yellow-400/90">{blockedReason}</p>
         )}
         <button
           type="button"
@@ -587,7 +605,7 @@ function Stanza({
     <div
       className={`mt-2 first:mt-0 border-l-2 pl-2.5 pr-1 py-1.5 rounded-r-md transition-colors duration-200 ${style.rail} ${style.tint}`}
     >
-      <div className="flex items-center gap-1.5 flex-wrap mb-1">
+      <div className="flex items-center gap-1.5 mb-1.5 min-h-[28px]">
         {isRepeat ? (
           // Same pill as the stanza it repeats, so the whole chorus reads as one
           // thing. It is not separately taggable or editable: it *is* that
@@ -599,9 +617,11 @@ function Stanza({
             >
               {kindLabel(kind)}
             </span>
-            <span className="inline-flex items-center gap-1 text-[11px] text-gray-500">
-              <RepeatIcon className="w-3 h-3" />
-              {t.sameAsSlide.replace("{n}", String(firstSlide))}
+            <span className="inline-flex items-center gap-1 min-w-0 text-[11px] text-gray-500">
+              <RepeatIcon className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">
+                {t.sameAsSlide.replace("{n}", String(firstSlide))}
+              </span>
             </span>
           </>
         ) : (
@@ -616,13 +636,17 @@ function Stanza({
           </button>
         )}
         {!isRepeat && !editing && (
+          // Icon only, pushed to the end of the line. Editing is the rare
+          // action here — most imports need none — and a labelled button for it
+          // crowded out the one thing the line exists to show, the kind.
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
+            aria-label={t.editWords}
+            title={t.editWords}
+            className="ml-auto flex-shrink-0 w-8 h-8 -my-1 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-200 hover:bg-gray-700/50 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
           >
-            <PencilIcon className="w-3 h-3" />
-            {t.editWords}
+            <PencilIcon className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -815,6 +839,7 @@ function Shell({
   onClose,
   title,
   subtitle,
+  label,
   language,
   onSkip,
   skipLabel,
@@ -822,8 +847,11 @@ function Shell({
 }: {
   children: React.ReactNode;
   onClose: () => void;
+  /** Shown in the bar — the file being reviewed, which is what identifies it. */
   title: string;
   subtitle?: string;
+  /** The dialog's accessible name, when the visible title is not descriptive. */
+  label?: string;
   language: Language;
   onSkip?: () => void;
   skipLabel?: string;
@@ -845,32 +873,38 @@ function Shell({
       className="fixed inset-0 z-50 bg-gray-900 flex flex-col safe-area-pt focus:outline-none"
       role="dialog"
       aria-modal="true"
-      aria-label={title}
+      aria-label={label ?? title}
     >
-      <header className="flex-shrink-0 flex items-center gap-2 px-3 py-2.5 border-b border-gray-800">
+      {/* Left-aligned, not centred. Centring a title between a close button and
+          an optional skip button leaves it off-centre whenever the skip is
+          missing, which is most of the time and half of why this bar looked
+          unconsidered. */}
+      <header className="flex-shrink-0 flex items-center gap-1 px-2 py-2 border-b border-gray-800">
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-1.5 px-2 py-2 -ml-1 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
+          aria-label={t.close}
+          title={t.close}
+          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
         >
-          <CloseIcon className="w-4 h-4" />
-          <span className="hidden sm:inline">{t.close}</span>
+          <CloseIcon className="w-5 h-5" />
         </button>
-        <div className="flex-1 min-w-0 text-center">
-          <div className="text-sm font-medium truncate">{title}</div>
-          {subtitle && <div className="text-[11px] text-gray-500">{subtitle}</div>}
+        <div className="flex-1 min-w-0 px-1">
+          <div className="text-sm font-medium truncate" title={title}>
+            {title}
+          </div>
+          {subtitle && (
+            <div className="text-[11px] text-gray-500 tabular-nums">{subtitle}</div>
+          )}
         </div>
-        {onSkip ? (
+        {onSkip && (
           <button
             type="button"
             onClick={onSkip}
-            className="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
+            className="flex-shrink-0 px-3 h-10 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
           >
             {skipLabel}
           </button>
-        ) : (
-          // Keeps the title centred without a second layout pass.
-          <span className="w-8 sm:w-16" aria-hidden />
         )}
       </header>
 
@@ -884,7 +918,7 @@ function Shell({
 function Footer({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex-shrink-0 border-t border-gray-800 bg-gray-900 safe-area-pb">
-      <div className="max-w-2xl mx-auto w-full px-4 py-3 flex flex-wrap items-center gap-2">
+      <div className="max-w-2xl mx-auto w-full px-3 sm:px-4 py-3 space-y-2">
         {children}
       </div>
     </div>
