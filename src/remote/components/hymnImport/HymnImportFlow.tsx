@@ -527,6 +527,44 @@ interface StanzaProps {
 
 const KINDS: HymnBlockKind[] = ["verse", "chorus", "bridge"];
 
+/**
+ * Colour per stanza kind, so the shape of a hymn is legible at a glance rather
+ * than by reading every pill.
+ *
+ * A verse stays neutral: it is the default and most of the list, and tinting it
+ * would just be noise. The chorus and bridge get a left rail and a wash, which
+ * also groups a chorus with its own repeats — four rows sharing a violet rail
+ * read as one thing, which is exactly what they are.
+ *
+ * Violet and teal because the palette's other hues are already spoken for: blue
+ * is selection, green is audio, yellow is a warning and red is destructive.
+ * Colour is never the only signal — every pill is also labelled — so this stays
+ * readable for anyone who cannot tell violet from blue.
+ */
+const KIND_STYLES: Record<
+  HymnBlockKind,
+  { rail: string; tint: string; pill: string; pillActive: string }
+> = {
+  verse: {
+    rail: "border-l-gray-600",
+    tint: "bg-transparent",
+    pill: "bg-gray-800 text-gray-300 border-gray-700",
+    pillActive: "bg-gray-700 text-white border-gray-500",
+  },
+  chorus: {
+    rail: "border-l-violet-500",
+    tint: "bg-violet-950/20",
+    pill: "bg-violet-950/50 text-violet-300 border-violet-700/50",
+    pillActive: "bg-violet-600/30 text-violet-200 border-violet-500",
+  },
+  bridge: {
+    rail: "border-l-teal-500",
+    tint: "bg-teal-950/20",
+    pill: "bg-teal-950/50 text-teal-300 border-teal-700/50",
+    pillActive: "bg-teal-600/30 text-teal-200 border-teal-500",
+  },
+};
+
 function Stanza({
   t,
   text,
@@ -543,25 +581,36 @@ function Stanza({
 }: StanzaProps) {
   const kindLabel = (value: HymnBlockKind) =>
     value === "chorus" ? t.kindChorus : value === "bridge" ? t.kindBridge : t.kindVerse;
+  const style = KIND_STYLES[kind];
 
   return (
-    <div className="mt-1 first:mt-0">
+    <div
+      className={`mt-2 first:mt-0 border-l-2 pl-2.5 pr-1 py-1.5 rounded-r-md transition-colors duration-200 ${style.rail} ${style.tint}`}
+    >
       <div className="flex items-center gap-1.5 flex-wrap mb-1">
         {isRepeat ? (
-          // A repeat is not separately taggable or editable-in-isolation: it is
-          // the same stanza coming round again, and saying so is what stops the
-          // user wondering why their edit appeared twice.
-          <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded bg-blue-950/50 text-blue-300/90 border border-blue-800/40">
-            <RepeatIcon className="w-3 h-3" />
-            {t.sameAsSlide.replace("{n}", String(firstSlide))}
-          </span>
+          // Same pill as the stanza it repeats, so the whole chorus reads as one
+          // thing. It is not separately taggable or editable: it *is* that
+          // stanza coming round again, and saying so is what stops the user
+          // wondering why their edit showed up twice.
+          <>
+            <span
+              className={`text-[11px] px-2 py-1 rounded border transition-colors duration-200 ${style.pill}`}
+            >
+              {kindLabel(kind)}
+            </span>
+            <span className="inline-flex items-center gap-1 text-[11px] text-gray-500">
+              <RepeatIcon className="w-3 h-3" />
+              {t.sameAsSlide.replace("{n}", String(firstSlide))}
+            </span>
+          </>
         ) : (
           <button
             type="button"
             onClick={onToggleKindMenu}
             aria-expanded={kindMenuOpen}
             aria-label={t.changeKind}
-            className="text-[11px] px-2 py-1 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
+            className={`text-[11px] px-2 py-1 rounded border transition-colors duration-200 hover:brightness-125 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none ${style.pill}`}
           >
             {kindLabel(kind)}
           </button>
@@ -586,10 +635,12 @@ function Stanza({
               type="button"
               onClick={() => onKind(value)}
               aria-pressed={kind === value}
-              className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none ${
+              // Each choice wears the colour it will apply, so the picker shows
+              // the result rather than describing it.
+              className={`px-2.5 py-1.5 rounded-md text-xs font-medium border transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none ${
                 kind === value
-                  ? "bg-blue-600/20 text-blue-400 border border-blue-600/40"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700/50 border border-transparent"
+                  ? KIND_STYLES[value].pillActive
+                  : "text-gray-400 hover:text-white hover:bg-gray-700/50 border-transparent"
               }`}
             >
               {kindLabel(value)}
@@ -620,8 +671,8 @@ function Stanza({
         </div>
       ) : (
         <p
-          className={`text-sm whitespace-pre-line break-words leading-relaxed ${
-            isRepeat ? "text-gray-500" : "text-gray-200"
+          className={`text-sm whitespace-pre-line break-words leading-relaxed transition-colors duration-200 ${
+            isRepeat ? "text-gray-400" : "text-gray-200"
           }`}
         >
           {text}
