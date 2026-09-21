@@ -46,16 +46,8 @@ interface Props {
   existingNumbers: string[];
   onCommit: (hymn: Hymn, fileName: string) => Promise<HymnCommitResult>;
   onClose: () => void;
-  /** Offered at the end, to go and look at what was saved. */
+  /** Called once the queue is done and something was actually saved. */
   onOpenBook: () => void;
-}
-
-interface Outcome {
-  fileName: string;
-  title: string;
-  /** The number it ended up with, which may not be the one requested. */
-  number: string;
-  renumberedFrom?: string;
 }
 
 /** Smallest positive integer not already used, as a string. */
@@ -81,7 +73,7 @@ export default function HymnImportFlow({
   const words = all.hymns;
 
   const [cursor, setCursor] = useState(0);
-  const [saved, setSaved] = useState<Outcome[]>([]);
+  const [savedCount, setSavedCount] = useState(0);
   const [taken, setTaken] = useState<Set<string>>(() => new Set(existingNumbers));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -93,7 +85,6 @@ export default function HymnImportFlow({
   const [kindOverrides, setKindOverrides] = useState<ReadonlyMap<string, HymnBlockKind>>(new Map());
   const [textOverrides, setTextOverrides] = useState<ReadonlyMap<string, string>>(new Map());
   const [titleEdit, setTitleEdit] = useState<string | null>(null);
-  const [numberEdit, setNumberEdit] = useState<string | null>(null);
   // Keyed by row — "<slide>:<stanza>" — not by block. A block can be on screen
   // four times over; keying by block turned every one of them into a textarea at
   // once and autofocused the last, scrolling the user away from the row they
@@ -115,7 +106,6 @@ export default function HymnImportFlow({
     setKindOverrides(new Map());
     setTextOverrides(new Map());
     setTitleEdit(null);
-    setNumberEdit(null);
     setMerge(true);
     setEditingRow(null);
     setKindMenuRow(null);
@@ -152,10 +142,13 @@ export default function HymnImportFlow({
       kindOverrides,
       textOverrides,
       title: titleEdit ?? undefined,
-      number: numberEdit ?? undefined,
+      // Always the next free number, never the one in the file name: these
+      // numbers are ours, assigned in the order things were imported, and a
+      // "147 - ..." file name carries some other book's numbering.
+      number: nextNumber,
       mergeNearDuplicates: merge,
     });
-  }, [current, nextNumber, excluded, included, kindOverrides, textOverrides, titleEdit, numberEdit, merge]);
+  }, [current, nextNumber, excluded, included, kindOverrides, textOverrides, titleEdit, merge]);
 
   /**
    * Which slides carry the near-duplicate stanzas, for the notice.
@@ -186,61 +179,19 @@ export default function HymnImportFlow({
 
   // ── the queue ──────────────────────────────────────────────────────────────
 
-  if (finished) {
-    return (
-      <Shell onClose={onClose} title={t.doneHeading} language={language}>
-        <div className="p-4 space-y-4">
-          {saved.length === 0 ? (
-            <p className="text-gray-300">{t.savedNone}</p>
-          ) : (
-            <>
-              <p className="text-gray-100 font-medium">
-                {t.savedCount
-                  .replace("{count}", String(saved.length))
-                  .replace("{book}", bookName)}
-              </p>
-              <ul className="space-y-1.5">
-                {saved.map((outcome) => (
-                  <li
-                    key={`${outcome.fileName}:${outcome.number}`}
-                    className="bg-gray-900/50 border border-gray-700/30 rounded-lg px-3 py-2 text-sm"
-                  >
-                    <span className="font-mono text-blue-400 mr-2">{outcome.number}</span>
-                    <span className="text-gray-200">{outcome.title}</span>
-                    {outcome.renumberedFrom && (
-                      <div className="text-xs text-gray-400 mt-1">
-                        {t.savedRenumbered
-                          .replace("{title}", outcome.title)
-                          .replace("{number}", outcome.number)}
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-        <Footer>
-          {saved.length > 0 && (
-            <button
-              type="button"
-              onClick={onOpenBook}
-              className="flex-1 px-4 py-3 rounded-xl text-sm font-medium bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
-            >
-              {t.viewBook.replace("{book}", bookName)}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-3 rounded-xl text-sm font-medium bg-gray-700/50 text-gray-200 hover:bg-gray-700 border border-gray-600/40 focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none"
-          >
-            {t.finish}
-          </button>
-        </Footer>
-      </Shell>
-    );
-  }
+  // No summary screen at the end. The hymn list *is* the confirmation — it shows
+  // the new hymns where the user will look for them from now on, which a page
+  // reporting "3 added" in front of it only delays. Nothing saved means there is
+  // nothing to show, so that case just closes.
+  const handled = useRef(false);
+  useEffect(() => {
+    if (!finished || handled.current) return;
+    handled.current = true;
+    if (savedCount > 0) onOpenBook();
+    else onClose();
+  }, [finished, savedCount, onOpenBook, onClose]);
+
+  if (finished) return null;
 
   const position =
     results.length > 1
@@ -343,7 +294,7 @@ export default function HymnImportFlow({
         included,
         kindOverrides,
         title: titleEdit ?? undefined,
-        number: numberEdit ?? undefined,
+        number: nextNumber,
         mergeNearDuplicates: next,
       });
       setTextOverrides(remapTextOverrides(deck, rebuilt, textOverrides));
@@ -355,7 +306,6 @@ export default function HymnImportFlow({
     if (!hymn || saving) return;
     setSaving(true);
     setSaveError(null);
-    const requested = hymn.number;
     const result = await onCommit(hymn, current.fileName);
     setSaving(false);
     if (!result.ok) {
@@ -365,15 +315,7 @@ export default function HymnImportFlow({
       return;
     }
     setTaken((prev) => new Set(prev).add(result.hymn.number));
-    setSaved((prev) => [
-      ...prev,
-      {
-        fileName: current.fileName,
-        title: result.hymn.title,
-        number: result.hymn.number,
-        renumberedFrom: result.hymn.number === requested ? undefined : requested,
-      },
-    ]);
+    setSavedCount((count) => count + 1);
     advance();
   };
 
@@ -416,24 +358,6 @@ export default function HymnImportFlow({
               className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </label>
-
-          <label className="block w-32">
-            <span className="block text-xs font-medium text-gray-400 mb-1.5">
-              {t.numberLabel}
-            </span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={deck.number}
-              onChange={(event) => setNumberEdit(event.target.value.replace(/[^\d]/g, ""))}
-              className="w-full px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-base font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </label>
-          {taken.has(deck.number) && (
-            <p className="text-xs text-yellow-400/90">
-              {t.numberTaken.replace("{number}", deck.number)}
-            </p>
-          )}
         </div>
 
         {/* What will actually be saved, recomputed on every tick. */}

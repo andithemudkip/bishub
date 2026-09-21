@@ -108,8 +108,6 @@ export interface Translations {
     saving: string;
     titleLabel: string;
     titlePlaceholder: string;
-    numberLabel: string;
-    numberTaken: string; // {number}
     summarySlides: string; // {count}
     nothingSelected: string;
     needTitle: string;
@@ -141,12 +139,7 @@ export interface Translations {
     mergeUndo: string;
     warnForeignNumber: string; // {number}
     warnEmptySlides: string; // {count}
-    // Outcome
-    doneHeading: string;
-    savedNone: string;
-    savedCount: string; // {count}, {book}
-    savedRenumbered: string; // {title}, {number}
-    viewBook: string; // {book}
+    /** Dismisses a file that could not be read, when it is the last in the queue. */
     finish: string;
     // Failures — one per PptxParseReason, plus the commit failures
     cannotImport: string;
@@ -682,8 +675,6 @@ const ro: Translations = {
     saving: "Se salvează...",
     titleLabel: "Titlu",
     titlePlaceholder: "Titlul imnului",
-    numberLabel: "Număr",
-    numberTaken: "Numărul {number} este deja folosit. Îl schimbăm automat la salvare.",
     summarySlides: "{count} slide-uri",
     nothingSelected: "Bifează cel puțin un slide ca să poți salva imnul.",
     needTitle: "Scrie un titlu ca să poți salva imnul.",
@@ -716,11 +707,6 @@ const ro: Translations = {
     warnForeignNumber:
       "În fișier scria numărul {number}. Nu l-am folosit — aici numerele sunt ale cărții tale.",
     warnEmptySlides: "{count} slide-uri nu au cuvinte și au rămas nebifate.",
-    doneHeading: "Gata",
-    savedNone: "Nu s-a adăugat niciun imn.",
-    savedCount: "{count} imnuri adăugate în {book}.",
-    savedRenumbered: "„{title}” a fost salvat cu numărul {number}.",
-    viewBook: "Vezi {book}",
     finish: "Închide",
     cannotImport: "Acest fișier nu poate fi adăugat",
     errorLegacyPpt:
@@ -1242,8 +1228,6 @@ const en: Translations = {
     saving: "Saving...",
     titleLabel: "Title",
     titlePlaceholder: "Hymn title",
-    numberLabel: "Number",
-    numberTaken: "Number {number} is already taken. We'll pick another one when saving.",
     summarySlides: "{count} slides",
     nothingSelected: "Tick at least one slide to save this hymn.",
     needTitle: "Give the hymn a title to save it.",
@@ -1276,11 +1260,6 @@ const en: Translations = {
     warnForeignNumber:
       "The file had the number {number} on it. We didn't use it — numbers here belong to your own book.",
     warnEmptySlides: "{count} slides have no words and were left unticked.",
-    doneHeading: "All done",
-    savedNone: "No hymns were added.",
-    savedCount: "{count} hymns added to {book}.",
-    savedRenumbered: "\u201c{title}\u201d was saved as number {number}.",
-    viewBook: "Open {book}",
     finish: "Close",
     cannotImport: "This file can't be added",
     errorLegacyPpt:
