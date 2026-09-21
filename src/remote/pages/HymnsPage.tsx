@@ -375,35 +375,24 @@ export default function HymnsPage({
             )}
           </div>
         )}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 min-w-0">
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={t.hymns.searchPlaceholder}
-              className="w-full px-4 py-3 pr-10 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-              >
-                <CloseIcon />
-              </button>
-            )}
-          </div>
-          {/* Always present, on every book, so the way to add a hymn is never
-              something the user has to go and find. */}
-          <ImportTrigger
-            isElectron={isElectron}
-            onPick={startImport}
-            disabled={importBusy}
-            variant="icon"
-            label={t.hymnImport.importButton}
+        <div className="relative">
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={t.hymns.searchPlaceholder}
+            className="w-full px-4 py-3 pr-10 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+            >
+              <CloseIcon />
+            </button>
+          )}
         </div>
 
         {allHymnals.length > 1 && searchQuery.trim() && (
@@ -589,10 +578,21 @@ export default function HymnsPage({
             isElectron={isElectron}
             onPick={startImport}
             disabled={importBusy}
-            variant="primary"
             label={t.hymnImport.importButton}
           />
         </div>
+      )}
+
+      {/* Only on the user's own book: imports land there, and offering it while
+          browsing a hymnal we ship suggested they could be added to. */}
+      {viewingMyHymns && rows.length > 0 && (
+        <ImportTrigger
+          isElectron={isElectron}
+          onPick={startImport}
+          disabled={importBusy}
+          label={t.hymnImport.importButton}
+          className="w-full sm:w-auto"
+        />
       )}
 
       <div className="grid gap-2">

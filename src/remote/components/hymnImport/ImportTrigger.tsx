@@ -14,42 +14,34 @@ interface Props {
   isElectron: boolean;
   onPick: (files?: FileList) => void;
   disabled?: boolean;
-  /** "primary" for the empty state, "icon" for the toolbar next to search. */
-  variant: "primary" | "icon";
   label: string;
+  className?: string;
 }
 
 export default function ImportTrigger({
   isElectron,
   onPick,
   disabled,
-  variant,
   label,
+  className = "",
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const className =
-    variant === "primary"
-      ? "inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-medium bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-600/40 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none disabled:opacity-50"
-      : "inline-flex items-center justify-center w-11 h-11 flex-shrink-0 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none disabled:opacity-50";
+  // Always labelled. This used to be an icon beside the search field, where it
+  // read as a search button and offered itself on books that cannot be imported
+  // into. It now says what it does, and only appears where it applies.
+  const classes = `inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-600/40 cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${className}`;
 
   const content = (
     <>
-      <ImportDeckIcon className={variant === "primary" ? "w-5 h-5" : "w-5 h-5"} />
-      {variant === "primary" && <span>{label}</span>}
+      <ImportDeckIcon className="w-5 h-5 flex-shrink-0" />
+      <span>{label}</span>
     </>
   );
 
   if (isElectron) {
     return (
-      <button
-        type="button"
-        onClick={() => onPick()}
-        disabled={disabled}
-        title={variant === "icon" ? label : undefined}
-        aria-label={label}
-        className={className}
-      >
+      <button type="button" onClick={() => onPick()} disabled={disabled} className={classes}>
         {content}
       </button>
     );
@@ -61,9 +53,7 @@ export default function ImportTrigger({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={disabled}
-        title={variant === "icon" ? label : undefined}
-        aria-label={label}
-        className={className}
+        className={classes}
       >
         {content}
       </button>

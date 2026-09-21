@@ -52,7 +52,7 @@ export const BUNDLED_HYMNALS: HymnalInfo[] = [
   // Hymns we ship that are in no official hymnal, built from PowerPoint decks by
   // scripts/build-pptx-hymnal.js. No karaoke: MP3/TTML are keyed by bare hymn
   // number, which only stays unambiguous while one book uses them.
-  { slug: "alte-imnuri", name: "Alte Imnuri", shortName: "Alte", language: "ro", languageName: "Română", songCount: 75 },
+  { slug: "alte-imnuri", name: "Alte Imnuri", shortName: "Altele", language: "ro", languageName: "Română", songCount: 75 },
   // English
   { slug: "sda-hymnal", name: "Seventh-Day Adventist Hymnal", shortName: "SDA Hymnal", language: "en", languageName: "English", songCount: 695, isDefault: true },
   // Spanish
