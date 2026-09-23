@@ -235,7 +235,9 @@ export default function Layout({
 
           {/* Quick controls */}
           <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1 min-h-8">
-            <h1 className="text-lg font-semibold block md:hidden mr-auto">
+            {/* While presenting on phones the title gives way to the controls —
+                the bottom nav already shows which page this is */}
+            <h1 className={`text-lg font-semibold md:hidden mr-auto min-w-0 truncate ${state.mode === "idle" ? "block" : "hidden sm:block"}`}>
               {navItems.find((i) => i.id === currentPage)?.label}
             </h1>
             {state.mode === "text" && state.text.slides.length > 0 && (
@@ -243,7 +245,7 @@ export default function Layout({
                 <button
                   onClick={onPrevSlide}
                   disabled={state.text.currentSlide === 0}
-                  className="px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  className="min-w-11 min-h-11 sm:min-w-0 sm:min-h-0 px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                 >
                   <ChevronLeftIcon className="w-4 h-4" />
                 </button>
@@ -252,7 +254,7 @@ export default function Layout({
                 </span>
                 <button
                   onClick={onNextSlide}
-                  className="px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 transition-colors flex items-center justify-center text-blue-400"
+                  className="min-w-11 min-h-11 sm:min-w-0 sm:min-h-0 px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 transition-colors flex items-center justify-center text-blue-400"
                 >
                   <ChevronRightIcon className="w-4 h-4" />
                 </button>
@@ -263,7 +265,7 @@ export default function Layout({
                 <button
                   onClick={onPrevImage}
                   disabled={state.image.currentIndex === 0 && !state.image.loop}
-                  className="px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  className="min-w-11 min-h-11 sm:min-w-0 sm:min-h-0 px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                 >
                   <ChevronLeftIcon className="w-4 h-4" />
                 </button>
@@ -273,7 +275,7 @@ export default function Layout({
                 <button
                   onClick={onNextImage}
                   disabled={state.image.currentIndex === state.image.slideshowImages.length - 1 && !state.image.loop}
-                  className="px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center text-blue-400"
+                  className="min-w-11 min-h-11 sm:min-w-0 sm:min-h-0 px-3 py-2.5 sm:px-2.5 sm:py-1.5 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center text-blue-400"
                 >
                   <ChevronRightIcon className="w-4 h-4" />
                 </button>
@@ -283,7 +285,7 @@ export default function Layout({
               <div className="flex items-center bg-gray-800/50 border border-gray-700/50 rounded-lg overflow-hidden">
                 <button
                   onClick={() => onSetImageFit("fill")}
-                  className={`px-2.5 py-2.5 sm:px-2.5 sm:py-1.5 transition-colors flex items-center justify-center ${
+                  className={`min-h-11 sm:min-h-0 px-2.5 py-2.5 sm:px-2.5 sm:py-1.5 transition-colors flex items-center justify-center ${
                     state.image.fit === "fill"
                       ? "text-blue-400 bg-blue-600/20"
                       : "text-gray-400 hover:bg-gray-700"
@@ -295,7 +297,7 @@ export default function Layout({
                 </button>
                 <button
                   onClick={() => onSetImageFit("fit")}
-                  className={`px-2.5 py-2.5 sm:px-2.5 sm:py-1.5 transition-colors flex items-center justify-center ${
+                  className={`min-h-11 sm:min-h-0 px-2.5 py-2.5 sm:px-2.5 sm:py-1.5 transition-colors flex items-center justify-center ${
                     state.image.fit === "fit"
                       ? "text-blue-400 bg-blue-600/20"
                       : "text-gray-400 hover:bg-gray-700"
@@ -307,10 +309,13 @@ export default function Layout({
                 </button>
               </div>
             )}
+            {/* On phones, go-idle sits at the far left — away from Next, the
+                most-pressed button, so a slip can't blank the screen */}
             {state.mode !== "idle" && (
               <button
                 onClick={onGoIdle}
-                className="px-3 py-2.5 sm:px-3 sm:py-1.5 rounded-lg flex items-center justify-center gap-1.5 flex-shrink-0 bg-red-600/20 text-red-400 hover:bg-red-600/30 active:bg-red-600/40 border border-red-600/40 transition-colors text-sm"
+                aria-label={t.header.goIdle}
+                className="order-first sm:order-none mr-auto sm:mr-0 min-w-11 min-h-11 sm:min-w-0 sm:min-h-0 px-3 py-2.5 sm:px-3 sm:py-1.5 rounded-lg flex items-center justify-center gap-1.5 flex-shrink-0 bg-red-600/20 text-red-400 hover:bg-red-600/30 active:bg-red-600/40 border border-red-600/40 transition-colors text-sm"
               >
                 <StopIcon className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{t.header.goIdle}</span>

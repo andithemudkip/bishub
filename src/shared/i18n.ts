@@ -500,7 +500,6 @@ export interface Translations {
     title: string;
     collapse: string;
     expand: string;
-    tapToCollapse: string;
     current: string;
     next: string;
     endOfSlides: string;
@@ -1063,7 +1062,6 @@ const ro: Translations = {
     title: "Previzualizare",
     collapse: "Ascunde",
     expand: "Arată previzualizare",
-    tapToCollapse: "Atinge pentru a ascunde",
     current: "Curent",
     next: "Următor",
     endOfSlides: "Sfârșitul slide-urilor",
@@ -1616,7 +1614,6 @@ const en: Translations = {
     title: "Preview",
     collapse: "Collapse",
     expand: "Show preview",
-    tapToCollapse: "Tap to hide",
     current: "Current",
     next: "Next",
     endOfSlides: "End of slides",
