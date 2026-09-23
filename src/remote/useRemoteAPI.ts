@@ -213,14 +213,27 @@ export function useRemoteAPI(): RemoteAPI {
   const deleteHymnCbs = useRef<Array<(deleted: boolean) => void>>([]);
 
   /**
-   * Adopt a pushed hymn list only for the book we are actually showing.
+   * The book this client last asked for over the socket. On the web, the
+   * reply to `getHymns` arrives through the same "hymns" event as broadcasts,
+   * so it has to be recognised as ours — otherwise the first load (nothing
+   * showing yet) and every book switch would be discarded as someone else's.
+   */
+  const requestedHymnalRef = useRef<string | null>(null);
+
+  /**
+   * Adopt a hymn list only for the book we are showing, or the one we asked
+   * for.
    *
    * The main process broadcasts per book — importing into "My Hymns" pushes
    * that book — so without this guard a commit made from a phone would swap
    * whatever book this client had open for the one that changed.
    */
   const applyHymnPush = useCallback((slug: string, list: Hymn[]) => {
-    setHymnData((prev) => (prev.slug === slug ? { slug, hymns: list } : prev));
+    const requested = requestedHymnalRef.current === slug;
+    if (requested) requestedHymnalRef.current = null;
+    setHymnData((prev) =>
+      requested || prev.slug === slug ? { slug, hymns: list } : prev
+    );
   }, []);
 
   const isElectron = isElectronEnv;
@@ -446,6 +459,7 @@ export function useRemoteAPI(): RemoteAPI {
         .electronAPI!.getHymns(selectedHymnal)
         .then((list) => setHymnData({ slug: selectedHymnal, hymns: list }));
     } else {
+      requestedHymnalRef.current = selectedHymnal;
       socketRef.current?.emit("getHymns", selectedHymnal);
     }
   }, [isConnected, isElectron, selectedHymnal]);
