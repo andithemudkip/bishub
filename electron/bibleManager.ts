@@ -1,7 +1,7 @@
 import { app, net } from "electron";
 import fs from "fs";
 import path from "path";
-import type { BibleData } from "../src/shared/types";
+import type { BibleData, BibleTranslationStatus } from "../src/shared/types";
 import {
   getTranslationById,
   BIBLE_TRANSLATIONS,
@@ -116,6 +116,39 @@ function downloadFile(
     });
     request.end();
   });
+}
+
+const statusListeners = new Set<(status: BibleTranslationStatus) => void>();
+
+/** Every translation download's progress, whichever remote started it. */
+export function onTranslationStatus(
+  listener: (status: BibleTranslationStatus) => void
+): () => void {
+  statusListeners.add(listener);
+  return () => statusListeners.delete(listener);
+}
+
+function emitTranslationStatus(status: BibleTranslationStatus): void {
+  for (const listener of statusListeners) listener(status);
+}
+
+/**
+ * Download a translation if it isn't on disk yet, broadcasting progress to
+ * every listener — so every remote (and the Stage's Activity) sees it, not
+ * just the one that asked. Throws on failure, after broadcasting the error.
+ */
+export async function ensureTranslationDownloaded(translationId: string): Promise<void> {
+  if (isTranslationDownloaded(translationId)) return;
+  emitTranslationStatus({ translationId, status: "downloading", progress: 0 });
+  try {
+    await downloadTranslation(translationId, (progress) => {
+      emitTranslationStatus({ translationId, status: "downloading", progress });
+    });
+  } catch (err) {
+    emitTranslationStatus({ translationId, status: "error", error: String(err) });
+    throw err;
+  }
+  emitTranslationStatus({ translationId, status: "ready" });
 }
 
 export async function downloadTranslation(

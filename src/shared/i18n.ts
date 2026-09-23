@@ -10,6 +10,11 @@ export interface Translations {
     minutesAgo: string;
     hoursAgo: string;
     daysAgo: string;
+    /** Used by `formatTimeUntil` for the Stage's upcoming schedules. */
+    dueNow: string;
+    inMinutes: string;
+    inHours: string;
+    inDays: string;
   };
 
   // Navigation
@@ -591,6 +596,10 @@ const ro: Translations = {
     minutesAgo: "acum {n} min",
     hoursAgo: "acum {n} ore",
     daysAgo: "acum {n} zile",
+    dueNow: "acum",
+    inMinutes: "peste {n} min",
+    inHours: "peste {n} ore",
+    inDays: "peste {n} zile",
   },
   nav: {
     hymns: "Imnuri",
@@ -1141,6 +1150,10 @@ const en: Translations = {
     minutesAgo: "{n}m ago",
     hoursAgo: "{n}h ago",
     daysAgo: "{n}d ago",
+    dueNow: "now",
+    inMinutes: "in {n}m",
+    inHours: "in {n}h",
+    inDays: "in {n}d",
   },
   nav: {
     hymns: "Hymns",

@@ -114,8 +114,11 @@ export default function MediaUploader({
             if (!uploadExtraFields?.name) {
               formData.append("name", file.name.replace(/\.[^.]+$/, ""));
             }
+            // The server reports progress to every device under this id, so
+            // the matching server row can be told apart from this one.
+            const query = `uploadId=${id}&filename=${encodeURIComponent(file.name)}`;
             await uploadWithProgress(
-              getApiUrl(uploadUrl),
+              getApiUrl(`${uploadUrl}${uploadUrl.includes("?") ? "&" : "?"}${query}`),
               formData,
               (percent) => updateClientUpload(id, { progress: percent })
             );
@@ -135,6 +138,20 @@ export default function MediaUploader({
       setIsBusy(false);
     }
   };
+
+  // An upload this device is sending shows up twice: here, and in
+  // `activeUploads` from the server. While bytes are still moving, the local
+  // bar is the more immediate one; once the server takes over (processing,
+  // done, failed), show its row instead.
+  const serverUploads = new Map(activeUploads.map((u) => [u.id, u]));
+  const visibleClientUploads = clientUploads.filter((c) => {
+    const server = serverUploads.get(c.id);
+    return !server || server.status === "uploading";
+  });
+  const clientIds = new Set(clientUploads.map((c) => c.id));
+  const visibleActiveUploads = activeUploads.filter(
+    (u) => !(clientIds.has(u.id) && u.status === "uploading")
+  );
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -202,9 +219,9 @@ export default function MediaUploader({
       </div>
 
       {/* Client-side upload progress (one entry per file) */}
-      {clientUploads.length > 0 && (
+      {visibleClientUploads.length > 0 && (
         <div className="space-y-2">
-          {clientUploads.map((upload) => (
+          {visibleClientUploads.map((upload) => (
             <div
               key={upload.id}
               className="bg-gray-700 rounded-lg p-3 space-y-2"
@@ -238,9 +255,9 @@ export default function MediaUploader({
       )}
 
       {/* Server-side processing progress */}
-      {activeUploads.length > 0 && (
+      {visibleActiveUploads.length > 0 && (
         <div className="space-y-2">
-          {activeUploads.map((upload) => (
+          {visibleActiveUploads.map((upload) => (
             <div
               key={upload.id}
               className="bg-gray-700 rounded-lg p-3 space-y-2"
@@ -249,7 +266,11 @@ export default function MediaUploader({
                 <div className="flex-1 min-w-0">
                   <div className="text-sm truncate">{upload.filename}</div>
                   <div className="text-xs text-gray-400">
-                    {upload.status === "uploading" && labels.uploading}
+                    {upload.status === "uploading" && (
+                      <>
+                        {labels.uploading} {upload.progress}%
+                      </>
+                    )}
                     {upload.status === "processing" && labels.processing}
                     {upload.status === "complete" && (
                       <span className="text-green-400">{labels.complete}</span>

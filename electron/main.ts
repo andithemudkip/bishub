@@ -38,9 +38,9 @@ import {
   checkForHymnAssetUpdates,
 } from "./hymnAssets";
 import {
-  isTranslationDownloaded,
-  downloadTranslation,
+  ensureTranslationDownloaded,
   getDownloadedTranslationIds,
+  onTranslationStatus,
 } from "./bibleManager";
 import { getTranslationById } from "../src/shared/bibleTranslations";
 import { getVideoLibrary } from "./videoLibrary";
@@ -182,6 +182,10 @@ function setupIPC() {
 
   ipcMain.handle("get-monitors", () => {
     return windowManager.getMonitors();
+  });
+
+  ipcMain.handle("get-display-window-state", () => {
+    return windowManager.isDisplayWindowOpen();
   });
 
   ipcMain.handle("get-hymnals", () => {
@@ -497,18 +501,20 @@ function setupIPC() {
       const info = getTranslationById(translationId);
       if (!info) return { status: "error", error: "Unknown translation" };
 
-      if (!isTranslationDownloaded(translationId)) {
-        try {
-          await downloadTranslation(translationId);
-        } catch (err) {
-          return { status: "error", error: String(err) };
-        }
+      try {
+        await ensureTranslationDownloaded(translationId);
+      } catch (err) {
+        return { status: "error", error: String(err) };
       }
 
       stateManager.setBibleTranslation(translationId);
       return { status: "ready" };
     }
   );
+
+  onTranslationStatus((status) => {
+    windowManager.broadcastToAll("bible-translation-status", status);
+  });
 
   ipcMain.handle("get-downloaded-translations", () => {
     return getDownloadedTranslationIds();
@@ -1016,6 +1022,10 @@ function setupIPC() {
 
   transferManager.onTransfersChange((transfers) => {
     windowManager.broadcastToAll("transfers-update", transfers);
+  });
+
+  transferManager.onUploadProgress((progress) => {
+    windowManager.broadcastToAll("transfer-upload-progress", progress);
   });
 
   ipcMain.handle("get-transfers", () => {

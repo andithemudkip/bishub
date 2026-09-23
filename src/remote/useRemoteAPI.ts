@@ -373,6 +373,13 @@ export function useRemoteAPI(): RemoteAPI {
       );
       const unsubMP3Progress =
         window.electronAPI!.onHymnMP3DownloadProgress(handleMP3Progress);
+      // Downloads started from a web remote report here too.
+      const unsubBibleStatus = window.electronAPI!.onBibleTranslationStatus((status) => {
+        setBibleDownloadStatus(status);
+        if (status.status === "ready") {
+          window.electronAPI!.getDownloadedTranslations().then(setDownloadedTranslations);
+        }
+      });
       const unsubMP3Stats =
         window.electronAPI!.onHymnMP3CacheStats(setMp3CacheStats);
       const unsubDevices =
@@ -390,6 +397,7 @@ export function useRemoteAPI(): RemoteAPI {
         unsubHymnals();
         unsubHymns();
         unsubMP3Progress();
+        unsubBibleStatus();
         unsubMP3Stats();
         unsubDevices();
         unsubConnectedDevices();

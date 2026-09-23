@@ -45,13 +45,14 @@ import {
   cancelAllMP3Downloads,
   clearMP3Cache,
   getMP3CacheStats,
+  getActiveMP3Downloads,
   onMP3DownloadProgress,
   onHymnAssetsUpdated,
 } from "./hymnAssets";
 import {
-  isTranslationDownloaded,
-  downloadTranslation,
+  ensureTranslationDownloaded,
   getDownloadedTranslationIds,
+  onTranslationStatus,
 } from "./bibleManager";
 import { getTranslationById } from "../src/shared/bibleTranslations";
 import { getVideoLibrary } from "./videoLibrary";
@@ -61,7 +62,13 @@ import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
-import { startDownload, startAudioDownload, cancelDownload } from "./ytdlp";
+import {
+  startDownload,
+  startAudioDownload,
+  cancelDownload,
+  getActiveDownloads,
+  getActiveAudioDownloads,
+} from "./ytdlp";
 import { getDeviceRegistry } from "./deviceRegistry";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -251,6 +258,82 @@ export function createServer(
       },
     });
 
+  /**
+   * Upload byte progress, reported by the server so every device — not just
+   * the one sending — sees an upload, and it survives navigation on the
+   * sender. Rides the library's existing upload-progress channel, which
+   * already fans out to both transports.
+   *
+   * The client passes its own `uploadId` and the `filename` in the query
+   * string: multer hasn't parsed the multipart body when this runs, and the
+   * matching id lets the sender hide the server's row while its own, more
+   * immediate progress bar is still showing.
+   */
+  interface TrackedUpload {
+    id: string;
+    filename: string;
+    status: "uploading" | "processing" | "complete" | "error";
+    progress: number;
+    error?: string;
+  }
+  type UploadEvent =
+    | "uploadProgress"
+    | "audioUploadProgress"
+    | "imageUploadProgress"
+    | "transferUploadProgress";
+  /** In-flight uploads, replayed to sockets that connect mid-upload. */
+  const activeUploads = new Map<string, { upload: TrackedUpload; event: UploadEvent }>();
+
+  const trackUploadProgress =
+    (event: UploadEvent, notify: (upload: TrackedUpload) => void): express.RequestHandler =>
+    (req, res, next) => {
+      const id =
+        typeof req.query.uploadId === "string" && req.query.uploadId
+          ? req.query.uploadId
+          : uuidv4();
+      const filename = typeof req.query.filename === "string" ? req.query.filename : "";
+      const total = Number(req.headers["content-length"]) || 0;
+      const upload: TrackedUpload = { id, filename, status: "uploading", progress: 0 };
+      activeUploads.set(id, { upload, event });
+
+      const emit = (patch: Partial<TrackedUpload>) => {
+        Object.assign(upload, patch);
+        notify({ ...upload });
+      };
+      let settled = false;
+      const settle = (patch: Partial<TrackedUpload>) => {
+        if (settled) return;
+        settled = true;
+        activeUploads.delete(id);
+        emit(patch);
+      };
+
+      emit({});
+      // multer pipes `req` synchronously inside next(); counting bytes only
+      // after that means this listener can never start the stream flowing
+      // before the parser is attached.
+      next();
+      let received = 0;
+      req.on("data", (chunk: Buffer) => {
+        received += chunk.length;
+        const percent = total > 0 ? Math.min(99, Math.floor((received / total) * 100)) : 0;
+        if (percent !== upload.progress) emit({ progress: percent });
+      });
+      req.on("end", () => {
+        if (!settled) emit({ status: "processing", progress: 100 });
+      });
+      res.on("finish", () =>
+        settle(
+          res.statusCode < 400
+            ? { status: "complete", progress: 100 }
+            : { status: "error", error: "Upload failed" }
+        )
+      );
+      // Fires after "finish" on success (no-op then); alone, it means the
+      // sender disconnected mid-upload.
+      res.on("close", () => settle({ status: "error", error: "Upload aborted" }));
+    };
+
   // Video Library setup
   const videoLibrary = getVideoLibrary();
   const upload = createUploadMiddleware(
@@ -260,30 +343,35 @@ export function createServer(
   );
 
   // Video upload endpoint
-  app.post("/api/videos/upload", upload.single("video"), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No video file uploaded" });
+  app.post(
+    "/api/videos/upload",
+    trackUploadProgress("uploadProgress", (u) => videoLibrary.notifyUploadProgress(u)),
+    upload.single("video"),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: "No video file uploaded" });
+        }
+
+        const originalName =
+          req.body.name ||
+          path.basename(
+            req.file.originalname,
+            path.extname(req.file.originalname)
+          );
+
+        const video = await videoLibrary.addVideo(req.file.path, "upload", {
+          name: originalName,
+          copyToLibrary: false, // Already in videos directory
+        });
+
+        res.json({ video, status: "complete" });
+      } catch (error) {
+        console.error("Upload error:", error);
+        res.status(500).json({ error: "Upload failed" });
       }
-
-      const originalName =
-        req.body.name ||
-        path.basename(
-          req.file.originalname,
-          path.extname(req.file.originalname)
-        );
-
-      const video = await videoLibrary.addVideo(req.file.path, "upload", {
-        name: originalName,
-        copyToLibrary: false, // Already in videos directory
-      });
-
-      res.json({ video, status: "complete" });
-    } catch (error) {
-      console.error("Upload error:", error);
-      res.status(500).json({ error: "Upload failed" });
     }
-  });
+  );
 
   // Serve video thumbnails
   app.get("/api/videos/thumbnail/:id", (req, res) => {
@@ -394,6 +482,7 @@ export function createServer(
   // Audio upload endpoint
   app.post(
     "/api/audio/upload",
+    trackUploadProgress("audioUploadProgress", (u) => audioLibrary.notifyUploadProgress(u)),
     audioUpload.single("audio"),
     async (req, res) => {
       try {
@@ -467,6 +556,7 @@ export function createServer(
 
   app.post(
     "/api/images/upload",
+    trackUploadProgress("imageUploadProgress", (u) => imageLibrary.notifyUploadProgress(u)),
     imageUpload.single("image"),
     async (req, res) => {
       try {
@@ -540,6 +630,7 @@ export function createServer(
 
   app.post(
     "/api/transfers/upload",
+    trackUploadProgress("transferUploadProgress", (u) => transferManager.notifyUploadProgress(u)),
     transferUpload.single("file"),
     (req, res) => {
       try {
@@ -623,12 +714,24 @@ export function createServer(
     }
   });
 
+  transferManager.onUploadProgress((progress) => {
+    io.emit("transferUploadProgress", progress);
+  });
+
+  onTranslationStatus((status) => {
+    io.emit("bibleTranslationStatus", status);
+  });
+
   transferManager.onTransfersChange((transfers) => {
     io.emit("transfers", transfers);
   });
 
   windowManager.onMonitorsChange((monitors) => {
     io.emit("monitors", monitors);
+  });
+
+  windowManager.onDisplayWindowChange((open) => {
+    io.emit("displayWindowState", open);
   });
 
   const broadcastConnectedDeviceIds = () => {
@@ -660,6 +763,16 @@ export function createServer(
     socket.emit("settingsUpdate", stateManager.getSettings());
     socket.emit("monitors", windowManager.getMonitors());
     socket.emit("hymnals", getHymnals());
+    socket.emit("displayWindowState", windowManager.isDisplayWindowOpen());
+
+    // In-flight work, so a remote that connects (or reloads) mid-operation
+    // sees it. The Electron remote fetches the same via getActive*Downloads.
+    for (const p of getActiveDownloads()) socket.emit("downloadProgress", p);
+    for (const p of getActiveAudioDownloads()) socket.emit("audioDownloadProgress", p);
+    for (const p of getActiveMP3Downloads()) socket.emit("mp3DownloadProgress", p);
+    for (const { upload, event } of activeUploads.values()) {
+      socket.emit(event, { ...upload });
+    }
 
     // Devices
     socket.on("getDevices", () => {
@@ -875,39 +988,25 @@ export function createServer(
       const info = getTranslationById(translationId);
       if (!info) return;
 
-      if (!isTranslationDownloaded(translationId)) {
-        socket.emit("bibleTranslationStatus", {
-          translationId,
-          status: "downloading",
-          progress: 0,
-        });
-        try {
-          await downloadTranslation(translationId, (progress) => {
-            socket.emit("bibleTranslationStatus", {
-              translationId,
-              status: "downloading",
-              progress,
-            });
-          });
-        } catch (err) {
-          socket.emit("bibleTranslationStatus", {
-            translationId,
-            status: "error",
-            error: String(err),
-          });
-          return;
-        }
+      // Download progress (and failure) is broadcast to everyone by
+      // `onTranslationStatus` below.
+      try {
+        await ensureTranslationDownloaded(translationId);
+      } catch {
+        return;
       }
 
       stateManager.setBibleTranslation(translationId);
+      // Already-downloaded translations broadcast nothing, so the requester
+      // still needs its own "ready".
       socket.emit("bibleTranslationStatus", {
         translationId,
         status: "ready",
       });
       // Send updated books for the new translation
       socket.emit("bibleBooks", getBibleBooks(translationId));
-      // Send updated downloaded list
-      socket.emit("downloadedTranslations", getDownloadedTranslationIds());
+      // Every device's downloaded list may have changed
+      io.emit("downloadedTranslations", getDownloadedTranslationIds());
     });
 
     socket.on("getDownloadedTranslations", () => {

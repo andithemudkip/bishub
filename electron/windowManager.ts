@@ -16,6 +16,7 @@ export class WindowManager {
   private remoteWindow: BrowserWindow | null = null;
   private stateManager: StateManager;
   private monitorChangeListeners = new Set<(monitors: MonitorInfo[]) => void>();
+  private displayWindowChangeListeners = new Set<(open: boolean) => void>();
   private moveInProgress = false;
   private lastBroadcastMonitorsKey = "";
 
@@ -75,6 +76,26 @@ export class WindowManager {
   onMonitorsChange(listener: (monitors: MonitorInfo[]) => void) {
     this.monitorChangeListeners.add(listener);
     return () => this.monitorChangeListeners.delete(listener);
+  }
+
+  isDisplayWindowOpen(): boolean {
+    return this.displayWindow !== null;
+  }
+
+  onDisplayWindowChange(listener: (open: boolean) => void) {
+    this.displayWindowChangeListeners.add(listener);
+    return () => this.displayWindowChangeListeners.delete(listener);
+  }
+
+  /**
+   * `broadcastToAll` sends to `this.displayWindow` too, which is exactly
+   * wrong the moment this fires from the `closed` handler — that window is
+   * being destroyed. Callers null out `this.displayWindow` first, so by the
+   * time this runs, `broadcastToAll`'s optional chaining already skips it.
+   */
+  private broadcastDisplayWindowState(open: boolean) {
+    this.broadcastToAll("display-window-state", open);
+    for (const listener of this.displayWindowChangeListeners) listener(open);
   }
 
   private broadcastMonitors() {
@@ -139,7 +160,10 @@ export class WindowManager {
 
     this.displayWindow.on("closed", () => {
       this.displayWindow = null;
+      this.broadcastDisplayWindowState(false);
     });
+
+    this.broadcastDisplayWindowState(true);
   }
 
   async createRemoteWindow() {

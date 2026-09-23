@@ -235,12 +235,22 @@ export interface DeviceInfo {
 }
 
 // Socket.io event types
+/** Progress of a Bible translation download, broadcast to every client. */
+export interface BibleTranslationStatus {
+  translationId: string;
+  status: "downloading" | "ready" | "error";
+  progress?: number;
+  error?: string;
+}
+
 export type ServerToClientEvents = {
   stateUpdate: (state: DisplayState) => void;
   settingsUpdate: (settings: AppSettings) => void;
   monitors: (monitors: MonitorInfo[]) => void;
   devices: (devices: DeviceInfo[]) => void;
   connectedDeviceIds: (ids: string[]) => void;
+  /** Whether the fullscreen display window is currently open. Sent on connect too. */
+  displayWindowState: (open: boolean) => void;
   hymns: (slug: string, hymns: Hymn[]) => void;
   /** The merged book list: bundled hymnals plus the user's own books. */
   hymnals: (hymnals: HymnalInfo[]) => void;
@@ -254,7 +264,7 @@ export type ServerToClientEvents = {
   ) => void;
   bibleChapter: (verses: BibleVerse[]) => void;
   bibleSearchResults: (results: BibleSearchResult[]) => void;
-  bibleTranslationStatus: (status: { translationId: string; status: "downloading" | "ready" | "error"; progress?: number; error?: string }) => void;
+  bibleTranslationStatus: (status: BibleTranslationStatus) => void;
   downloadedTranslations: (ids: string[]) => void;
   // Video Library
   videoLibrary: (videos: VideoItem[]) => void;

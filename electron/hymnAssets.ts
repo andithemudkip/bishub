@@ -360,6 +360,21 @@ function getFreeDiskSpaceBytes(): number | null {
   }
 }
 
+/**
+ * Every MP3 download not yet finished: the ones in flight, plus the rest of a
+ * bulk run's queue as "queued" — so a remote that connects mid-run sees the
+ * whole run, not just the few transfers open at that instant.
+ */
+export function getActiveMP3Downloads(): MP3DownloadProgress[] {
+  const inFlight = Array.from(activeDownloads.values(), (d) => d.progress);
+  if (!bulkRun || bulkRun.cancelled) return inFlight;
+  const queued = bulkRun.queue
+    .slice(bulkRun.cursor)
+    .filter((padded) => !activeDownloads.has(padded))
+    .map((padded) => makeProgress(padded, "queued"));
+  return [...inFlight, ...queued];
+}
+
 export async function downloadAllMissingMP3s(): Promise<void> {
   // One run at a time. Two overlapping runs would leave `bulkRun` pointing at
   // the newer one, so cancelling would only stop half the queue.

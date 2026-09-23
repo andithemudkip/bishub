@@ -30,8 +30,14 @@ export function useTransfers(): TransferAPI {
   useEffect(() => {
     if (isElectron) {
       window.electronAPI!.getTransfers().then(setTransfers);
-      const unsub = window.electronAPI!.onTransfersUpdate(setTransfers);
-      return unsub;
+      const unsubTransfers = window.electronAPI!.onTransfersUpdate(setTransfers);
+      const unsubUpload = window.electronAPI!.onTransferUploadProgress((progress) => {
+        setUploads((prev) => updateProgressList(prev, progress, setUploads));
+      });
+      return () => {
+        unsubTransfers();
+        unsubUpload();
+      };
     } else {
       const token = getDeviceToken();
       if (!token) return;

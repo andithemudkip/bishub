@@ -14,7 +14,7 @@ export interface TransferItem {
 export interface TransferUploadProgress {
   id: string;
   filename: string;
-  status: "uploading" | "complete" | "error";
+  status: "uploading" | "processing" | "complete" | "error";
   progress: number;
   error?: string;
 }
