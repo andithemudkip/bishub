@@ -167,6 +167,12 @@ export function createServer(
       target: VITE_DEV_SERVER_URL,
       changeOrigin: true,
       ws: true,
+      // With `ws`, the proxy subscribes to *every* upgrade on this server —
+      // the `app.use` paths below don't apply to upgrades. Socket.io's own
+      // upgrades must stay here: forwarded to Vite, they come straight back
+      // through Vite's /socket.io proxy, and loop until connect() fails with
+      // EAGAIN.
+      pathFilter: (pathname) => !pathname.startsWith("/socket.io"),
     });
 
     // /remote is unauthenticated — the HTML shell is inert without a valid
