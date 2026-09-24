@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { DisplayState } from "../../../shared/types";
 import type { Translations } from "../../../shared/i18n";
 import type { Activity } from "../../../shared/stage.types";
@@ -14,6 +14,7 @@ import {
 } from "../icons/ui";
 import type { StageSection } from "./types";
 import { activitySummary, aggregateProgress, soonSchedule } from "./stageStatus";
+import { useNow } from "./useNow";
 
 interface Props {
   state: DisplayState;
@@ -37,16 +38,8 @@ const MODE_DOT: Record<DisplayState["mode"], string> = {
  * section.
  */
 export function StageRail({ state, t, activities, upcomingSchedules, health, onOpen }: Props) {
-  const next = upcomingSchedules[0];
-  const nextSoon = soonSchedule(upcomingSchedules, Date.now());
-
-  // Keep the "in 14m" label moving while a schedule is close.
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    if (!next) return;
-    const id = setInterval(() => setTick((n) => n + 1), 30_000);
-    return () => clearInterval(id);
-  }, [next]);
+  const now = useNow(upcomingSchedules.length > 0);
+  const nextSoon = soonSchedule(upcomingSchedules, now);
 
   const summary = activitySummary(activities);
 

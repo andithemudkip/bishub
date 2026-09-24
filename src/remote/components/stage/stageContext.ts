@@ -12,6 +12,9 @@ export interface StageData {
   monitorMissing: boolean;
   /** error: display window closed · warning: configured monitor missing. */
   health: "ok" | "warning" | "error";
+  /** Failures already seen on their page (`errorKey`), which no longer badge. */
+  acknowledgedErrors: ReadonlySet<string>;
+  acknowledgeErrors: (keys: string[]) => void;
 }
 
 export const StageContext = createContext<StageData | null>(null);

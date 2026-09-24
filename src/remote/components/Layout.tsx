@@ -9,6 +9,9 @@ import {
   StageDock,
   StageChip,
   StageSheet,
+  StageToasts,
+  StageNavSync,
+  NavBadge,
   type StageActions,
 } from "./stage";
 import { HymnsIcon } from "./icons/hymns";
@@ -198,7 +201,10 @@ export default function Layout({
                     : "text-gray-400 hover:text-gray-200 hover:bg-gray-800"
                 }`}
               >
-                <span className="flex-shrink-0">{item.icon}</span>
+                <span className="relative flex-shrink-0">
+                  {item.icon}
+                  <NavBadge pages={[item.id]} t={t} />
+                </span>
                 <span className="text-sm whitespace-nowrap overflow-hidden">{item.label}</span>
               </button>
             ))}
@@ -376,7 +382,10 @@ export default function Layout({
                     : "text-gray-500 active:text-gray-300"
                 }`}
               >
-                <span>{item.icon}</span>
+                <span className="relative">
+                  {item.icon}
+                  <NavBadge pages={[item.id]} t={t} />
+                </span>
                 <span className={`text-xs ${currentPage === item.id ? "font-medium" : ""}`}>{item.label}</span>
               </button>
             ))}
@@ -390,7 +399,10 @@ export default function Layout({
                   : "text-gray-500 active:text-gray-300"
               }`}
             >
-              <MoreIcon className="w-6 h-6" />
+              <span className="relative">
+                <MoreIcon className="w-6 h-6" />
+                <NavBadge pages={overflowNavItems.map((item) => item.id)} t={t} />
+              </span>
               <span className={`text-xs ${isOverflowPage ? "font-medium" : ""}`}>{t.nav.more}</span>
             </button>
 
@@ -409,7 +421,10 @@ export default function Layout({
                         : "text-gray-300 active:bg-gray-700"
                     }`}
                   >
-                    <span>{item.icon}</span>
+                    <span className="relative">
+                      {item.icon}
+                      <NavBadge pages={[item.id]} t={t} />
+                    </span>
                     <span className="text-sm">{item.label}</span>
                   </button>
                 ))}
@@ -418,6 +433,9 @@ export default function Layout({
             )}
           </div>
         </nav>
+
+        <StageNavSync page={currentPage} />
+        <StageToasts currentPage={currentPage} onNavigate={setCurrentPage} t={t} />
 
         <StageSheet
           open={stageSheetOpen}

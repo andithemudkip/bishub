@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
 import type { DisplayState } from "../../../shared/types";
 import type { Translations } from "../../../shared/i18n";
 import { formatTimeUntil } from "../../../shared/utils";
 import { WarningIcon, ProgressRingIcon, MusicNoteIcon, ClockIcon, CheckIcon } from "../icons/ui";
 import { useStage } from "./stageContext";
 import { activitySummary, aggregateProgress, soonSchedule } from "./stageStatus";
+import { useNow } from "./useNow";
 
 interface Props {
   state: DisplayState;
@@ -21,15 +21,8 @@ interface Props {
 export function StageChip({ state, t, onOpen }: Props) {
   const { activities, upcomingSchedules, health } = useStage();
   const isIdle = state.mode === "idle";
-  const soon = soonSchedule(upcomingSchedules, Date.now());
-
-  // Keep a schedule's "in 14m" moving.
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    if (upcomingSchedules.length === 0) return;
-    const id = setInterval(() => setTick((n) => n + 1), 30_000);
-    return () => clearInterval(id);
-  }, [upcomingSchedules.length]);
+  const now = useNow(upcomingSchedules.length > 0);
+  const soon = soonSchedule(upcomingSchedules, now);
 
   const summary = activitySummary(activities);
   let status = null;

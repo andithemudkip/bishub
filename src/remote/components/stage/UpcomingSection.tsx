@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
 import type { Translations } from "../../../shared/i18n";
 import type { AudioSchedule, ScheduleEvent } from "../../../shared/audioSchedule.types";
 import { formatTimeAgo, formatTimeUntil } from "../../../shared/utils";
 import { ClockIcon, MusicNoteIcon } from "../icons/ui";
 import { Section } from "./Section";
 import type { NavigateTo } from "./types";
+import { useNow } from "./useNow";
 
 interface Props {
   schedules: AudioSchedule[];
@@ -13,9 +13,6 @@ interface Props {
   t: Translations;
 }
 
-/** Relative times ("in 14m") go stale; refresh them on this cadence. */
-const TICK_MS = 30_000;
-
 /**
  * Scheduled audio, which otherwise lives in the Audio page's third tab —
  * without this you'd have no idea the app is about to start playing at 09:45.
@@ -23,12 +20,8 @@ const TICK_MS = 30_000;
  * shows as a brief event row.
  */
 export function UpcomingSection({ schedules, recentEvents, onNavigate, t }: Props) {
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    if (schedules.length === 0) return;
-    const id = setInterval(() => setTick((n) => n + 1), TICK_MS);
-    return () => clearInterval(id);
-  }, [schedules.length]);
+  // Re-render so the "in 14m" labels below keep moving.
+  useNow(schedules.length > 0);
 
   const events = recentEvents.filter(
     (e) => e.type === "triggered" || e.type === "skipped" || e.type === "missed"
