@@ -469,6 +469,10 @@ function parseReference<T extends MatchableBook>(
   const [, bookPart, chapterStr, startVerseStr, endVerseStr] = match;
   const bookOnly = !chapterStr;
 
+  // Every book name has a letter. Without this, a hymn number like "123"
+  // splits into book "1" + chapter 23 and prefix-matches 1 Samuel.
+  if (!/\p{L}/u.test(bookPart)) return null;
+
   // A bare book name has to match exactly — otherwise any partial word typed
   // into the search box would masquerade as a reference and hide text results.
   const book = findBook(books, bookPart.trim(), language, !bookOnly);
@@ -477,6 +481,8 @@ function parseReference<T extends MatchableBook>(
   const chapter = chapterStr ? parseInt(chapterStr, 10) : 1;
   const startVerse = startVerseStr ? parseInt(startVerseStr, 10) : 1;
   const endVerse = endVerseStr ? parseInt(endVerseStr, 10) : startVerse;
+  // Chapters and verses count from 1; "gen 0" is a typo, not a reference.
+  if (chapter < 1 || startVerse < 1) return null;
 
   return {
     bookId: book.id,

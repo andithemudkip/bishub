@@ -159,8 +159,25 @@ describe("parseBibleReference", () => {
     ["Ioan, 3:16"],
     ["ioan 3:16-"],
     ["dragoste"],
+    // Hymn numbers, not "1 Samuel 23" / "2 Samuel 1".
+    ["123"],
+    ["21"],
+    ["1 23"],
+    ["gen 0"],
+    ["gen 1:0"],
+    ["ioan 0:5"],
   ])("returns null for %j", (input) => {
     expect(parseBibleReference(input)).toBeNull();
+  });
+
+  it("rejects hymn numbers in English too", () => {
+    expect(parseBibleReference("123", "en")).toBeNull();
+    expect(parseBibleReferenceWithBooks("123", [{ id: "1SA", name: "1 Samuel" }])).toBeNull();
+  });
+
+  it("still reads numbered books", () => {
+    expect(parseBibleReference("1 sam 23")).toMatchObject({ bookId: "1SA", chapter: 23 });
+    expect(parseBibleReference("1sam 23:1")).toMatchObject({ bookId: "1SA", chapter: 23, startVerse: 1 });
   });
 });
 
