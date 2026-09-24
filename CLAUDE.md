@@ -47,7 +47,8 @@ The remote UI must work on phones and tablets (320px+). Use Tailwind's `sm:`/`md
 
 Use the shared components — don't hand-roll equivalents:
 
-- **`src/remote/components/ui/`** — `Card`, `StatusBanner`, `Select`, `PositionPicker`, `BibleTranslationPicker`, `renderTip`, `ToastStack`
+- **`src/remote/components/ui/`** — `Card`, `StatusBanner`, `Select`, `PositionPicker`, `BibleTranslationPicker`, `renderTip`, `ToastStack`, `ShortcutHint`
+- **Keyboard shortcuts** — define them in `SHORTCUTS` (`src/shared/shortcuts.ts`): Settings lists them, and `<ShortcutHint shortcut="…" />` shows one beside its control (never hand-write key badges or `navigator.platform` checks — use `isMacPlatform()`).
 - **`src/remote/components/icons/ui.tsx`** — SVG icons (Close, Chevrons, Play/Pause, etc.). Never use ASCII (✕, ←, →, ◀, ▶, ■) for UI.
 - **`src/shared/utils.ts`** — check here before writing any utility. Electron imports from `../src/shared/utils`, renderer uses `@shared/utils`.
 
@@ -83,6 +84,10 @@ Styling conventions:
 - Image: current image or slideshow frame
 - Idle: clock + wallpaper indicator, plus `AudioOverlay` when audio is playing
 
+**Stage** (`src/remote/components/stage/`): the live panel beside every page — `LivePreview` plus loaded layers, background activity, upcoming schedules and display health. A resizable panel/rail on desktop; a header chip + bottom sheet on phones; also drives nav badges and toasts. `StageProvider` owns the subscriptions once — read them with `useStage()`, don't subscribe again. Every progress stream is normalized to an `Activity` in `src/shared/stageActivity.ts`.
+
+**Quick Search** (Cmd/Ctrl+K): ranked and grouped in the main process (`electron/quickSearch.ts`), one request for both transports. New searchable content goes there, with an explicit tier.
+
 **Bundled binaries** (`bin/{darwin,win32,linux}/`, shipped via `extraResources`):
 - `yt-dlp` — YouTube downloads
 - `ffmpeg` / `ffprobe` — video/audio processing, thumbnails, duration
@@ -97,6 +102,7 @@ Styling conventions:
 - `electron/windowManager.ts` — multi-monitor window management, `broadcastToAll`
 - `src/shared/i18n.ts` — translations (always route UI text through this)
 - `src/shared/utils.ts` — shared utilities (check before duplicating)
+- `src/remote/socket.ts` — the one Socket.io connection per tab (see invariant above)
 - `src/display/modes/TextMode.tsx` ↔ `src/remote/components/preview/LivePreview.tsx` — must stay in sync
 
 Everything else is discoverable via Grep / Glob.
