@@ -1,6 +1,6 @@
 import type { StateManager } from "./state";
 import type { HymnPlaybackMode } from "../src/shared/types";
-import { resolveHymnDisplay } from "./dataLoader";
+import { resolveHymnDisplay, type HymnAudioPreferences } from "./dataLoader";
 import {
   getFallbackHymnalSlug,
   isValidHymnalSlug,
@@ -39,15 +39,23 @@ export function presentHymn(
   stateManager: StateManager,
   slug: string,
   hymnNumber: string,
-  playbackMode: HymnPlaybackMode = "auto",
+  playbackMode?: HymnPlaybackMode | null,
 ): void {
   const settings = stateManager.getSettings();
-  const prefs = {
+  const prefsByMode: Record<HymnPlaybackMode, HymnAudioPreferences> = {
     auto: { synced: settings.syncedLyrics, instrumental: settings.instrumentals },
     synced: { synced: true, instrumental: false },
     instrumental: { synced: false, instrumental: true },
     static: { synced: false, instrumental: false },
-  }[playbackMode];
+  };
+  // Socket.io sends an omitted trailing argument as null (JSON has no
+  // undefined), so a default parameter never kicks in for web remotes. Treat
+  // anything that isn't a known mode as "auto" rather than crash.
+  const mode =
+    playbackMode && Object.prototype.hasOwnProperty.call(prefsByMode, playbackMode)
+      ? playbackMode
+      : "auto";
+  const prefs = prefsByMode[mode];
   const resolved = resolveHymnDisplay(
     slug,
     hymnNumber,
