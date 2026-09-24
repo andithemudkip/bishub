@@ -14,7 +14,6 @@ import {
   resolveHymnDisplay,
   searchAllHymns,
   searchBibleVerses,
-  searchHymns,
 } from "./dataLoader";
 import { quickSearch } from "./quickSearch";
 
@@ -48,8 +47,6 @@ describe("cached hymnals", () => {
   it("survive every read path untouched", () => {
     for (const { slug } of BUNDLED_HYMNALS) {
       const hymns = loadHymns(slug);
-      searchHymns("1", slug);
-      searchHymns("isus", slug);
       for (const hymn of hymns) {
         formatHymnForDisplay(hymn, "ro");
         formatHymnForDisplay(hymn, "en");

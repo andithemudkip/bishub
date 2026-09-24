@@ -152,8 +152,6 @@ const electronAPI = {
   // Hymns
   getHymns: (slug?: string): Promise<Hymn[]> =>
     ipcRenderer.invoke("get-hymns", slug),
-  searchHymns: (query: string, slug?: string): Promise<Hymn[]> =>
-    ipcRenderer.invoke("search-hymns", query, slug),
   loadHymn: (
     slug: string,
     hymnNumber: string,
