@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { SHORTCUTS, type ShortcutName } from "../../shared/shortcuts";
+import { isMacPlatform } from "../../shared/utils";
 
 interface ShortcutOptions {
   /** Use capture phase to intercept before global handlers */
@@ -64,7 +65,7 @@ export function useShortcut(
       if (!keySetParsed.has(e.key)) return;
 
       if (mod) {
-        const modPressed = navigator.platform.includes("Mac")
+        const modPressed = isMacPlatform()
           ? e.metaKey
           : e.ctrlKey;
         if (!modPressed) return;

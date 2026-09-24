@@ -24,6 +24,7 @@ import {
   CHROME_SIZE_MIN,
   CHROME_SIZE_MAX,
   CHROME_SIZE_STEP,
+  isMacPlatform,
 } from "../../shared/utils";
 import { CheckIcon } from "../components/icons/ui";
 import {
@@ -1200,7 +1201,7 @@ export default function SettingsPage({
                 {"mod" in shortcut && shortcut.mod ? (
                   <>
                     <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-                      {navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}
+                      {isMacPlatform() ? "⌘" : "Ctrl"}
                     </kbd>
                     <span className="text-gray-500">+</span>
                     {shortcut.display.map((key) => (

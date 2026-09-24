@@ -261,6 +261,11 @@ export function formatTimeUntil(
   return common.inDays.replace("{n}", String(days));
 }
 
+/** Whether shortcuts use ⌘ (Mac) or Ctrl. Renderer-only: false where there's no navigator. */
+export function isMacPlatform(): boolean {
+  return typeof navigator !== "undefined" && navigator.platform.includes("Mac");
+}
+
 /**
  * Extract pairing key from URL query parameter (only present on first-time pairing)
  */
