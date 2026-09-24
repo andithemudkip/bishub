@@ -1,18 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import { getSocket, listen, onConnected, type SocketType } from "./socket";
 import type {
   AudioItem,
   AudioUploadProgress,
   AudioDownloadProgress,
   DirectoryImportProgress,
 } from "../shared/audioLibrary.types";
-import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
-} from "../shared/types";
-import { getDeviceToken, getApiUrl, updateProgressList } from "../shared/utils";
+import { getApiUrl, updateProgressList } from "../shared/utils";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 interface AudioLibraryAPI {
   audios: AudioItem[];
@@ -79,27 +74,27 @@ export function useAudioLibrary(
         unsubDirImport();
       };
     } else {
-      const token = getDeviceToken();
-      if (!token) return;
-      const socket: SocketType = io({
-        auth: { token },
-      });
+      const socket = getSocket();
+      if (!socket) return;
       socketRef.current = socket;
 
-      socket.on("connect", () => {
+      const off = listen(socket, {
+        audioLibrary: setAudios,
+        audioUploadProgress: (progress) => {
+          setUploads((prev) => updateProgressList(prev, progress, setUploads));
+        },
+        audioDownloadProgress: (progress) => {
+          setDownloads((prev) => updateProgressList(prev, progress, setDownloads));
+        },
+      });
+      const offConnected = onConnected(socket, () => {
         socket.emit("getAudioLibrary");
-      });
-
-      socket.on("audioLibrary", setAudios);
-      socket.on("audioUploadProgress", (progress) => {
-        setUploads((prev) => updateProgressList(prev, progress, setUploads));
-      });
-      socket.on("audioDownloadProgress", (progress) => {
-        setDownloads((prev) => updateProgressList(prev, progress, setDownloads));
+        socket.emit("getInFlight");
       });
 
       return () => {
-        socket.disconnect();
+        off();
+        offConnected();
       };
     }
   }, [isElectron]);

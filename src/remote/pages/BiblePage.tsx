@@ -7,6 +7,8 @@ import {
   useMemo,
 } from "react";
 import { useFocusSearch } from "../hooks/useFocusSearch";
+import { useSearchHistory } from "../hooks/useSearchHistory";
+import { usePageIntent } from "../hooks/usePageIntent";
 import type {
   BibleVerse,
   BibleSearchResult,
@@ -45,17 +47,9 @@ function findScrollParent(el: HTMLElement | null): HTMLElement | null {
 const HISTORY_KEY = "bishub-bible-search-history";
 const MAX_HISTORY = 20;
 
-function loadHistory(): SearchHistoryEntry[] {
-  try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory(entries: SearchHistoryEntry[]) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(entries));
-}
+/** One entry per verse, however often it's searched. */
+const sameVerse = (a: SearchHistoryEntry, b: SearchHistoryEntry) =>
+  a.bookId === b.bookId && a.chapter === b.chapter && a.verse === b.verse;
 
 export interface BibleBook {
   id: string;
@@ -113,7 +107,11 @@ export default function BiblePage({
   const [browseChapter, setBrowseChapter] = useState<number>(1);
 
   // Search history
-  const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>(loadHistory);
+  const {
+    entries: searchHistory,
+    add: addHistoryEntry,
+    clear: clearHistory,
+  } = useSearchHistory<SearchHistoryEntry>(HISTORY_KEY, MAX_HISTORY, sameVerse);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchViewRef = useRef<HTMLDivElement>(null);
@@ -150,32 +148,18 @@ export default function BiblePage({
 
   const addToHistory = useCallback(
     (bookId: string, bookName: string, chapter: number, verse: number, query: string) => {
-      setSearchHistory((prev) => {
-        // Remove duplicate if same book+chapter+verse
-        const filtered = prev.filter(
-          (e) => !(e.bookId === bookId && e.chapter === chapter && e.verse === verse)
-        );
-        const entry: SearchHistoryEntry = {
-          id: `${bookId}-${chapter}-${verse}-${Date.now()}`,
-          bookId,
-          bookName,
-          chapter,
-          verse,
-          query,
-          timestamp: Date.now(),
-        };
-        const updated = [entry, ...filtered].slice(0, MAX_HISTORY);
-        saveHistory(updated);
-        return updated;
+      addHistoryEntry({
+        id: `${bookId}-${chapter}-${verse}-${Date.now()}`,
+        bookId,
+        bookName,
+        chapter,
+        verse,
+        query,
+        timestamp: Date.now(),
       });
     },
-    []
+    [addHistoryEntry]
   );
-
-  const clearHistory = useCallback(() => {
-    setSearchHistory([]);
-    saveHistory([]);
-  }, []);
 
   // Navigate to verse list for a given book/chapter/verse
   // Returns false if the chapter doesn't exist (no verses returned)
@@ -201,6 +185,17 @@ export default function BiblePage({
     },
     [getBibleChapter]
   );
+
+  // Arriving from Quick Search: a query to run, or a chapter to open.
+  usePageIntent("bible", (intent) => {
+    if ("open" in intent) {
+      const { bookId, bookName, chapter, verse } = intent.open;
+      navigateToVerseList(bookId, bookName, chapter, verse);
+    } else {
+      setView({ type: "search" });
+      setSearchInput(intent.query);
+    }
+  });
 
   // Handle submitting a parsed reference (Enter or Go button)
   const handleSubmitReference = useCallback(async () => {

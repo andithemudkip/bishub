@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import Store from "electron-store";
-import type { TransferItem } from "../src/shared/transfer.types";
+import type { TransferItem, TransferUploadProgress } from "../src/shared/transfer.types";
 
 interface TransferSchema {
   transfers: TransferItem[];
@@ -11,11 +11,13 @@ interface TransferSchema {
 }
 
 type TransferChangeCallback = (transfers: TransferItem[]) => void;
+type UploadProgressCallback = (progress: TransferUploadProgress) => void;
 
 export class TransferManager {
   private store: Store<TransferSchema>;
   private transfersDir: string;
   private changeListeners: TransferChangeCallback[] = [];
+  private uploadProgressListeners: UploadProgressCallback[] = [];
 
   constructor() {
     this.store = new Store<TransferSchema>({
@@ -48,6 +50,19 @@ export class TransferManager {
         (cb) => cb !== callback
       );
     };
+  }
+
+  onUploadProgress(callback: UploadProgressCallback): () => void {
+    this.uploadProgressListeners.push(callback);
+    return () => {
+      this.uploadProgressListeners = this.uploadProgressListeners.filter(
+        (cb) => cb !== callback
+      );
+    };
+  }
+
+  notifyUploadProgress(progress: TransferUploadProgress): void {
+    this.uploadProgressListeners.forEach((cb) => cb(progress));
   }
 
   private notifyChange(): void {

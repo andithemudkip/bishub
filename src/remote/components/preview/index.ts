@@ -1,5 +1,4 @@
 export { default as LivePreview } from "./LivePreview";
-export { default as PreviewPanel } from "./PreviewPanel";
 export { default as PreviewHeader, PREVIEW_HEIGHT } from "./PreviewHeader";
 export {
   usePreviewState,

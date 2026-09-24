@@ -38,9 +38,9 @@ import {
   checkForHymnAssetUpdates,
 } from "./hymnAssets";
 import {
-  isTranslationDownloaded,
-  downloadTranslation,
+  ensureTranslationDownloaded,
   getDownloadedTranslationIds,
+  onTranslationStatus,
 } from "./bibleManager";
 import { getTranslationById } from "../src/shared/bibleTranslations";
 import { getVideoLibrary } from "./videoLibrary";
@@ -51,6 +51,7 @@ import { IMAGE_EXTENSIONS_NO_DOT } from "../src/shared/imageLibrary.types";
 import type { VideoItem } from "../src/shared/videoLibrary.types";
 import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getTransferManager } from "./transferManager";
+import { quickSearch } from "./quickSearch";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import type {
   CreateScheduleParams,
@@ -60,6 +61,7 @@ import { startDownload, startAudioDownload, cancelDownload, getActiveDownloads, 
 import { getDeviceRegistry } from "./deviceRegistry";
 import type {
   DisplayMode,
+  LayerKind,
   ClockPosition,
   AudioWidgetPosition,
   HymnPlaybackMode,
@@ -184,6 +186,10 @@ function setupIPC() {
     return windowManager.getMonitors();
   });
 
+  ipcMain.handle("get-display-window-state", () => {
+    return windowManager.isDisplayWindowOpen();
+  });
+
   ipcMain.handle("get-hymnals", () => {
     return getHymnals();
   });
@@ -242,6 +248,10 @@ function setupIPC() {
 
   ipcMain.handle("stop-video", () => {
     stateManager.stopVideo();
+  });
+
+  ipcMain.handle("clear-layer", (_event, kind: LayerKind) => {
+    stateManager.clearLayer(kind);
   });
 
   ipcMain.handle("seek-video", (_event, time: number) => {
@@ -380,6 +390,11 @@ function setupIPC() {
     return searchAllHymns(query);
   });
 
+  ipcMain.handle("quick-search", (_event, query: string) => {
+    const settings = stateManager.getSettings();
+    return quickSearch(query, settings.language, settings.bibleTranslation, settings.hymnal);
+  });
+
   ipcMain.handle("set-hymnal", (_event, slug: string) => {
     if (isValidHymnalSlug(slug)) stateManager.setHymnal(slug);
   });
@@ -497,18 +512,20 @@ function setupIPC() {
       const info = getTranslationById(translationId);
       if (!info) return { status: "error", error: "Unknown translation" };
 
-      if (!isTranslationDownloaded(translationId)) {
-        try {
-          await downloadTranslation(translationId);
-        } catch (err) {
-          return { status: "error", error: String(err) };
-        }
+      try {
+        await ensureTranslationDownloaded(translationId);
+      } catch (err) {
+        return { status: "error", error: String(err) };
       }
 
       stateManager.setBibleTranslation(translationId);
       return { status: "ready" };
     }
   );
+
+  onTranslationStatus((status) => {
+    windowManager.broadcastToAll("bible-translation-status", status);
+  });
 
   ipcMain.handle("get-downloaded-translations", () => {
     return getDownloadedTranslationIds();
@@ -1016,6 +1033,10 @@ function setupIPC() {
 
   transferManager.onTransfersChange((transfers) => {
     windowManager.broadcastToAll("transfers-update", transfers);
+  });
+
+  transferManager.onUploadProgress((progress) => {
+    windowManager.broadcastToAll("transfer-upload-progress", progress);
   });
 
   ipcMain.handle("get-transfers", () => {

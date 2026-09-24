@@ -10,6 +10,11 @@ export interface Translations {
     minutesAgo: string;
     hoursAgo: string;
     daysAgo: string;
+    /** Used by `formatTimeUntil` for the Stage's upcoming schedules. */
+    dueNow: string;
+    inMinutes: string;
+    inHours: string;
+    inDays: string;
   };
 
   // Navigation
@@ -234,6 +239,7 @@ export interface Translations {
     openOnStartup: string;
     focusSearch: string;
     switchPage: string;
+    quickSearch: string;
     // Idle screen settings
     idleScreen: string;
     wallpaper: string;
@@ -500,10 +506,77 @@ export interface Translations {
     title: string;
     collapse: string;
     expand: string;
-    tapToCollapse: string;
     current: string;
     next: string;
     endOfSlides: string;
+  };
+
+  // Quick Search: one box across hymns, Bible and media (Cmd/Ctrl+K)
+  quickSearch: {
+    button: string;
+    placeholder: string;
+    groupHymns: string;
+    groupReference: string;
+    groupBible: string;
+    groupMedia: string;
+    showAll: string;
+    noResults: string;
+    recent: string;
+    inLyrics: string;
+    karaoke: string;
+    openChapter: string;
+    openPage: string;
+    playlist: string;
+    hintShow: string;
+    hintOpen: string;
+    hintGroups: string;
+    hintClose: string;
+  };
+
+  // Stage: the live panel beside every page (preview, loaded layers,
+  // background activity, upcoming schedules, system health)
+  stage: {
+    title: string;
+    open: string;
+    loaded: string;
+    activity: string;
+    comingUp: string;
+    nothingRunning: string;
+    show: string;
+    clear: string;
+    play: string;
+    pause: string;
+    stop: string;
+    layerText: string;
+    layerVideo: string;
+    layerImage: string;
+    layerAudio: string;
+    slideOf: string;
+    paused: string;
+    queued: string;
+    processing: string;
+    done: string;
+    failed: string;
+    dismiss: string;
+    showMore: string;
+    importSummary: string;
+    hymnMp3: string;
+    hymnMp3Bulk: string;
+    bulkProgress: string;
+    bulkFailed: string;
+    scheduleStarted: string;
+    scheduleSkipped: string;
+    scheduleMissed: string;
+    displayClosed: string;
+    monitorMissing: string;
+    devices: string;
+    copyAddress: string;
+    copied: string;
+    railAudio: string;
+    railActivity: string;
+    railSchedule: string;
+    railHealth: string;
+    close: string;
   };
 
   // Auth
@@ -592,6 +665,10 @@ const ro: Translations = {
     minutesAgo: "acum {n} min",
     hoursAgo: "acum {n} ore",
     daysAgo: "acum {n} zile",
+    dueNow: "acum",
+    inMinutes: "peste {n} min",
+    inHours: "peste {n} ore",
+    inDays: "peste {n} zile",
   },
   nav: {
     hymns: "Imnuri",
@@ -796,6 +873,7 @@ const ro: Translations = {
     volume: "Volum",
     focusSearch: "Focalizează câmpul de căutare",
     switchPage: "Schimbă pagina",
+    quickSearch: "Căutare rapidă",
     // Idle screen settings
     idleScreen: "Ecran de așteptare",
     wallpaper: "Fundal",
@@ -1063,10 +1141,72 @@ const ro: Translations = {
     title: "Previzualizare",
     collapse: "Ascunde",
     expand: "Arată previzualizare",
-    tapToCollapse: "Atinge pentru a ascunde",
     current: "Curent",
     next: "Următor",
     endOfSlides: "Sfârșitul slide-urilor",
+  },
+  stage: {
+    title: "În direct",
+    open: "Deschide panoul",
+    loaded: "Încărcat",
+    activity: "Activitate",
+    comingUp: "Urmează",
+    nothingRunning: "Nimic în desfășurare",
+    show: "Afișează",
+    clear: "Golește",
+    play: "Redă",
+    pause: "Pauză",
+    stop: "Oprește",
+    layerText: "Text",
+    layerVideo: "Video",
+    layerImage: "Imagine",
+    layerAudio: "Audio",
+    slideOf: "slide {n}/{total}",
+    paused: "pe pauză",
+    queued: "În așteptare",
+    processing: "Se procesează...",
+    done: "Gata",
+    failed: "Eșuat",
+    dismiss: "Închide",
+    showMore: "Încă {n}",
+    importSummary: "Importate: {ok}, eșuate: {failed}",
+    hymnMp3: "MP3 imnul {n}",
+    hymnMp3Bulk: "MP3-uri imnuri",
+    bulkProgress: "{done} din {count}",
+    bulkFailed: "eșuate: {n}",
+    scheduleStarted: "A pornit",
+    scheduleSkipped: "Omis",
+    scheduleMissed: "Ratat",
+    displayClosed: "Fereastra de afișare este închisă",
+    monitorMissing: "Monitorul de afișare nu este conectat",
+    devices: "Dispozitive: {n}",
+    copyAddress: "Copiază adresa",
+    copied: "Copiat",
+    railAudio: "Se redă audio",
+    railActivity: "Activitate în fundal",
+    railSchedule: "Următoarea programare",
+    railHealth: "Problemă de afișare",
+    close: "Închide",
+  },
+  quickSearch: {
+    button: "Caută",
+    placeholder: "Caută imnuri, Biblie, media...",
+    groupHymns: "Imnuri",
+    groupReference: "Referință biblică",
+    groupBible: "Biblie",
+    groupMedia: "Media",
+    showAll: "Arată toate (încă {n})",
+    noResults: "Niciun rezultat",
+    recent: "Recente",
+    inLyrics: "în versuri",
+    karaoke: "Karaoke",
+    openChapter: "Deschide capitolul",
+    openPage: "Deschide pagina",
+    playlist: "Listă de redare",
+    hintShow: "afișează",
+    hintOpen: "deschide pagina",
+    hintGroups: "grupuri",
+    hintClose: "închide",
   },
   updates: {
     updateAvailable: "Actualizare disponibilă",
@@ -1143,6 +1283,10 @@ const en: Translations = {
     minutesAgo: "{n}m ago",
     hoursAgo: "{n}h ago",
     daysAgo: "{n}d ago",
+    dueNow: "now",
+    inMinutes: "in {n}m",
+    inHours: "in {n}h",
+    inDays: "in {n}d",
   },
   nav: {
     hymns: "Hymns",
@@ -1349,6 +1493,7 @@ const en: Translations = {
     volume: "Volume",
     focusSearch: "Focus search input",
     switchPage: "Switch page",
+    quickSearch: "Quick search",
     // Idle screen settings
     idleScreen: "Idle Screen",
     wallpaper: "Wallpaper",
@@ -1616,10 +1761,72 @@ const en: Translations = {
     title: "Preview",
     collapse: "Collapse",
     expand: "Show preview",
-    tapToCollapse: "Tap to hide",
     current: "Current",
     next: "Next",
     endOfSlides: "End of slides",
+  },
+  stage: {
+    title: "Live",
+    open: "Open panel",
+    loaded: "Loaded",
+    activity: "Activity",
+    comingUp: "Coming up",
+    nothingRunning: "Nothing running",
+    show: "Show",
+    clear: "Clear",
+    play: "Play",
+    pause: "Pause",
+    stop: "Stop",
+    layerText: "Text",
+    layerVideo: "Video",
+    layerImage: "Image",
+    layerAudio: "Audio",
+    slideOf: "slide {n}/{total}",
+    paused: "paused",
+    queued: "Queued",
+    processing: "Processing...",
+    done: "Done",
+    failed: "Failed",
+    dismiss: "Dismiss",
+    showMore: "{n} more",
+    importSummary: "{ok} imported, {failed} failed",
+    hymnMp3: "Hymn {n} MP3",
+    hymnMp3Bulk: "Hymn MP3s",
+    bulkProgress: "{done} of {count}",
+    bulkFailed: "{n} failed",
+    scheduleStarted: "Started",
+    scheduleSkipped: "Skipped",
+    scheduleMissed: "Missed",
+    displayClosed: "The display window is closed",
+    monitorMissing: "The display monitor isn't connected",
+    devices: "Devices: {n}",
+    copyAddress: "Copy address",
+    copied: "Copied",
+    railAudio: "Audio playing",
+    railActivity: "Background activity",
+    railSchedule: "Next schedule",
+    railHealth: "Display problem",
+    close: "Close",
+  },
+  quickSearch: {
+    button: "Search",
+    placeholder: "Search hymns, Bible, media...",
+    groupHymns: "Hymns",
+    groupReference: "Bible reference",
+    groupBible: "Bible",
+    groupMedia: "Media",
+    showAll: "Show all ({n} more)",
+    noResults: "No results",
+    recent: "Recent",
+    inLyrics: "in lyrics",
+    karaoke: "Karaoke",
+    openChapter: "Open chapter",
+    openPage: "Open page",
+    playlist: "Playlist",
+    hintShow: "show",
+    hintOpen: "open page",
+    hintGroups: "groups",
+    hintClose: "close",
   },
   updates: {
     updateAvailable: "Update available",

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { usePageIntent } from "../hooks/usePageIntent";
 import { useFocusSearch } from "../hooks/useFocusSearch";
 import type {
   Hymn,
@@ -92,6 +93,12 @@ export default function HymnsPage({
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
   const [searchAllBooks, setSearchAllBooks] = useState(false);
+
+  // Arriving from Quick Search's "show all": the same query, across every book.
+  usePageIntent("hymns", (intent) => {
+    setSearchQuery(intent.query);
+    setSearchAllBooks(true);
+  });
   const [allBookResults, setAllBookResults] = useState<HymnSearchResult[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
 

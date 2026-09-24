@@ -32,6 +32,12 @@ export const SHORTCUTS = {
     display: ["F5"],
     label: (t: Translations) => t.settings.focusSearch,
   },
+  quickSearch: {
+    keys: ["k", "K"],
+    display: ["K"],
+    mod: true,
+    label: (t: Translations) => t.settings.quickSearch,
+  },
   switchPage: {
     keys: ["1", "2", "3", "4", "5", "6", "7"],
     display: ["1–7"],

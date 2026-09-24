@@ -214,3 +214,56 @@ export const RepeatIcon = ({ className = "w-4 h-4" }: IconProps) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 15H9a4 4 0 01-4-4v-1m15 5l-3 3m3-3l-3-3" />
   </svg>
 );
+
+export const CloudUploadIcon = ({ className = "w-4 h-4" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5a4.5 4.5 0 014.07-4.48 6 6 0 0111.74 1.34A4 4 0 0118 21H7a4.5 4.5 0 01-4-4.5z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l3-3 3 3M12 9v7" />
+  </svg>
+);
+
+export const ClockIcon = ({ className = "w-4 h-4" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" strokeWidth={2} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 7v5l3 2" />
+  </svg>
+);
+
+/**
+ * Determinate progress as a ring. `progress` is 0–100; null draws a partial
+ * arc that spins, for work with no measurable percentage yet.
+ */
+export const ProgressRingIcon = ({
+  className = "w-4 h-4",
+  progress,
+}: IconProps & { progress: number | null }) => {
+  const r = 9;
+  const circumference = 2 * Math.PI * r;
+  const fraction = progress === null ? 0.25 : Math.min(Math.max(progress, 0), 100) / 100;
+  return (
+    <svg
+      className={`${className} -rotate-90 ${progress === null ? "animate-spin" : ""}`}
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle cx="12" cy="12" r={r} stroke="currentColor" strokeOpacity={0.25} strokeWidth={3} />
+      <circle
+        cx="12"
+        cy="12"
+        r={r}
+        stroke="currentColor"
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={circumference * (1 - fraction)}
+      />
+    </svg>
+  );
+};
+
+export const SearchIcon = ({ className = "w-4 h-4" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="7" strokeWidth={2} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 20l-4-4" />
+  </svg>
+);

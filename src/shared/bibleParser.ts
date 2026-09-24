@@ -391,6 +391,8 @@ export interface ParsedReference {
   endVerse: number;
   /** True when the input was just a book name, with no chapter given. */
   bookOnly: boolean;
+  /** True when a verse was typed ("ioan 3:16"), not just a chapter ("ioan 3"). */
+  verseGiven: boolean;
 }
 
 // ── Book matching ────────────────────────────────────────────────────────────
@@ -483,6 +485,7 @@ function parseReference<T extends MatchableBook>(
     startVerse,
     endVerse: Math.max(startVerse, endVerse),
     bookOnly,
+    verseGiven: !!startVerseStr,
   };
 }
 

@@ -241,6 +241,27 @@ export function formatTimeAgo(
 }
 
 /**
+ * Format a future timestamp as a relative time string (e.g. "now", "in 5m", "in 2h").
+ * Mirrors `formatTimeAgo`: requires the `common` translations object with dueNow,
+ * inMinutes, inHours, inDays keys. Templates use {n} as the number placeholder.
+ * Minutes round up, so something 40s away reads "in 1m" rather than "now";
+ * only a timestamp that has arrived reports `dueNow`.
+ */
+export function formatTimeUntil(
+  timestamp: number,
+  common: { dueNow: string; inMinutes: string; inHours: string; inDays: string }
+): string {
+  const diff = timestamp - Date.now();
+  if (diff <= 0) return common.dueNow;
+  const mins = Math.ceil(diff / 60000);
+  if (mins < 60) return common.inMinutes.replace("{n}", String(mins));
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return common.inHours.replace("{n}", String(hours));
+  const days = Math.floor(hours / 24);
+  return common.inDays.replace("{n}", String(days));
+}
+
+/**
  * Extract pairing key from URL query parameter (only present on first-time pairing)
  */
 export function getSecurityKeyFromURL(): string | null {

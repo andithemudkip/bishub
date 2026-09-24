@@ -1,18 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import { getSocket, listen, onConnected, type SocketType } from "./socket";
 import type {
   AudioSchedule,
   CreateScheduleParams,
   ScheduleEvent,
   UpdateScheduleParams,
 } from "../shared/audioSchedule.types";
-import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
-} from "../shared/types";
-import { getDeviceToken } from "../shared/utils";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 interface AudioSchedulerAPI {
   schedules: AudioSchedule[];
@@ -53,22 +47,21 @@ export function useAudioScheduler(): AudioSchedulerAPI {
         unsubEvent();
       };
     } else {
-      const token = getDeviceToken();
-      if (!token) return;
-      const socket: SocketType = io({
-        auth: { token },
-      });
+      const socket = getSocket();
+      if (!socket) return;
       socketRef.current = socket;
 
-      socket.on("connect", () => {
+      const off = listen(socket, {
+        audioSchedules: setSchedules,
+        audioScheduleEvent: handleScheduleEvent,
+      });
+      const offConnected = onConnected(socket, () => {
         socket.emit("getAudioSchedules");
       });
 
-      socket.on("audioSchedules", setSchedules);
-      socket.on("audioScheduleEvent", handleScheduleEvent);
-
       return () => {
-        socket.disconnect();
+        off();
+        offConnected();
       };
     }
   }, [isElectron, handleScheduleEvent]);

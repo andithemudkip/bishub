@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { BUNDLED_HYMNALS, type HymnalInfo } from "../shared/hymnals";
-import { io, Socket } from "socket.io-client";
+import { connectWithToken, listen, onConnected, type SocketType } from "./socket";
 import type {
   DisplayState,
   AppSettings,
@@ -9,8 +9,6 @@ import type {
   BibleVerse,
   BibleSearchResult,
   HymnSearchResult,
-  ServerToClientEvents,
-  ClientToServerEvents,
   ClockPosition,
   AudioWidgetPosition,
   MP3DownloadProgress,
@@ -21,9 +19,14 @@ import type {
   PptxImportResult,
   PptxParseReason,
   HymnCommitResult,
+  LayerKind,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
+import type { QuickSearchResponse } from "../shared/quickSearch.types";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
+
+/** Stable empty list, so consumers' memos don't see a new array each render. */
+const EMPTY_MONITORS: MonitorInfo[] = [];
 import {
   getSecurityKeyFromURL,
   updateProgressList,
@@ -33,12 +36,13 @@ import {
   clearDeviceToken,
 } from "../shared/utils";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 interface RemoteAPI {
   state: DisplayState;
   settings: AppSettings;
   monitors: MonitorInfo[];
+  /** False until the first monitor list arrives, so "none" isn't mistaken for "unplugged". */
+  monitorsLoaded: boolean;
   /** Bundled hymnals plus the user's own books, pushed from the main process. */
   hymnals: HymnalInfo[];
   hymns: Hymn[];
@@ -62,6 +66,7 @@ interface RemoteAPI {
   pauseVideo: () => void;
   stopVideo: () => void;
   seekVideo: (time: number) => void;
+  clearLayer: (kind: LayerKind) => void;
   setVolume: (volume: number) => void;
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;
@@ -79,6 +84,7 @@ interface RemoteAPI {
   ) => void;
   setHymnal: (slug: string) => void;
   searchAllHymns: (query: string) => Promise<HymnSearchResult[]>;
+  quickSearch: (query: string) => Promise<QuickSearchResponse>;
   // Hymn import
   /**
    * Choose decks and parse them. On Electron this opens the native picker and
@@ -156,7 +162,8 @@ interface RemoteAPI {
 export function useRemoteAPI(): RemoteAPI {
   const [state, setState] = useState<DisplayState>(DEFAULT_STATE);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
+  const [monitorList, setMonitors] = useState<MonitorInfo[] | null>(null);
+  const monitors = monitorList ?? EMPTY_MONITORS;
   // Seeded with the shipped catalog so the first paint is never an empty
   // book list; the merged list replaces it as soon as it arrives.
   const [hymnals, setHymnals] = useState<HymnalInfo[]>(BUNDLED_HYMNALS);
@@ -202,6 +209,12 @@ export function useRemoteAPI(): RemoteAPI {
     ((results: HymnSearchResult[]) => void) | null
   >(null);
   /**
+   * Quick Search replies by query, not a single slot: the operator types
+   * faster than replies arrive, and each keystroke's promise must resolve
+   * with its own results rather than whichever came back last.
+   */
+  const quickSearchCbs = useRef(new Map<string, Array<(r: QuickSearchResponse) => void>>());
+  /**
    * Pending import replies, oldest first.
    *
    * A queue rather than the single slot the search callbacks use: importing a
@@ -213,37 +226,45 @@ export function useRemoteAPI(): RemoteAPI {
   const deleteHymnCbs = useRef<Array<(deleted: boolean) => void>>([]);
 
   /**
-   * Adopt a pushed hymn list only for the book we are actually showing.
+   * The book this client last asked for over the socket. On the web, the
+   * reply to `getHymns` arrives through the same "hymns" event as broadcasts,
+   * so it has to be recognised as ours — otherwise the first load (nothing
+   * showing yet) and every book switch would be discarded as someone else's.
+   */
+  const requestedHymnalRef = useRef<string | null>(null);
+
+  /**
+   * Adopt a hymn list only for the book we are showing, or the one we asked
+   * for.
    *
    * The main process broadcasts per book — importing into "My Hymns" pushes
    * that book — so without this guard a commit made from a phone would swap
    * whatever book this client had open for the one that changed.
    */
   const applyHymnPush = useCallback((slug: string, list: Hymn[]) => {
-    setHymnData((prev) => (prev.slug === slug ? { slug, hymns: list } : prev));
+    const requested = requestedHymnalRef.current === slug;
+    if (requested) requestedHymnalRef.current = null;
+    setHymnData((prev) =>
+      requested || prev.slug === slug ? { slug, hymns: list } : prev
+    );
   }, []);
 
   const isElectron = isElectronEnv;
 
+  /** Detaches this hook's handlers from the shared socket. */
+  const detachSocketRef = useRef<(() => void) | null>(null);
+
   const connectSocket = useCallback(
     (token: string) => {
-      if (socketRef.current) {
-        socketRef.current.removeAllListeners();
-        socketRef.current.disconnect();
-      }
+      // The socket is shared with every other web-remote hook: detach only
+      // our own handlers — never removeAllListeners() or disconnect().
+      detachSocketRef.current?.();
 
       setAuthError(false);
-      const socket: SocketType = io({ auth: { token } });
+      const socket = connectWithToken(token);
       socketRef.current = socket;
 
-      socket.on("connect", () => {
-        setIsConnected(true);
-        setAuthError(false);
-        socket.emit("getBibleBooks");
-        socket.emit("getDownloadedTranslations");
-      });
-
-      socket.on("disconnect", () => {
+      const handleDisconnect = () => {
         setIsConnected(false);
         // Answer anything still in flight rather than leaving a caller awaiting
         // a reply that can no longer arrive. The write may well have landed —
@@ -253,62 +274,87 @@ export function useRemoteAPI(): RemoteAPI {
           resolve({ ok: false, reason: "write-failed" });
         }
         for (const resolve of deleteHymnCbs.current.splice(0)) resolve(false);
-      });
+      };
 
-      socket.on("connect_error", (err) => {
+      const handleConnectError = (err: Error) => {
         if (err.message === "Invalid token") {
           clearDeviceToken();
           setIsPaired(false);
           setAuthError(true);
           socket.disconnect();
         }
+      };
+
+      socket.on("disconnect", handleDisconnect);
+      socket.on("connect_error", handleConnectError);
+      const off = listen(socket, {
+        stateUpdate: setState,
+        settingsUpdate: setSettings,
+        monitors: setMonitors,
+        hymnals: setHymnals,
+        hymns: (slug, list) => applyHymnPush(slug, list),
+        hymnImportCommitted: (result) => {
+          commitHymnCbs.current.shift()?.(result);
+        },
+        customHymnDeleted: (_slug, _number, deleted) => {
+          deleteHymnCbs.current.shift()?.(deleted);
+        },
+        quickSearchResults: (response) => {
+          const waiting = quickSearchCbs.current.get(response.query);
+          quickSearchCbs.current.delete(response.query);
+          waiting?.forEach((resolve) => resolve(response));
+        },
+        hymnSearchResults: (results) => {
+          if (hymnSearchCb.current) {
+            hymnSearchCb.current(results);
+            hymnSearchCb.current = null;
+          }
+        },
+        bibleBooks: (books) => {
+          setBibleBooks(books);
+          if (bibleBooksCb.current) {
+            bibleBooksCb.current(books);
+            bibleBooksCb.current = null;
+          }
+        },
+        bibleChapter: (verses) => {
+          if (bibleChapterCb.current) {
+            bibleChapterCb.current(verses);
+            bibleChapterCb.current = null;
+          }
+        },
+        bibleSearchResults: (results) => {
+          if (bibleSearchCb.current) {
+            bibleSearchCb.current(results);
+            bibleSearchCb.current = null;
+          }
+        },
+        bibleTranslationStatus: setBibleDownloadStatus,
+        downloadedTranslations: setDownloadedTranslations,
+        mp3DownloadProgress: handleMP3Progress,
+        mp3CacheStats: setMp3CacheStats,
+        devices: setDevices,
+        connectedDeviceIds: setConnectedDeviceIds,
+      });
+      // Runs now if the shared socket is already up, and after every reconnect.
+      const offConnected = onConnected(socket, () => {
+        setIsConnected(true);
+        setAuthError(false);
+        socket.emit("getState");
+        socket.emit("getMonitors");
+        socket.emit("getHymnals");
+        socket.emit("getBibleBooks");
+        socket.emit("getDownloadedTranslations");
+        socket.emit("getHymnMP3CacheStats");
+        socket.emit("getInFlight");
       });
 
-      socket.on("stateUpdate", setState);
-      socket.on("settingsUpdate", setSettings);
-      socket.on("monitors", setMonitors);
-      socket.on("hymnals", setHymnals);
-      socket.on("hymns", (slug, list) => applyHymnPush(slug, list));
-      socket.on("hymnImportCommitted", (result) => {
-        commitHymnCbs.current.shift()?.(result);
-      });
-      socket.on("customHymnDeleted", (_slug, _number, deleted) => {
-        deleteHymnCbs.current.shift()?.(deleted);
-      });
-      socket.on("hymnSearchResults", (results) => {
-        if (hymnSearchCb.current) {
-          hymnSearchCb.current(results);
-          hymnSearchCb.current = null;
-        }
-      });
-      socket.on("bibleBooks", (books) => {
-        setBibleBooks(books);
-        if (bibleBooksCb.current) {
-          bibleBooksCb.current(books);
-          bibleBooksCb.current = null;
-        }
-      });
-      socket.on("bibleChapter", (verses) => {
-        if (bibleChapterCb.current) {
-          bibleChapterCb.current(verses);
-          bibleChapterCb.current = null;
-        }
-      });
-      socket.on("bibleSearchResults", (results) => {
-        if (bibleSearchCb.current) {
-          bibleSearchCb.current(results);
-          bibleSearchCb.current = null;
-        }
-      });
-      socket.on("bibleTranslationStatus", (status) => {
-        setBibleDownloadStatus(status);
-      });
-      socket.on("downloadedTranslations", setDownloadedTranslations);
-      socket.on("mp3DownloadProgress", handleMP3Progress);
-      socket.on("mp3CacheStats", setMp3CacheStats);
-      socket.on("devices", setDevices);
-      socket.on("connectedDeviceIds", setConnectedDeviceIds);
-      socket.emit("getHymnMP3CacheStats");
+      detachSocketRef.current = () => {
+        off();
+        offConnected();
+        socket.off("disconnect", handleDisconnect);
+        socket.off("connect_error", handleConnectError);
+      };
     },
     [handleMP3Progress, applyHymnPush]
   );
@@ -373,6 +419,13 @@ export function useRemoteAPI(): RemoteAPI {
       );
       const unsubMP3Progress =
         window.electronAPI!.onHymnMP3DownloadProgress(handleMP3Progress);
+      // Downloads started from a web remote report here too.
+      const unsubBibleStatus = window.electronAPI!.onBibleTranslationStatus((status) => {
+        setBibleDownloadStatus(status);
+        if (status.status === "ready") {
+          window.electronAPI!.getDownloadedTranslations().then(setDownloadedTranslations);
+        }
+      });
       const unsubMP3Stats =
         window.electronAPI!.onHymnMP3CacheStats(setMp3CacheStats);
       const unsubDevices =
@@ -390,6 +443,7 @@ export function useRemoteAPI(): RemoteAPI {
         unsubHymnals();
         unsubHymns();
         unsubMP3Progress();
+        unsubBibleStatus();
         unsubMP3Stats();
         unsubDevices();
         unsubConnectedDevices();
@@ -408,7 +462,8 @@ export function useRemoteAPI(): RemoteAPI {
       }
 
       return () => {
-        socketRef.current?.disconnect();
+        detachSocketRef.current?.();
+        detachSocketRef.current = null;
       };
     }
   }, [
@@ -438,6 +493,7 @@ export function useRemoteAPI(): RemoteAPI {
         .electronAPI!.getHymns(selectedHymnal)
         .then((list) => setHymnData({ slug: selectedHymnal, hymns: list }));
     } else {
+      requestedHymnalRef.current = selectedHymnal;
       socketRef.current?.emit("getHymns", selectedHymnal);
     }
   }, [isConnected, isElectron, selectedHymnal]);
@@ -446,6 +502,7 @@ export function useRemoteAPI(): RemoteAPI {
     state,
     settings,
     monitors,
+    monitorsLoaded: monitorList !== null,
     hymnals,
     hymns: hymnData.hymns,
     hymnsSlug: hymnData.slug,
@@ -512,6 +569,14 @@ export function useRemoteAPI(): RemoteAPI {
       if (isElectron) window.electronAPI!.stopVideo();
       else socketRef.current?.emit("stopVideo");
     }, [isElectron]),
+
+    clearLayer: useCallback(
+      (kind: LayerKind) => {
+        if (isElectron) window.electronAPI!.clearLayer(kind);
+        else socketRef.current?.emit("clearLayer", kind);
+      },
+      [isElectron]
+    ),
 
     seekVideo: useCallback(
       (time) => {
@@ -596,6 +661,18 @@ export function useRemoteAPI(): RemoteAPI {
         return new Promise<HymnSearchResult[]>((resolve) => {
           hymnSearchCb.current = resolve;
           socketRef.current?.emit("searchAllHymns", query);
+        });
+      },
+      [isElectron],
+    ),
+
+    quickSearch: useCallback(
+      (query: string) => {
+        if (isElectron) return window.electronAPI!.quickSearch(query);
+        return new Promise<QuickSearchResponse>((resolve) => {
+          const waiting = quickSearchCbs.current.get(query) ?? [];
+          quickSearchCbs.current.set(query, [...waiting, resolve]);
+          socketRef.current?.emit("quickSearch", query);
         });
       },
       [isElectron],

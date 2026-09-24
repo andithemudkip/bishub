@@ -1,17 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import { getSocket, listen, onConnected, type SocketType } from "./socket";
 import type {
   VideoItem,
   DownloadProgress,
   UploadProgress,
 } from "../shared/videoLibrary.types";
-import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
-} from "../shared/types";
-import { getDeviceToken, getApiUrl, updateProgressList } from "../shared/utils";
+import { getApiUrl, updateProgressList } from "../shared/utils";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 interface VideoLibraryAPI {
   videos: VideoItem[];
@@ -62,27 +57,27 @@ export function useVideoLibrary(
         unsubUpload();
       };
     } else {
-      const token = getDeviceToken();
-      if (!token) return;
-      const socket: SocketType = io({
-        auth: { token },
-      });
+      const socket = getSocket();
+      if (!socket) return;
       socketRef.current = socket;
 
-      socket.on("connect", () => {
+      const off = listen(socket, {
+        videoLibrary: setVideos,
+        downloadProgress: (progress) => {
+          setDownloads((prev) => updateProgressList(prev, progress, setDownloads));
+        },
+        uploadProgress: (progress) => {
+          setUploads((prev) => updateProgressList(prev, progress, setUploads));
+        },
+      });
+      const offConnected = onConnected(socket, () => {
         socket.emit("getVideoLibrary");
-      });
-
-      socket.on("videoLibrary", setVideos);
-      socket.on("downloadProgress", (progress) => {
-        setDownloads((prev) => updateProgressList(prev, progress, setDownloads));
-      });
-      socket.on("uploadProgress", (progress) => {
-        setUploads((prev) => updateProgressList(prev, progress, setUploads));
+        socket.emit("getInFlight");
       });
 
       return () => {
-        socket.disconnect();
+        off();
+        offConnected();
       };
     }
   }, [isElectron]);

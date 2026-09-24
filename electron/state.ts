@@ -2,6 +2,7 @@ import type {
   DisplayState,
   AppSettings,
   DisplayMode,
+  LayerKind,
   ClockPosition,
   AudioWidgetPosition,
   TextContentType,
@@ -22,6 +23,7 @@ import {
 import type { QueueTrack, AudioQueueState } from "../src/shared/audioPlaylist.types";
 import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getAudioLibrary } from "./audioLibrary";
+import { getVideoLibrary } from "./videoLibrary";
 import { getAudioPlaylists } from "./audioPlaylists";
 import Store from "electron-store";
 import crypto from "crypto";
@@ -351,6 +353,7 @@ export class StateManager {
     this.state.video = {
       src,
       videoId: videoId ?? null,
+      name: videoId ? (getVideoLibrary().getById(videoId)?.name ?? null) : null,
       playing: false,
       currentTime: 0,
       duration: 0,
@@ -373,9 +376,32 @@ export class StateManager {
   stopVideo() {
     this.state.video.src = null;
     this.state.video.videoId = null;
+    this.state.video.name = null;
     this.state.video.currentTime = 0;
     this.state.video.duration = 0;
     this.goIdle();
+  }
+
+  /**
+   * Release a layer that's loaded but not on screen — a paused video left
+   * behind by switching to a hymn, a half-finished slideshow. Never touches
+   * `mode`: `stopVideo` would, since it ends in `goIdle`, and clearing
+   * something hidden must not blank what's showing. The layer on screen is
+   * left alone; going idle is how that one is cleared.
+   */
+  clearLayer(kind: LayerKind) {
+    if (this.state.mode === kind) return;
+    if (kind === "text") {
+      this.stopHymnAudio();
+      this.cachedScreenGroups = [];
+      this.state.text = { ...DEFAULT_STATE.text, slides: [] };
+    } else if (kind === "video") {
+      this.state.video = { ...DEFAULT_STATE.video, volume: this.state.video.volume };
+    } else {
+      this.clearAutoAdvanceTimer();
+      this.state.image = { ...DEFAULT_STATE.image, slideshowImages: [] };
+    }
+    this.notifyStateChange();
   }
 
   seekVideo(time: number) {

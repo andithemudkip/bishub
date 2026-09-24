@@ -1,4 +1,5 @@
 import type { Language } from "./i18n";
+import type { QuickSearchResponse } from "./quickSearch.types";
 import { DEFAULT_SLIDE_BACKGROUND, DEFAULT_BIBLE_BACKGROUND } from "./slideTheme";
 import type {
   VideoItem,
@@ -26,6 +27,9 @@ import type { HymnalInfo } from "./hymnals";
 import type { AudioPlaylist, AudioQueueState } from "./audioPlaylist.types";
 
 export type DisplayMode = "idle" | "text" | "video" | "image";
+
+/** A display mode that holds content of its own — everything but idle. */
+export type LayerKind = Exclude<DisplayMode, "idle">;
 
 export type ClockPosition =
   | "top-left"
@@ -76,6 +80,8 @@ export interface TextState {
 export interface VideoState {
   src: string | null;
   videoId: string | null;
+  /** Library name at load time, for labels; null when not from the library. */
+  name: string | null;
   playing: boolean;
   currentTime: number;
   duration: number;
@@ -235,12 +241,22 @@ export interface DeviceInfo {
 }
 
 // Socket.io event types
+/** Progress of a Bible translation download, broadcast to every client. */
+export interface BibleTranslationStatus {
+  translationId: string;
+  status: "downloading" | "ready" | "error";
+  progress?: number;
+  error?: string;
+}
+
 export type ServerToClientEvents = {
   stateUpdate: (state: DisplayState) => void;
   settingsUpdate: (settings: AppSettings) => void;
   monitors: (monitors: MonitorInfo[]) => void;
   devices: (devices: DeviceInfo[]) => void;
   connectedDeviceIds: (ids: string[]) => void;
+  /** Whether the fullscreen display window is currently open. Reply to getDisplayWindowState, and on change. */
+  displayWindowState: (open: boolean) => void;
   hymns: (slug: string, hymns: Hymn[]) => void;
   /** The merged book list: bundled hymnals plus the user's own books. */
   hymnals: (hymnals: HymnalInfo[]) => void;
@@ -249,12 +265,13 @@ export type ServerToClientEvents = {
   /** Outcome of a delete, sent only to the socket that asked for it. */
   customHymnDeleted: (slug: string, number: string, deleted: boolean) => void;
   hymnSearchResults: (results: HymnSearchResult[]) => void;
+  quickSearchResults: (response: QuickSearchResponse) => void;
   bibleBooks: (
     books: { id: string; name: string; chapterCount: number }[]
   ) => void;
   bibleChapter: (verses: BibleVerse[]) => void;
   bibleSearchResults: (results: BibleSearchResult[]) => void;
-  bibleTranslationStatus: (status: { translationId: string; status: "downloading" | "ready" | "error"; progress?: number; error?: string }) => void;
+  bibleTranslationStatus: (status: BibleTranslationStatus) => void;
   downloadedTranslations: (ids: string[]) => void;
   // Video Library
   videoLibrary: (videos: VideoItem[]) => void;
@@ -293,6 +310,16 @@ export type ClientToServerEvents = {
   pauseVideo: () => void;
   stopVideo: () => void;
   seekVideo: (time: number) => void;
+  /** Release a loaded layer that isn't on screen; no-op for the one showing. */
+  clearLayer: (kind: LayerKind) => void;
+  /** Reply: stateUpdate + settingsUpdate. */
+  getState: () => void;
+  getDisplayWindowState: () => void;
+  /**
+   * Replay every in-flight download and upload to this socket as its usual
+   * progress event, for a hook that mounts after they started.
+   */
+  getInFlight: () => void;
   setVolume: (volume: number) => void;
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;
@@ -321,6 +348,8 @@ export type ClientToServerEvents = {
   ) => void;
   setHymnal: (slug: string) => void;
   searchAllHymns: (query: string) => void;
+  /** Reply: quickSearchResults. */
+  quickSearch: (query: string) => void;
   /**
    * Hymn import. There is no parse event here on purpose: a deck arrives over
    * HTTP at POST /api/hymns/import, because a .pptx is megabytes of binary and
@@ -448,6 +477,7 @@ export const DEFAULT_STATE: DisplayState = {
   video: {
     src: null,
     videoId: null,
+    name: null,
     playing: false,
     currentTime: 0,
     duration: 0,

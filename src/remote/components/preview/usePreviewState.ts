@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
-import type { DisplayMode } from "../../../shared/types";
+import { useState, useCallback } from "react";
 
 const STORAGE_KEY_WIDTH = "preview-panel-width";
 const STORAGE_KEY_COLLAPSED = "preview-collapsed";
@@ -9,7 +8,6 @@ const MAX_WIDTH_PERCENT = 0.5;
 const DEFAULT_WIDTH = 300;
 
 interface UsePreviewStateOptions {
-  mode: DisplayMode;
   isMobile: boolean;
 }
 
@@ -17,6 +15,7 @@ interface PreviewState {
   isOpen: boolean;
   panelWidth: number;
   toggle: () => void;
+  open: () => void;
   setWidth: (width: number) => void;
   isResizing: boolean;
   startResize: () => void;
@@ -24,7 +23,6 @@ interface PreviewState {
 }
 
 export function usePreviewState({
-  mode,
   isMobile,
 }: UsePreviewStateOptions): PreviewState {
   // Load initial state from localStorage
@@ -34,35 +32,34 @@ export function usePreviewState({
     return stored ? parseInt(stored, 10) : DEFAULT_WIDTH;
   });
 
-  const [isManuallyCollapsed, setIsManuallyCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(STORAGE_KEY_COLLAPSED) === "true";
+  // Open vs. collapsed is the operator's choice and sticks — including across
+  // idle. The panel used to open only while presenting and forget a collapse
+  // on every idle, but it now shows loaded layers, activity and schedules,
+  // which are worth seeing with nothing on screen.
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY_COLLAPSED) === "true";
+    } catch {
+      return false;
+    }
   });
 
   const [isResizing, setIsResizing] = useState(false);
 
-  // Auto-open when mode changes to non-idle, auto-close when idle
-  const isDisplaying = mode !== "idle";
-
-  // Preview is open if:
-  // 1. We are displaying something (not idle)
-  // 2. AND user hasn't manually collapsed it
-  const isOpen = isDisplaying && !isManuallyCollapsed;
-
-  // Reset manual collapse when going to idle
-  useEffect(() => {
-    if (!isDisplaying) {
-      setIsManuallyCollapsed(false);
+  const persistCollapsed = useCallback((collapsed: boolean) => {
+    setIsCollapsed(collapsed);
+    try {
+      localStorage.setItem(STORAGE_KEY_COLLAPSED, String(collapsed));
+    } catch {
+      // Private mode / blocked storage: the choice just won't persist.
     }
-  }, [isDisplaying]);
+  }, []);
 
   const toggle = useCallback(() => {
-    setIsManuallyCollapsed((prev) => {
-      const newValue = !prev;
-      localStorage.setItem(STORAGE_KEY_COLLAPSED, String(newValue));
-      return newValue;
-    });
-  }, []);
+    persistCollapsed(!isCollapsed);
+  }, [isCollapsed, persistCollapsed]);
+
+  const open = useCallback(() => persistCollapsed(false), [persistCollapsed]);
 
   const setWidth = useCallback((width: number) => {
     const maxWidth = window.innerWidth * MAX_WIDTH_PERCENT;
@@ -75,9 +72,10 @@ export function usePreviewState({
   const endResize = useCallback(() => setIsResizing(false), []);
 
   return {
-    isOpen,
+    isOpen: !isCollapsed,
     panelWidth: isMobile ? 0 : panelWidth,
     toggle,
+    open,
     setWidth,
     isResizing,
     startResize,

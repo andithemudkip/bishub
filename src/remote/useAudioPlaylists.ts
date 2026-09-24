@@ -1,13 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import { getSocket, listen, onConnected, type SocketType } from "./socket";
 import type { AudioPlaylist } from "../shared/audioPlaylist.types";
-import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
-} from "../shared/types";
-import { getDeviceToken } from "../shared/utils";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 export interface AudioPlaylistsAPI {
   playlists: AudioPlaylist[];
@@ -54,23 +48,22 @@ export function useAudioPlaylists(): AudioPlaylistsAPI {
         unsubQueue();
       };
     } else {
-      const token = getDeviceToken();
-      if (!token) return;
-      const socket: SocketType = io({
-        auth: { token },
-      });
+      const socket = getSocket();
+      if (!socket) return;
       socketRef.current = socket;
 
-      socket.on("connect", () => {
+      const off = listen(socket, {
+        audioPlaylists: setPlaylists,
+        audioQueue: setQueueAudioIds,
+      });
+      const offConnected = onConnected(socket, () => {
         socket.emit("getAudioPlaylists");
         socket.emit("getAudioQueue");
       });
 
-      socket.on("audioPlaylists", setPlaylists);
-      socket.on("audioQueue", setQueueAudioIds);
-
       return () => {
-        socket.disconnect();
+        off();
+        offConnected();
       };
     }
   }, [isElectron]);
