@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { ShortcutHint } from "../ui/ShortcutHint";
 import {
   parseBibleReference,
   parseBibleReferenceWithBooks,
@@ -119,13 +120,18 @@ export default function SmartSearchBar({
           placeholder={t.bible.searchPlaceholder}
           className="w-full px-4 py-3 pr-10 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        {value && (
+        {value ? (
           <button
             onClick={() => onChange("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
           >
             <CloseIcon />
           </button>
+        ) : (
+          <ShortcutHint
+            shortcut="focusSearch"
+            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500"
+          />
         )}
       </div>
       {!value && (

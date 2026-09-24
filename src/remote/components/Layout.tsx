@@ -15,6 +15,7 @@ import {
   type StageActions,
 } from "./stage";
 import { QuickSearch, type QuickSearchActions } from "./search/QuickSearch";
+import { ShortcutHint } from "./ui/ShortcutHint";
 import { HymnsIcon } from "./icons/hymns";
 import { BibleIcon } from "./icons/bible";
 import { ImageIcon } from "./icons/image";
@@ -91,6 +92,7 @@ export default function Layout({
   const preview = usePreviewState({ isMobile });
 
   const t = getTranslations(settings.language);
+  const isElectron = !!window.electronAPI;
 
   const navItems = useMemo(
     () => [
@@ -233,7 +235,7 @@ export default function Layout({
               <button
                 key={item.id}
                 onClick={() => setCurrentPage(item.id)}
-                className={`w-full px-3 py-2.5 flex items-center gap-3 rounded-lg transition-colors overflow-hidden ${
+                className={`group w-full px-3 py-2.5 flex items-center gap-3 rounded-lg transition-colors overflow-hidden ${
                   currentPage === item.id
                     ? "bg-blue-600/20 text-blue-400"
                     : "text-gray-400 hover:text-gray-200 hover:bg-gray-800"
@@ -244,6 +246,16 @@ export default function Layout({
                   <NavBadge pages={[item.id]} t={t} />
                 </span>
                 <span className="text-sm whitespace-nowrap overflow-hidden">{item.label}</span>
+                {/* Browsers keep ⌘1–⌘7 for switching tabs, so the page-switch
+                    shortcut only really works in the app. */}
+                {sidebarOpen && isElectron && (
+                  <ShortcutHint
+                    shortcut="switchPage"
+                    keyLabel={String(PAGE_ORDER.indexOf(item.id) + 1)}
+                    quiet
+                    className="ml-auto"
+                  />
+                )}
               </button>
             ))}
           </nav>
@@ -298,9 +310,7 @@ export default function Layout({
             >
               <SearchIcon className="w-4 h-4" />
               <span className="flex-1 min-w-0 text-left truncate">{t.quickSearch.placeholder}</span>
-              <kbd className="flex-shrink-0 px-1.5 rounded bg-gray-700/60 text-xs text-gray-400 font-sans">
-                {navigator.platform.includes("Mac") ? "⌘K" : "Ctrl K"}
-              </kbd>
+              <ShortcutHint shortcut="quickSearch" />
             </button>
 
             {/* Quick controls */}
@@ -397,6 +407,7 @@ export default function Layout({
                 >
                   <StopIcon className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{t.header.goIdle}</span>
+                  <ShortcutHint shortcut="goIdle" className="ml-0.5" />
                 </button>
               )}
             </div>
