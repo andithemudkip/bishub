@@ -175,16 +175,6 @@ function matchesHymn(hymn: Hymn, query: string, normalizedQuery: string): boolea
   );
 }
 
-export function searchHymns(
-  query: string,
-  slug: string = DEFAULT_HYMNAL_SLUG,
-): Hymn[] {
-  const normalizedQuery = normalizeForSearch(query);
-  return loadHymns(slug)
-    .filter((h) => matchesHymn(h, query, normalizedQuery))
-    .slice(0, 20); // Limit results
-}
-
 /**
  * Search every book at once. Runs in the main process because the renderer
  * only ever holds one book at a time — shipping every book to the client just to

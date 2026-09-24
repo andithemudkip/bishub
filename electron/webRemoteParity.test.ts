@@ -61,8 +61,6 @@ const IPC_COUNTERPARTS: Record<string, Counterpart> = {
   "audio-time-update": { electronOnly: "display → main playback clock" },
   "audio-ended": { electronOnly: "display → main playback event" },
   "audio-error": { electronOnly: "display → main playback event" },
-
-  "search-hymns": { electronOnly: "unused by the remote, which filters the loaded book itself" },
 };
 
 /** Broadcasts with no same-named io.emit, and why. */

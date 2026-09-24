@@ -7,7 +7,6 @@ import { StateManager } from "./state";
 import { initUpdater, checkForUpdates, quitAndInstall } from "./updater";
 import {
   loadHymns,
-  searchHymns,
   searchAllHymns,
   getBibleBooks,
   getBibleChapter,
@@ -363,10 +362,6 @@ function setupIPC() {
   // Hymn handlers
   ipcMain.handle("get-hymns", (_event, slug?: string) => {
     return loadHymns(resolveHymnalSlug(stateManager, slug));
-  });
-
-  ipcMain.handle("search-hymns", (_event, query: string, slug?: string) => {
-    return searchHymns(query, resolveHymnalSlug(stateManager, slug));
   });
 
   ipcMain.handle(
