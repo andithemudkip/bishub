@@ -43,7 +43,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["electron/**/*.ts"],
+    files: ["electron/**/*.ts", "test/**/*.ts", "vitest.config.ts"],
     languageOptions: {
       ecmaVersion: 2020,
       globals: { ...globals.node },

@@ -115,6 +115,8 @@ npm run dev             # Vite only (builds preload first)
 npm run typecheck       # Type-check all three tsconfigs (main + node + electron)
 npm run lint            # ESLint — run before declaring work done; all rules are errors
 npm run lint:fix        # Auto-fix what ESLint can
+npm test                # Vitest, once (run before declaring work done)
+npm run test:watch      # Vitest in watch mode
 npm run build           # typecheck + bundle renderer — use to verify before declaring work done
 npm run electron:build  # Package for current platform locally (no publish)
 npm run build:mac       # Package macOS locally
@@ -126,7 +128,14 @@ npm run build:preload   # Rebundle preload.ts manually
 npm run build:ttml      # Rebundle TTML hymns manually
 ```
 
-No test scripts exist — verify work by running `npm run build`, which chains `typecheck → lint → bundle`. Either step failing aborts the build, so `build` green ≈ code is shippable. For faster iteration during a change, run `npm run typecheck` and `npm run lint` directly.
+Verify work with `npm run build` (chains `typecheck → lint → bundle`; any step failing aborts, so `build` green ≈ shippable) **and** `npm test` — tests are deliberately not part of `build`. For faster iteration, run `npm run typecheck`, `npm run lint` and `npm run test:watch` directly.
+
+**Testing** uses Vitest (`vitest.config.ts`, separate from `vite.config.ts`, which would launch Electron). Tests sit next to their source as `foo.test.ts`; for now only `electron/` and `src/shared/` are collected, in a `node` environment. New logic in either should come with tests.
+
+- `electron` and `electron-store` are aliased to `test/mocks/` for every test: an in-memory store (reset before each test; `seedStore`/`readStore` to arrange and assert) and an `app` whose `getPath` points at a temp dir. `net.request` throws — mock network explicitly with `vi.mock` in the test that needs it.
+- `TZ` is pinned to `Europe/Bucharest` (it has DST), so build dates with local `new Date(y, m, d, h, min)` and pass `now` explicitly rather than reading the clock.
+- Invariant guards live in tests: `i18n.test.ts` checks `ro`/`en` placeholders match, and `dataLoader.test.ts` deep-freezes (`test/helpers.ts`) the cached hymnals/Bible and runs every read path, so mutating cached data throws. Add new read paths over cached data there.
+- CI (`.github/workflows/ci.yml`) runs typecheck, lint and tests on macOS and Windows for every push to `master` and every PR.
 
 **Linting** uses flat ESLint config (`eslint.config.js`) with `typescript-eslint` + `react-hooks` + `react-refresh`. All enabled rules are errors — including `any`, `@ts-ignore`, `no-require-imports`, `exhaustive-deps`, and `only-export-components`. The baseline is zero; keep it that way. React-hooks v7 rules (`set-state-in-effect`, `refs`, `purity`, `immutability`, `preserve-manual-memoization`) are disabled — they'd need a wider refactor. Don't reach for `eslint-disable` to unblock yourself; fix the underlying issue.
 
