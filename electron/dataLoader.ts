@@ -163,9 +163,15 @@ export function resolveHymnDisplay(
   return { kind: "static", title, slides };
 }
 
-function matchesHymn(hymn: Hymn, query: string, lowerQuery: string): boolean {
+/**
+ * `normalizedQuery` is `normalizeForSearch(query)`: titles are compared without
+ * diacritics, so "cat de mare" finds "Cât de mare" — operators rarely type the
+ * Romanian accents on a phone keyboard.
+ */
+function matchesHymn(hymn: Hymn, query: string, normalizedQuery: string): boolean {
   return (
-    hymn.number.includes(query) || hymn.title.toLowerCase().includes(lowerQuery)
+    hymn.number.includes(query) ||
+    normalizeForSearch(hymn.title).includes(normalizedQuery)
   );
 }
 
@@ -173,9 +179,9 @@ export function searchHymns(
   query: string,
   slug: string = DEFAULT_HYMNAL_SLUG,
 ): Hymn[] {
-  const lowerQuery = query.toLowerCase();
+  const normalizedQuery = normalizeForSearch(query);
   return loadHymns(slug)
-    .filter((h) => matchesHymn(h, query, lowerQuery))
+    .filter((h) => matchesHymn(h, query, normalizedQuery))
     .slice(0, 20); // Limit results
 }
 
@@ -187,7 +193,7 @@ export function searchHymns(
 export function searchAllHymns(query: string): HymnSearchResult[] {
   const trimmed = query.trim();
   if (!trimmed) return [];
-  const lowerQuery = trimmed.toLowerCase();
+  const normalizedQuery = normalizeForSearch(trimmed);
 
   // Capped per book rather than overall: a broad query like "Isus" matches far
   // more than the cap in the largest hymnal alone, so a single global limit
@@ -197,7 +203,7 @@ export function searchAllHymns(query: string): HymnSearchResult[] {
   for (const hymnal of getHymnals()) {
     let taken = 0;
     for (const hymn of loadHymns(hymnal.slug)) {
-      if (!matchesHymn(hymn, trimmed, lowerQuery)) continue;
+      if (!matchesHymn(hymn, trimmed, normalizedQuery)) continue;
       results.push({ book: hymnal.slug, bookName: hymnal.shortName, hymn });
       if (++taken >= PER_BOOK_LIMIT) break;
     }
