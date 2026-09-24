@@ -98,7 +98,8 @@ function shuffleable(row: Row | undefined): PlaylistHit | null {
 /**
  * One box across hymns, Bible and media. Results are actions, not a page:
  * Enter shows the selected result on the display, Shift+Enter (or the arrow
- * on each row) opens it on its own page instead.
+ * on each row) opens it on its own page instead. Hymns and Bible verses open
+ * their page either way — that's where their slide controls live.
  */
 export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, t }: Props) {
   const [query, setQuery] = useState(initialQuery);
@@ -188,7 +189,13 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
       const { hit } = row;
       const openBible = (chapter: number, verse: number, bookId: string, bookName: string) => {
         onNavigate("bible");
-        sendPageIntent({ page: "bible", open: { bookId, bookName, chapter, verse } });
+        // A recent is picked with nothing typed; the history then shows the
+        // reference alone, as it does for a browsed chapter.
+        sendPageIntent({
+          page: "bible",
+          open: { bookId, bookName, chapter, verse },
+          query: query.trim() || `${bookName} ${chapter}:${verse}`,
+        });
       };
 
       switch (hit.kind) {
@@ -197,20 +204,26 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
             onNavigate("hymns");
             sendPageIntent({ page: "hymns", query: hit.title });
           } else {
+            // Land where a normal search would have left you: the page's
+            // live banner picks up the hymn from the display state.
             actions.loadHymn(hit.book, hit.number);
+            onNavigate("hymns");
           }
           break;
         case "reference":
           // A chapter alone has no verses picked yet: open it to choose.
-          if (openPage || !hit.verseGiven) {
-            openBible(hit.chapter, hit.startVerse, hit.bookId, hit.bookName);
-          } else {
+          // Presenting also opens the chapter, as the Bible page's own search
+          // does, so the next verse is one tap away.
+          if (!openPage && hit.verseGiven) {
             actions.loadBibleVerses(hit.bookId, hit.bookName, hit.chapter, hit.startVerse, hit.endVerse);
           }
+          openBible(hit.chapter, hit.startVerse, hit.bookId, hit.bookName);
           break;
         case "verse":
-          if (openPage) openBible(hit.chapter, hit.verse, hit.bookId, hit.bookName);
-          else actions.loadBibleVerses(hit.bookId, hit.bookName, hit.chapter, hit.verse, hit.verse);
+          if (!openPage) {
+            actions.loadBibleVerses(hit.bookId, hit.bookName, hit.chapter, hit.verse, hit.verse);
+          }
+          openBible(hit.chapter, hit.verse, hit.bookId, hit.bookName);
           break;
         // The library pages load media paused so it can be cued; picking it
         // here means "put it on now". Both transports keep order, so the play

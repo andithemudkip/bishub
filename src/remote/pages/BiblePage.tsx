@@ -190,7 +190,9 @@ export default function BiblePage({
   usePageIntent("bible", (intent) => {
     if ("open" in intent) {
       const { bookId, bookName, chapter, verse } = intent.open;
-      navigateToVerseList(bookId, bookName, chapter, verse);
+      navigateToVerseList(bookId, bookName, chapter, verse).then((ok) => {
+        if (ok) addToHistory(bookId, bookName, chapter, verse, intent.query);
+      });
     } else {
       setView({ type: "search" });
       setSearchInput(intent.query);
