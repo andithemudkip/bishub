@@ -17,6 +17,8 @@
     "typecheck:electron": "tsc -p electron/tsconfig.json --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test": "npm run build:ttml && vitest run",
+    "test:watch": "npm run build:ttml && vitest",
     "build": "npm run build:ttml && npm run typecheck && npm run lint && npm run build:preload && vite build",
     "build:mac": "npm run build && electron-builder --mac --publish never",
     "build:win": "npm run build && electron-builder --win --x64 --publish never",
@@ -69,6 +71,7 @@
     "vite": "^5.0.8",
     "vite-plugin-electron": "^0.28.0",
     "vite-plugin-electron-renderer": "^0.14.5",
+    "vitest": "^3.2.7",
     "wait-on": "^7.2.0"
   },
   "build": {

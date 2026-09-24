@@ -18,11 +18,49 @@ export interface ParsedTTML {
   duration: number; // total duration in seconds
 }
 
-// Parse TTML time format "M:SS.mmm" or "MM:SS.mmm" to seconds
+const OFFSET_UNITS: Record<string, number> = { h: 3600, m: 60, s: 1, ms: 0.001 };
+
+// Parse a TTML time expression to seconds: clock time ("M:SS.mmm",
+// "H:MM:SS.mmm") or offset time ("13.5s", "500ms", "2m", "1h"). Frame and
+// tick units need the document's frame/tick rate, which we don't read, so
+// they (like anything else unparseable) come out as 0.
 function parseTime(time: string): number {
-  const match = time.match(/^(\d+):(\d+(?:\.\d+)?)$/);
-  if (!match) return 0;
-  return parseInt(match[1]) * 60 + parseFloat(match[2]);
+  const trimmed = time.trim();
+  const clock = trimmed.match(/^(?:(\d+):)?(\d+):(\d+(?:\.\d+)?)$/);
+  if (clock) {
+    const [, hours = "0", minutes, seconds] = clock;
+    return parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseFloat(seconds);
+  }
+  const offset = trimmed.match(/^(\d+(?:\.\d+)?)(h|ms|m|s)$/);
+  if (offset) return parseFloat(offset[1]) * OFFSET_UNITS[offset[2]];
+  return 0;
+}
+
+// Attribute value by exact name, in either quote style. The leading
+// whitespace keeps "begin" from matching a namespaced "ttm:begin".
+function getAttribute(attributes: string, name: string): string | null {
+  const match = attributes.match(new RegExp(`\\s${name}\\s*=\\s*(["'])(.*?)\\1`));
+  return match ? match[2] : null;
+}
+
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+};
+
+// One pass, so "&amp;lt;" correctly becomes "&lt;" rather than "<".
+function decodeEntities(text: string): string {
+  return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (entity, body: string) => {
+    if (body[0] === "#") {
+      const code =
+        body[1] === "x" || body[1] === "X" ? parseInt(body.slice(2), 16) : parseInt(body.slice(1));
+      return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
+    }
+    return NAMED_ENTITIES[body] ?? entity;
+  });
 }
 
 export function parseTTML(xml: string): ParsedTTML {
@@ -30,9 +68,10 @@ export function parseTTML(xml: string): ParsedTTML {
 
   // Parse total duration from <body dur="M:SS.mmm">
   let duration = 0;
-  const durMatch = xml.match(/<body[^>]*\bdur="([^"]+)"/);
-  if (durMatch) {
-    duration = parseTime(durMatch[1]);
+  const bodyMatch = xml.match(/<body\b([^>]*)>/);
+  const dur = bodyMatch && getAttribute(bodyMatch[1], "dur");
+  if (dur) {
+    duration = parseTime(dur);
   }
 
   // Extract all <p> elements (lines)
@@ -43,16 +82,19 @@ export function parseTTML(xml: string): ParsedTTML {
     const pContent = pMatch[0];
     const words: TTMLWord[] = [];
 
-    // Extract <span> elements (words) within this <p>
-    const spanRegex = /<span\b[^>]*\bbegin="([^"]+)"[^>]*\bend="([^"]+)"[^>]*>([\s\S]*?)<\/span>/g;
+    // Extract innermost <span> elements (words) within this <p>. Content
+    // may not contain another <span, so a wrapper span (e.g. background
+    // vocals) is skipped and its timed children are matched on their own.
+    const spanRegex = /<span\b([^>]*)>((?:(?!<span\b)[\s\S])*?)<\/span>/g;
     let spanMatch;
 
     while ((spanMatch = spanRegex.exec(pContent)) !== null) {
-      const begin = parseTime(spanMatch[1]);
-      const end = parseTime(spanMatch[2]);
-      const text = spanMatch[3].trim();
+      const beginAttr = getAttribute(spanMatch[1], "begin");
+      const endAttr = getAttribute(spanMatch[1], "end");
+      if (beginAttr === null || endAttr === null) continue;
+      const text = decodeEntities(spanMatch[2].trim());
       if (text) {
-        words.push({ text, begin, end });
+        words.push({ text, begin: parseTime(beginAttr), end: parseTime(endAttr) });
       }
     }
 
