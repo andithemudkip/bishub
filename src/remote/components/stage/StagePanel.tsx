@@ -1,14 +1,10 @@
 import { useEffect, useCallback, useRef, type ReactNode } from "react";
-import type { DisplayState, AppSettings } from "../../../shared/types";
 import type { Translations } from "../../../shared/i18n";
-import LivePreview from "../preview/LivePreview";
 import { MIN_WIDTH } from "../preview/usePreviewState";
 import { CollapseRightIcon } from "../icons/ui";
 import type { StageSection } from "./types";
 
 interface Props {
-  state: DisplayState;
-  settings: AppSettings;
   t: Translations;
   width: number;
   isResizing: boolean;
@@ -19,18 +15,12 @@ interface Props {
   /** Section the rail asked for; scrolled into view once, then cleared. */
   focusSection: StageSection | null;
   onFocusHandled: () => void;
-  /** Health banner, pinned above the scrolling content. */
-  banner: ReactNode;
-  /** Loaded / Activity / Coming up — each renders nothing when empty. */
+  /** The scrolling body — `StageSections`. */
   children: ReactNode;
-  /** Shown when every section is empty. */
-  isEmpty: boolean;
   footer: ReactNode;
 }
 
 export function StagePanel({
-  state,
-  settings,
   t,
   width,
   isResizing,
@@ -40,9 +30,7 @@ export function StagePanel({
   onResizeEnd,
   focusSection,
   onFocusHandled,
-  banner,
   children,
-  isEmpty,
   footer,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -99,8 +87,6 @@ export function StagePanel({
     onFocusHandled();
   }, [focusSection, onFocusHandled]);
 
-  const isIdle = state.mode === "idle";
-
   return (
     <div
       className={`relative flex-shrink-0 h-full bg-gray-800 border-l border-gray-700 flex flex-col ${
@@ -128,41 +114,7 @@ export function StagePanel({
       </div>
 
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto p-3 space-y-4">
-        {banner}
-
-        {/* Full preview while presenting; while idle it shrinks to a row so
-            the sections below get the space. */}
-        <div data-stage-section="preview" className="scroll-mt-2">
-          {isIdle ? (
-            <div className="flex items-center gap-3">
-              <div
-                className="relative w-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-700"
-                style={{ aspectRatio: "16/9" }}
-              >
-                <LivePreview state={state} settings={settings} showLabels={false} />
-              </div>
-              <span className="text-sm text-gray-400">{t.status.idle}</span>
-            </div>
-          ) : (
-            <>
-              <div
-                className="relative w-full rounded-lg overflow-hidden border border-gray-700"
-                style={{ aspectRatio: state.mode === "text" ? "3/4" : "16/9" }}
-              >
-                <LivePreview state={state} settings={settings} />
-              </div>
-              <div className="mt-2 text-xs text-gray-500 text-center truncate">
-                {presentingStatus(state, t)}
-              </div>
-            </>
-          )}
-        </div>
-
         {children}
-
-        {isEmpty && (
-          <p className="px-1 text-xs text-gray-500">{t.stage.nothingRunning}</p>
-        )}
       </div>
 
       <div className="flex-shrink-0 border-t border-gray-700 px-3 py-2">{footer}</div>
@@ -170,19 +122,3 @@ export function StagePanel({
   );
 }
 
-function presentingStatus(state: DisplayState, t: Translations): string {
-  switch (state.mode) {
-    case "text":
-      return state.text.title;
-    case "video": {
-      const status = state.video.playing ? t.status.playingVideo : t.status.videoPaused;
-      return state.video.name ? `${state.video.name} · ${status}` : status;
-    }
-    case "image":
-      return state.image.slideshowImages.length > 1
-        ? `${t.status.presentingSlideshow} · ${state.image.currentIndex + 1}/${state.image.slideshowImages.length}`
-        : t.status.presentingImage;
-    default:
-      return "";
-  }
-}

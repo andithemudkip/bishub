@@ -10,8 +10,10 @@ import {
   ClockIcon,
   WarningIcon,
   ProgressRingIcon,
+  CheckIcon,
 } from "../icons/ui";
 import type { StageSection } from "./types";
+import { activitySummary, aggregateProgress, soonSchedule } from "./stageStatus";
 
 interface Props {
   state: DisplayState;
@@ -21,9 +23,6 @@ interface Props {
   health: "ok" | "warning" | "error";
   onOpen: (section: StageSection | null) => void;
 }
-
-/** A schedule this close shows on the rail; further out it's panel-only. */
-const SOON_MS = 30 * 60_000;
 
 const MODE_DOT: Record<DisplayState["mode"], string> = {
   idle: "bg-gray-600",
@@ -39,8 +38,7 @@ const MODE_DOT: Record<DisplayState["mode"], string> = {
  */
 export function StageRail({ state, t, activities, upcomingSchedules, health, onOpen }: Props) {
   const next = upcomingSchedules[0];
-  const nextSoon =
-    next?.nextRunAt != null && next.nextRunAt - Date.now() <= SOON_MS ? next : null;
+  const nextSoon = soonSchedule(upcomingSchedules, Date.now());
 
   // Keep the "in 14m" label moving while a schedule is close.
   const [, setTick] = useState(0);
@@ -50,14 +48,7 @@ export function StageRail({ state, t, activities, upcomingSchedules, health, onO
     return () => clearInterval(id);
   }, [next]);
 
-  const hasError = activities.some((a) => a.status === "error");
-  const measured = activities.filter(
-    (a) => a.status === "running" && a.progress !== null
-  );
-  const aggregate =
-    measured.length > 0
-      ? measured.reduce((sum, a) => sum + (a.progress ?? 0), 0) / measured.length
-      : null;
+  const summary = activitySummary(activities);
 
   return (
     <div className="h-full w-12 flex-shrink-0 bg-gray-800 border-l border-gray-700 flex flex-col items-center gap-1 py-2">
@@ -85,17 +76,22 @@ export function StageRail({ state, t, activities, upcomingSchedules, health, onO
         </RailButton>
       )}
 
-      {activities.length > 0 && (
+      {summary && (
         <RailButton label={t.stage.railActivity} onClick={() => onOpen("activity")}>
-          {hasError ? (
+          {summary === "error" ? (
             <WarningIcon className="w-5 h-5 text-red-400" />
+          ) : summary === "done" ? (
+            <CheckIcon className="w-5 h-5 text-green-400" />
           ) : (
-            <ProgressRingIcon className="w-5 h-5 text-blue-400" progress={aggregate} />
+            <ProgressRingIcon
+              className="w-5 h-5 text-blue-400"
+              progress={aggregateProgress(activities)}
+            />
           )}
         </RailButton>
       )}
 
-      {nextSoon && nextSoon.nextRunAt !== null && (
+      {nextSoon && (
         <RailButton label={t.stage.railSchedule} onClick={() => onOpen("comingUp")}>
           <span className="flex flex-col items-center leading-none text-amber-300">
             <ClockIcon className="w-5 h-5" />

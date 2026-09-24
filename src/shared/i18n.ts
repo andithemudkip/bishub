@@ -553,6 +553,7 @@ export interface Translations {
     railActivity: string;
     railSchedule: string;
     railHealth: string;
+    close: string;
   };
 
   // Auth
@@ -1161,6 +1162,7 @@ const ro: Translations = {
     railActivity: "Activitate în fundal",
     railSchedule: "Următoarea programare",
     railHealth: "Problemă de afișare",
+    close: "Închide",
   },
   updates: {
     updateAvailable: "Actualizare disponibilă",
@@ -1759,6 +1761,7 @@ const en: Translations = {
     railActivity: "Background activity",
     railSchedule: "Next schedule",
     railHealth: "Display problem",
+    close: "Close",
   },
   updates: {
     updateAvailable: "Update available",
