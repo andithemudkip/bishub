@@ -12,7 +12,7 @@ These can't be derived from the code. Always apply them.
 
 ### Changes come with tests
 
-A new feature or behavior change in `electron/` or `src/shared/` ships with tests in the same change, and a bug fix ships with a regression test that fails without the fix. Use judgment about what earns one: branching logic, parsing, ranking, dates/scheduling, state transitions and anything arriving from a remote do; pure wiring (passing a value through, a new i18n string, markup) doesn't. Work isn't done until `npm test` is green. Renderer code (`src/remote`, `src/display`) isn't collected yet — when UI logic deserves a test, extract it into `src/shared`. See **Testing** below for the setup.
+A new feature or behavior change ships with tests in the same change, and a bug fix ships with a regression test that fails without the fix. Use judgment about what earns one: branching logic, parsing, ranking, dates/scheduling, state transitions and anything arriving from a remote do; pure wiring (passing a value through, a new i18n string, static markup) doesn't. In the remote and display that means hooks and components with real behavior, not every button. Work isn't done until `npm test` is green. See **Testing** below for the setup.
 
 ### Web Remote Parity
 
@@ -136,8 +136,9 @@ npm run build:ttml      # Rebundle TTML hymns manually
 
 Verify work with `npm run build` (chains `typecheck → lint → bundle`; any step failing aborts, so `build` green ≈ shippable) **and** `npm test` — tests are deliberately not part of `build`. For faster iteration, run `npm run typecheck`, `npm run lint` and `npm run test:watch` directly.
 
-**Testing** uses Vitest (`vitest.config.ts`, separate from `vite.config.ts`, which would launch Electron). Tests sit next to their source as `foo.test.ts`; for now only `electron/` and `src/shared/` are collected, in a `node` environment. What needs tests is under **Changes come with tests** above.
+**Testing** uses Vitest (`vitest.config.ts`, separate from `vite.config.ts`, which would launch Electron). Tests sit next to their source as `foo.test.ts` (`.test.tsx` for JSX), in one of two projects: `node` for `electron/` and `src/shared/`, and `dom` for `src/remote/` and `src/display/` (happy-dom + React Testing Library: `render`, `renderHook`, `act`; see `useSearchHistory.test.ts` and `ShortcutHint.test.tsx`). `npx vitest run --project dom` runs one. What needs tests is under **Changes come with tests** above.
 
+- In `dom` tests, components unmount and `localStorage` is cleared after each test (`test/setup.dom.ts`). Stub browser APIs with `vi.spyOn` (e.g. `navigator.platform` for ⌘ vs Ctrl) and restore them.
 - `electron` and `electron-store` are aliased to `test/mocks/` for every test: an in-memory store (reset before each test; `seedStore`/`readStore` to arrange and assert) and an `app` whose `getPath` points at a temp dir. `net.request` throws — mock network explicitly with `vi.mock` in the test that needs it.
 - `TZ` is pinned to `Europe/Bucharest` (it has DST), so build dates with local `new Date(y, m, d, h, min)` and pass `now` explicitly rather than reading the clock.
 - Invariant guards live in tests: `webRemoteParity.test.ts` (see Web Remote Parity), `i18n.test.ts` checks `ro`/`en` placeholders match, and `dataLoader.test.ts` deep-freezes (`test/helpers.ts`) the cached hymnals/Bible and runs every read path, so mutating cached data throws. Add new read paths over cached data there.
