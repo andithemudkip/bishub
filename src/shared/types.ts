@@ -1,4 +1,5 @@
 import type { Language } from "./i18n";
+import type { QuickSearchResponse } from "./quickSearch.types";
 import { DEFAULT_SLIDE_BACKGROUND, DEFAULT_BIBLE_BACKGROUND } from "./slideTheme";
 import type {
   VideoItem,
@@ -264,6 +265,7 @@ export type ServerToClientEvents = {
   /** Outcome of a delete, sent only to the socket that asked for it. */
   customHymnDeleted: (slug: string, number: string, deleted: boolean) => void;
   hymnSearchResults: (results: HymnSearchResult[]) => void;
+  quickSearchResults: (response: QuickSearchResponse) => void;
   bibleBooks: (
     books: { id: string; name: string; chapterCount: number }[]
   ) => void;
@@ -346,6 +348,8 @@ export type ClientToServerEvents = {
   ) => void;
   setHymnal: (slug: string) => void;
   searchAllHymns: (query: string) => void;
+  /** Reply: quickSearchResults. */
+  quickSearch: (query: string) => void;
   /**
    * Hymn import. There is no parse event here on purpose: a deck arrives over
    * HTTP at POST /api/hymns/import, because a .pptx is megabytes of binary and

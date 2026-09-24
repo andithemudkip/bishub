@@ -14,6 +14,7 @@ import {
   NavBadge,
   type StageActions,
 } from "./stage";
+import { QuickSearch, type QuickSearchActions } from "./search/QuickSearch";
 import { HymnsIcon } from "./icons/hymns";
 import { BibleIcon } from "./icons/bible";
 import { ImageIcon } from "./icons/image";
@@ -21,7 +22,7 @@ import { VideoIcon } from "./icons/video";
 import { AudioIcon } from "./icons/audio";
 import { TransferIcon } from "./icons/transfer";
 import { SettingsIcon } from "./icons/settings";
-import { ChevronLeftIcon, ChevronRightIcon, StopIcon, MoreIcon, FitFillIcon, FitContainIcon } from "./icons/ui";
+import { ChevronLeftIcon, ChevronRightIcon, StopIcon, MoreIcon, FitFillIcon, FitContainIcon, SearchIcon } from "./icons/ui";
 
 type Page = "hymns" | "bible" | "images" | "video" | "audio" | "transfer" | "settings";
 
@@ -39,6 +40,7 @@ interface Props {
   monitors: MonitorInfo[] | null;
   connectedDeviceCount: number;
   stageActions: StageActions;
+  quickSearchActions: QuickSearchActions;
 }
 
 const NAV_ICONS: Record<Page, React.ReactNode> = {
@@ -77,6 +79,7 @@ export default function Layout({
   monitors,
   connectedDeviceCount,
   stageActions,
+  quickSearchActions,
 }: Props) {
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState<Page>("hymns");
@@ -132,6 +135,41 @@ export default function Layout({
   }, [moreMenuOpen]);
 
   // Cmd/Ctrl + 1-6 to switch pages
+  // Quick Search: Cmd/Ctrl+K from anywhere, even mid-typing in a page's own
+  // search box; or just start typing with nothing focused.
+  const [quickSearch, setQuickSearch] = useState<{ open: boolean; initial: string }>({
+    open: false,
+    initial: "",
+  });
+  const openQuickSearch = (initial = "") => setQuickSearch({ open: true, initial });
+  useShortcut("quickSearch", () => openQuickSearch(), {
+    mod: true,
+    ignoreInputs: false,
+    preventDefault: true,
+  });
+  useEffect(() => {
+    if (quickSearch.open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      // A plain printable character — no shortcuts, no Space (nothing to search for).
+      if (e.key.length !== 1 || e.key === " ") return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target?.isContentEditable ||
+        document.querySelector('[aria-modal="true"]')
+      ) {
+        return;
+      }
+      e.preventDefault();
+      setQuickSearch({ open: true, initial: e.key });
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [quickSearch.open]);
+
   useShortcut(
     "switchPage",
     (e) => {
@@ -251,9 +289,19 @@ export default function Layout({
 
           {/* Header with controls */}
           <header className="flex-shrink-0 bg-gray-900 px-3 md:px-4 py-2 md:py-3 flex flex-col sm:flex-row sm:items-center gap-2 border-b border-gray-800">
-            <h1 className="text-lg font-semibold hidden md:block">
-              {navItems.find((i) => i.id === currentPage)?.label}
-            </h1>
+            {/* Desktop: the search field takes the title's place — the sidebar
+                already marks the current page — so it sits in the same spot,
+                at the same width, on every page. */}
+            <button
+              onClick={() => openQuickSearch()}
+              className="hidden md:flex flex-1 max-w-md min-w-0 items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 text-sm text-gray-500 hover:text-gray-300 hover:border-gray-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              <SearchIcon className="w-4 h-4" />
+              <span className="flex-1 min-w-0 text-left truncate">{t.quickSearch.placeholder}</span>
+              <kbd className="flex-shrink-0 px-1.5 rounded bg-gray-700/60 text-xs text-gray-400 font-sans">
+                {navigator.platform.includes("Mac") ? "⌘K" : "Ctrl K"}
+              </kbd>
+            </button>
 
             {/* Quick controls */}
             <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1 min-h-8">
@@ -262,6 +310,13 @@ export default function Layout({
               <h1 className={`text-lg font-semibold md:hidden mr-auto min-w-0 truncate ${state.mode === "idle" ? "block" : "hidden sm:block"}`}>
                 {navItems.find((i) => i.id === currentPage)?.label}
               </h1>
+              <button
+                onClick={() => openQuickSearch()}
+                className="md:hidden min-w-11 min-h-11 flex items-center justify-center flex-shrink-0 rounded-lg bg-gray-800/50 border border-gray-700/50 text-gray-300 active:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                aria-label={t.quickSearch.button}
+              >
+                <SearchIcon className="w-5 h-5" />
+              </button>
               <StageChip state={state} t={t} onOpen={() => setStageSheetOpen(true)} />
               {state.mode === "text" && state.text.slides.length > 0 && (
                 <div className="flex items-center bg-gray-800/50 border border-gray-700/50 rounded-lg overflow-hidden">
@@ -433,6 +488,15 @@ export default function Layout({
             )}
           </div>
         </nav>
+
+        <QuickSearch
+          open={quickSearch.open}
+          initialQuery={quickSearch.initial}
+          onClose={() => setQuickSearch((q) => ({ ...q, open: false }))}
+          onNavigate={setCurrentPage}
+          actions={quickSearchActions}
+          t={t}
+        />
 
         <StageNavSync page={currentPage} />
         <StageToasts currentPage={currentPage} onNavigate={setCurrentPage} t={t} />

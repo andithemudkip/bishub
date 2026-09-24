@@ -239,6 +239,7 @@ export interface Translations {
     openOnStartup: string;
     focusSearch: string;
     switchPage: string;
+    quickSearch: string;
     // Idle screen settings
     idleScreen: string;
     wallpaper: string;
@@ -508,6 +509,28 @@ export interface Translations {
     current: string;
     next: string;
     endOfSlides: string;
+  };
+
+  // Quick Search: one box across hymns, Bible and media (Cmd/Ctrl+K)
+  quickSearch: {
+    button: string;
+    placeholder: string;
+    groupHymns: string;
+    groupReference: string;
+    groupBible: string;
+    groupMedia: string;
+    showAll: string;
+    noResults: string;
+    recent: string;
+    inLyrics: string;
+    karaoke: string;
+    openChapter: string;
+    openPage: string;
+    playlist: string;
+    hintShow: string;
+    hintOpen: string;
+    hintGroups: string;
+    hintClose: string;
   };
 
   // Stage: the live panel beside every page (preview, loaded layers,
@@ -850,6 +873,7 @@ const ro: Translations = {
     volume: "Volum",
     focusSearch: "Focalizează câmpul de căutare",
     switchPage: "Schimbă pagina",
+    quickSearch: "Căutare rapidă",
     // Idle screen settings
     idleScreen: "Ecran de așteptare",
     wallpaper: "Fundal",
@@ -1164,6 +1188,26 @@ const ro: Translations = {
     railHealth: "Problemă de afișare",
     close: "Închide",
   },
+  quickSearch: {
+    button: "Caută",
+    placeholder: "Caută imnuri, Biblie, media...",
+    groupHymns: "Imnuri",
+    groupReference: "Referință biblică",
+    groupBible: "Biblie",
+    groupMedia: "Media",
+    showAll: "Arată toate (încă {n})",
+    noResults: "Niciun rezultat",
+    recent: "Recente",
+    inLyrics: "în versuri",
+    karaoke: "Karaoke",
+    openChapter: "Deschide capitolul",
+    openPage: "Deschide pagina",
+    playlist: "Listă de redare",
+    hintShow: "afișează",
+    hintOpen: "deschide pagina",
+    hintGroups: "grupuri",
+    hintClose: "închide",
+  },
   updates: {
     updateAvailable: "Actualizare disponibilă",
     updateDownloading: "Se descarcă actualizarea...",
@@ -1449,6 +1493,7 @@ const en: Translations = {
     volume: "Volume",
     focusSearch: "Focus search input",
     switchPage: "Switch page",
+    quickSearch: "Quick search",
     // Idle screen settings
     idleScreen: "Idle Screen",
     wallpaper: "Wallpaper",
@@ -1762,6 +1807,26 @@ const en: Translations = {
     railSchedule: "Next schedule",
     railHealth: "Display problem",
     close: "Close",
+  },
+  quickSearch: {
+    button: "Search",
+    placeholder: "Search hymns, Bible, media...",
+    groupHymns: "Hymns",
+    groupReference: "Bible reference",
+    groupBible: "Bible",
+    groupMedia: "Media",
+    showAll: "Show all ({n} more)",
+    noResults: "No results",
+    recent: "Recent",
+    inLyrics: "in lyrics",
+    karaoke: "Karaoke",
+    openChapter: "Open chapter",
+    openPage: "Open page",
+    playlist: "Playlist",
+    hintShow: "show",
+    hintOpen: "open page",
+    hintGroups: "groups",
+    hintClose: "close",
   },
   updates: {
     updateAvailable: "Update available",

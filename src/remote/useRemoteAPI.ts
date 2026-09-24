@@ -22,6 +22,7 @@ import type {
   LayerKind,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
+import type { QuickSearchResponse } from "../shared/quickSearch.types";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
 
 /** Stable empty list, so consumers' memos don't see a new array each render. */
@@ -83,6 +84,7 @@ interface RemoteAPI {
   ) => void;
   setHymnal: (slug: string) => void;
   searchAllHymns: (query: string) => Promise<HymnSearchResult[]>;
+  quickSearch: (query: string) => Promise<QuickSearchResponse>;
   // Hymn import
   /**
    * Choose decks and parse them. On Electron this opens the native picker and
@@ -207,6 +209,12 @@ export function useRemoteAPI(): RemoteAPI {
     ((results: HymnSearchResult[]) => void) | null
   >(null);
   /**
+   * Quick Search replies by query, not a single slot: the operator types
+   * faster than replies arrive, and each keystroke's promise must resolve
+   * with its own results rather than whichever came back last.
+   */
+  const quickSearchCbs = useRef(new Map<string, Array<(r: QuickSearchResponse) => void>>());
+  /**
    * Pending import replies, oldest first.
    *
    * A queue rather than the single slot the search callbacks use: importing a
@@ -290,6 +298,11 @@ export function useRemoteAPI(): RemoteAPI {
         },
         customHymnDeleted: (_slug, _number, deleted) => {
           deleteHymnCbs.current.shift()?.(deleted);
+        },
+        quickSearchResults: (response) => {
+          const waiting = quickSearchCbs.current.get(response.query);
+          quickSearchCbs.current.delete(response.query);
+          waiting?.forEach((resolve) => resolve(response));
         },
         hymnSearchResults: (results) => {
           if (hymnSearchCb.current) {
@@ -648,6 +661,18 @@ export function useRemoteAPI(): RemoteAPI {
         return new Promise<HymnSearchResult[]>((resolve) => {
           hymnSearchCb.current = resolve;
           socketRef.current?.emit("searchAllHymns", query);
+        });
+      },
+      [isElectron],
+    ),
+
+    quickSearch: useCallback(
+      (query: string) => {
+        if (isElectron) return window.electronAPI!.quickSearch(query);
+        return new Promise<QuickSearchResponse>((resolve) => {
+          const waiting = quickSearchCbs.current.get(query) ?? [];
+          quickSearchCbs.current.set(query, [...waiting, resolve]);
+          socketRef.current?.emit("quickSearch", query);
         });
       },
       [isElectron],

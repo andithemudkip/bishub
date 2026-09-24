@@ -62,6 +62,7 @@ import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
+import { quickSearch } from "./quickSearch";
 import {
   startDownload,
   startAudioDownload,
@@ -904,6 +905,14 @@ export function createServer(
 
     socket.on("searchAllHymns", (query) => {
       socket.emit("hymnSearchResults", searchAllHymns(query));
+    });
+
+    socket.on("quickSearch", (query) => {
+      const settings = stateManager.getSettings();
+      socket.emit(
+        "quickSearchResults",
+        quickSearch(query, settings.language, settings.bibleTranslation, settings.hymnal)
+      );
     });
 
     socket.on("setHymnal", (slug) => {

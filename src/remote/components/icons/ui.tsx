@@ -260,3 +260,10 @@ export const ProgressRingIcon = ({
     </svg>
   );
 };
+
+export const SearchIcon = ({ className = "w-4 h-4" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="7" strokeWidth={2} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 20l-4-4" />
+  </svg>
+);

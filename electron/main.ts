@@ -51,6 +51,7 @@ import { IMAGE_EXTENSIONS_NO_DOT } from "../src/shared/imageLibrary.types";
 import type { VideoItem } from "../src/shared/videoLibrary.types";
 import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getTransferManager } from "./transferManager";
+import { quickSearch } from "./quickSearch";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import type {
   CreateScheduleParams,
@@ -387,6 +388,11 @@ function setupIPC() {
 
   ipcMain.handle("search-all-hymns", (_event, query: string) => {
     return searchAllHymns(query);
+  });
+
+  ipcMain.handle("quick-search", (_event, query: string) => {
+    const settings = stateManager.getSettings();
+    return quickSearch(query, settings.language, settings.bibleTranslation, settings.hymnal);
   });
 
   ipcMain.handle("set-hymnal", (_event, slug: string) => {

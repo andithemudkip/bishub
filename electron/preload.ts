@@ -43,6 +43,7 @@ import type {
   UpdateScheduleParams,
 } from "../src/shared/audioSchedule.types";
 import type { TransferItem, TransferUploadProgress } from "../src/shared/transfer.types";
+import type { QuickSearchResponse } from "../src/shared/quickSearch.types";
 import type { HymnalInfo } from "../src/shared/hymnals";
 import type {
   ImageItem,
@@ -159,6 +160,8 @@ const electronAPI = {
     playbackMode?: HymnPlaybackMode,
   ): Promise<void> =>
     ipcRenderer.invoke("load-hymn", slug, hymnNumber, playbackMode),
+  quickSearch: (query: string): Promise<QuickSearchResponse> =>
+    ipcRenderer.invoke("quick-search", query),
   searchAllHymns: (query: string): Promise<HymnSearchResult[]> =>
     ipcRenderer.invoke("search-all-hymns", query),
   setHymnal: (slug: string): Promise<void> =>

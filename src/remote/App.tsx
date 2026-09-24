@@ -126,6 +126,31 @@ export default function App() {
     [api.setMode, api.clearLayer, api.playAudio, api.pauseAudio, api.stopAudio]
   );
 
+  const quickSearchActions = useMemo(
+    () => ({
+      search: api.quickSearch,
+      loadHymn: api.loadHymn,
+      loadBibleVerses: api.loadBibleVerses,
+      loadVideo: api.loadVideo,
+      playVideo: api.playVideo,
+      loadAudio: api.loadAudio,
+      playAudio: api.playAudio,
+      loadImage: api.loadImage,
+      playAudioPlaylist: api.playAudioPlaylist,
+    }),
+    [
+      api.quickSearch,
+      api.loadHymn,
+      api.loadBibleVerses,
+      api.loadVideo,
+      api.playVideo,
+      api.loadAudio,
+      api.playAudio,
+      api.loadImage,
+      api.playAudioPlaylist,
+    ]
+  );
+
   type Page = "hymns" | "bible" | "images" | "video" | "audio" | "transfer" | "settings";
 
   const renderPage = (page: Page, navigateTo: (page: Page) => void) => {
@@ -295,6 +320,7 @@ export default function App() {
         monitors={api.monitorsLoaded ? api.monitors : null}
         connectedDeviceCount={api.connectedDeviceIds.length}
         stageActions={stageActions}
+        quickSearchActions={quickSearchActions}
       >
         {renderPage}
       </Layout>
