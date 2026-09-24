@@ -10,6 +10,10 @@ BisHub is a church display app (Electron + React + TypeScript). A fullscreen **d
 
 These can't be derived from the code. Always apply them.
 
+### Changes come with tests
+
+A new feature or behavior change in `electron/` or `src/shared/` ships with tests in the same change, and a bug fix ships with a regression test that fails without the fix. Use judgment about what earns one: branching logic, parsing, ranking, dates/scheduling, state transitions and anything arriving from a remote do; pure wiring (passing a value through, a new i18n string, markup) doesn't. Work isn't done until `npm test` is green. Renderer code (`src/remote`, `src/display`) isn't collected yet — when UI logic deserves a test, extract it into `src/shared`. See **Testing** below for the setup.
+
 ### Web Remote Parity
 
 Anything in the Electron remote UI must also work from web remotes (mobile/tablet browsers on the same network) whenever it makes sense. The main computer runs Electron; other devices connect via Socket.io on port 3847.
@@ -22,6 +26,8 @@ For any action that runs in the main process (downloads, adding to libraries, pl
 2. **Web path**: `socketRef.current?.emit("someAction", ...)` → handler in `electron/server.ts` calling the same backend function
 3. **Progress/state broadcasts**: `windowManager.broadcastToAll(...)` for Electron AND `io.emit(...)` in `server.ts` for web
 4. **Type the event**: add to `ClientToServerEvents` / `ServerToClientEvents` in `src/shared/types.ts`
+
+`electron/webRemoteParity.test.ts` enforces 1–3: an IPC channel or broadcast without a same-named web counterpart fails it. When one is legitimately Electron-only or reaches web remotes another way (renamed event, HTTP route), list it in `IPC_COUNTERPARTS` / `BROADCAST_COUNTERPARTS` with its reason — never to skip writing the web path.
 
 When adding an action, check the sibling hook (`useVideoLibrary`, `useAudioLibrary`, `useImageLibrary`, etc.) — both IPC and Socket.io branches of the `useEffect` and `useCallback`s must be updated together.
 
@@ -130,11 +136,13 @@ npm run build:ttml      # Rebundle TTML hymns manually
 
 Verify work with `npm run build` (chains `typecheck → lint → bundle`; any step failing aborts, so `build` green ≈ shippable) **and** `npm test` — tests are deliberately not part of `build`. For faster iteration, run `npm run typecheck`, `npm run lint` and `npm run test:watch` directly.
 
-**Testing** uses Vitest (`vitest.config.ts`, separate from `vite.config.ts`, which would launch Electron). Tests sit next to their source as `foo.test.ts`; for now only `electron/` and `src/shared/` are collected, in a `node` environment. New logic in either should come with tests.
+**Testing** uses Vitest (`vitest.config.ts`, separate from `vite.config.ts`, which would launch Electron). Tests sit next to their source as `foo.test.ts`; for now only `electron/` and `src/shared/` are collected, in a `node` environment. What needs tests is under **Changes come with tests** above.
 
 - `electron` and `electron-store` are aliased to `test/mocks/` for every test: an in-memory store (reset before each test; `seedStore`/`readStore` to arrange and assert) and an `app` whose `getPath` points at a temp dir. `net.request` throws — mock network explicitly with `vi.mock` in the test that needs it.
 - `TZ` is pinned to `Europe/Bucharest` (it has DST), so build dates with local `new Date(y, m, d, h, min)` and pass `now` explicitly rather than reading the clock.
-- Invariant guards live in tests: `i18n.test.ts` checks `ro`/`en` placeholders match, and `dataLoader.test.ts` deep-freezes (`test/helpers.ts`) the cached hymnals/Bible and runs every read path, so mutating cached data throws. Add new read paths over cached data there.
+- Invariant guards live in tests: `webRemoteParity.test.ts` (see Web Remote Parity), `i18n.test.ts` checks `ro`/`en` placeholders match, and `dataLoader.test.ts` deep-freezes (`test/helpers.ts`) the cached hymnals/Bible and runs every read path, so mutating cached data throws. Add new read paths over cached data there.
+- Test files are type-checked like the code around them, against ES2020: `Array.prototype.at`, `Object.hasOwn` etc. run fine in Vitest but fail `npm run typecheck`.
+- A test that passes first time proves little. Break the code it covers once and watch it fail before moving on.
 - CI (`.github/workflows/ci.yml`) runs typecheck, lint and tests on macOS and Windows for every push to `master` and every PR.
 
 **Linting** uses flat ESLint config (`eslint.config.js`) with `typescript-eslint` + `react-hooks` + `react-refresh`. All enabled rules are errors — including `any`, `@ts-ignore`, `no-require-imports`, `exhaustive-deps`, and `only-export-components`. The baseline is zero; keep it that way. React-hooks v7 rules (`set-state-in-effect`, `refs`, `purity`, `immutability`, `preserve-manual-memoization`) are disabled — they'd need a wider refactor. Don't reach for `eslint-disable` to unblock yourself; fix the underlying issue.
