@@ -1198,10 +1198,12 @@ export default function SettingsPage({
             >
               <span className="text-gray-400">{shortcut.label(t)}</span>
               <div className="flex items-center gap-1">
-                {"mod" in shortcut && shortcut.mod ? (
+                {("mod" in shortcut && shortcut.mod) || ("alt" in shortcut && shortcut.alt) ? (
                   <>
                     <kbd className="px-2 py-1 bg-gray-700 rounded text-gray-300">
-                      {isMacPlatform() ? "⌘" : "Ctrl"}
+                      {"mod" in shortcut && shortcut.mod
+                        ? isMacPlatform() ? "⌘" : "Ctrl"
+                        : isMacPlatform() ? "⌥" : "Alt"}
                     </kbd>
                     <span className="text-gray-500">+</span>
                     {shortcut.display.map((key) => (

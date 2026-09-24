@@ -6,6 +6,7 @@ import type {
   QuickSearchHit,
   QuickSearchResponse,
 } from "../../../shared/quickSearch.types";
+import { ShortcutHint } from "../ui/ShortcutHint";
 import { useSearchHistory } from "../../hooks/useSearchHistory";
 import { sendPageIntent } from "../../hooks/usePageIntent";
 import { HymnsIcon } from "../icons/hymns";
@@ -19,6 +20,7 @@ import {
   MusicNoteIcon,
   QueueListIcon,
   SearchIcon,
+  ShuffleIcon,
 } from "../icons/ui";
 
 export interface QuickSearchActions {
@@ -36,7 +38,7 @@ export interface QuickSearchActions {
   loadAudio: (src: string, name: string) => void;
   playAudio: () => void;
   loadImage: (src: string, imageId: string) => void;
-  playAudioPlaylist: (playlistId: string) => void;
+  playAudioPlaylist: (playlistId: string, startIndex?: number) => void;
 }
 
 interface Props {
@@ -80,6 +82,17 @@ function hitKey(hit: QuickSearchHit): string {
     default:
       return `${hit.kind}:${hit.id}`;
   }
+}
+
+type PlaylistHit = Extract<QuickSearchHit, { kind: "playlist" }>;
+
+/**
+ * A playlist that can be shuffled. Shuffling one track does nothing, and
+ * recents saved before playlists carried a count have none.
+ */
+function shuffleable(row: Row | undefined): PlaylistHit | null {
+  if (row?.type !== "hit" || row.hit.kind !== "playlist") return null;
+  return row.hit.trackCount > 1 ? row.hit : null;
 }
 
 /**
@@ -233,6 +246,17 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
     [actions, close, onNavigate, query, recents]
   );
 
+  // Same as the Playlists page: a random entry point into the playlist's own
+  // order, so next/previous still follow the list the operator knows.
+  const shufflePlaylist = useCallback(
+    (hit: PlaylistHit) => {
+      actions.playAudioPlaylist(hit.id, Math.floor(Math.random() * hit.trackCount));
+      recents.add({ id: hitKey(hit), hit });
+      close();
+    },
+    [actions, close, recents]
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
       case "ArrowDown":
@@ -252,10 +276,15 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
         if (index !== -1) setSelected(index);
         break;
       }
-      case "Enter":
+      case "Enter": {
         e.preventDefault();
-        if (rows[selected]) activate(rows[selected], e.shiftKey);
+        const row = rows[selected];
+        if (!row) break;
+        const playlist = e.altKey ? shuffleable(row) : null;
+        if (playlist) shufflePlaylist(playlist);
+        else activate(row, e.shiftKey);
         break;
+      }
       case "Escape": {
         e.preventDefault();
         e.stopPropagation();
@@ -334,6 +363,7 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
                 {g.hits.map((hit) => {
                   rowIndex++;
                   const index = rowIndex;
+                  const playlist = shuffleable({ type: "hit", hit, group: gi });
                   return (
                     <ResultRow
                       key={hitKey(hit)}
@@ -341,6 +371,8 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
                       selected={index === selected}
                       onHover={() => setSelected(index)}
                       onActivate={(openPage) => activate({ type: "hit", hit, group: gi }, openPage)}
+                      onShuffle={playlist ? () => shufflePlaylist(playlist) : undefined}
+                      shuffleLabel={t.audioLibrary.shuffle}
                       openLabel={
                         hit.kind === "reference" && !hit.verseGiven
                           ? t.quickSearch.openChapter
@@ -397,6 +429,8 @@ function ResultRow({
   onHover,
   onActivate,
   openLabel,
+  onShuffle,
+  shuffleLabel,
   children,
 }: {
   index: number;
@@ -404,6 +438,8 @@ function ResultRow({
   onHover: () => void;
   onActivate: (openPage: boolean) => void;
   openLabel: string;
+  onShuffle?: () => void;
+  shuffleLabel: string;
   children: ReactNode;
 }) {
   return (
@@ -418,6 +454,17 @@ function ResultRow({
       >
         {children}
       </button>
+      {onShuffle && (
+        <button
+          onClick={onShuffle}
+          className="px-3 flex items-center gap-1.5 text-gray-500 hover:text-gray-200 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+          aria-label={shuffleLabel}
+          title={shuffleLabel}
+        >
+          <ShuffleIcon className="w-4 h-4" />
+          {selected && <ShortcutHint shortcut="shufflePlaylist" />}
+        </button>
+      )}
       <button
         onClick={() => onActivate(true)}
         className="px-3 flex items-center text-gray-500 hover:text-gray-200 rounded-r-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"

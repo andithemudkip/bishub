@@ -8,6 +8,8 @@ export interface ShortcutDefinition {
   display: string[];
   /** Requires Cmd (Mac) / Ctrl (other) modifier */
   mod?: boolean;
+  /** Requires Option (Mac) / Alt (other) modifier */
+  alt?: boolean;
   label: (t: Translations) => string;
 }
 
@@ -37,6 +39,12 @@ export const SHORTCUTS = {
     display: ["K"],
     mod: true,
     label: (t: Translations) => t.settings.quickSearch,
+  },
+  shufflePlaylist: {
+    keys: ["Enter"],
+    display: ["Enter"],
+    alt: true,
+    label: (t: Translations) => t.settings.shufflePlaylist,
   },
   switchPage: {
     keys: ["1", "2", "3", "4", "5", "6", "7"],

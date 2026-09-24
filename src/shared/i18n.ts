@@ -240,6 +240,7 @@ export interface Translations {
     focusSearch: string;
     switchPage: string;
     quickSearch: string;
+    shufflePlaylist: string;
     // Idle screen settings
     idleScreen: string;
     wallpaper: string;
@@ -874,6 +875,7 @@ const ro: Translations = {
     focusSearch: "Focalizează câmpul de căutare",
     switchPage: "Schimbă pagina",
     quickSearch: "Căutare rapidă",
+    shufflePlaylist: "Redare aleatorie a listei (în Căutare rapidă)",
     // Idle screen settings
     idleScreen: "Ecran de așteptare",
     wallpaper: "Fundal",
@@ -1494,6 +1496,7 @@ const en: Translations = {
     focusSearch: "Focus search input",
     switchPage: "Switch page",
     quickSearch: "Quick search",
+    shufflePlaylist: "Shuffle play a playlist (in Quick Search)",
     // Idle screen settings
     idleScreen: "Idle Screen",
     wallpaper: "Wallpaper",
