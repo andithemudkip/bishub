@@ -140,12 +140,20 @@ export function useActivity(): ActivityAPI {
     }
   }, [isElectron, upsert, handleScheduleEvent]);
 
-  // Fade completed activities and expire transient schedule events.
+  // Fade completed activities and expire transient schedule events. Keep the
+  // same array when nothing expired — a fresh one every tick would re-render
+  // the host once a second for nothing.
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setRawActivities((prev) => pruneActivities(prev, now));
-      setRecentScheduleEvents((prev) => pruneScheduleEvents(prev, now));
+      setRawActivities((prev) => {
+        const next = pruneActivities(prev, now);
+        return next.length === prev.length ? prev : next;
+      });
+      setRecentScheduleEvents((prev) => {
+        const next = pruneScheduleEvents(prev, now);
+        return next.length === prev.length ? prev : next;
+      });
     }, PRUNE_INTERVAL_MS);
     return () => clearInterval(interval);
   }, []);

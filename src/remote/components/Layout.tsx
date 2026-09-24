@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import type { DisplayState, AppSettings } from "../../shared/types";
+import type { DisplayState, AppSettings, MonitorInfo } from "../../shared/types";
 import { getTranslations } from "../../shared/i18n";
 import { PAGE_ORDER } from "../../shared/shortcuts";
 import { useShortcut } from "../hooks/useShortcut";
-import { PreviewPanel, PreviewHeader, usePreviewState } from "./preview";
+import { PreviewHeader, usePreviewState } from "./preview";
+import { StageDock, type StageActions } from "./stage";
 import { HymnsIcon } from "./icons/hymns";
 import { BibleIcon } from "./icons/bible";
 import { ImageIcon } from "./icons/image";
@@ -25,6 +26,10 @@ interface Props {
   onNextImage: () => void;
   onPrevImage: () => void;
   onSetImageFit: (fit: "fill" | "fit") => void;
+  /** null until the first list arrives. */
+  monitors: MonitorInfo[] | null;
+  connectedDeviceCount: number;
+  stageActions: StageActions;
 }
 
 const NAV_ICONS: Record<Page, React.ReactNode> = {
@@ -60,6 +65,9 @@ export default function Layout({
   onNextImage,
   onPrevImage,
   onSetImageFit,
+  monitors,
+  connectedDeviceCount,
+  stageActions,
 }: Props) {
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState<Page>("hymns");
@@ -67,7 +75,7 @@ export default function Layout({
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
-  const preview = usePreviewState({ mode: state.mode, isMobile });
+  const preview = usePreviewState({ isMobile });
 
   const t = getTranslations(settings.language);
 
@@ -331,18 +339,17 @@ export default function Layout({
             {children(currentPage, setCurrentPage)}
           </main>
 
-          {/* Desktop Preview Panel */}
-          <div className="hidden md:block relative">
-            <PreviewPanel
+          {/* Desktop Stage: live preview + loaded layers, activity and
+              schedules; collapses to a rail of status icons */}
+          <div className="hidden md:flex">
+            <StageDock
               state={state}
               settings={settings}
-              isOpen={preview.isOpen}
-              width={preview.panelWidth}
-              isResizing={preview.isResizing}
-              onToggle={preview.toggle}
-              onWidthChange={preview.setWidth}
-              onResizeStart={preview.startResize}
-              onResizeEnd={preview.endResize}
+              monitors={monitors}
+              connectedDeviceCount={connectedDeviceCount}
+              actions={stageActions}
+              onNavigate={setCurrentPage}
+              preview={preview}
             />
           </div>
         </div>

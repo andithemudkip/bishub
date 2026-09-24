@@ -828,6 +828,10 @@ export function createServer(
       stateManager.stopVideo();
     });
 
+    socket.on("clearLayer", (kind) => {
+      stateManager.clearLayer(kind);
+    });
+
     socket.on("seekVideo", (time) => {
       stateManager.seekVideo(time);
     });

@@ -22,6 +22,7 @@ import type {
   PptxImportResult,
   HymnCommitResult,
   BibleTranslationStatus,
+  LayerKind,
 } from "../src/shared/types";
 import type {
   VideoItem,
@@ -102,6 +103,8 @@ const electronAPI = {
   playVideo: (): Promise<void> => ipcRenderer.invoke("play-video"),
   pauseVideo: (): Promise<void> => ipcRenderer.invoke("pause-video"),
   stopVideo: (): Promise<void> => ipcRenderer.invoke("stop-video"),
+  clearLayer: (kind: LayerKind): Promise<void> =>
+    ipcRenderer.invoke("clear-layer", kind),
   seekVideo: (time: number): Promise<void> =>
     ipcRenderer.invoke("seek-video", time),
   setVolume: (volume: number): Promise<void> =>

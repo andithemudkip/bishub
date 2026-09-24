@@ -510,6 +510,51 @@ export interface Translations {
     endOfSlides: string;
   };
 
+  // Stage: the live panel beside every page (preview, loaded layers,
+  // background activity, upcoming schedules, system health)
+  stage: {
+    title: string;
+    open: string;
+    loaded: string;
+    activity: string;
+    comingUp: string;
+    nothingRunning: string;
+    show: string;
+    clear: string;
+    play: string;
+    pause: string;
+    stop: string;
+    layerText: string;
+    layerVideo: string;
+    layerImage: string;
+    layerAudio: string;
+    slideOf: string;
+    paused: string;
+    queued: string;
+    processing: string;
+    done: string;
+    failed: string;
+    dismiss: string;
+    showMore: string;
+    importSummary: string;
+    hymnMp3: string;
+    hymnMp3Bulk: string;
+    bulkProgress: string;
+    bulkFailed: string;
+    scheduleStarted: string;
+    scheduleSkipped: string;
+    scheduleMissed: string;
+    displayClosed: string;
+    monitorMissing: string;
+    devices: string;
+    copyAddress: string;
+    copied: string;
+    railAudio: string;
+    railActivity: string;
+    railSchedule: string;
+    railHealth: string;
+  };
+
   // Auth
   auth: {
     accessDenied: string;
@@ -1075,6 +1120,48 @@ const ro: Translations = {
     next: "Următor",
     endOfSlides: "Sfârșitul slide-urilor",
   },
+  stage: {
+    title: "În direct",
+    open: "Deschide panoul",
+    loaded: "Încărcat",
+    activity: "Activitate",
+    comingUp: "Urmează",
+    nothingRunning: "Nimic în desfășurare",
+    show: "Afișează",
+    clear: "Golește",
+    play: "Redă",
+    pause: "Pauză",
+    stop: "Oprește",
+    layerText: "Text",
+    layerVideo: "Video",
+    layerImage: "Imagine",
+    layerAudio: "Audio",
+    slideOf: "slide {n}/{total}",
+    paused: "pe pauză",
+    queued: "În așteptare",
+    processing: "Se procesează...",
+    done: "Gata",
+    failed: "Eșuat",
+    dismiss: "Închide",
+    showMore: "Încă {n}",
+    importSummary: "Importate: {ok}, eșuate: {failed}",
+    hymnMp3: "MP3 imnul {n}",
+    hymnMp3Bulk: "MP3-uri imnuri",
+    bulkProgress: "{done} din {count}",
+    bulkFailed: "eșuate: {n}",
+    scheduleStarted: "A pornit",
+    scheduleSkipped: "Omis",
+    scheduleMissed: "Ratat",
+    displayClosed: "Fereastra de afișare este închisă",
+    monitorMissing: "Monitorul de afișare nu este conectat",
+    devices: "Dispozitive: {n}",
+    copyAddress: "Copiază adresa",
+    copied: "Copiat",
+    railAudio: "Se redă audio",
+    railActivity: "Activitate în fundal",
+    railSchedule: "Următoarea programare",
+    railHealth: "Problemă de afișare",
+  },
   updates: {
     updateAvailable: "Actualizare disponibilă",
     updateDownloading: "Se descarcă actualizarea...",
@@ -1630,6 +1717,48 @@ const en: Translations = {
     current: "Current",
     next: "Next",
     endOfSlides: "End of slides",
+  },
+  stage: {
+    title: "Live",
+    open: "Open panel",
+    loaded: "Loaded",
+    activity: "Activity",
+    comingUp: "Coming up",
+    nothingRunning: "Nothing running",
+    show: "Show",
+    clear: "Clear",
+    play: "Play",
+    pause: "Pause",
+    stop: "Stop",
+    layerText: "Text",
+    layerVideo: "Video",
+    layerImage: "Image",
+    layerAudio: "Audio",
+    slideOf: "slide {n}/{total}",
+    paused: "paused",
+    queued: "Queued",
+    processing: "Processing...",
+    done: "Done",
+    failed: "Failed",
+    dismiss: "Dismiss",
+    showMore: "{n} more",
+    importSummary: "{ok} imported, {failed} failed",
+    hymnMp3: "Hymn {n} MP3",
+    hymnMp3Bulk: "Hymn MP3s",
+    bulkProgress: "{done} of {count}",
+    bulkFailed: "{n} failed",
+    scheduleStarted: "Started",
+    scheduleSkipped: "Skipped",
+    scheduleMissed: "Missed",
+    displayClosed: "The display window is closed",
+    monitorMissing: "The display monitor isn't connected",
+    devices: "Devices: {n}",
+    copyAddress: "Copy address",
+    copied: "Copied",
+    railAudio: "Audio playing",
+    railActivity: "Background activity",
+    railSchedule: "Next schedule",
+    railHealth: "Display problem",
   },
   updates: {
     updateAvailable: "Update available",

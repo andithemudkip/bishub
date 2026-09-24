@@ -60,6 +60,7 @@ import { startDownload, startAudioDownload, cancelDownload, getActiveDownloads, 
 import { getDeviceRegistry } from "./deviceRegistry";
 import type {
   DisplayMode,
+  LayerKind,
   ClockPosition,
   AudioWidgetPosition,
   HymnPlaybackMode,
@@ -246,6 +247,10 @@ function setupIPC() {
 
   ipcMain.handle("stop-video", () => {
     stateManager.stopVideo();
+  });
+
+  ipcMain.handle("clear-layer", (_event, kind: LayerKind) => {
+    stateManager.clearLayer(kind);
   });
 
   ipcMain.handle("seek-video", (_event, time: number) => {

@@ -27,6 +27,9 @@ import type { AudioPlaylist, AudioQueueState } from "./audioPlaylist.types";
 
 export type DisplayMode = "idle" | "text" | "video" | "image";
 
+/** A display mode that holds content of its own — everything but idle. */
+export type LayerKind = Exclude<DisplayMode, "idle">;
+
 export type ClockPosition =
   | "top-left"
   | "top-right"
@@ -76,6 +79,8 @@ export interface TextState {
 export interface VideoState {
   src: string | null;
   videoId: string | null;
+  /** Library name at load time, for labels; null when not from the library. */
+  name: string | null;
   playing: boolean;
   currentTime: number;
   duration: number;
@@ -303,6 +308,8 @@ export type ClientToServerEvents = {
   pauseVideo: () => void;
   stopVideo: () => void;
   seekVideo: (time: number) => void;
+  /** Release a loaded layer that isn't on screen; no-op for the one showing. */
+  clearLayer: (kind: LayerKind) => void;
   setVolume: (volume: number) => void;
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;
@@ -458,6 +465,7 @@ export const DEFAULT_STATE: DisplayState = {
   video: {
     src: null,
     videoId: null,
+    name: null,
     playing: false,
     currentTime: 0,
     duration: 0,

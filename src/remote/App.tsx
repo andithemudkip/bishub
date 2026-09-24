@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useMemo, useState } from "react";
 import type { UpdateStatus } from "../shared/types";
 import { getTranslations } from "../shared/i18n";
 import { getApiUrl } from "../shared/utils";
@@ -114,6 +114,17 @@ export default function App() {
   const handlePrevSlide = useCallback(() => {
     api.prevSlide();
   }, [api]);
+
+  const stageActions = useMemo(
+    () => ({
+      setMode: api.setMode,
+      clearLayer: api.clearLayer,
+      playAudio: api.playAudio,
+      pauseAudio: api.pauseAudio,
+      stopAudio: api.stopAudio,
+    }),
+    [api.setMode, api.clearLayer, api.playAudio, api.pauseAudio, api.stopAudio]
+  );
 
   type Page = "hymns" | "bible" | "images" | "video" | "audio" | "transfer" | "settings";
 
@@ -281,6 +292,9 @@ export default function App() {
         onNextImage={api.nextImage}
         onPrevImage={api.prevImage}
         onSetImageFit={api.setImageFit}
+        monitors={api.monitorsLoaded ? api.monitors : null}
+        connectedDeviceCount={api.connectedDeviceIds.length}
+        stageActions={stageActions}
       >
         {renderPage}
       </Layout>

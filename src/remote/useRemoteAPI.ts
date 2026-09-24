@@ -21,9 +21,13 @@ import type {
   PptxImportResult,
   PptxParseReason,
   HymnCommitResult,
+  LayerKind,
 } from "../shared/types";
 import type { Language } from "../shared/i18n";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
+
+/** Stable empty list, so consumers' memos don't see a new array each render. */
+const EMPTY_MONITORS: MonitorInfo[] = [];
 import {
   getSecurityKeyFromURL,
   updateProgressList,
@@ -39,6 +43,8 @@ interface RemoteAPI {
   state: DisplayState;
   settings: AppSettings;
   monitors: MonitorInfo[];
+  /** False until the first monitor list arrives, so "none" isn't mistaken for "unplugged". */
+  monitorsLoaded: boolean;
   /** Bundled hymnals plus the user's own books, pushed from the main process. */
   hymnals: HymnalInfo[];
   hymns: Hymn[];
@@ -62,6 +68,7 @@ interface RemoteAPI {
   pauseVideo: () => void;
   stopVideo: () => void;
   seekVideo: (time: number) => void;
+  clearLayer: (kind: LayerKind) => void;
   setVolume: (volume: number) => void;
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;
@@ -156,7 +163,8 @@ interface RemoteAPI {
 export function useRemoteAPI(): RemoteAPI {
   const [state, setState] = useState<DisplayState>(DEFAULT_STATE);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
+  const [monitorList, setMonitors] = useState<MonitorInfo[] | null>(null);
+  const monitors = monitorList ?? EMPTY_MONITORS;
   // Seeded with the shipped catalog so the first paint is never an empty
   // book list; the merged list replaces it as soon as it arrives.
   const [hymnals, setHymnals] = useState<HymnalInfo[]>(BUNDLED_HYMNALS);
@@ -468,6 +476,7 @@ export function useRemoteAPI(): RemoteAPI {
     state,
     settings,
     monitors,
+    monitorsLoaded: monitorList !== null,
     hymnals,
     hymns: hymnData.hymns,
     hymnsSlug: hymnData.slug,
@@ -534,6 +543,14 @@ export function useRemoteAPI(): RemoteAPI {
       if (isElectron) window.electronAPI!.stopVideo();
       else socketRef.current?.emit("stopVideo");
     }, [isElectron]),
+
+    clearLayer: useCallback(
+      (kind: LayerKind) => {
+        if (isElectron) window.electronAPI!.clearLayer(kind);
+        else socketRef.current?.emit("clearLayer", kind);
+      },
+      [isElectron]
+    ),
 
     seekVideo: useCallback(
       (time) => {
