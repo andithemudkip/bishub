@@ -758,21 +758,28 @@ export function createServer(
     console.log("Client connected:", socket.id, "device:", socket.data.deviceId);
     broadcastConnectedDeviceIds();
 
-    // Send current state to new client
-    socket.emit("stateUpdate", stateManager.getState());
-    socket.emit("settingsUpdate", stateManager.getSettings());
-    socket.emit("monitors", windowManager.getMonitors());
-    socket.emit("hymnals", getHymnals());
-    socket.emit("displayWindowState", windowManager.isDisplayWindowOpen());
+    // Hooks share one socket per tab and can mount after it connected, so
+    // anything a client needs on arrival is a request, not a push here — a
+    // push would reach only the handlers attached at the moment of connect.
+    socket.on("getState", () => {
+      socket.emit("stateUpdate", stateManager.getState());
+      socket.emit("settingsUpdate", stateManager.getSettings());
+    });
+
+    socket.on("getDisplayWindowState", () => {
+      socket.emit("displayWindowState", windowManager.isDisplayWindowOpen());
+    });
 
     // In-flight work, so a remote that connects (or reloads) mid-operation
     // sees it. The Electron remote fetches the same via getActive*Downloads.
-    for (const p of getActiveDownloads()) socket.emit("downloadProgress", p);
-    for (const p of getActiveAudioDownloads()) socket.emit("audioDownloadProgress", p);
-    for (const p of getActiveMP3Downloads()) socket.emit("mp3DownloadProgress", p);
-    for (const { upload, event } of activeUploads.values()) {
-      socket.emit(event, { ...upload });
-    }
+    socket.on("getInFlight", () => {
+      for (const p of getActiveDownloads()) socket.emit("downloadProgress", p);
+      for (const p of getActiveAudioDownloads()) socket.emit("audioDownloadProgress", p);
+      for (const p of getActiveMP3Downloads()) socket.emit("mp3DownloadProgress", p);
+      for (const { upload, event } of activeUploads.values()) {
+        socket.emit(event, { ...upload });
+      }
+    });
 
     // Devices
     socket.on("getDevices", () => {

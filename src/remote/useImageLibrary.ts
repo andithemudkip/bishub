@@ -1,17 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import { getSocket, listen, onConnected, type SocketType } from "./socket";
 import type {
   ImageItem,
   Slideshow,
   ImageUploadProgress,
 } from "../shared/imageLibrary.types";
-import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
-} from "../shared/types";
-import { getDeviceToken, getApiUrl, updateProgressList } from "../shared/utils";
+import { getApiUrl, updateProgressList } from "../shared/utils";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 export interface ImageLibraryAPI {
   images: ImageItem[];
@@ -72,26 +67,26 @@ export function useImageLibrary(
         unsubUpload();
       };
     } else {
-      const token = getDeviceToken();
-      if (!token) return;
-      const socket: SocketType = io({
-        auth: { token },
-      });
+      const socket = getSocket();
+      if (!socket) return;
       socketRef.current = socket;
 
-      socket.on("connect", () => {
+      const off = listen(socket, {
+        imageLibrary: setImages,
+        slideshows: setSlideshows,
+        imageUploadProgress: (progress) => {
+          setUploads((prev) => updateProgressList(prev, progress, setUploads));
+        },
+      });
+      const offConnected = onConnected(socket, () => {
         socket.emit("getImageLibrary");
         socket.emit("getSlideshows");
-      });
-
-      socket.on("imageLibrary", setImages);
-      socket.on("slideshows", setSlideshows);
-      socket.on("imageUploadProgress", (progress) => {
-        setUploads((prev) => updateProgressList(prev, progress, setUploads));
+        socket.emit("getInFlight");
       });
 
       return () => {
-        socket.disconnect();
+        off();
+        offConnected();
       };
     }
   }, [isElectron]);

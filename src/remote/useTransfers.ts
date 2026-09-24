@@ -1,13 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import { getSocket, listen, onConnected, type SocketType } from "./socket";
 import type { TransferItem, TransferUploadProgress } from "../shared/transfer.types";
-import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
-} from "../shared/types";
-import { getDeviceToken, getApiUrl, updateProgressList } from "../shared/utils";
+import { getApiUrl, updateProgressList } from "../shared/utils";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 interface TransferAPI {
   transfers: TransferItem[];
@@ -39,24 +34,24 @@ export function useTransfers(): TransferAPI {
         unsubUpload();
       };
     } else {
-      const token = getDeviceToken();
-      if (!token) return;
-      const socket: SocketType = io({
-        auth: { token },
-      });
+      const socket = getSocket();
+      if (!socket) return;
       socketRef.current = socket;
 
-      socket.on("connect", () => {
-        socket.emit("getTransfers");
+      const off = listen(socket, {
+        transfers: setTransfers,
+        transferUploadProgress: (progress) => {
+          setUploads((prev) => updateProgressList(prev, progress, setUploads));
+        },
       });
-
-      socket.on("transfers", setTransfers);
-      socket.on("transferUploadProgress", (progress) => {
-        setUploads((prev) => updateProgressList(prev, progress, setUploads));
+      const offConnected = onConnected(socket, () => {
+        socket.emit("getTransfers");
+        socket.emit("getInFlight");
       });
 
       return () => {
-        socket.disconnect();
+        off();
+        offConnected();
       };
     }
   }, [isElectron]);

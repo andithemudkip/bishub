@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { BUNDLED_HYMNALS, type HymnalInfo } from "../shared/hymnals";
-import { io, Socket } from "socket.io-client";
+import { connectWithToken, listen, onConnected, type SocketType } from "./socket";
 import type {
   DisplayState,
   AppSettings,
@@ -9,8 +9,6 @@ import type {
   BibleVerse,
   BibleSearchResult,
   HymnSearchResult,
-  ServerToClientEvents,
-  ClientToServerEvents,
   ClockPosition,
   AudioWidgetPosition,
   MP3DownloadProgress,
@@ -37,7 +35,6 @@ import {
   clearDeviceToken,
 } from "../shared/utils";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 interface RemoteAPI {
   state: DisplayState;
@@ -246,25 +243,20 @@ export function useRemoteAPI(): RemoteAPI {
 
   const isElectron = isElectronEnv;
 
+  /** Detaches this hook's handlers from the shared socket. */
+  const detachSocketRef = useRef<(() => void) | null>(null);
+
   const connectSocket = useCallback(
     (token: string) => {
-      if (socketRef.current) {
-        socketRef.current.removeAllListeners();
-        socketRef.current.disconnect();
-      }
+      // The socket is shared with every other web-remote hook: detach only
+      // our own handlers — never removeAllListeners() or disconnect().
+      detachSocketRef.current?.();
 
       setAuthError(false);
-      const socket: SocketType = io({ auth: { token } });
+      const socket = connectWithToken(token);
       socketRef.current = socket;
 
-      socket.on("connect", () => {
-        setIsConnected(true);
-        setAuthError(false);
-        socket.emit("getBibleBooks");
-        socket.emit("getDownloadedTranslations");
-      });
-
-      socket.on("disconnect", () => {
+      const handleDisconnect = () => {
         setIsConnected(false);
         // Answer anything still in flight rather than leaving a caller awaiting
         // a reply that can no longer arrive. The write may well have landed —
@@ -274,62 +266,82 @@ export function useRemoteAPI(): RemoteAPI {
           resolve({ ok: false, reason: "write-failed" });
         }
         for (const resolve of deleteHymnCbs.current.splice(0)) resolve(false);
-      });
+      };
 
-      socket.on("connect_error", (err) => {
+      const handleConnectError = (err: Error) => {
         if (err.message === "Invalid token") {
           clearDeviceToken();
           setIsPaired(false);
           setAuthError(true);
           socket.disconnect();
         }
+      };
+
+      socket.on("disconnect", handleDisconnect);
+      socket.on("connect_error", handleConnectError);
+      const off = listen(socket, {
+        stateUpdate: setState,
+        settingsUpdate: setSettings,
+        monitors: setMonitors,
+        hymnals: setHymnals,
+        hymns: (slug, list) => applyHymnPush(slug, list),
+        hymnImportCommitted: (result) => {
+          commitHymnCbs.current.shift()?.(result);
+        },
+        customHymnDeleted: (_slug, _number, deleted) => {
+          deleteHymnCbs.current.shift()?.(deleted);
+        },
+        hymnSearchResults: (results) => {
+          if (hymnSearchCb.current) {
+            hymnSearchCb.current(results);
+            hymnSearchCb.current = null;
+          }
+        },
+        bibleBooks: (books) => {
+          setBibleBooks(books);
+          if (bibleBooksCb.current) {
+            bibleBooksCb.current(books);
+            bibleBooksCb.current = null;
+          }
+        },
+        bibleChapter: (verses) => {
+          if (bibleChapterCb.current) {
+            bibleChapterCb.current(verses);
+            bibleChapterCb.current = null;
+          }
+        },
+        bibleSearchResults: (results) => {
+          if (bibleSearchCb.current) {
+            bibleSearchCb.current(results);
+            bibleSearchCb.current = null;
+          }
+        },
+        bibleTranslationStatus: setBibleDownloadStatus,
+        downloadedTranslations: setDownloadedTranslations,
+        mp3DownloadProgress: handleMP3Progress,
+        mp3CacheStats: setMp3CacheStats,
+        devices: setDevices,
+        connectedDeviceIds: setConnectedDeviceIds,
+      });
+      // Runs now if the shared socket is already up, and after every reconnect.
+      const offConnected = onConnected(socket, () => {
+        setIsConnected(true);
+        setAuthError(false);
+        socket.emit("getState");
+        socket.emit("getMonitors");
+        socket.emit("getHymnals");
+        socket.emit("getBibleBooks");
+        socket.emit("getDownloadedTranslations");
+        socket.emit("getHymnMP3CacheStats");
+        socket.emit("getInFlight");
       });
 
-      socket.on("stateUpdate", setState);
-      socket.on("settingsUpdate", setSettings);
-      socket.on("monitors", setMonitors);
-      socket.on("hymnals", setHymnals);
-      socket.on("hymns", (slug, list) => applyHymnPush(slug, list));
-      socket.on("hymnImportCommitted", (result) => {
-        commitHymnCbs.current.shift()?.(result);
-      });
-      socket.on("customHymnDeleted", (_slug, _number, deleted) => {
-        deleteHymnCbs.current.shift()?.(deleted);
-      });
-      socket.on("hymnSearchResults", (results) => {
-        if (hymnSearchCb.current) {
-          hymnSearchCb.current(results);
-          hymnSearchCb.current = null;
-        }
-      });
-      socket.on("bibleBooks", (books) => {
-        setBibleBooks(books);
-        if (bibleBooksCb.current) {
-          bibleBooksCb.current(books);
-          bibleBooksCb.current = null;
-        }
-      });
-      socket.on("bibleChapter", (verses) => {
-        if (bibleChapterCb.current) {
-          bibleChapterCb.current(verses);
-          bibleChapterCb.current = null;
-        }
-      });
-      socket.on("bibleSearchResults", (results) => {
-        if (bibleSearchCb.current) {
-          bibleSearchCb.current(results);
-          bibleSearchCb.current = null;
-        }
-      });
-      socket.on("bibleTranslationStatus", (status) => {
-        setBibleDownloadStatus(status);
-      });
-      socket.on("downloadedTranslations", setDownloadedTranslations);
-      socket.on("mp3DownloadProgress", handleMP3Progress);
-      socket.on("mp3CacheStats", setMp3CacheStats);
-      socket.on("devices", setDevices);
-      socket.on("connectedDeviceIds", setConnectedDeviceIds);
-      socket.emit("getHymnMP3CacheStats");
+      detachSocketRef.current = () => {
+        off();
+        offConnected();
+        socket.off("disconnect", handleDisconnect);
+        socket.off("connect_error", handleConnectError);
+      };
     },
     [handleMP3Progress, applyHymnPush]
   );
@@ -437,7 +449,8 @@ export function useRemoteAPI(): RemoteAPI {
       }
 
       return () => {
-        socketRef.current?.disconnect();
+        detachSocketRef.current?.();
+        detachSocketRef.current = null;
       };
     }
   }, [

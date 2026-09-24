@@ -254,7 +254,7 @@ export type ServerToClientEvents = {
   monitors: (monitors: MonitorInfo[]) => void;
   devices: (devices: DeviceInfo[]) => void;
   connectedDeviceIds: (ids: string[]) => void;
-  /** Whether the fullscreen display window is currently open. Sent on connect too. */
+  /** Whether the fullscreen display window is currently open. Reply to getDisplayWindowState, and on change. */
   displayWindowState: (open: boolean) => void;
   hymns: (slug: string, hymns: Hymn[]) => void;
   /** The merged book list: bundled hymnals plus the user's own books. */
@@ -310,6 +310,14 @@ export type ClientToServerEvents = {
   seekVideo: (time: number) => void;
   /** Release a loaded layer that isn't on screen; no-op for the one showing. */
   clearLayer: (kind: LayerKind) => void;
+  /** Reply: stateUpdate + settingsUpdate. */
+  getState: () => void;
+  getDisplayWindowState: () => void;
+  /**
+   * Replay every in-flight download and upload to this socket as its usual
+   * progress event, for a hook that mounts after they started.
+   */
+  getInFlight: () => void;
   setVolume: (volume: number) => void;
   setDisplayMonitor: (monitorId: number) => void;
   setLanguage: (language: Language) => void;

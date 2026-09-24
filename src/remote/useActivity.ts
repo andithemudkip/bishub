@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
-import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
-} from "../shared/types";
+import { getSocket, listen, onConnected, type SocketType } from "./socket";
 import type { Activity } from "../shared/stage.types";
 import type { AudioSchedule, ScheduleEvent } from "../shared/audioSchedule.types";
 import {
@@ -24,9 +20,7 @@ import {
   pushScheduleEvent,
   getUpcomingSchedules,
 } from "../shared/stageActivity";
-import { getDeviceToken } from "../shared/utils";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 /** How often completed activities and expired schedule events are pruned. */
 const PRUNE_INTERVAL_MS = 1000;
@@ -114,28 +108,30 @@ export function useActivity(): ActivityAPI {
         unsubScheduleEvent();
       };
     } else {
-      const token = getDeviceToken();
-      if (!token) return;
-      const socket: SocketType = io({ auth: { token } });
+      const socket = getSocket();
+      if (!socket) return;
       socketRef.current = socket;
 
-      socket.on("connect", () => {
+      const off = listen(socket, {
+        downloadProgress: (p) => upsert(normalizeVideoDownload(p, Date.now())),
+        uploadProgress: (p) => upsert(normalizeVideoUpload(p, Date.now())),
+        audioDownloadProgress: (p) => upsert(normalizeAudioDownload(p, Date.now())),
+        audioUploadProgress: (p) => upsert(normalizeAudioUpload(p, Date.now())),
+        imageUploadProgress: (p) => upsert(normalizeImageUpload(p, Date.now())),
+        mp3DownloadProgress: (p) => upsert(normalizeHymnMp3(p, Date.now())),
+        transferUploadProgress: (p) => upsert(normalizeTransferUpload(p, Date.now())),
+        bibleTranslationStatus: (p) => upsert(normalizeBibleTranslation(p, Date.now())),
+        audioSchedules: setSchedules,
+        audioScheduleEvent: handleScheduleEvent,
+      });
+      const offConnected = onConnected(socket, () => {
         socket.emit("getAudioSchedules");
+        socket.emit("getInFlight");
       });
 
-      socket.on("downloadProgress", (p) => upsert(normalizeVideoDownload(p, Date.now())));
-      socket.on("uploadProgress", (p) => upsert(normalizeVideoUpload(p, Date.now())));
-      socket.on("audioDownloadProgress", (p) => upsert(normalizeAudioDownload(p, Date.now())));
-      socket.on("audioUploadProgress", (p) => upsert(normalizeAudioUpload(p, Date.now())));
-      socket.on("imageUploadProgress", (p) => upsert(normalizeImageUpload(p, Date.now())));
-      socket.on("mp3DownloadProgress", (p) => upsert(normalizeHymnMp3(p, Date.now())));
-      socket.on("transferUploadProgress", (p) => upsert(normalizeTransferUpload(p, Date.now())));
-      socket.on("bibleTranslationStatus", (p) => upsert(normalizeBibleTranslation(p, Date.now())));
-      socket.on("audioSchedules", setSchedules);
-      socket.on("audioScheduleEvent", handleScheduleEvent);
-
       return () => {
-        socket.disconnect();
+        off();
+        offConnected();
       };
     }
   }, [isElectron, upsert, handleScheduleEvent]);

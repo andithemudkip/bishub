@@ -1,14 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
-import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
-  AppSettings,
-  MonitorInfo,
-} from "../shared/types";
-import { getDeviceToken } from "../shared/utils";
+import { getSocket, listen, onConnected, type SocketType } from "./socket";
+import type { AppSettings, MonitorInfo } from "../shared/types";
 
-type SocketType = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 interface SystemHealthAPI {
   /** `null` until the first value arrives (Electron invoke resolves / web connects). */
@@ -37,15 +30,18 @@ export function useSystemHealth(
       api.getDisplayWindowState().then(setDisplayWindowOpen);
       return api.onDisplayWindowState(setDisplayWindowOpen);
     } else {
-      const token = getDeviceToken();
-      if (!token) return;
-      const socket: SocketType = io({ auth: { token } });
+      const socket = getSocket();
+      if (!socket) return;
       socketRef.current = socket;
 
-      socket.on("displayWindowState", setDisplayWindowOpen);
+      const off = listen(socket, { displayWindowState: setDisplayWindowOpen });
+      const offConnected = onConnected(socket, () => {
+        socket.emit("getDisplayWindowState");
+      });
 
       return () => {
-        socket.disconnect();
+        off();
+        offConnected();
       };
     }
   }, [isElectron]);
