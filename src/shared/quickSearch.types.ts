@@ -35,7 +35,13 @@ export type QuickSearchHit =
   | { kind: "video"; id: string; name: string; path: string }
   | { kind: "audio"; id: string; name: string; path: string }
   | { kind: "image"; id: string; name: string; path: string }
-  | { kind: "playlist"; id: string; name: string };
+  | {
+      kind: "playlist";
+      id: string;
+      name: string;
+      /** Tracks still in the library — the range a shuffle picks its start from. */
+      trackCount: number;
+    };
 
 export type QuickSearchGroupKind = "hymns" | "reference" | "bible" | "media";
 

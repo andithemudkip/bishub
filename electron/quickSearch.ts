@@ -184,8 +184,12 @@ export function quickSearch(
     if (hasAllWords(normalizeForSearch(hit.name))) mediaHits.push({ hit, tier: TIER.media });
   };
   for (const v of getVideoLibrary().getAll()) addMedia({ kind: "video", id: v.id, name: v.name, path: v.path });
-  for (const a of getAudioLibrary().getAll()) addMedia({ kind: "audio", id: a.id, name: a.name, path: a.path });
-  for (const p of getAudioPlaylists().getAll()) addMedia({ kind: "playlist", id: p.id, name: p.name });
+  const audioLibrary = getAudioLibrary();
+  for (const a of audioLibrary.getAll()) addMedia({ kind: "audio", id: a.id, name: a.name, path: a.path });
+  for (const p of getAudioPlaylists().getAll()) {
+    const trackCount = p.audioIds.filter((id) => audioLibrary.getById(id)).length;
+    addMedia({ kind: "playlist", id: p.id, name: p.name, trackCount });
+  }
   for (const i of getImageLibrary().getAll()) addMedia({ kind: "image", id: i.id, name: i.name, path: i.path });
   if (mediaHits.length > 0) results.push(group("media", mediaHits));
 

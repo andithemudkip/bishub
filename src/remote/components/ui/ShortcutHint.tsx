@@ -15,7 +15,7 @@ interface Props {
 
 /**
  * A shortcut shown faintly beside the control it triggers — "⌘1" by Hymns,
- * "Esc" on Go Idle. Keys and the ⌘/Ctrl modifier come from `SHORTCUTS`, the
+ * "Esc" on Go Idle. Keys and the ⌘/Ctrl or ⌥/Alt modifier come from `SHORTCUTS`, the
  * same table the handlers and Settings use, so a hint can't drift from what
  * the key actually does. Hidden below `md:`, where there's no keyboard.
  *
@@ -26,8 +26,13 @@ interface Props {
 export function ShortcutHint({ shortcut, keyLabel, quiet = false, className = "" }: Props) {
   const definition = SHORTCUTS[shortcut];
   const key = keyLabel ?? definition.display[0];
-  const mod = "mod" in definition && definition.mod;
-  const label = mod ? (isMacPlatform() ? `⌘${key}` : `Ctrl+${key}`) : key;
+  const mac = isMacPlatform();
+  const label =
+    "mod" in definition && definition.mod
+      ? mac ? `⌘${key}` : `Ctrl+${key}`
+      : "alt" in definition && definition.alt
+        ? mac ? `⌥${key}` : `Alt+${key}`
+        : key;
 
   return (
     <kbd

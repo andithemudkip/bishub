@@ -12,6 +12,8 @@ export type PageIntent =
   | {
       page: "bible";
       open: { bookId: string; bookName: string; chapter: number; verse: number };
+      /** What was typed to find it, for the page's search history. */
+      query: string;
     };
 
 const EVENT = "bishub:page-intent";
