@@ -20,8 +20,27 @@ export default defineConfig({
     ],
   },
   test: {
-    environment: "node",
-    include: ["electron/**/*.test.ts", "src/shared/**/*.test.ts"],
-    setupFiles: ["test/setup.ts"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "node",
+          environment: "node",
+          include: ["electron/**/*.test.ts", "src/shared/**/*.test.ts"],
+          setupFiles: ["test/setup.ts"],
+        },
+      },
+      {
+        // Remote and display components and hooks, rendered with React
+        // Testing Library into a simulated DOM.
+        extends: true,
+        test: {
+          name: "dom",
+          environment: "happy-dom",
+          include: ["src/remote/**/*.test.{ts,tsx}", "src/display/**/*.test.{ts,tsx}"],
+          setupFiles: ["test/setup.dom.ts"],
+        },
+      },
+    ],
   },
 });
