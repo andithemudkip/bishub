@@ -41,9 +41,57 @@ describe("parseTTML", () => {
     ["1:05", 65],
     ["12:00.5", 720.5],
     ["123:01.000", 7381],
+    ["0:00:13.5", 13.5],
+    ["1:02:03.25", 3723.25],
+    ["13.5s", 13.5],
+    ["500ms", 0.5],
+    ["2m", 120],
+    ["1.5h", 5400],
   ])("reads the time %s as %d seconds", (time, seconds) => {
     const parsed = parseTTML(ttml(`<p>${span(time, time, "w")}</p>`));
     expect(parsed.lines[0].words[0].begin).toBeCloseTo(seconds);
+  });
+
+  it("reads a body dur written as an offset or with hours", () => {
+    expect(parseTTML(ttml(`<p>${span("1s", "2s", "a")}</p>`, "207.023s")).duration).toBeCloseTo(207.023);
+    expect(parseTTML(ttml(`<p>${span("1s", "2s", "a")}</p>`, "0:03:27.023")).duration).toBeCloseTo(207.023);
+  });
+
+  it("reads span attributes in any order and quote style", () => {
+    const parsed = parseTTML(
+      ttml(`<p><span end="0:02.000" begin="0:01.000">a</span><span begin='0:03.000' end='0:04.000'>b</span></p>`)
+    );
+    expect(parsed.lines[0].words).toEqual([
+      { text: "a", begin: 1, end: 2 },
+      { text: "b", begin: 3, end: 4 },
+    ]);
+  });
+
+  it("doesn't mistake namespaced attributes for timing", () => {
+    const parsed = parseTTML(
+      ttml(`<p><span ttm:begin="0:09.000" begin="0:01.000" end="0:02.000">a</span></p>`)
+    );
+    expect(parsed.lines[0].words[0].begin).toBe(1);
+  });
+
+  it("matches timed words nested inside an untimed wrapper span", () => {
+    const parsed = parseTTML(
+      ttml(`<p>${span("0:01.000", "0:02.000", "lead")}<span ttm:role="x-bg">${span("0:02.000", "0:03.000", "echo")}</span></p>`)
+    );
+    expect(parsed.lines[0].words.map((w) => w.text)).toEqual(["lead", "echo"]);
+  });
+
+  it.each([
+    ["Tu &amp; eu", "Tu & eu"],
+    ["&lt;El&gt;", "<El>"],
+    ["&quot;Sfânt&quot;", '"Sfânt"'],
+    ["Domn&apos;ul", "Domn'ul"],
+    ["&#259;&#x21B;", "ăț"],
+    ["&amp;lt;", "&lt;"],
+    ["&AMP; &bogus; &#0;", "&AMP; &bogus; &#0;"],
+  ])("decodes %s in word text", (raw, text) => {
+    const parsed = parseTTML(ttml(`<p>${span("0:01.000", "0:02.000", raw)}</p>`));
+    expect(parsed.lines[0].words[0].text).toBe(text);
   });
 
   it("takes line bounds from the words, not the <p> attributes", () => {
