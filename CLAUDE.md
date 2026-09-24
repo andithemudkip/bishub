@@ -25,6 +25,8 @@ For any action that runs in the main process (downloads, adding to libraries, pl
 
 When adding an action, check the sibling hook (`useVideoLibrary`, `useAudioLibrary`, `useImageLibrary`, etc.) — both IPC and Socket.io branches of the `useEffect` and `useCallback`s must be updated together.
 
+**One socket per tab.** Web hooks share the connection in `src/remote/socket.ts`: get it with `getSocket()`, attach handlers with `listen()` (its cleanup removes only yours), and make initial requests with `onConnected()`. Never call `io()`, `disconnect()` or `removeAllListeners()` in a hook — that tears down every other hook's handlers. Anything a client needs on arrival must be a request event, not a push in the server's `connection` handler (a hook mounting later would miss it). The same rule applies to Electron preload `on*` helpers: remove only your own handler, never `removeAllListeners`.
+
 ### Mirror `TextMode.tsx` ↔ `ScaledSlide`
 
 `LivePreview` renders a scaled-down replica of the display at a virtual 1920×1080, then CSS-scales it. Any change to layout or font sizing in `src/display/modes/TextMode.tsx` must be mirrored in `ScaledSlide` inside `src/remote/components/preview/LivePreview.tsx`, or the preview will drift from the real display.
@@ -45,7 +47,7 @@ The remote UI must work on phones and tablets (320px+). Use Tailwind's `sm:`/`md
 
 Use the shared components — don't hand-roll equivalents:
 
-- **`src/remote/components/ui/`** — `Card`, `StatusBanner`, `Select`, `PositionPicker`, `BibleTranslationPicker`, `renderTip`
+- **`src/remote/components/ui/`** — `Card`, `StatusBanner`, `Select`, `PositionPicker`, `BibleTranslationPicker`, `renderTip`, `ToastStack`
 - **`src/remote/components/icons/ui.tsx`** — SVG icons (Close, Chevrons, Play/Pause, etc.). Never use ASCII (✕, ←, →, ◀, ▶, ■) for UI.
 - **`src/shared/utils.ts`** — check here before writing any utility. Electron imports from `../src/shared/utils`, renderer uses `@shared/utils`.
 
