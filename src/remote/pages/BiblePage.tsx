@@ -32,6 +32,8 @@ export interface SearchHistoryEntry {
   bookName: string;
   chapter: number;
   verse: number;
+  /** Last verse of a searched range; missing from entries saved before ranges. */
+  endVerse?: number;
   query: string;
   timestamp: number;
 }
@@ -47,9 +49,12 @@ function findScrollParent(el: HTMLElement | null): HTMLElement | null {
 const HISTORY_KEY = "bishub-bible-search-history";
 const MAX_HISTORY = 20;
 
-/** One entry per verse, however often it's searched. */
+/** One entry per verse or range, however often it's searched. */
 const sameVerse = (a: SearchHistoryEntry, b: SearchHistoryEntry) =>
-  a.bookId === b.bookId && a.chapter === b.chapter && a.verse === b.verse;
+  a.bookId === b.bookId &&
+  a.chapter === b.chapter &&
+  a.verse === b.verse &&
+  (a.endVerse ?? a.verse) === (b.endVerse ?? b.verse);
 
 export interface BibleBook {
   id: string;
@@ -147,13 +152,21 @@ export default function BiblePage({
   });
 
   const addToHistory = useCallback(
-    (bookId: string, bookName: string, chapter: number, verse: number, query: string) => {
+    (
+      bookId: string,
+      bookName: string,
+      chapter: number,
+      verse: number,
+      query: string,
+      endVerse: number = verse
+    ) => {
       addHistoryEntry({
         id: `${bookId}-${chapter}-${verse}-${Date.now()}`,
         bookId,
         bookName,
         chapter,
         verse,
+        endVerse,
         query,
         timestamp: Date.now(),
       });
@@ -161,22 +174,25 @@ export default function BiblePage({
     [addHistoryEntry]
   );
 
-  // Navigate to verse list for a given book/chapter/verse
+  // Navigate to verse list for a given book/chapter, highlighting a verse or
+  // a range ("ioan 3:16-18") through `highlightEnd`.
   // Returns false if the chapter doesn't exist (no verses returned)
   const navigateToVerseList = useCallback(
     async (
       bookId: string,
       bookName: string,
       chapter: number,
-      highlightVerse: number = 1
+      highlightVerse: number = 1,
+      highlightEnd: number = highlightVerse
     ): Promise<boolean> => {
       const verses = await getBibleChapter(bookId, chapter);
       if (verses.length === 0) return false;
       const maxVerse = verses[verses.length - 1].verse;
-      const clampedVerse = Math.min(highlightVerse, maxVerse);
+      const start = Math.min(highlightVerse, maxVerse);
+      const end = Math.min(Math.max(highlightEnd, start), maxVerse);
       setView({
         type: "verseList",
-        context: { bookId, bookName, chapter, verses, highlightVerse: clampedVerse },
+        context: { bookId, bookName, chapter, verses, highlightVerse: start, highlightEnd: end },
       });
       setSearchInput("");
       setParsedRef(null);
@@ -189,9 +205,9 @@ export default function BiblePage({
   // Arriving from Quick Search: a query to run, or a chapter to open.
   usePageIntent("bible", (intent) => {
     if ("open" in intent) {
-      const { bookId, bookName, chapter, verse } = intent.open;
-      navigateToVerseList(bookId, bookName, chapter, verse).then((ok) => {
-        if (ok) addToHistory(bookId, bookName, chapter, verse, intent.query);
+      const { bookId, bookName, chapter, verse, endVerse } = intent.open;
+      navigateToVerseList(bookId, bookName, chapter, verse, endVerse).then((ok) => {
+        if (ok) addToHistory(bookId, bookName, chapter, verse, intent.query, endVerse);
       });
     } else {
       setView({ type: "search" });
@@ -202,14 +218,10 @@ export default function BiblePage({
   // Handle submitting a parsed reference (Enter or Go button)
   const handleSubmitReference = useCallback(async () => {
     if (!validatedParsedRef) return;
+    const { bookId, bookName, chapter, startVerse, endVerse } = validatedParsedRef;
     const query = searchInput.trim();
-    const ok = await navigateToVerseList(
-      validatedParsedRef.bookId,
-      validatedParsedRef.bookName,
-      validatedParsedRef.chapter,
-      validatedParsedRef.startVerse
-    );
-    if (ok) addToHistory(validatedParsedRef.bookId, validatedParsedRef.bookName, validatedParsedRef.chapter, validatedParsedRef.startVerse, query);
+    const ok = await navigateToVerseList(bookId, bookName, chapter, startVerse, endVerse);
+    if (ok) addToHistory(bookId, bookName, chapter, startVerse, query, endVerse);
   }, [validatedParsedRef, navigateToVerseList, searchInput, addToHistory]);
 
   // Handle clicking a text search result
@@ -375,7 +387,13 @@ export default function BiblePage({
           onGoReference={handleSubmitReference}
           searchHistory={searchHistory}
           onHistorySelect={(entry) =>
-            navigateToVerseList(entry.bookId, entry.bookName, entry.chapter, entry.verse)
+            navigateToVerseList(
+              entry.bookId,
+              entry.bookName,
+              entry.chapter,
+              entry.verse,
+              entry.endVerse ?? entry.verse
+            )
           }
           onClearHistory={clearHistory}
           language={settings.language}

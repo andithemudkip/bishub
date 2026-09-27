@@ -10,7 +10,10 @@ interface VerseListContext {
   bookName: string;
   chapter: number;
   verses: BibleVerse[];
+  /** The verse (or first of the range) that was searched for. */
   highlightVerse: number;
+  /** Last highlighted verse — the same as `highlightVerse` for a single one. */
+  highlightEnd: number;
 }
 
 interface Props {
@@ -65,7 +68,7 @@ export default function VerseListView({
       el?.scrollIntoView({ behavior: "smooth", block: "center" });
       initialScrollDone.current = true;
     });
-  }, [context.bookId, context.chapter, context.highlightVerse]);
+  }, [context.bookId, context.chapter, context.highlightVerse, context.highlightEnd]);
 
   // Auto-scroll to current slide when it changes (skip during initial scroll)
   useEffect(() => {
@@ -92,22 +95,19 @@ export default function VerseListView({
     }
   };
 
-  // Enter presents the highlighted verse
-  useShortcut(
-    ["Enter"],
-    () =>
-      loadBibleVerses(
-        context.bookId,
-        context.bookName,
-        context.chapter,
-        context.highlightVerse
-      )
-  );
+  // Enter presents the highlighted verse (the start of a highlighted range),
+  // exactly as clicking it would
+  useShortcut(["Enter"], () => {
+    const index = context.verses.findIndex((v) => v.verse === context.highlightVerse);
+    if (index !== -1) handleVerseClick(index);
+  });
 
-  // Escape goes back (capture phase intercepts before the global goIdle handler)
+  // Escape goes idle first, as everywhere else; once nothing is showing it
+  // goes back. Capture phase runs before the global goIdle handler.
   useShortcut(
     ["Escape"],
     (e) => {
+      if (!isIdle) return;
       e.stopImmediatePropagation();
       onBack();
     },
@@ -181,7 +181,8 @@ export default function VerseListView({
       {/* Verse list */}
       <div ref={listRef} className="space-y-1 pb-4">
         {context.verses.map((verse, index) => {
-          const isHighlight = verse.verse === context.highlightVerse;
+          const isHighlight =
+            verse.verse >= context.highlightVerse && verse.verse <= context.highlightEnd;
           const isActive =
             isDisplayingThisChapter &&
             !isIdle &&

@@ -11,7 +11,8 @@ export type PageIntent =
   | { page: "bible"; query: string }
   | {
       page: "bible";
-      open: { bookId: string; bookName: string; chapter: number; verse: number };
+      /** `endVerse` highlights a range ("ioan 3:16-18") through to it. */
+      open: { bookId: string; bookName: string; chapter: number; verse: number; endVerse: number };
       /** What was typed to find it, for the page's search history. */
       query: string;
     };

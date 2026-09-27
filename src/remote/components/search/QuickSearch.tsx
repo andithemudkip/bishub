@@ -9,6 +9,7 @@ import type {
 import { ShortcutHint } from "../ui/ShortcutHint";
 import { useSearchHistory } from "../../hooks/useSearchHistory";
 import { sendPageIntent } from "../../hooks/usePageIntent";
+import { formatVerseRange } from "../../../shared/bibleParser";
 import { HymnsIcon } from "../icons/hymns";
 import { BibleIcon } from "../icons/bible";
 import { VideoIcon } from "../icons/video";
@@ -187,14 +188,20 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
       }
 
       const { hit } = row;
-      const openBible = (chapter: number, verse: number, bookId: string, bookName: string) => {
+      const openBible = (
+        bookId: string,
+        bookName: string,
+        chapter: number,
+        verse: number,
+        endVerse: number
+      ) => {
         onNavigate("bible");
         // A recent is picked with nothing typed; the history then shows the
         // reference alone, as it does for a browsed chapter.
         sendPageIntent({
           page: "bible",
-          open: { bookId, bookName, chapter, verse },
-          query: query.trim() || `${bookName} ${chapter}:${verse}`,
+          open: { bookId, bookName, chapter, verse, endVerse },
+          query: query.trim() || `${bookName} ${chapter}:${formatVerseRange(verse, endVerse)}`,
         });
       };
 
@@ -213,10 +220,10 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
         // Like the Bible page's own search: open the chapter on the verse and
         // leave presenting to a second Enter there, once it's been checked.
         case "reference":
-          openBible(hit.chapter, hit.startVerse, hit.bookId, hit.bookName);
+          openBible(hit.bookId, hit.bookName, hit.chapter, hit.startVerse, hit.endVerse);
           break;
         case "verse":
-          openBible(hit.chapter, hit.verse, hit.bookId, hit.bookName);
+          openBible(hit.bookId, hit.bookName, hit.chapter, hit.verse, hit.verse);
           break;
         // The library pages load media paused so it can be cued; picking it
         // here means "put it on now". Both transports keep order, so the play
@@ -521,8 +528,7 @@ function HitContent({ hit, t }: { hit: QuickSearchHit; t: Translations }) {
           <BibleIcon className={icon} />
           <span className="flex-1 min-w-0 text-sm truncate">
             {hit.bookName} {hit.chapter}
-            {hit.verseGiven &&
-              `:${hit.startVerse}${hit.endVerse > hit.startVerse ? `-${hit.endVerse}` : ""}`}
+            {hit.verseGiven && `:${formatVerseRange(hit.startVerse, hit.endVerse)}`}
           </span>
         </>
       );

@@ -53,6 +53,8 @@ const reference: QuickSearchHit = {
   verseGiven: true,
 };
 
+const range: QuickSearchHit = { ...reference, endVerse: 18 };
+
 const verse: QuickSearchHit = {
   kind: "verse",
   bookId: "JHN",
@@ -64,12 +66,13 @@ const verse: QuickSearchHit = {
 
 describe("QuickSearch Bible hits", () => {
   it.each([
-    ["a reference", "ioan 3:16", reference, "Enter"],
-    ["a verse found by its text", "atat de mult a iubit", verse, "Enter"],
-    ["a reference", "ioan 3:16", reference, "Shift+Enter"],
+    ["a reference", "ioan 3:16", reference, "Enter", 16],
+    ["a range", "ioan 3:16-18", range, "Enter", 18],
+    ["a verse found by its text", "atat de mult a iubit", verse, "Enter", 16],
+    ["a reference", "ioan 3:16", reference, "Shift+Enter", 16],
   ] as const)(
-    "%s opens the chapter on the verse without presenting it (%s)",
-    async (_, query, hit, key) => {
+    "%s opens the chapter on it without presenting it (%s)",
+    async (_, query, hit, key, endVerse) => {
       const { actions, onNavigate, onClose } = setup(query, hit);
       await screen.findByText(/Ioan 3/);
 
@@ -87,7 +90,7 @@ describe("QuickSearch Bible hits", () => {
       expect(onClose).toHaveBeenCalled();
       expect(receivedIntent()).toEqual({
         page: "bible",
-        open: { bookId: "JHN", bookName: "Ioan", chapter: 3, verse: 16 },
+        open: { bookId: "JHN", bookName: "Ioan", chapter: 3, verse: 16, endVerse },
         query,
       });
     }

@@ -1,11 +1,14 @@
 import { useMemo } from "react";
 import type { BibleSearchResult } from "../../../shared/types";
-import type { ParsedReference } from "../../../shared/bibleParser";
+import { formatVerseRange, type ParsedReference } from "../../../shared/bibleParser";
 import { getTranslations } from "../../../shared/i18n";
 import { removeDiacritics, formatTimeAgo } from "../../../shared/utils";
 import type { Language } from "../../../shared/i18n";
 import { StatusBanner } from "../ui/Card";
 import type { SearchHistoryEntry } from "../../pages/BiblePage";
+
+const historyLabel = (entry: SearchHistoryEntry) =>
+  `${entry.bookName} ${entry.chapter}:${formatVerseRange(entry.verse, entry.endVerse ?? entry.verse)}`;
 
 interface Props {
   searchInput: string;
@@ -165,9 +168,9 @@ export default function SearchResultsTab({
               >
                 <div className="min-w-0">
                   <span className="text-blue-400 font-semibold text-sm">
-                    {entry.bookName} {entry.chapter}:{entry.verse}
+                    {historyLabel(entry)}
                   </span>
-                  {entry.query !== `${entry.bookName} ${entry.chapter}:${entry.verse}` && (
+                  {entry.query !== historyLabel(entry) && (
                     <span className="text-gray-500 text-xs ml-2">
                       &quot;{entry.query}&quot;
                     </span>
@@ -199,10 +202,7 @@ export default function SearchResultsTab({
       <div className="flex items-center justify-between">
         <span className="text-green-400 font-semibold text-lg">
           {parsedRef.bookName} {parsedRef.chapter}
-          {!parsedRef.bookOnly && `:${parsedRef.startVerse}`}
-          {!parsedRef.bookOnly &&
-            parsedRef.endVerse !== parsedRef.startVerse &&
-            `-${parsedRef.endVerse}`}
+          {!parsedRef.bookOnly && `:${formatVerseRange(parsedRef.startVerse, parsedRef.endVerse)}`}
         </span>
         <span className="px-4 py-1.5 bg-green-600/30 border border-green-600/50 rounded-lg text-sm font-medium text-green-400">
           {t.bible.go}

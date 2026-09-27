@@ -3,6 +3,7 @@ import {
   BIBLE_BOOKS_EN,
   BIBLE_BOOKS_RO,
   type BibleBookInfo,
+  formatVerseRange,
   getBibleBooks,
   getBookSuggestions,
   parseBibleReference,
@@ -220,6 +221,17 @@ describe("parseBibleReferenceWithBooks", () => {
 
   it("only resolves books the translation contains", () => {
     expect(parseBibleReferenceWithBooks("ps 23", books)).toBeNull();
+  });
+});
+
+describe("formatVerseRange", () => {
+  it.each([
+    [16, 16, "16"],
+    [16, 18, "16-18"],
+    // An end before the start is never a range
+    [16, 15, "16"],
+  ])("%i to %i is %s", (start, end, expected) => {
+    expect(formatVerseRange(start, end)).toBe(expected);
   });
 });
 

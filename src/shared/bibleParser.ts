@@ -510,6 +510,11 @@ export function parseBibleReference(
   return parseReference(input, getBibleBooks(language), language);
 }
 
+/** "16", or "16-18" for a range — the verse part of a reference. */
+export function formatVerseRange(startVerse: number, endVerse: number): string {
+  return endVerse > startVerse ? `${startVerse}-${endVerse}` : String(startVerse);
+}
+
 /**
  * Get suggestions for book names based on partial input
  */
