@@ -26,13 +26,6 @@ import {
 export interface QuickSearchActions {
   search: (query: string) => Promise<QuickSearchResponse>;
   loadHymn: (book: string, number: string) => void;
-  loadBibleVerses: (
-    bookId: string,
-    bookName: string,
-    chapter: number,
-    startVerse: number,
-    endVerse?: number
-  ) => void;
   loadVideo: (src: string, videoId?: string) => void;
   playVideo: () => void;
   loadAudio: (src: string, name: string) => void;
@@ -98,8 +91,10 @@ function shuffleable(row: Row | undefined): PlaylistHit | null {
 /**
  * One box across hymns, Bible and media. Results are actions, not a page:
  * Enter shows the selected result on the display, Shift+Enter (or the arrow
- * on each row) opens it on its own page instead. Hymns and Bible verses open
- * their page either way — that's where their slide controls live.
+ * on each row) opens it on its own page instead. Hymns open their page either
+ * way — that's where their slide controls live. Bible hits never present
+ * straight away: they open the chapter with the verse highlighted, and a second
+ * Enter there presents it, so it can be checked against what the speaker said.
  */
 export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, t }: Props) {
   const [query, setQuery] = useState(initialQuery);
@@ -167,6 +162,11 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
     return out;
   }, [groups, showingRecents]);
 
+  const selectedRow = rows[selected];
+  const selectedIsBible =
+    selectedRow?.type === "hit" &&
+    (selectedRow.hit.kind === "reference" || selectedRow.hit.kind === "verse");
+
   useEffect(() => {
     listRef.current
       ?.querySelector(`[data-row="${selected}"]`)
@@ -210,19 +210,12 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
             onNavigate("hymns");
           }
           break;
+        // Like the Bible page's own search: open the chapter on the verse and
+        // leave presenting to a second Enter there, once it's been checked.
         case "reference":
-          // A chapter alone has no verses picked yet: open it to choose.
-          // Presenting also opens the chapter, as the Bible page's own search
-          // does, so the next verse is one tap away.
-          if (!openPage && hit.verseGiven) {
-            actions.loadBibleVerses(hit.bookId, hit.bookName, hit.chapter, hit.startVerse, hit.endVerse);
-          }
           openBible(hit.chapter, hit.startVerse, hit.bookId, hit.bookName);
           break;
         case "verse":
-          if (!openPage) {
-            actions.loadBibleVerses(hit.bookId, hit.bookName, hit.chapter, hit.verse, hit.verse);
-          }
           openBible(hit.chapter, hit.verse, hit.bookId, hit.bookName);
           break;
         // The library pages load media paused so it can be cued; picking it
@@ -387,7 +380,7 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
                       onShuffle={playlist ? () => shufflePlaylist(playlist) : undefined}
                       shuffleLabel={t.audioLibrary.shuffle}
                       openLabel={
-                        hit.kind === "reference" && !hit.verseGiven
+                        hit.kind === "reference" || hit.kind === "verse"
                           ? t.quickSearch.openChapter
                           : t.quickSearch.openPage
                       }
@@ -426,8 +419,14 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
         </div>
 
         <div className="hidden md:flex items-center gap-4 px-3 py-2 border-t border-gray-700 text-xs text-gray-500 flex-shrink-0">
-          <Hint keys="Enter" label={t.quickSearch.hintShow} />
-          <Hint keys="Shift+Enter" label={t.quickSearch.hintOpen} />
+          {selectedIsBible ? (
+            <Hint keys="Enter" label={t.quickSearch.hintOpenChapter} />
+          ) : (
+            <>
+              <Hint keys="Enter" label={t.quickSearch.hintShow} />
+              <Hint keys="Shift+Enter" label={t.quickSearch.hintOpen} />
+            </>
+          )}
           <Hint keys="Tab" label={t.quickSearch.hintGroups} />
           <Hint keys="Esc" label={t.quickSearch.hintClose} />
         </div>

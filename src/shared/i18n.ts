@@ -530,6 +530,7 @@ export interface Translations {
     playlist: string;
     hintShow: string;
     hintOpen: string;
+    hintOpenChapter: string;
     hintGroups: string;
     hintClose: string;
   };
@@ -1207,6 +1208,7 @@ const ro: Translations = {
     playlist: "Listă de redare",
     hintShow: "afișează",
     hintOpen: "deschide pagina",
+    hintOpenChapter: "deschide capitolul",
     hintGroups: "grupuri",
     hintClose: "închide",
   },
@@ -1828,6 +1830,7 @@ const en: Translations = {
     playlist: "Playlist",
     hintShow: "show",
     hintOpen: "open page",
+    hintOpenChapter: "open chapter",
     hintGroups: "groups",
     hintClose: "close",
   },

@@ -21,7 +21,7 @@ export type QuickSearchHit =
       chapter: number;
       startVerse: number;
       endVerse: number;
-      /** "ioan 3:16" projects; "ioan 3" opens the chapter on the Bible page. */
+      /** "ioan 3:16" highlights the verse; "ioan 3" opens the chapter at its start. */
       verseGiven: boolean;
     }
   | {

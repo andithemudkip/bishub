@@ -3,10 +3,11 @@ import type { Translations } from "../../../shared/i18n";
 import type { LoadedLayer } from "../../../shared/stage.types";
 import { formatDuration } from "../../../shared/utils";
 import { HymnsIcon } from "../icons/hymns";
+import { BibleIcon } from "../icons/bible";
 import { VideoIcon } from "../icons/video";
 import { ImageIcon } from "../icons/image";
 import { AudioIcon } from "../icons/audio";
-import { PlayIcon, PauseIcon, StopIcon, CloseIcon } from "../icons/ui";
+import { PlayIcon, PauseIcon, StopIcon, CloseIcon, PencilIcon } from "../icons/ui";
 import { Section } from "./Section";
 import type { NavigateTo, StageActions } from "./types";
 import type { ActivityTarget } from "../../../shared/stage.types";
@@ -20,10 +21,15 @@ interface Props {
 }
 
 const ICONS = {
-  text: HymnsIcon,
   video: VideoIcon,
   image: ImageIcon,
   audio: AudioIcon,
+};
+
+const TEXT_ICONS = {
+  hymn: HymnsIcon,
+  bible: BibleIcon,
+  custom: PencilIcon,
 };
 
 const ghostButton =
@@ -42,7 +48,7 @@ export function LoadedSection({ layers, state, actions, onNavigate, t }: Props) 
     <Section section="loaded" title={t.stage.loaded}>
       <ul className="space-y-1.5">
         {layers.map(({ kind }) => {
-          const Icon = ICONS[kind];
+          const Icon = kind === "text" ? TEXT_ICONS[state.text.contentType] : ICONS[kind];
           const page = layerPage(kind, state);
           const label = (
             <>

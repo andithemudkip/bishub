@@ -130,7 +130,6 @@ export default function App() {
     () => ({
       search: api.quickSearch,
       loadHymn: api.loadHymn,
-      loadBibleVerses: api.loadBibleVerses,
       loadVideo: api.loadVideo,
       playVideo: api.playVideo,
       loadAudio: api.loadAudio,
@@ -141,7 +140,6 @@ export default function App() {
     [
       api.quickSearch,
       api.loadHymn,
-      api.loadBibleVerses,
       api.loadVideo,
       api.playVideo,
       api.loadAudio,
