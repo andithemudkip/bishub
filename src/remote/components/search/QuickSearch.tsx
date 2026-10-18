@@ -26,6 +26,8 @@ import {
 
 export interface QuickSearchActions {
   search: (query: string) => Promise<QuickSearchResponse>;
+  /** The Bible text half, asked for when `search` says `versesFollow`. */
+  searchVerses: (query: string) => Promise<QuickSearchResponse>;
   loadHymn: (book: string, number: string) => void;
   loadVideo: (src: string, videoId?: string) => void;
   playVideo: () => void;
@@ -45,7 +47,7 @@ interface Props {
   t: Translations;
 }
 
-/** Waits this long after the last keystroke; searches measure ~30–50ms. */
+/** Waits this long after the last keystroke; searches measure ~2–10ms. */
 const DEBOUNCE_MS = 120;
 const RECENTS_KEY = "bishub-quick-search-recents";
 const MAX_RECENTS = 8;
@@ -61,9 +63,17 @@ interface RecentEntry {
   hit: QuickSearchHit;
 }
 
+/** `stale`: found for an earlier query, still on screen until its reply lands. */
 type Row =
-  | { type: "hit"; hit: QuickSearchHit; group: number }
-  | { type: "showAll"; group: number; groupKind: "hymns" | "bible"; more: number };
+  | { type: "hit"; hit: QuickSearchHit; group: number; stale: boolean }
+  | { type: "showAll"; group: number; groupKind: "hymns" | "bible"; more: number; stale: boolean };
+
+/** Enter pressed before the results for what's typed had arrived. */
+interface PendingEnter {
+  query: string;
+  shift: boolean;
+  alt: boolean;
+}
 
 function hitKey(hit: QuickSearchHit): string {
   switch (hit.kind) {
@@ -100,14 +110,21 @@ function shuffleable(row: Row | undefined): PlaylistHit | null {
 export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, t }: Props) {
   const [query, setQuery] = useState(initialQuery);
   const [response, setResponse] = useState<QuickSearchResponse | null>(null);
+  const [verses, setVerses] = useState<QuickSearchResponse | null>(null);
+  const [pendingEnter, setPendingEnter] = useState<PendingEnter | null>(null);
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const latestQuery = useRef(initialQuery);
+  /** The query already sent, so Enter and the debounce don't both send it. */
+  const sentQuery = useRef<string | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
   // Read through a ref: the effect below must re-run on typing, not on every
   // parent render (Layout re-renders several times a second during playback).
   const searchRef = useRef(actions.search);
   searchRef.current = actions.search;
+  const searchVersesRef = useRef(actions.searchVerses);
+  searchVersesRef.current = actions.searchVerses;
   const recents = useSearchHistory<RecentEntry>(RECENTS_KEY, MAX_RECENTS);
 
   // Fresh state on every open.
@@ -115,6 +132,8 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
     if (!open) return;
     setQuery(initialQuery);
     setResponse(null);
+    setVerses(null);
+    setPendingEnter(null);
     setSelected(0);
     requestAnimationFrame(() => {
       const input = inputRef.current;
@@ -124,44 +143,65 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
     });
   }, [open, initialQuery]);
 
+  const runSearch = useCallback((q: string) => {
+    clearTimeout(debounceTimer.current);
+    if (sentQuery.current === q) return;
+    sentQuery.current = q;
+    searchRef.current(q).then((r) => {
+      // Typing moved on while this was in flight.
+      if (r.query !== latestQuery.current) return;
+      setResponse(r);
+      setSelected(0);
+      if (!r.versesFollow) return;
+      searchVersesRef.current(q).then((v) => {
+        if (v.query === latestQuery.current) setVerses(v);
+      });
+    });
+  }, []);
+
   useEffect(() => {
     latestQuery.current = query;
+    sentQuery.current = null;
     if (!open || !query.trim()) {
       setResponse(null);
+      setVerses(null);
       return;
     }
-    const timer = setTimeout(() => {
-      searchRef.current(query).then((r) => {
-        // Typing moved on while this was in flight.
-        if (r.query !== latestQuery.current) return;
-        setResponse(r);
-        setSelected(0);
-      });
-    }, DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [open, query]);
+    debounceTimer.current = setTimeout(() => runSearch(query), DEBOUNCE_MS);
+    return () => clearTimeout(debounceTimer.current);
+  }, [open, query, runSearch]);
 
   const showingRecents = !query.trim();
-  const groups: QuickSearchGroup[] = useMemo(
-    () =>
-      showingRecents
-        ? recents.entries.length > 0
-          ? [{ kind: "hymns", hits: recents.entries.map((e) => e.hit), more: 0 }]
-          : []
-        : (response?.groups ?? []),
-    [showingRecents, recents.entries, response]
-  );
+  // Verses for the previous query stay up until the new ones land, rather
+  // than the bottom of the list blinking on every keystroke — unless the new
+  // query has no text search at all (it became a reference).
+  const shownVerses = response?.versesFollow ? verses : null;
+  const groups: { group: QuickSearchGroup; stale: boolean }[] = useMemo(() => {
+    if (showingRecents) {
+      return recents.entries.length > 0
+        ? [{ group: { kind: "hymns", hits: recents.entries.map((e) => e.hit), more: 0 }, stale: false }]
+        : [];
+    }
+    return [
+      ...(response?.groups ?? []).map((group) => ({ group, stale: response?.query !== query })),
+      ...(shownVerses?.groups ?? []).map((group) => ({ group, stale: shownVerses?.query !== query })),
+    ];
+  }, [showingRecents, recents.entries, response, shownVerses, query]);
 
   const rows: Row[] = useMemo(() => {
     const out: Row[] = [];
-    groups.forEach((g, i) => {
-      for (const hit of g.hits) out.push({ type: "hit", hit, group: i });
+    groups.forEach(({ group: g, stale }, i) => {
+      for (const hit of g.hits) out.push({ type: "hit", hit, group: i, stale });
       if (!showingRecents && g.more > 0 && (g.kind === "hymns" || g.kind === "bible")) {
-        out.push({ type: "showAll", group: i, groupKind: g.kind, more: g.more });
+        out.push({ type: "showAll", group: i, groupKind: g.kind, more: g.more, stale });
       }
     });
     return out;
   }, [groups, showingRecents]);
+
+  /** Everything for what's typed has arrived, verses included. */
+  const settled =
+    response?.query === query && (!response.versesFollow || verses?.query === query);
 
   const selectedRow = rows[selected];
   const selectedIsBible =
@@ -270,6 +310,33 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
     [actions, close, recents]
   );
 
+  const enter = useCallback(
+    (row: Row, shift: boolean, alt: boolean) => {
+      const playlist = alt ? shuffleable(row) : null;
+      if (playlist) shufflePlaylist(playlist);
+      else activate(row, shift);
+    },
+    [activate, shufflePlaylist]
+  );
+
+  // An Enter that beat the results acts once the first row can no longer be
+  // displaced: Bible text always ranks last, so any other fresh row is final.
+  useEffect(() => {
+    if (!pendingEnter) return;
+    // Typing on after Enter takes it back.
+    if (pendingEnter.query !== query) {
+      setPendingEnter(null);
+      return;
+    }
+    const first = rows[0];
+    if (first && !first.stale) {
+      setPendingEnter(null);
+      enter(first, pendingEnter.shift, pendingEnter.alt);
+    } else if (settled) {
+      setPendingEnter(null);
+    }
+  }, [pendingEnter, query, rows, settled, enter]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
       case "ArrowDown":
@@ -292,10 +359,14 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
       case "Enter": {
         e.preventDefault();
         const row = rows[selected];
-        if (!row) break;
-        const playlist = e.altKey ? shuffleable(row) : null;
-        if (playlist) shufflePlaylist(playlist);
-        else activate(row, e.shiftKey);
+        if (row && !row.stale) {
+          enter(row, e.shiftKey, e.altKey);
+        } else if (!showingRecents && !settled) {
+          // What's on screen was found for an earlier query ("ieremia 18:"
+          // before the "1"): wait for this one's, skipping the debounce.
+          setPendingEnter({ query, shift: e.shiftKey, alt: e.altKey });
+          runSearch(query);
+        }
         break;
       }
       case "Escape": {
@@ -367,7 +438,7 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
         </div>
 
         <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 space-y-3">
-          {groups.map((g, gi) => (
+          {groups.map(({ group: g }, gi) => (
             <div key={`${g.kind}-${gi}`}>
               <div className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
                 {groupTitle(g)}
@@ -376,14 +447,14 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
                 {g.hits.map((hit) => {
                   rowIndex++;
                   const index = rowIndex;
-                  const playlist = shuffleable({ type: "hit", hit, group: gi });
+                  const playlist = shuffleable({ type: "hit", hit, group: gi, stale: false });
                   return (
                     <ResultRow
                       key={hitKey(hit)}
                       index={index}
                       selected={index === selected}
                       onHover={() => setSelected(index)}
-                      onActivate={(openPage) => activate({ type: "hit", hit, group: gi }, openPage)}
+                      onActivate={(openPage) => activate({ type: "hit", hit, group: gi, stale: false }, openPage)}
                       onShuffle={playlist ? () => shufflePlaylist(playlist) : undefined}
                       shuffleLabel={t.audioLibrary.shuffle}
                       openLabel={
@@ -420,7 +491,7 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
             </div>
           ))}
 
-          {!showingRecents && response && groups.length === 0 && (
+          {!showingRecents && settled && groups.length === 0 && (
             <p className="px-3 py-6 text-center text-sm text-gray-500">{t.quickSearch.noResults}</p>
           )}
         </div>

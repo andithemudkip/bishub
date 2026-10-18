@@ -92,6 +92,12 @@ describe("parseBibleReference", () => {
     expect(ref("gen2:16")).toEqual(["GEN", 2, 16, 16]);
   });
 
+  it("reads a reference typed up to its separator", () => {
+    expect(ref("ieremia 18:")).toEqual(["JER", 18, 1, 1]);
+    expect(parseBibleReference("ieremia 18:")).toMatchObject({ verseGiven: false });
+    expect(ref("ioan 3:16-")).toEqual(["JHN", 3, 16, 16]);
+  });
+
   it("collapses a backwards range to its start verse", () => {
     expect(ref("gen 2:18-16")).toEqual(["GEN", 2, 18, 18]);
   });
@@ -158,7 +164,6 @@ describe("parseBibleReference", () => {
     ["xyz 3"],
     ["3:16"],
     ["Ioan, 3:16"],
-    ["ioan 3:16-"],
     ["dragoste"],
     // Hymn numbers, not "1 Samuel 23" / "2 Samuel 1".
     ["123"],

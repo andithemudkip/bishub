@@ -43,13 +43,17 @@ vi.mock("./audioLibrary", () => ({
   }),
 }));
 
-const { quickSearch } = await import("./quickSearch");
+const { quickSearch, quickSearchVerses } = await import("./quickSearch");
 const { searchBibleVerses } = vi.mocked(await import("./dataLoader"));
 
 const CURRENT = "crestine";
 
+/** Both halves, merged as the remote merges them. */
 function search(query: string): QuickSearchResponse {
-  return quickSearch(query, "ro", "ron-rccv", CURRENT);
+  const first = quickSearch(query, "ro", "ron-rccv", CURRENT);
+  if (!first.versesFollow) return first;
+  const verses = quickSearchVerses(query, "ro", "ron-rccv");
+  return { ...first, groups: [...first.groups, ...verses.groups] };
 }
 
 const groupKinds = (r: QuickSearchResponse) => r.groups.map((g) => g.kind);
@@ -94,7 +98,7 @@ beforeEach(() => {
 
 describe("quickSearch", () => {
   it.each([[""], ["   "], ["!?"]])("returns nothing for %j", (query) => {
-    expect(search(query)).toEqual({ query, groups: [] });
+    expect(search(query)).toEqual({ query, groups: [], versesFollow: false });
   });
 
   it("echoes the query as typed, so a stale reply can be told apart", () => {
@@ -159,6 +163,13 @@ describe("quickSearch", () => {
       const r = search("ioan 30");
       expect(groupKinds(r)).not.toContain("reference");
       expect(groupKinds(r)).toContain("bible");
+    });
+
+    it("is read from a reference typed up to its separator", () => {
+      const r = search("ioan 3:");
+      expect(groupKinds(r)).toEqual(["reference"]);
+      expect(hitsOf(r, "reference")[0]).toMatchObject({ chapter: 3, startVerse: 1, verseGiven: false });
+      expect(searchBibleVerses).not.toHaveBeenCalled();
     });
 
     it("isn't offered for a bare book name", () => {
@@ -243,6 +254,30 @@ describe("quickSearch", () => {
       data.hymns[CURRENT].push(hymn("60", "Cântare", "vino la Isus acum"));
       data.videos.push({ id: "v2", name: "la isus", path: "/v2.mp4" });
       expect(groupKinds(search("la isus"))).toEqual(["hymns", "media"]);
+    });
+  });
+
+  describe("Bible text in its own request", () => {
+    it("is left out of the first reply, which says it follows", () => {
+      data.verses = [verse(3, 16, "Isus a zis")];
+      const r = quickSearch("isus", "ro", "ron-rccv", CURRENT);
+      expect(r.versesFollow).toBe(true);
+      expect(groupKinds(r)).not.toContain("bible");
+      expect(searchBibleVerses).not.toHaveBeenCalled();
+    });
+
+    it.each([["23"], ["ioan 3:16"], ["is"]])("doesn't follow %j", (query) => {
+      expect(quickSearch(query, "ro", "ron-rccv", CURRENT).versesFollow).toBe(false);
+    });
+
+    it("returns nothing for a query the first reply ruled out", () => {
+      data.verses = [verse(3, 16, "ioan 3")];
+      expect(quickSearchVerses("ioan 3", "ro", "ron-rccv").groups).toEqual([]);
+      expect(searchBibleVerses).not.toHaveBeenCalled();
+    });
+
+    it("echoes the query", () => {
+      expect(quickSearchVerses("  isus ", "ro", "ron-rccv").query).toBe("  isus ");
     });
   });
 

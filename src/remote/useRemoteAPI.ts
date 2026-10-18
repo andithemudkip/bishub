@@ -85,6 +85,7 @@ interface RemoteAPI {
   setHymnal: (slug: string) => void;
   searchAllHymns: (query: string) => Promise<HymnSearchResult[]>;
   quickSearch: (query: string) => Promise<QuickSearchResponse>;
+  quickSearchVerses: (query: string) => Promise<QuickSearchResponse>;
   // Hymn import
   /**
    * Choose decks and parse them. On Electron this opens the native picker and
@@ -214,6 +215,7 @@ export function useRemoteAPI(): RemoteAPI {
    * with its own results rather than whichever came back last.
    */
   const quickSearchCbs = useRef(new Map<string, Array<(r: QuickSearchResponse) => void>>());
+  const quickSearchVerseCbs = useRef(new Map<string, Array<(r: QuickSearchResponse) => void>>());
   /**
    * Pending import replies, oldest first.
    *
@@ -302,6 +304,11 @@ export function useRemoteAPI(): RemoteAPI {
         quickSearchResults: (response) => {
           const waiting = quickSearchCbs.current.get(response.query);
           quickSearchCbs.current.delete(response.query);
+          waiting?.forEach((resolve) => resolve(response));
+        },
+        quickSearchVerseResults: (response) => {
+          const waiting = quickSearchVerseCbs.current.get(response.query);
+          quickSearchVerseCbs.current.delete(response.query);
           waiting?.forEach((resolve) => resolve(response));
         },
         hymnSearchResults: (results) => {
@@ -673,6 +680,18 @@ export function useRemoteAPI(): RemoteAPI {
           const waiting = quickSearchCbs.current.get(query) ?? [];
           quickSearchCbs.current.set(query, [...waiting, resolve]);
           socketRef.current?.emit("quickSearch", query);
+        });
+      },
+      [isElectron],
+    ),
+
+    quickSearchVerses: useCallback(
+      (query: string) => {
+        if (isElectron) return window.electronAPI!.quickSearchVerses(query);
+        return new Promise<QuickSearchResponse>((resolve) => {
+          const waiting = quickSearchVerseCbs.current.get(query) ?? [];
+          quickSearchVerseCbs.current.set(query, [...waiting, resolve]);
+          socketRef.current?.emit("quickSearchVerses", query);
         });
       },
       [isElectron],

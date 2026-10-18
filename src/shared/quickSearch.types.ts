@@ -57,4 +57,9 @@ export interface QuickSearchResponse {
   query: string;
   /** Strongest group first. */
   groups: QuickSearchGroup[];
+  /**
+   * Bible text matches are still to come: ask `quickSearchVerses` for them.
+   * They rank last, so they append to these groups.
+   */
+  versesFollow: boolean;
 }

@@ -452,8 +452,10 @@ function findBook<T extends MatchableBook>(
   return undefined;
 }
 
-// [book] [chapter]:[verse][-endVerse], where everything after the book is optional
-const REFERENCE_PATTERN = /^(.+?)(?:\s*(\d+)(?::(\d+)(?:-(\d+))?)?)?$/;
+// [book] [chapter]:[verse][-endVerse], where everything after the book is
+// optional. The verse numbers may be missing after their separator: "ier 18:"
+// is a reference still being typed, not a book called "ier 18:".
+const REFERENCE_PATTERN = /^(.+?)(?:\s*(\d+)(?::(\d*)(?:-(\d*))?)?)?$/;
 
 function parseReference<T extends MatchableBook>(
   input: string,

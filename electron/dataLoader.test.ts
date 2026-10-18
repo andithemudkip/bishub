@@ -15,7 +15,7 @@ import {
   searchAllHymns,
   searchBibleVerses,
 } from "./dataLoader";
-import { quickSearch } from "./quickSearch";
+import { quickSearch, quickSearchVerses, warmQuickSearch } from "./quickSearch";
 
 // Hymnals and Bibles are parsed once and cached for the life of the process
 // (see CLAUDE.md). Freezing the cached objects makes any read path that
@@ -74,6 +74,7 @@ describe("cached Bible", () => {
     getBibleVerses(book.id, 1, 1, 3);
     formatBibleChapterForDisplay(book.id, book.name, 1, verses, 2, DEFAULT_TRANSLATION_ID);
     searchBibleVerses("dumnezeu a iubit lumea");
+    warmQuickSearch(DEFAULT_TRANSLATION_ID);
 
     expect(loadBible(DEFAULT_TRANSLATION_ID)).toEqual(bibleSnapshot);
   });
@@ -84,10 +85,30 @@ describe("quick search over cached data", () => {
     "%s leaves the caches untouched",
     (query) => {
       quickSearch(query, "ro", DEFAULT_TRANSLATION_ID, BUNDLED_HYMNALS[0].slug);
+      quickSearchVerses(query, "ro", DEFAULT_TRANSLATION_ID);
       for (const { slug } of BUNDLED_HYMNALS) {
         expect(loadHymns(slug), slug).toEqual(snapshots.get(slug));
       }
       expect(loadBible(DEFAULT_TRANSLATION_ID)).toEqual(bibleSnapshot);
     }
   );
+});
+
+describe("searchBibleVerses", () => {
+  const where = (r: { bookId: string; chapter: number; verse: number }) =>
+    `${r.bookId} ${r.chapter}:${r.verse}`;
+
+  it("ranks the exact phrase first", () => {
+    expect(where(searchBibleVerses("atat de mult a iubit Dumnezeu lumea")[0])).toBe("JHN 3:16");
+  });
+
+  it("matches words by prefix, in any order", () => {
+    const hits = searchBibleVerses("lumea iub dumnezeu").map(where);
+    expect(hits).toContain("JHN 3:16");
+  });
+
+  it("still matches when only half the words are found", () => {
+    expect(searchBibleVerses("iubit dumnezeu lumea xyzq qzyx").map(where)).toContain("JHN 3:16");
+    expect(searchBibleVerses("lumea xyzq qzyx")).toEqual([]);
+  });
 });
