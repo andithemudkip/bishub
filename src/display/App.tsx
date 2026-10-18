@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
-import type { DisplayState, AppSettings } from "../shared/types";
+import type { DisplayState, AppSettings, IdleBackground } from "../shared/types";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
+import { getFileUrl } from "../shared/utils";
 import IdleMode from "./modes/IdleMode";
 import TextMode from "./modes/TextMode";
 import KaraokeMode from "./modes/KaraokeMode";
 import VideoMode from "./modes/VideoMode";
 import ImageMode from "./modes/ImageMode";
 import AudioPlayer from "./components/AudioPlayer";
+
+/** The display reads a library image straight from disk; remotes go through the HTTP API. */
+function idleImageFileUrl(background: IdleBackground): string | null {
+  return background.kind === "image" && background.path ? getFileUrl(background.path) : null;
+}
 
 export default function App() {
   const [state, setState] = useState<DisplayState>(DEFAULT_STATE);
@@ -51,6 +57,7 @@ export default function App() {
         <IdleMode
           config={state.idle}
           language={settings.language}
+          imageUrl={idleImageFileUrl(state.idle.background)}
           audioState={state.audio}
         />
       )}

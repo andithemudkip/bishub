@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import type { AppSettings, ImageState } from "../../shared/types";
 import type { ImageItem } from "../../shared/imageLibrary.types";
-import { IMAGE_EXTENSIONS } from "../../shared/imageLibrary.types";
+import { IMAGE_EXTENSIONS, MAX_IMAGE_UPLOAD_BYTES } from "../../shared/imageLibrary.types";
 import { useImageLibrary } from "../useImageLibrary";
 import MediaUploader from "../components/MediaUploader";
 import { getTranslations } from "@shared/i18n";
@@ -535,7 +535,7 @@ export default function ImageLibraryPage({
                 onUpload={library.uploadImage}
                 activeUploads={library.uploads}
                 allowedExtensions={IMAGE_EXTENSIONS}
-                maxSizeBytes={100 * 1024 * 1024}
+                maxSizeBytes={MAX_IMAGE_UPLOAD_BYTES}
                 uploadUrl="/api/images/upload"
                 uploadFieldName="image"
                 labels={{

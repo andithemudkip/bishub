@@ -1,6 +1,8 @@
 // Internationalization (i18n) system for BisHub
 // Supports Romanian (ro) and English (en)
 
+import type { IdleGradientId } from "./idleBackground";
+
 export type Language = "ro" | "en";
 
 export interface Translations {
@@ -240,10 +242,32 @@ export interface Translations {
     quickSearch: string;
     shufflePlaylist: string;
     // Idle screen settings
-    wallpaper: string;
     selectWallpaper: string;
-    clearWallpaper: string;
-    noWallpaper: string;
+    idlePreview: string;
+    idleBackground: string;
+    idleBackgroundHint: string;
+    idleGradients: Record<IdleGradientId, string>;
+    idleCustomColor: string;
+    idleDim: string;
+    idleDimHint: string;
+    idleDimLighter: string;
+    idleDimDarker: string;
+    idleBlur: string;
+    idleBlurHint: string;
+    idleBlurImageOnly: string;
+    idleBlurSharp: string;
+    idleBlurSoft: string;
+    idleShowClock: string;
+    idleShowDate: string;
+    idleSampleAudio: string;
+    idleNoImages: string;
+    idleImage: string;
+    idleImageChoose: string;
+    idleImageChange: string;
+    idleGradientsLabel: string;
+    idleColorsLabel: string;
+    idleChooseImage: string;
+    idleCloseImages: string;
     clockFontSize: string;
     clockPosition: string;
     positionTopLeft: string;
@@ -281,8 +305,6 @@ export interface Translations {
     previewBibleText: string;
     previewHymnLabel: string;
     previewBibleLabel: string;
-    wallpaperHint: string;
-    wallpaperOnMainComputer: string;
     clockFontSizeHint: string;
     clockSmaller: string;
     clockLarger: string;
@@ -933,10 +955,41 @@ const ro: Translations = {
     quickSearch: "Căutare rapidă",
     shufflePlaylist: "Redare aleatorie a listei (în Căutare rapidă)",
     // Idle screen settings
-    wallpaper: "Imagine de fundal",
-    selectWallpaper: "Selectează imaginea",
-    clearWallpaper: "Șterge",
-    noWallpaper: "Fără imagine",
+    selectWallpaper: "Adaugă imagine",
+    idlePreview: "Previzualizare ecran de așteptare",
+    idleBackground: "Fundal",
+    idleBackgroundHint: "Un gradient, o culoare sau o imagine",
+    idleGradients: {
+      navy: "Bleumarin",
+      ocean: "Ocean adânc",
+      dusk: "Amurg",
+      forest: "Pădure",
+      plum: "Prună",
+      ember: "Jar",
+      slate: "Ardezie",
+      stone: "Piatră",
+    },
+    idleCustomColor: "Altă culoare",
+    idleDim: "Întunecare fundal",
+    idleDimHint: "Ajută ceasul să se vadă pe fundalurile luminoase.",
+    idleDimLighter: "Mai luminos",
+    idleDimDarker: "Mai întunecat",
+    idleBlur: "Încețoșare fundal",
+    idleBlurHint: "Face o fotografie aglomerată mai discretă în spatele ceasului.",
+    idleBlurImageOnly: "Funcționează doar cu o imagine de fundal.",
+    idleBlurSharp: "Clar",
+    idleBlurSoft: "Încețoșat",
+    idleShowClock: "Afișează ceasul",
+    idleShowDate: "Afișează data",
+    idleSampleAudio: "Cântare de exemplu",
+    idleNoImages: "Biblioteca de imagini e goală. Imaginile adăugate aici intră și în bibliotecă.",
+    idleImage: "Imagine",
+    idleImageChoose: "Alege",
+    idleImageChange: "Schimbă",
+    idleGradientsLabel: "Gradiente",
+    idleColorsLabel: "Culori",
+    idleChooseImage: "Alege o imagine",
+    idleCloseImages: "Închide",
     clockFontSize: "Dimensiune ceas",
     clockPosition: "Poziție ceas",
     positionTopLeft: "Stânga sus",
@@ -1008,8 +1061,6 @@ const ro: Translations = {
       "Fiindcă atât de mult a iubit Dumnezeu lumea, că a dat pe singurul Lui Fiu, pentru ca oricine crede în El să nu piară, ci să aibă viața veșnică.",
     previewHymnLabel: "Imnuri",
     previewBibleLabel: "Biblie",
-    wallpaperHint: "Apare în spatele ceasului când nu se prezintă nimic.",
-    wallpaperOnMainComputer: "Imaginea de fundal se poate schimba de pe calculatorul principal.",
     clockFontSizeHint: "Cât de mare apare ceasul pe ecranul de așteptare.",
     clockSmaller: "Mai mic",
     clockLarger: "Mai mare",
@@ -1645,10 +1696,41 @@ const en: Translations = {
     quickSearch: "Quick search",
     shufflePlaylist: "Shuffle play a playlist (in Quick Search)",
     // Idle screen settings
-    wallpaper: "Background image",
-    selectWallpaper: "Select image",
-    clearWallpaper: "Clear",
-    noWallpaper: "No image",
+    selectWallpaper: "Add image",
+    idlePreview: "Idle screen preview",
+    idleBackground: "Background",
+    idleBackgroundHint: "A gradient, a color, or an image",
+    idleGradients: {
+      navy: "Navy",
+      ocean: "Deep ocean",
+      dusk: "Dusk",
+      forest: "Forest",
+      plum: "Plum",
+      ember: "Ember",
+      slate: "Slate",
+      stone: "Stone",
+    },
+    idleCustomColor: "Custom",
+    idleDim: "Darken background",
+    idleDimHint: "Helps the clock stand out on bright backgrounds.",
+    idleDimLighter: "Lighter",
+    idleDimDarker: "Darker",
+    idleBlur: "Blur background",
+    idleBlurHint: "Softens a busy photo behind the clock.",
+    idleBlurImageOnly: "Only works with a background image.",
+    idleBlurSharp: "Sharp",
+    idleBlurSoft: "Soft",
+    idleShowClock: "Show clock",
+    idleShowDate: "Show date",
+    idleSampleAudio: "Sample song",
+    idleNoImages: "Your Image library is empty. Images you add here go into it too.",
+    idleImage: "Image",
+    idleImageChoose: "Choose",
+    idleImageChange: "Change",
+    idleGradientsLabel: "Gradients",
+    idleColorsLabel: "Colors",
+    idleChooseImage: "Choose an image",
+    idleCloseImages: "Close",
     clockFontSize: "Clock size",
     clockPosition: "Clock position",
     positionTopLeft: "Top left",
@@ -1720,8 +1802,6 @@ const en: Translations = {
       "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
     previewHymnLabel: "Hymns",
     previewBibleLabel: "Bible",
-    wallpaperHint: "Shown behind the clock when nothing is presented.",
-    wallpaperOnMainComputer: "The background image can be changed on the main computer.",
     clockFontSizeHint: "How big the clock appears on the idle screen.",
     clockSmaller: "Smaller",
     clockLarger: "Larger",

@@ -39,7 +39,7 @@ const IPC_COUNTERPARTS: Record<string, Counterpart> = {
 
   // Native pickers and the local filesystem; web remotes upload instead
   "open-file-dialog": { electronOnly: "native file picker" },
-  "set-idle-wallpaper": { electronOnly: "native file picker; hidden on web" },
+  "choose-idle-wallpaper": { electronOnly: "native file picker; web picks from the Image library" },
   "add-local-video": { electronOnly: "native file picker; web uses /api/videos/upload" },
   "add-local-audio": { electronOnly: "native file picker; web uses /api/audio/upload" },
   "add-local-audio-directory": { electronOnly: "native folder picker" },

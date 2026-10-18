@@ -1,5 +1,6 @@
 export const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff"];
 export const IMAGE_EXTENSIONS_NO_DOT = IMAGE_EXTENSIONS.map((e) => e.slice(1));
+export const MAX_IMAGE_UPLOAD_BYTES = 100 * 1024 * 1024;
 
 export type ImageSource = "local" | "upload";
 

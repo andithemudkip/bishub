@@ -63,7 +63,8 @@ import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { getAudioPlaylists } from "./audioPlaylists";
 import { getImageLibrary } from "./imageLibrary";
-import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
+import { applyIdleBackground } from "./idleBackground";
+import { IMAGE_EXTENSIONS, MAX_IMAGE_UPLOAD_BYTES } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
 import { getStorageStats } from "./storageStats";
@@ -554,7 +555,7 @@ export function createServer(
   const imageUpload = createUploadMiddleware(
     imageLibrary.getImagesDir(),
     IMAGE_EXTENSIONS,
-    100 * 1024 * 1024, // 100MB
+    MAX_IMAGE_UPLOAD_BYTES,
   );
 
   app.post(
@@ -1271,6 +1272,26 @@ export function createServer(
     });
 
     // Idle
+    socket.on("setIdleBackground", (background) => {
+      applyIdleBackground(stateManager, background, imageLibrary);
+    });
+
+    socket.on("setIdleDim", (dim) => {
+      stateManager.setIdleDim(dim);
+    });
+
+    socket.on("setIdleBlur", (blur) => {
+      stateManager.setIdleBlur(blur);
+    });
+
+    socket.on("setIdleShowClock", (show) => {
+      stateManager.setIdleShowClock(show);
+    });
+
+    socket.on("setIdleShowDate", (show) => {
+      stateManager.setIdleShowDate(show);
+    });
+
     socket.on("setClockFontSize", (size) => {
       stateManager.setClockFontSize(size);
     });

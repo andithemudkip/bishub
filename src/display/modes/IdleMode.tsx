@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import type { IdleState, ClockPosition, AudioState } from "../../shared/types";
 import type { Language } from "../../shared/i18n";
-import { getFileUrl } from "../../shared/utils";
+import { idleBackgroundStyle, idleBlurStyle } from "../../shared/idleBackground";
 import AudioWidget from "../components/AudioWidget";
 
 interface Props {
   config: IdleState;
   language: Language;
-  audioState: AudioState;
+  /** Where this renderer finds the background image; null falls back to the default gradient. */
+  imageUrl: string | null;
+  /** Omitted where the music widget would be too small to read (the Stage preview). */
+  audioState?: AudioState;
 }
 
 // Map language to locale
@@ -34,7 +37,7 @@ const TEXT_ALIGN_CLASSES: Record<ClockPosition, string> = {
   center: "text-center",
 };
 
-export default function IdleMode({ config, language, audioState }: Props) {
+export default function IdleMode({ config, language, imageUrl, audioState }: Props) {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -64,17 +67,11 @@ export default function IdleMode({ config, language, audioState }: Props) {
     });
   };
 
-
-  const backgroundStyle = config.wallpaper
-    ? {
-        backgroundImage: `url("${getFileUrl(config.wallpaper)}")`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }
-    : {
-        background:
-          "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-      };
+  // Its own layer, so blurring the background leaves the clock sharp.
+  const backgroundStyle = {
+    ...idleBackgroundStyle(config.background, imageUrl),
+    ...idleBlurStyle(config.background, config.blur),
+  };
 
   // Calculate font sizes based on percentage (100 = default)
   const fontScale = config.clockFontSize / 100;
@@ -88,11 +85,16 @@ export default function IdleMode({ config, language, audioState }: Props) {
 
   return (
     <div
-      className={`w-full h-full flex flex-col ${positionClass}`}
-      style={backgroundStyle}
+      className={`relative w-full h-full overflow-hidden flex flex-col ${positionClass}`}
     >
+      <div data-testid="idle-background" className="absolute inset-0" style={backgroundStyle} />
+
       {/* Overlay for better text visibility */}
-      <div className="absolute inset-0 bg-black/30" />
+      <div
+        data-testid="idle-dim"
+        className="absolute inset-0 bg-black"
+        style={{ opacity: config.dim / 100 }}
+      />
 
       {config.showClock && (
         <div className={`relative z-10 text-white ${textAlignClass}`}>
@@ -102,17 +104,19 @@ export default function IdleMode({ config, language, audioState }: Props) {
           >
             {formatTime(time)}
           </div>
-          <div
-            className="font-light opacity-80 drop-shadow-md"
-            style={{ fontSize: dateFontSize, marginTop }}
-          >
-            {formatDate(time)}
-          </div>
+          {config.showDate && (
+            <div
+              className="font-light opacity-80 drop-shadow-md"
+              style={{ fontSize: dateFontSize, marginTop }}
+            >
+              {formatDate(time)}
+            </div>
+          )}
         </div>
       )}
 
       {/* Audio widget - shown when audio is loaded */}
-      {audioState.src && (
+      {audioState?.src && (
         <AudioWidget
           config={audioState}
           position={config.audioWidgetPosition}

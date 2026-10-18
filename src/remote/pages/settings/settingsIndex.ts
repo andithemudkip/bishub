@@ -72,7 +72,16 @@ export const SETTINGS_INDEX: SettingEntry[] = [
     hint: (t) =>
       `${t.settings.chromeSizesHint} ${t.settings.titleSize} ${t.settings.slideCounterSize} ${t.settings.slideDotsSize}`,
   },
-  { id: "wallpaper", section: "idle", label: (t) => t.settings.wallpaper, hint: (t) => t.settings.wallpaperHint },
+  {
+    id: "idleBackground",
+    section: "idle",
+    label: (t) => t.settings.idleBackground,
+    hint: (t) => t.settings.idleBackgroundHint,
+  },
+  { id: "idleDim", section: "idle", label: (t) => t.settings.idleDim, hint: (t) => t.settings.idleDimHint },
+  { id: "idleBlur", section: "idle", label: (t) => t.settings.idleBlur, hint: (t) => t.settings.idleBlurHint },
+  { id: "idleShowClock", section: "idle", label: (t) => t.settings.idleShowClock },
+  { id: "idleShowDate", section: "idle", label: (t) => t.settings.idleShowDate },
   {
     id: "clockFontSize",
     section: "idle",

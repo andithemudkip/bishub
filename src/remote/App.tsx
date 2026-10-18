@@ -283,7 +283,12 @@ export default function App() {
             onSetHymnal={api.setDefaultHymnal}
             bibleDownloadStatus={api.bibleDownloadStatus}
             downloadedTranslations={api.downloadedTranslations}
-            onSetWallpaper={api.setIdleWallpaper}
+            onSetIdleBackground={api.setIdleBackground}
+            onChooseIdleWallpaper={api.chooseIdleWallpaper}
+            onSetIdleDim={api.setIdleDim}
+            onSetIdleBlur={api.setIdleBlur}
+            onSetIdleShowClock={api.setIdleShowClock}
+            onSetIdleShowDate={api.setIdleShowDate}
             onSetClockFontSize={api.setClockFontSize}
             onSetClockPosition={api.setClockPosition}
             onSetAudioWidgetPosition={api.setAudioWidgetPosition}

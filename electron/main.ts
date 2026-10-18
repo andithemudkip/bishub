@@ -50,6 +50,11 @@ import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { getAudioPlaylists } from "./audioPlaylists";
 import { getImageLibrary } from "./imageLibrary";
+import {
+  applyIdleBackground,
+  initIdleBackground,
+  setIdleWallpaperFromFile,
+} from "./idleBackground";
 import { IMAGE_EXTENSIONS_NO_DOT } from "../src/shared/imageLibrary.types";
 import type { VideoItem } from "../src/shared/videoLibrary.types";
 import type { AudioItem } from "../src/shared/audioLibrary.types";
@@ -96,6 +101,9 @@ let stateManager: StateManager;
 async function createWindows() {
   stateManager = new StateManager();
   windowManager = new WindowManager(stateManager);
+  initIdleBackground(stateManager, getImageLibrary()).catch((err) =>
+    console.error("Failed to set up the idle background:", err)
+  );
 
   // Must be installed before any window exists so every webContents is covered
   installZoomKeyShim();
@@ -321,26 +329,35 @@ function setupIPC() {
   });
 
   // Idle screen settings
-  ipcMain.handle(
-    "set-idle-wallpaper",
-    async (_event, selectNew: boolean = true) => {
-      if (!selectNew) {
-        stateManager.setIdleWallpaper(null);
-        return null;
-      }
-      const result = await dialog.showOpenDialog({
-        properties: ["openFile"],
-        filters: [
-          { name: "Images", extensions: ["jpg", "jpeg", "png", "gif", "webp"] },
-        ],
-      });
-      if (result.filePaths[0]) {
-        stateManager.setIdleWallpaper(result.filePaths[0]);
-        return result.filePaths[0];
-      }
-      return null;
-    }
-  );
+  ipcMain.handle("set-idle-background", (_event, background: unknown) => {
+    applyIdleBackground(stateManager, background, getImageLibrary());
+  });
+
+  ipcMain.handle("set-idle-dim", (_event, dim: number) => {
+    stateManager.setIdleDim(dim);
+  });
+
+  ipcMain.handle("set-idle-blur", (_event, blur: number) => {
+    stateManager.setIdleBlur(blur);
+  });
+
+  ipcMain.handle("set-idle-show-clock", (_event, show: boolean) => {
+    stateManager.setIdleShowClock(show);
+  });
+
+  ipcMain.handle("set-idle-show-date", (_event, show: boolean) => {
+    stateManager.setIdleShowDate(show);
+  });
+
+  ipcMain.handle("choose-idle-wallpaper", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters: [{ name: "Images", extensions: IMAGE_EXTENSIONS_NO_DOT }],
+    });
+    if (!result.filePaths[0]) return false;
+    await setIdleWallpaperFromFile(stateManager, result.filePaths[0], getImageLibrary());
+    return true;
+  });
 
   ipcMain.handle("set-clock-font-size", (_event, size: number) => {
     stateManager.setClockFontSize(size);

@@ -2,6 +2,7 @@ import type {
   MonitorInfo,
   AppSettings,
   IdleState,
+  IdleBackground,
   ClockPosition,
   AudioWidgetPosition,
   UpdateStatus,
@@ -32,7 +33,13 @@ export interface SettingsPageProps {
   onSetHymnal: (slug: string) => void;
   bibleDownloadStatus: BibleDownloadStatus | null;
   downloadedTranslations: string[];
-  onSetWallpaper: (selectNew?: boolean) => Promise<string | null>;
+  onSetIdleBackground: (background: IdleBackground) => void;
+  /** Electron only: native file picker; the file joins the Image library. */
+  onChooseIdleWallpaper: () => Promise<boolean>;
+  onSetIdleDim: (dim: number) => void;
+  onSetIdleBlur: (blur: number) => void;
+  onSetIdleShowClock: (show: boolean) => void;
+  onSetIdleShowDate: (show: boolean) => void;
   onSetClockFontSize: (size: number) => void;
   onSetClockPosition: (position: ClockPosition) => void;
   onSetAudioWidgetPosition: (position: AudioWidgetPosition) => void;

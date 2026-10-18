@@ -6,6 +6,7 @@ import {
 } from "electron";
 import type {
   DisplayState,
+  IdleBackground,
   AppSettings,
   MonitorInfo,
   Hymn,
@@ -141,8 +142,17 @@ const electronAPI = {
   goIdle: (): Promise<void> => ipcRenderer.invoke("go-idle"),
 
   // Idle screen settings
-  setIdleWallpaper: (selectNew: boolean = true): Promise<string | null> =>
-    ipcRenderer.invoke("set-idle-wallpaper", selectNew),
+  setIdleBackground: (background: IdleBackground): Promise<void> =>
+    ipcRenderer.invoke("set-idle-background", background),
+  setIdleDim: (dim: number): Promise<void> => ipcRenderer.invoke("set-idle-dim", dim),
+  setIdleBlur: (blur: number): Promise<void> => ipcRenderer.invoke("set-idle-blur", blur),
+  setIdleShowClock: (show: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-idle-show-clock", show),
+  setIdleShowDate: (show: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-idle-show-date", show),
+  /** Native file picker; the file joins the Image library. Resolves false when cancelled. */
+  chooseIdleWallpaper: (): Promise<boolean> =>
+    ipcRenderer.invoke("choose-idle-wallpaper"),
   setClockFontSize: (size: number): Promise<void> =>
     ipcRenderer.invoke("set-clock-font-size", size),
   setClockPosition: (position: string): Promise<void> =>

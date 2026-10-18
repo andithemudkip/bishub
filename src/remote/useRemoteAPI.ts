@@ -10,6 +10,7 @@ import type {
   BibleSearchResult,
   HymnSearchResult,
   ClockPosition,
+  IdleBackground,
   AudioWidgetPosition,
   MP3DownloadProgress,
   MP3CacheStats,
@@ -146,7 +147,13 @@ interface RemoteAPI {
   setImageLoop: (loop: boolean) => void;
   setImageAutoAdvanceInterval: (intervalMs: number) => void;
   // Idle screen settings (Electron only)
-  setIdleWallpaper: (selectNew?: boolean) => Promise<string | null>;
+  setIdleBackground: (background: IdleBackground) => void;
+  /** Electron only: native file picker, the file joins the Image library. */
+  chooseIdleWallpaper: () => Promise<boolean>;
+  setIdleDim: (dim: number) => void;
+  setIdleBlur: (blur: number) => void;
+  setIdleShowClock: (show: boolean) => void;
+  setIdleShowDate: (show: boolean) => void;
   setClockFontSize: (size: number) => void;
   setClockPosition: (position: ClockPosition) => void;
   setAudioWidgetPosition: (position: AudioWidgetPosition) => void;
@@ -1020,13 +1027,48 @@ export function useRemoteAPI(): RemoteAPI {
       [isElectron]
     ),
 
-    // Idle screen settings (Electron only)
-    setIdleWallpaper: useCallback(
-      (selectNew = true) => {
-        if (isElectron) {
-          return window.electronAPI!.setIdleWallpaper(selectNew);
-        }
-        return Promise.resolve(null);
+    // Idle screen settings
+    setIdleBackground: useCallback(
+      (background: IdleBackground) => {
+        if (isElectron) window.electronAPI!.setIdleBackground(background);
+        else socketRef.current?.emit("setIdleBackground", background);
+      },
+      [isElectron]
+    ),
+
+    chooseIdleWallpaper: useCallback(
+      () => (isElectron ? window.electronAPI!.chooseIdleWallpaper() : Promise.resolve(false)),
+      [isElectron]
+    ),
+
+    setIdleDim: useCallback(
+      (dim: number) => {
+        if (isElectron) window.electronAPI!.setIdleDim(dim);
+        else socketRef.current?.emit("setIdleDim", dim);
+      },
+      [isElectron]
+    ),
+
+    setIdleBlur: useCallback(
+      (blur: number) => {
+        if (isElectron) window.electronAPI!.setIdleBlur(blur);
+        else socketRef.current?.emit("setIdleBlur", blur);
+      },
+      [isElectron]
+    ),
+
+    setIdleShowClock: useCallback(
+      (show: boolean) => {
+        if (isElectron) window.electronAPI!.setIdleShowClock(show);
+        else socketRef.current?.emit("setIdleShowClock", show);
+      },
+      [isElectron]
+    ),
+
+    setIdleShowDate: useCallback(
+      (show: boolean) => {
+        if (isElectron) window.electronAPI!.setIdleShowDate(show);
+        else socketRef.current?.emit("setIdleShowDate", show);
       },
       [isElectron]
     ),

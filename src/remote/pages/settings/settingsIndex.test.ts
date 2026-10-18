@@ -14,15 +14,15 @@ describe("searchSettings", () => {
   });
 
   it("finds a setting by its label", () => {
-    expect(ids("background image")).toContain("wallpaper");
+    expect(ids("darken background")).toContain("idleDim");
   });
 
   it("ranks label matches above rows that only mention the word in a hint", () => {
-    // The wallpaper hint mentions the clock; the clock rows should come first.
+    // The dim hint mentions the clock; the clock rows should come first.
     const results = ids("clock");
-    expect(results.slice(0, 2)).toEqual(["clockFontSize", "clockPosition"]);
-    expect(results).toContain("wallpaper");
-    expect(results.indexOf("wallpaper")).toBeGreaterThan(1);
+    expect(results).toContain("idleDim");
+    expect(results.indexOf("idleDim")).toBeGreaterThan(results.indexOf("clockPosition"));
+    expect(results.indexOf("idleDim")).toBeGreaterThan(results.indexOf("idleShowClock"));
   });
 
   it("requires every word to match", () => {

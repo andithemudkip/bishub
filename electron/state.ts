@@ -5,6 +5,7 @@ import type {
   LayerKind,
   ClockPosition,
   AudioWidgetPosition,
+  IdleBackground,
   TextContentType,
   HymnRef,
   BibleContext,
@@ -20,6 +21,13 @@ import {
   DEFAULT_SLIDE_BACKGROUND,
   DEFAULT_BIBLE_BACKGROUND,
 } from "../src/shared/slideTheme";
+import {
+  DEFAULT_IDLE_BACKGROUND,
+  DEFAULT_IDLE_DIM,
+  clampIdleDim,
+  clampIdleBlur,
+  validateIdleBackground,
+} from "../src/shared/idleBackground";
 import type { QueueTrack, AudioQueueState } from "../src/shared/audioPlaylist.types";
 import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getAudioLibrary } from "./audioLibrary";
@@ -34,7 +42,13 @@ type SettingsChangeCallback = (settings: AppSettings) => void;
 interface SettingsSchema {
   settings: AppSettings;
   idleSettings: {
-    wallpaper: string | null;
+    background?: IdleBackground;
+    dim?: number;
+    blur?: number;
+    showClock?: boolean;
+    showDate?: boolean;
+    /** Older versions: a path to the user's own file, replaced by `background`. See getLegacyWallpaper(). */
+    wallpaper?: string | null;
     clockFontSize: number;
     clockPosition: ClockPosition;
     audioWidgetPosition: AudioWidgetPosition;
@@ -52,6 +66,7 @@ export class StateManager {
   private cachedScreenGroups: number[][] = [];
   /** Consecutive failed audio loads; reset by updateAudioTime(). See handleAudioError(). */
   private consecutiveAudioErrors = 0;
+  private legacyWallpaper: string | null = null;
 
   constructor() {
     // Generate random security key for web remote authentication
@@ -73,7 +88,11 @@ export class StateManager {
       defaults: {
         settings: DEFAULT_SETTINGS,
         idleSettings: {
-          wallpaper: null,
+          background: DEFAULT_IDLE_BACKGROUND,
+          dim: DEFAULT_IDLE_DIM,
+          blur: 0,
+          showClock: true,
+          showDate: true,
           clockFontSize: 100,
           clockPosition: "center",
           audioWidgetPosition: "bottom-right",
@@ -89,7 +108,19 @@ export class StateManager {
     // Load persisted idle settings
     const idleSettings = this.settingsStore.get("idleSettings");
     if (idleSettings) {
-      this.state.idle.wallpaper = idleSettings.wallpaper ?? null;
+      // Stored with its last resolved path; initIdleBackground() re-checks it.
+      const background = validateIdleBackground(idleSettings.background);
+      if (background?.kind === "image" && idleSettings.background?.kind === "image") {
+        background.path = idleSettings.background.path ?? null;
+      }
+      this.state.idle.background = background ?? DEFAULT_IDLE_BACKGROUND;
+      if (!idleSettings.background && idleSettings.wallpaper) {
+        this.legacyWallpaper = idleSettings.wallpaper;
+      }
+      this.state.idle.dim = clampIdleDim(idleSettings.dim ?? DEFAULT_IDLE_DIM);
+      this.state.idle.blur = clampIdleBlur(idleSettings.blur ?? 0);
+      this.state.idle.showClock = idleSettings.showClock ?? true;
+      this.state.idle.showDate = idleSettings.showDate ?? true;
       this.state.idle.clockFontSize = idleSettings.clockFontSize ?? 100;
       this.state.idle.clockPosition = idleSettings.clockPosition ?? "center";
       this.state.idle.audioWidgetPosition =
@@ -507,10 +538,44 @@ export class StateManager {
   }
 
   // Idle screen settings
-  setIdleWallpaper(wallpaper: string | null) {
-    this.state.idle.wallpaper = wallpaper;
+  /** `background` must already be validated and, for an image, resolved. See electron/idleBackground.ts. */
+  setIdleBackground(background: IdleBackground) {
+    this.legacyWallpaper = null;
+    this.state.idle.background = background;
     this.persistIdleSettings();
     this.notifyStateChange();
+  }
+
+  setIdleDim(dim: number) {
+    this.state.idle.dim = clampIdleDim(dim);
+    this.persistIdleSettings();
+    this.notifyStateChange();
+  }
+
+  setIdleBlur(blur: number) {
+    this.state.idle.blur = clampIdleBlur(blur);
+    this.persistIdleSettings();
+    this.notifyStateChange();
+  }
+
+  setIdleShowClock(show: boolean) {
+    this.state.idle.showClock = show === true;
+    this.persistIdleSettings();
+    this.notifyStateChange();
+  }
+
+  setIdleShowDate(show: boolean) {
+    this.state.idle.showDate = show === true;
+    this.persistIdleSettings();
+    this.notifyStateChange();
+  }
+
+  /**
+   * The wallpaper path an older version stored, still waiting to be imported
+   * into the Image library; null once a background has been set.
+   */
+  getLegacyWallpaper(): string | null {
+    return this.legacyWallpaper;
   }
 
   setClockFontSize(size: number) {
@@ -527,7 +592,11 @@ export class StateManager {
 
   private persistIdleSettings() {
     this.settingsStore.set("idleSettings", {
-      wallpaper: this.state.idle.wallpaper,
+      background: this.state.idle.background,
+      dim: this.state.idle.dim,
+      blur: this.state.idle.blur,
+      showClock: this.state.idle.showClock,
+      showDate: this.state.idle.showDate,
       clockFontSize: this.state.idle.clockFontSize,
       clockPosition: this.state.idle.clockPosition,
       audioWidgetPosition: this.state.idle.audioWidgetPosition,

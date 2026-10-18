@@ -1,6 +1,7 @@
 import type { Language } from "./i18n";
 import type { QuickSearchResponse } from "./quickSearch.types";
 import { DEFAULT_SLIDE_BACKGROUND, DEFAULT_BIBLE_BACKGROUND } from "./slideTheme";
+import { DEFAULT_IDLE_BACKGROUND, DEFAULT_IDLE_DIM } from "./idleBackground";
 import type {
   VideoItem,
   DownloadProgress,
@@ -41,9 +42,19 @@ export type ClockPosition =
 
 export type AudioWidgetPosition = ClockPosition;
 
+/** See `idleBackground.ts`. */
+export type IdleBackground =
+  | { kind: "gradient"; preset: string }
+  | { kind: "color"; color: string } // #rrggbb
+  /** An Image-library image; `path` is resolved by the main process from the id. */
+  | { kind: "image"; imageId: string; path: string | null };
+
 export interface IdleState {
-  wallpaper: string | null;
+  background: IdleBackground;
+  dim: number; // overlay opacity, 0-80 (%)
+  blur: number; // background image blur, 0-100 (%)
   showClock: boolean;
+  showDate: boolean;
   clockFontSize: number; // percentage: 50-150, 100 = default
   clockPosition: ClockPosition;
   audioWidgetPosition: AudioWidgetPosition;
@@ -453,6 +464,11 @@ export type ClientToServerEvents = {
   getStorageStats: () => void;
   deleteSpareTransfers: () => void;
   // Idle
+  setIdleBackground: (background: IdleBackground) => void;
+  setIdleDim: (dim: number) => void;
+  setIdleBlur: (blur: number) => void;
+  setIdleShowClock: (show: boolean) => void;
+  setIdleShowDate: (show: boolean) => void;
   setClockFontSize: (size: number) => void;
   setClockPosition: (position: ClockPosition) => void;
   setAudioWidgetPosition: (position: AudioWidgetPosition) => void;
@@ -469,8 +485,11 @@ export type ClientToServerEvents = {
 export const DEFAULT_STATE: DisplayState = {
   mode: "idle",
   idle: {
-    wallpaper: null,
+    background: DEFAULT_IDLE_BACKGROUND,
+    dim: DEFAULT_IDLE_DIM,
+    blur: 0,
     showClock: true,
+    showDate: true,
     clockFontSize: 100,
     clockPosition: "center",
     audioWidgetPosition: "bottom-right",

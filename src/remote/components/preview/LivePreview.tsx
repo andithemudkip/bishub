@@ -4,7 +4,7 @@ import type {
   AppSettings,
   TextContentType,
 } from "../../../shared/types";
-import { getTranslations, type Language } from "../../../shared/i18n";
+import { getTranslations } from "../../../shared/i18n";
 import {
   formatDuration,
   findOptimalFontSize,
@@ -21,6 +21,7 @@ import SlideIndicator from "../../../components/SlideIndicator";
 import { ImageIcon } from "../icons/image";
 import { PlayIcon, PauseIcon } from "../icons/ui";
 import { useOnScreen, usePreviewVideoSync } from "./usePreviewVideo";
+import IdleScreen from "./IdleScreen";
 
 // Virtual resolution matching a typical display (used for scaled-down preview)
 const VIRTUAL_WIDTH = 1920;
@@ -41,18 +42,14 @@ interface Props {
   showLabels?: boolean;
 }
 
-const LANGUAGE_LOCALES: Record<Language, string> = {
-  ro: "ro-RO",
-  en: "en-US",
-};
-
 export default function LivePreview({
   state,
   settings,
   showLabels = true,
 }: Props) {
   if (state.mode === "idle") {
-    return <IdlePreview state={state} language={settings.language} />;
+    // No music widget: too small to read here; the Stage shows the audio.
+    return <IdleScreen idle={state.idle} language={settings.language} />;
   }
 
   if (state.mode === "text") {
@@ -335,59 +332,6 @@ function TextPreview({
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-// Idle mode preview
-function IdlePreview({
-  state,
-  language,
-}: {
-  state: DisplayState;
-  language: Language;
-}) {
-  const { idle } = state;
-  const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const locale = LANGUAGE_LOCALES[language] || "en-US";
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString(locale, {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: language === "en",
-    });
-  };
-
-  // In web context, file:// URLs don't work, so just show gradient
-  const backgroundStyle = {
-    background:
-      "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-  };
-
-  return (
-    <div
-      className="w-full h-full flex items-center justify-center relative"
-      style={backgroundStyle}
-    >
-      <div className="absolute inset-0 bg-black/30" />
-      {idle.showClock && (
-        <div className="relative z-10 text-white text-center">
-          <div className="text-2xl font-light">{formatTime(time)}</div>
-        </div>
-      )}
-      {/* Wallpaper indicator */}
-      {idle.wallpaper && (
-        <div className="absolute bottom-1 left-1 text-[8px] text-white/40">
-          🖼
-        </div>
-      )}
     </div>
   );
 }
