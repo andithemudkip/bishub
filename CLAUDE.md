@@ -88,7 +88,7 @@ Styling conventions:
 - Text: `ScaledSlide` at virtual 1920×1080, CSS-scaled (see invariant above)
 - Video: thumbnail via `/api/videos/thumbnail/:id` with play/pause + progress overlay
 - Image: current image or slideshow frame
-- Idle: clock + wallpaper indicator, plus `AudioOverlay` when audio is playing
+- Idle: clock + wallpaper indicator (no audio widget — too small to read; the Stage shows audio)
 
 **Stage** (`src/remote/components/stage/`): the live panel beside every page — `LivePreview` plus loaded layers, background activity, upcoming schedules and display health. A resizable panel/rail on desktop; a header chip + bottom sheet on phones; also drives nav badges and toasts. `StageProvider` owns the subscriptions once — read them with `useStage()`, don't subscribe again. Every progress stream is normalized to an `Activity` in `src/shared/stageActivity.ts`.
 
