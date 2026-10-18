@@ -12,6 +12,7 @@ import type {
 } from "../src/shared/audioLibrary.types";
 
 import { extractDurationWithFfprobe } from "./utils";
+import { copyIntoDir } from "./uploadFilename";
 interface AudioLibrarySchema {
   audios: AudioItem[];
   version: number;
@@ -166,13 +167,8 @@ export class AudioLibraryManager {
 
     // Copy file to library directory if needed
     if (copyToLibrary && !sourcePath.startsWith(this.audiosDir)) {
-      const ext = path.extname(filename);
-      const baseName = path.basename(filename, ext);
-      const uniqueFilename = `${baseName}-${Date.now()}${ext}`;
-      finalPath = path.join(this.audiosDir, uniqueFilename);
-      filename = uniqueFilename;
-
-      await fs.promises.copyFile(sourcePath, finalPath);
+      finalPath = await copyIntoDir(sourcePath, this.audiosDir);
+      filename = path.basename(finalPath);
     }
 
     // Get file size

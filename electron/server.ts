@@ -62,6 +62,7 @@ import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
+import { decodeUploadName, moveToOriginalName } from "./uploadFilename";
 import { quickSearch, quickSearchVerses } from "./quickSearch";
 import {
   startDownload,
@@ -354,14 +355,11 @@ export function createServer(
           return res.status(400).json({ error: "No video file uploaded" });
         }
 
+        const uploadedName = decodeUploadName(req.file.originalname);
         const originalName =
-          req.body.name ||
-          path.basename(
-            req.file.originalname,
-            path.extname(req.file.originalname)
-          );
+          req.body.name || path.basename(uploadedName, path.extname(uploadedName));
 
-        const video = await videoLibrary.addVideo(req.file.path, "upload", {
+        const video = await videoLibrary.addVideo(moveToOriginalName(req.file.path, uploadedName), "upload", {
           name: originalName,
           copyToLibrary: false, // Already in videos directory
         });
@@ -491,14 +489,11 @@ export function createServer(
           return res.status(400).json({ error: "No audio file uploaded" });
         }
 
+        const uploadedName = decodeUploadName(req.file.originalname);
         const originalName =
-          req.body.name ||
-          path.basename(
-            req.file.originalname,
-            path.extname(req.file.originalname)
-          );
+          req.body.name || path.basename(uploadedName, path.extname(uploadedName));
 
-        const audio = await audioLibrary.addAudio(req.file.path, "upload", {
+        const audio = await audioLibrary.addAudio(moveToOriginalName(req.file.path, uploadedName), "upload", {
           name: originalName,
           copyToLibrary: false, // Already in audios directory
         });
@@ -565,14 +560,11 @@ export function createServer(
           return res.status(400).json({ error: "No image file uploaded" });
         }
 
+        const uploadedName = decodeUploadName(req.file.originalname);
         const originalName =
-          req.body.name ||
-          path.basename(
-            req.file.originalname,
-            path.extname(req.file.originalname)
-          );
+          req.body.name || path.basename(uploadedName, path.extname(uploadedName));
 
-        const image = await imageLibrary.addImage(req.file.path, "upload", {
+        const image = await imageLibrary.addImage(moveToOriginalName(req.file.path, uploadedName), "upload", {
           name: originalName,
           copyToLibrary: false,
         });
@@ -639,7 +631,7 @@ export function createServer(
           return res.status(400).json({ error: "No file uploaded" });
         }
 
-        const originalName = req.file.originalname;
+        const originalName = decodeUploadName(req.file.originalname);
         const transfer = transferManager.addTransfer(
           req.file.path,
           originalName,

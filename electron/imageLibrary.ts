@@ -11,6 +11,7 @@ import type {
   ImageUploadProgress,
 } from "../src/shared/imageLibrary.types";
 import { getFfmpegPath } from "./utils";
+import { copyIntoDir } from "./uploadFilename";
 
 interface ImageLibrarySchema {
   images: ImageItem[];
@@ -137,13 +138,8 @@ export class ImageLibraryManager {
     let filename = path.basename(sourcePath);
 
     if (copyToLibrary && !sourcePath.startsWith(this.imagesDir)) {
-      const ext = path.extname(filename);
-      const baseName = path.basename(filename, ext);
-      const uniqueFilename = `${baseName}-${Date.now()}${ext}`;
-      finalPath = path.join(this.imagesDir, uniqueFilename);
-      filename = uniqueFilename;
-
-      await fs.promises.copyFile(sourcePath, finalPath);
+      finalPath = await copyIntoDir(sourcePath, this.imagesDir);
+      filename = path.basename(finalPath);
     }
 
     const stats = await fs.promises.stat(finalPath);

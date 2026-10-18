@@ -4,6 +4,7 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import Store from "electron-store";
 import type { TransferItem, TransferUploadProgress } from "../src/shared/transfer.types";
+import { moveToOriginalName } from "./uploadFilename";
 
 interface TransferSchema {
   transfers: TransferItem[];
@@ -80,11 +81,18 @@ export class TransferManager {
     return transfers.find((t) => t.id === id) || null;
   }
 
+  /**
+   * Record an upload sitting at `tempPath` (in the transfers folder) and move
+   * it to its original name, so it's recognisable when revealed in the file
+   * manager.
+   */
   addTransfer(
-    filePath: string,
+    tempPath: string,
     originalName: string,
     fileSize: number
   ): TransferItem {
+    const filePath = moveToOriginalName(tempPath, originalName);
+
     const ext = path.extname(originalName).toLowerCase();
     const transfer: TransferItem = {
       id: uuidv4(),

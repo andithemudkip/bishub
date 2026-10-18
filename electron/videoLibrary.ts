@@ -11,6 +11,7 @@ import type {
   UploadProgress,
 } from "../src/shared/videoLibrary.types";
 import { getFfmpegPath, extractDurationWithFfprobe } from "./utils";
+import { copyIntoDir } from "./uploadFilename";
 interface VideoLibrarySchema {
   videos: VideoItem[];
   version: number;
@@ -131,13 +132,8 @@ export class VideoLibraryManager {
 
     // Copy file to library directory if needed
     if (copyToLibrary && !sourcePath.startsWith(this.videosDir)) {
-      const ext = path.extname(filename);
-      const baseName = path.basename(filename, ext);
-      const uniqueFilename = `${baseName}-${Date.now()}${ext}`;
-      finalPath = path.join(this.videosDir, uniqueFilename);
-      filename = uniqueFilename;
-
-      await fs.promises.copyFile(sourcePath, finalPath);
+      finalPath = await copyIntoDir(sourcePath, this.videosDir);
+      filename = path.basename(finalPath);
     }
 
     // Get file size
