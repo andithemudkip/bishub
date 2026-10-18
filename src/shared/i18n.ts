@@ -752,10 +752,10 @@ const ro: Translations = {
   },
   karaoke: {
     sectionTitle: "Audio imnuri",
-    defaultToggleLabel: "Lirică sincronizată",
+    defaultToggleLabel: "Folosește lirică sincronizată implicit",
     defaultToggleHint:
       "Imnurile cu lirică sincronizată și instrumentalul descărcat pornesc în modul karaoke. Poți comuta la text simplu pentru fiecare imn în bara de redare.",
-    instrumentalsToggleLabel: "Instrumental",
+    instrumentalsToggleLabel: "Folosește instrumental implicit",
     instrumentalsToggleHint:
       "Imnurile fără lirică sincronizată pornesc automat instrumentalul.",
     cacheStats: "{count} din {total} instrumentale descărcate · {size}",
@@ -943,7 +943,7 @@ const ro: Translations = {
     sections: {
       general: { title: "General", description: "Limba și pornirea aplicației" },
       display: {
-        title: "Ecranul de proiecție",
+        title: "Proiecție",
         description: "Pe ce ecran se proiectează și cum arată slide-urile",
       },
       idle: {
@@ -963,11 +963,11 @@ const ro: Translations = {
         description: "Muzica imnurilor salvată pe acest calculator",
       },
       shortcuts: {
-        title: "Scurtături de tastatură",
+        title: "Scurtături",
         description: "Taste care te ajută să lucrezi mai repede",
       },
       about: {
-        title: "Despre și actualizări",
+        title: "Despre & actualizări",
         description: "Versiunea aplicației și actualizări",
       },
     },
@@ -981,8 +981,8 @@ const ro: Translations = {
     hymnalHint: "Cartea deschisă implicit în pagina Imnuri.",
     displayMonitorHint: "Alege ecranul conectat la videoproiector sau televizor.",
     previewTitle: "Previzualizare",
-    previewHint: "Un slide de exemplu — modificările apar aici imediat.",
-    previewHymnTitle: "Imn de exemplu",
+    previewHint: "Modificările apar aici.",
+    previewHymnTitle: "Exemplu de imn",
     previewHymnText: "Lăudați pe Domnul, toate neamurile,\nlăudați-L, toate popoarele!",
     previewBibleTitle: "Ioan 3:16",
     previewBibleText:

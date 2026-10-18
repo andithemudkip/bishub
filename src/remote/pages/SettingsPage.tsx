@@ -119,7 +119,7 @@ export default function SettingsPage(props: SettingsPageProps) {
       {/* Section list + search */}
       <nav
         aria-label={t.nav.settings}
-        className={`lg:w-60 lg:flex-shrink-0 lg:sticky lg:top-0 space-y-3 ${
+        className={`lg:w-52 lg:flex-shrink-0 lg:sticky lg:top-0 space-y-3 ${
           phoneView === "section" ? "hidden lg:block" : ""
         }`}
       >
