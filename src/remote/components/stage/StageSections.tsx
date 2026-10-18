@@ -33,7 +33,6 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
 
   const isEmpty =
     layers.length === 0 &&
-    state.video.src === null &&
     stage.activities.length === 0 &&
     stage.upcomingSchedules.length === 0 &&
     stage.recentScheduleEvents.length === 0;
@@ -91,6 +90,9 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
         </div>
       )}
 
+      {/* Right under the preview, so it never moves as other sections come and go. */}
+      <VolumeSection state={state} actions={actions} t={t} />
+
       <LoadedSection
         layers={layers}
         state={state}
@@ -98,7 +100,6 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
         onNavigate={onNavigate}
         t={t}
       />
-      <VolumeSection state={state} actions={actions} t={t} />
       <ActivitySection
         activities={stage.activities}
         onDismiss={stage.dismiss}

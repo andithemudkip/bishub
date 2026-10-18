@@ -11,29 +11,27 @@ interface Props {
 }
 
 /**
- * Volume for whatever can make sound right now — a loaded video (showing or
- * not) and audio. Lives on the Stage so it's at hand mid-service from any
- * page; hidden while nothing is loaded.
+ * Video and audio volume, always shown: they persist across loads, so the
+ * operator can turn one down *before* something starts too loud. Lives on
+ * the Stage so it's at hand mid-service from any page.
  */
 export function VolumeSection({ state, actions, t }: Props) {
   const sliders = [
-    state.video.src !== null && {
+    {
       key: "video",
       label: t.stage.layerVideo,
       ariaLabel: t.videoLibrary.volume,
       value: state.video.volume,
       onChange: actions.setVideoVolume,
     },
-    state.audio.src !== null && {
+    {
       key: "audio",
       label: t.stage.layerAudio,
       ariaLabel: t.audioLibrary.volume,
       value: state.audio.volume,
       onChange: actions.setAudioVolume,
     },
-  ].filter((s) => !!s);
-
-  if (sliders.length === 0) return null;
+  ];
 
   return (
     <Section section="volume" title={t.stage.volume}>
