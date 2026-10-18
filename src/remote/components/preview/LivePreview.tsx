@@ -19,6 +19,8 @@ import {
 } from "../../../shared/slideTheme";
 import SlideIndicator from "../../../components/SlideIndicator";
 import { ImageIcon } from "../icons/image";
+import { PlayIcon, PauseIcon } from "../icons/ui";
+import { useOnScreen, usePreviewVideoSync } from "./usePreviewVideo";
 
 // Virtual resolution matching a typical display (used for scaled-down preview)
 const VIRTUAL_WIDTH = 1920;
@@ -390,15 +392,10 @@ function IdlePreview({
   );
 }
 
-// Video mode preview — shows thumbnail or streams video when available
+// Video mode preview — streams the video itself, muted and following the
+// display, while the preview is on screen; the thumbnail stands in otherwise.
 function VideoPreview({ state }: { state: DisplayState }) {
   const { video } = state;
-  const [thumbError, setThumbError] = useState(false);
-
-  // Reset thumb error when video changes
-  useEffect(() => {
-    setThumbError(false);
-  }, [video.videoId, video.src]);
 
   if (!video.src) {
     return (
@@ -408,9 +405,19 @@ function VideoPreview({ state }: { state: DisplayState }) {
     );
   }
 
+  // Keyed so a new video starts with a clean slate (no stale load errors).
+  return <LoadedVideoPreview key={video.videoId ?? video.src} video={video} />;
+}
+
+function LoadedVideoPreview({ video }: { video: DisplayState["video"] }) {
+  const [thumbError, setThumbError] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const [onScreenRef, onScreen] = useOnScreen<HTMLDivElement>();
+  const sync = usePreviewVideoSync(video.playing, video.currentTime);
+
   const filename =
     video.src
-      .split("/")
+      ?.split("/")
       .pop()
       ?.replace(/\.[^/.]+$/, "") || "Video";
 
@@ -420,11 +427,13 @@ function VideoPreview({ state }: { state: DisplayState }) {
   const thumbnailUrl = video.videoId
     ? getApiUrl(`/api/videos/thumbnail/${video.videoId}`)
     : null;
+  const hasThumbnail = thumbnailUrl !== null && !thumbError;
+  const live = video.videoId !== null && !videoError && onScreen;
 
   return (
-    <div className="w-full h-full bg-black flex flex-col relative overflow-hidden">
-      {/* Thumbnail background */}
-      {thumbnailUrl && !thumbError && (
+    <div ref={onScreenRef} className="w-full h-full bg-black flex flex-col relative overflow-hidden">
+      {/* Thumbnail background — also what shows until the video's first frame */}
+      {hasThumbnail && (
         <img
           src={thumbnailUrl}
           alt=""
@@ -433,31 +442,40 @@ function VideoPreview({ state }: { state: DisplayState }) {
         />
       )}
 
+      {live && (
+        <video
+          ref={sync.ref}
+          src={getApiUrl(`/api/videos/file/${video.videoId}`)}
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-contain"
+          onLoadedMetadata={sync.onLoadedMetadata}
+          onPlaying={sync.onPlaying}
+          onError={() => setVideoError(true)}
+        />
+      )}
+
       {/* Overlay with controls info */}
       <div className="flex-1 flex flex-col items-center justify-center gap-1 px-3 relative z-10">
-        {/* Play/pause indicator — only show prominently when paused or no thumbnail */}
-        <div
-          className={`flex items-center justify-center rounded-full ${
-            thumbnailUrl && !thumbError
-              ? "bg-black/50 w-8 h-8"
-              : ""
-          }`}
-        >
-          <svg
-            className={`${thumbnailUrl && !thumbError ? "w-4 h-4" : "w-5 h-5"} text-white/80`}
-            viewBox="0 0 24 24"
-            fill="currentColor"
+        {/* A moving picture says "playing" on its own; flag only a pause, or
+            the state when all there is to look at is a still. */}
+        {(!live || !video.playing) && (
+          <div
+            className={`flex items-center justify-center rounded-full ${
+              hasThumbnail || live ? "bg-black/50 w-8 h-8" : ""
+            }`}
           >
             {video.playing ? (
-              <path d="M8 5v14l11-7z" />
+              <PlayIcon className={`${hasThumbnail || live ? "w-4 h-4" : "w-5 h-5"} text-white/80`} />
             ) : (
-              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+              <PauseIcon className={`${hasThumbnail || live ? "w-4 h-4" : "w-5 h-5"} text-white/80`} />
             )}
-          </svg>
-        </div>
+          </div>
+        )}
 
-        {/* Filename — show below if no thumbnail */}
-        {(!thumbnailUrl || thumbError) && (
+        {/* Filename — show below if there's no picture */}
+        {!hasThumbnail && !live && (
           <span className="text-[10px] text-white/50 truncate max-w-[90%]">
             {filename}
           </span>
@@ -466,12 +484,11 @@ function VideoPreview({ state }: { state: DisplayState }) {
 
       {/* Bottom bar with time and progress */}
       <div className="relative z-10 flex-shrink-0">
-        <div className="flex items-center justify-between px-2 py-0.5 bg-gradient-to-t from-black/80 to-transparent">
+        {/* One readout on the left: the bottom-right corner is where the
+            phone header puts its collapse button. */}
+        <div className="px-2 py-0.5 bg-gradient-to-t from-black/80 to-transparent">
           <span className="text-[9px] text-white/60 tabular-nums">
-            {formatDuration(video.currentTime)}
-          </span>
-          <span className="text-[9px] text-white/60 tabular-nums">
-            {formatDuration(video.duration)}
+            {formatDuration(video.currentTime)} / {formatDuration(video.duration)}
           </span>
         </div>
         <div className="h-1 bg-gray-800">

@@ -47,9 +47,10 @@ export default function PreviewHeader({
                 settings={settings}
                 showLabels={false}
               />
+              {/* Above the preview's own overlays (z-10), or they swallow the tap. */}
               <button
                 onClick={onToggle}
-                className="absolute bottom-0 right-0 min-w-11 min-h-11 flex items-end justify-end p-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg"
+                className="absolute bottom-0 right-0 z-20 min-w-11 min-h-11 flex items-end justify-end p-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg"
                 aria-label={t.preview.collapse}
                 title={t.preview.collapse}
               >

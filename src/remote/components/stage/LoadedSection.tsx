@@ -7,8 +7,10 @@ import { BibleIcon } from "../icons/bible";
 import { VideoIcon } from "../icons/video";
 import { ImageIcon } from "../icons/image";
 import { AudioIcon } from "../icons/audio";
-import { PlayIcon, PauseIcon, StopIcon, CloseIcon, PencilIcon } from "../icons/ui";
+import { CloseIcon, PencilIcon } from "../icons/ui";
 import { Section } from "./Section";
+import { ghostButton } from "./styles";
+import { Transport } from "./Transport";
 import type { NavigateTo, StageActions } from "./types";
 import type { ActivityTarget } from "../../../shared/stage.types";
 
@@ -32,13 +34,10 @@ const TEXT_ICONS = {
   custom: PencilIcon,
 };
 
-const ghostButton =
-  "min-w-8 min-h-8 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-100 hover:bg-gray-700/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors";
-
 /**
  * What the display holds but isn't showing — the showing layer is already the
  * preview above. Hidden layers get Show and Clear; audio, which plays rather
- * than shows, gets its transport controls. The name opens the layer's page,
+ * than shows, gets the same transport row as the video on screen. The name opens the layer's page,
  * for everything the row doesn't do (volume, seeking, the rest of a playlist).
  */
 export function LoadedSection({ layers, state, actions, onNavigate, t }: Props) {
@@ -50,70 +49,63 @@ export function LoadedSection({ layers, state, actions, onNavigate, t }: Props) 
         {layers.map(({ kind }) => {
           const Icon = kind === "text" ? TEXT_ICONS[state.text.contentType] : ICONS[kind];
           const page = layerPage(kind, state);
+          const detail = layerDetail(kind, state, t);
           const label = (
             <>
               <div className="text-sm truncate">{layerTitle(kind, state, t)}</div>
-              <div className="text-xs text-gray-500 truncate">
-                {layerDetail(kind, state, t)}
-              </div>
+              {detail && <div className="text-xs text-gray-500 truncate">{detail}</div>}
             </>
           );
           return (
             <li
               key={kind}
-              className="flex items-center gap-2 bg-gray-900/50 border border-gray-700/30 rounded-lg pl-2.5 pr-1 py-1.5"
+              className="bg-gray-900/50 border border-gray-700/30 rounded-lg pl-2.5 pr-1 py-1.5"
             >
-              <Icon className="w-4 h-4 flex-shrink-0 text-gray-400" />
-              {page ? (
-                <button
-                  onClick={() => onNavigate(page)}
-                  className="flex-1 min-w-0 text-left rounded hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                >
-                  {label}
-                </button>
-              ) : (
-                <div className="flex-1 min-w-0">{label}</div>
-              )}
-              {kind === "audio" ? (
-                <>
+              <div className="flex items-center gap-2">
+                <Icon className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                {page ? (
                   <button
-                    onClick={state.audio.playing ? actions.pauseAudio : actions.playAudio}
-                    className={ghostButton}
-                    aria-label={state.audio.playing ? t.stage.pause : t.stage.play}
-                    title={state.audio.playing ? t.stage.pause : t.stage.play}
+                    onClick={() => onNavigate(page)}
+                    className="flex-1 min-w-0 text-left rounded hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   >
-                    {state.audio.playing ? (
-                      <PauseIcon className="w-4 h-4" />
-                    ) : (
-                      <PlayIcon className="w-4 h-4" />
-                    )}
+                    {label}
                   </button>
-                  <button
-                    onClick={actions.stopAudio}
-                    className={ghostButton}
-                    aria-label={t.stage.stop}
-                    title={t.stage.stop}
-                  >
-                    <StopIcon className="w-4 h-4" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => actions.setMode(kind)}
-                    className="px-2 min-h-8 rounded-md text-xs bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"
-                  >
-                    {t.stage.show}
-                  </button>
-                  <button
-                    onClick={() => actions.clearLayer(kind)}
-                    className={ghostButton}
-                    aria-label={t.stage.clear}
-                    title={t.stage.clear}
-                  >
-                    <CloseIcon className="w-4 h-4" />
-                  </button>
-                </>
+                ) : (
+                  <div className="flex-1 min-w-0">{label}</div>
+                )}
+                {kind !== "audio" && (
+                  <>
+                    <button
+                      onClick={() => actions.setMode(kind)}
+                      className="px-2 min-h-8 rounded-md text-xs bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"
+                    >
+                      {t.stage.show}
+                    </button>
+                    <button
+                      onClick={() => actions.clearLayer(kind)}
+                      className={ghostButton}
+                      aria-label={t.stage.clear}
+                      title={t.stage.clear}
+                    >
+                      <CloseIcon className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+              {kind === "audio" && (
+                <div className="mt-1 -ml-1.5">
+                  <Transport
+                    playing={state.audio.playing}
+                    currentTime={state.audio.currentTime}
+                    duration={state.audio.duration}
+                    onPlay={actions.playAudio}
+                    onPause={actions.pauseAudio}
+                    onStop={actions.stopAudio}
+                    onSeek={actions.seekAudio}
+                    seekLabel={t.stage.seekAudio}
+                    t={t}
+                  />
+                </div>
               )}
             </li>
           );
@@ -154,7 +146,11 @@ function layerTitle(kind: LoadedLayer["kind"], state: DisplayState, t: Translati
   }
 }
 
-function layerDetail(kind: LoadedLayer["kind"], state: DisplayState, t: Translations): string {
+function layerDetail(
+  kind: LoadedLayer["kind"],
+  state: DisplayState,
+  t: Translations,
+): string | null {
   switch (kind) {
     case "text":
       return t.stage.slideOf
@@ -171,10 +167,8 @@ function layerDetail(kind: LoadedLayer["kind"], state: DisplayState, t: Translat
         ? `${t.status.presentingSlideshow} · ${currentIndex + 1}/${slideshowImages.length}`
         : t.status.presentingImage;
     }
-    case "audio": {
-      const { currentTime, duration, playing } = state.audio;
-      const time = `${formatDuration(currentTime)} / ${formatDuration(duration)}`;
-      return playing ? time : `${time} · ${t.stage.paused}`;
-    }
+    case "audio":
+      // Its transport row shows the time and whether it's playing.
+      return null;
   }
 }

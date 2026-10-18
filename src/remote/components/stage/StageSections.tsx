@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { DisplayState, AppSettings } from "../../../shared/types";
 import type { Translations } from "../../../shared/i18n";
 import { getLoadedLayers } from "../../../shared/stage";
@@ -8,6 +8,7 @@ import { LoadedSection } from "./LoadedSection";
 import { VolumeSection } from "./VolumeSection";
 import { ActivitySection } from "./ActivitySection";
 import { UpcomingSection } from "./UpcomingSection";
+import { Transport } from "./Transport";
 import { useStage } from "./stageContext";
 import type { NavigateTo, StageActions } from "./types";
 
@@ -20,7 +21,8 @@ interface Props {
   /**
    * panel (desktop): full preview while presenting, a compact row while idle.
    * sheet (mobile): the real preview is already atop the screen while
-   * presenting, so only the idle preview — full width — appears here.
+   * presenting, so only the idle preview — full width — appears here, or the
+   * video transport while a video is showing.
    */
   variant: "panel" | "sheet";
 }
@@ -30,6 +32,22 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
   const stage = useStage();
   const layers = useMemo(() => getLoadedLayers(state), [state]);
   const isIdle = state.mode === "idle";
+  const videoTransport =
+    state.mode === "video" && state.video.src ? (
+      <div className="bg-gray-900/50 border border-gray-700/30 rounded-lg px-1 py-1">
+        <Transport
+          playing={state.video.playing}
+          currentTime={state.video.currentTime}
+          duration={state.video.duration}
+          onPlay={actions.playVideo}
+          onPause={actions.pauseVideo}
+          onStop={actions.stopVideo}
+          onSeek={actions.seekVideo}
+          seekLabel={t.stage.seekVideo}
+          t={t}
+        />
+      </div>
+    ) : null;
 
   const isEmpty =
     layers.length === 0 &&
@@ -37,7 +55,7 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
     stage.upcomingSchedules.length === 0 &&
     stage.recentScheduleEvents.length === 0;
 
-  let preview = null;
+  let preview: ReactNode;
   if (variant === "panel" && isIdle) {
     preview = (
       <div className="flex items-center gap-3">
@@ -62,6 +80,7 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
         <div className="mt-2 text-xs text-gray-500 text-center truncate">
           {presentingStatus(state, t)}
         </div>
+        {videoTransport && <div className="mt-2">{videoTransport}</div>}
       </>
     );
   } else if (isIdle) {
@@ -73,6 +92,10 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
         <LivePreview state={state} settings={settings} showLabels={false} />
       </div>
     );
+  } else {
+    // The sheet's preview while presenting is the one atop the screen, which
+    // stays inert so a stray tap can't seek; the controls live here instead.
+    preview = videoTransport;
   }
 
   return (

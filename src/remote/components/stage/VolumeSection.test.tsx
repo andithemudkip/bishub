@@ -13,6 +13,11 @@ function setup(state: DisplayState) {
     playAudio: vi.fn(),
     pauseAudio: vi.fn(),
     stopAudio: vi.fn(),
+    seekAudio: vi.fn(),
+    playVideo: vi.fn(),
+    pauseVideo: vi.fn(),
+    stopVideo: vi.fn(),
+    seekVideo: vi.fn(),
     setVideoVolume: vi.fn(),
     setAudioVolume: vi.fn(),
   };

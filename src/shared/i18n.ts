@@ -581,6 +581,8 @@ export interface Translations {
     play: string;
     pause: string;
     stop: string;
+    seekVideo: string;
+    seekAudio: string;
     layerText: string;
     layerVideo: string;
     layerImage: string;
@@ -1259,6 +1261,8 @@ const ro: Translations = {
     play: "Redă",
     pause: "Pauză",
     stop: "Oprește",
+    seekVideo: "Poziția videoclipului",
+    seekAudio: "Poziția audio",
     layerText: "Text",
     layerVideo: "Video",
     layerImage: "Imagine",
@@ -1948,6 +1952,8 @@ const en: Translations = {
     play: "Play",
     pause: "Pause",
     stop: "Stop",
+    seekVideo: "Video position",
+    seekAudio: "Audio position",
     layerText: "Text",
     layerVideo: "Video",
     layerImage: "Image",

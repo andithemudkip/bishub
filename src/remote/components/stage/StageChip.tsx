@@ -2,6 +2,7 @@ import type { DisplayState } from "../../../shared/types";
 import type { Translations } from "../../../shared/i18n";
 import { formatTimeUntil } from "../../../shared/utils";
 import { WarningIcon, ProgressRingIcon, MusicNoteIcon, ClockIcon, CheckIcon } from "../icons/ui";
+import { VideoIcon } from "../icons/video";
 import { useStage } from "./stageContext";
 import { activitySummary, aggregateProgress, soonSchedule } from "./stageStatus";
 import { useNow } from "./useNow";
@@ -15,7 +16,8 @@ interface Props {
 /**
  * The phone's way into the Stage. It sits in the header row's spare space,
  * so it costs no height: always there while idle ("Idle", which also opens
- * the preview), and while presenting only when there's something to report.
+ * the preview), and while presenting only when there's something to report
+ * or control — a video on screen counts, since its transport is in the sheet.
  * The icon is the single most important thing going on.
  */
 export function StageChip({ state, t, onOpen }: Props) {
@@ -36,6 +38,13 @@ export function StageChip({ state, t, onOpen }: Props) {
     );
   } else if (summary === "done") {
     status = <CheckIcon className="w-5 h-5 text-green-400" />;
+  } else if (state.mode === "video") {
+    // The video's transport lives in the sheet, so the way in has to be here.
+    status = (
+      <VideoIcon
+        className={`w-5 h-5 ${state.video.playing ? "text-blue-400" : "text-gray-400"}`}
+      />
+    );
   } else if (state.audio.playing) {
     status = <MusicNoteIcon className="w-5 h-5 text-blue-400" />;
   } else if (soon) {

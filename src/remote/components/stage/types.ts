@@ -11,6 +11,13 @@ export interface StageActions {
   playAudio: () => void;
   pauseAudio: () => void;
   stopAudio: () => void;
+  /** Seconds into the loaded audio. */
+  seekAudio: (time: number) => void;
+  playVideo: () => void;
+  pauseVideo: () => void;
+  stopVideo: () => void;
+  /** Seconds into the loaded video. */
+  seekVideo: (time: number) => void;
   /** 0–1, like `VideoState.volume` / `AudioState.volume`. */
   setVideoVolume: (volume: number) => void;
   setAudioVolume: (volume: number) => void;
