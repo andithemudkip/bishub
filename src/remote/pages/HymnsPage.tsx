@@ -43,6 +43,8 @@ interface Props {
   textState: TextState;
   isTextMode: boolean;
   hymns: Hymn[];
+  /** The book this remote is browsing; `hymnsSlug` catches up once it loads. */
+  hymnal: string;
   hymnsSlug: string;
   onLoadHymn: (
     slug: string,
@@ -73,6 +75,7 @@ export default function HymnsPage({
   textState,
   isTextMode,
   hymns,
+  hymnal,
   hymnsSlug,
   onLoadHymn,
   onSelectHymnal,
@@ -116,12 +119,12 @@ export default function HymnsPage({
   // stays short (Romanian has six, the others one). Switching to another
   // language's hymnal happens in Settings, which lists all of them.
   const hymnals = useMemo(() => {
-    const current = getHymnalBySlug(allHymnals, settings.hymnal);
+    const current = getHymnalBySlug(allHymnals, hymnal);
     return getHymnalsForLanguage(
       allHymnals,
       current?.language ?? settings.language
     );
-  }, [allHymnals, settings.hymnal, settings.language]);
+  }, [allHymnals, hymnal, settings.language]);
 
   // F5 focus event
   useFocusSearch(searchInputRef);
@@ -265,7 +268,8 @@ export default function HymnsPage({
         const first = allBookResults[0];
         if (first) onLoadHymn(first.book, first.hymn.number);
       } else {
-        onLoadHymn(settings.hymnal, filteredHymns[0].number);
+        // The book the list came from, which can lag the one just picked.
+        onLoadHymn(hymnsSlug, filteredHymns[0].number);
       }
       e.currentTarget.blur();
     }

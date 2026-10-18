@@ -1,8 +1,9 @@
 import type { StateManager } from "./state";
-import type { HymnPlaybackMode } from "../src/shared/types";
-import { resolveHymnDisplay, type HymnAudioPreferences } from "./dataLoader";
+import type { Hymn, HymnPlaybackMode } from "../src/shared/types";
+import { loadHymns, resolveHymnDisplay, type HymnAudioPreferences } from "./dataLoader";
 import {
   getFallbackHymnalSlug,
+  getHymnals,
   isValidHymnalSlug,
 } from "./hymnalRegistry";
 
@@ -27,6 +28,17 @@ export function resolveHymnalSlug(
     return settings.hymnal;
   }
   return getFallbackHymnalSlug(settings.language);
+}
+
+/**
+ * The books to re-push when karaoke MP3s or TTML change. Those assets only
+ * mark hymns in the karaoke book, so that's the one to push — not the default,
+ * since each remote browses its own book and drops pushes for any other.
+ */
+export function hymnalsAffectedByAssets(): { slug: string; hymns: Hymn[] }[] {
+  return getHymnals()
+    .filter((hymnal) => hymnal.karaoke)
+    .map((hymnal) => ({ slug: hymnal.slug, hymns: loadHymns(hymnal.slug) }));
 }
 
 /**

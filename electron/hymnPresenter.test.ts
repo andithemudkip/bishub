@@ -6,7 +6,7 @@ import type { AppSettings, Hymn, HymnAudioAvailability } from "../src/shared/typ
 import type { StateManager } from "./state";
 import { formatHymnForDisplay, getHymnByNumber, loadHymns } from "./dataLoader";
 import { getHymnalBySlug } from "./hymnalRegistry";
-import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
+import { hymnalsAffectedByAssets, presentHymn, resolveHymnalSlug } from "./hymnPresenter";
 
 // Karaoke assets live on disk and the network in the app; here each test
 // decides what's "on hand" for the hymn being presented.
@@ -292,4 +292,15 @@ describe("resolveHymnalSlug", () => {
       expect(getHymnalBySlug(slug)?.language).toBe(language);
     }
   );
+});
+
+describe("hymnalsAffectedByAssets", () => {
+  // Remotes each browse their own book, so pushing the shared default would
+  // leave a remote on the karaoke book with stale audio badges.
+  it("pushes only the karaoke book, with fresh audio availability", () => {
+    assets.availability = "cached";
+    const pushes = hymnalsAffectedByAssets();
+    expect(pushes.map((p) => p.slug)).toEqual([KARAOKE_BOOK]);
+    expect(pushes[0].hymns[0].audioAvailability).toBe("cached");
+  });
 });
