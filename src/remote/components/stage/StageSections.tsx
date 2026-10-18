@@ -5,6 +5,7 @@ import { getLoadedLayers } from "../../../shared/stage";
 import LivePreview from "../preview/LivePreview";
 import { HealthBanner } from "./HealthBanner";
 import { LoadedSection } from "./LoadedSection";
+import { VolumeSection } from "./VolumeSection";
 import { ActivitySection } from "./ActivitySection";
 import { UpcomingSection } from "./UpcomingSection";
 import { useStage } from "./stageContext";
@@ -79,6 +80,7 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
       <HealthBanner
         displayWindowOpen={stage.displayWindowOpen}
         monitorMissing={stage.monitorMissing}
+        onNavigate={onNavigate}
         t={t}
       />
 
@@ -87,6 +89,9 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
           {preview}
         </div>
       )}
+
+      {/* Right under the preview, so it never moves as other sections come and go. */}
+      <VolumeSection state={state} actions={actions} t={t} />
 
       <LoadedSection
         layers={layers}

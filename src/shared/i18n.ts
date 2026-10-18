@@ -192,7 +192,6 @@ export interface Translations {
   // Settings page
   settings: {
     language: string;
-    display: string;
     displayMonitor: string;
     autoSecondary: string;
     selectMonitorHint: string;
@@ -228,13 +227,11 @@ export interface Translations {
     mobileRemote: string;
     scanOrVisit: string;
     sameWifi: string;
-    about: string;
     churchDisplayApp: string;
     keyboardShortcuts: string;
     nextSlide: string;
     previousSlide: string;
     goToIdle: string;
-    volume: string;
     securityKey: string;
     securityKeyHint: string;
     openOnStartup: string;
@@ -243,7 +240,6 @@ export interface Translations {
     quickSearch: string;
     shufflePlaylist: string;
     // Idle screen settings
-    idleScreen: string;
     wallpaper: string;
     selectWallpaper: string;
     clearWallpaper: string;
@@ -263,6 +259,41 @@ export interface Translations {
     idleScreenTip: string;
     mobileRemoteTip: string;
     keyboardShortcutsTip: string;
+    // Sectioned settings page
+    sections: Record<
+      "general" | "display" | "idle" | "content" | "devices" | "storage" | "shortcuts" | "about",
+      { title: string; description: string }
+    >;
+    searchPlaceholder: string;
+    searchNoResults: string;
+    searchClear: string;
+    allSettings: string;
+    languageHint: string;
+    openOnStartupHint: string;
+    bibleTranslationHint: string;
+    hymnalHint: string;
+    displayMonitorHint: string;
+    previewTitle: string;
+    previewHint: string;
+    previewHymnTitle: string;
+    previewHymnText: string;
+    previewBibleTitle: string;
+    previewBibleText: string;
+    previewHymnLabel: string;
+    previewBibleLabel: string;
+    wallpaperHint: string;
+    wallpaperOnMainComputer: string;
+    clockFontSizeHint: string;
+    clockSmaller: string;
+    clockLarger: string;
+    manageDownloads: string;
+    instrumentalsTitle: string;
+    instrumentalsHint: string;
+    noInstrumentals: string;
+    connectPhoneTitle: string;
+    devicesHint: string;
+    updatesTitle: string;
+    technicalDetails: string;
   };
 
   // Video library
@@ -572,6 +603,8 @@ export interface Translations {
     scheduleMissed: string;
     displayClosed: string;
     monitorMissing: string;
+    chooseScreen: string;
+    volume: string;
     devices: string;
     copyAddress: string;
     phoneRemoteTitle: string;
@@ -834,18 +867,17 @@ const ro: Translations = {
   },
   settings: {
     language: "Limbă",
-    display: "Afișaj",
-    displayMonitor: "Monitor afișare",
+    displayMonitor: "Ecranul de proiecție",
     autoSecondary: "Auto",
     selectMonitorHint: "Apasă pe monitorul pe care vrei să afișezi conținutul",
     autoResolvedTo: "Auto → ",
     resetToAuto: "Înapoi la auto",
-    chromeSizes: "Dimensiuni pe ecran",
+    chromeSizes: "Mărimea detaliilor de pe slide",
     chromeSizesHint:
-      "Ajustează cât de mare să apară elementele pe ecran.",
+      "Mărește sau micșorează titlul, numărul slide-ului și punctele de progres.",
     titleSize: "Titlu",
-    slideCounterSize: "Contor slide-uri",
-    slideDotsSize: "Puncte slide-uri",
+    slideCounterSize: "Numărul slide-ului",
+    slideDotsSize: "Puncte de progres",
     resetToDefault: "Resetează",
     slideBackground: "Fundal slide-uri",
     slideBackgroundHint:
@@ -872,20 +904,17 @@ const ro: Translations = {
     mobileRemote: "Telecomandă mobilă",
     scanOrVisit: "Scanează sau accesează:",
     sameWifi: "Asigură-te că telefonul este conectat la aceeași rețea WiFi",
-    about: "Despre",
     churchDisplayApp: "Aplicație pentru afișare în biserică",
     keyboardShortcuts: "Scurtături tastatură",
     nextSlide: "Slide următor",
     previousSlide: "Slide anterior",
     goToIdle: "Întrerupe afișarea",
-    volume: "Volum",
     focusSearch: "Focalizează câmpul de căutare",
     switchPage: "Schimbă pagina",
     quickSearch: "Căutare rapidă",
     shufflePlaylist: "Redare aleatorie a listei (în Căutare rapidă)",
     // Idle screen settings
-    idleScreen: "Ecran de așteptare",
-    wallpaper: "Fundal",
+    wallpaper: "Imagine de fundal",
     selectWallpaper: "Selectează imaginea",
     clearWallpaper: "Șterge",
     noWallpaper: "Fără imagine",
@@ -896,13 +925,13 @@ const ro: Translations = {
     positionBottomLeft: "Stânga jos",
     positionBottomRight: "Dreapta jos",
     positionCenter: "Centru",
-    audioWidgetPosition: "Poziție widget audio",
+    audioWidgetPosition: "Poziția informațiilor despre melodie",
     bibleTranslation: "Traducere Biblie",
     downloadingBible: "Se descarcă traducerea...",
     bibleDownloadError: "Descărcarea a eșuat",
-    securityKey: "Cheie de securitate:",
+    securityKey: "Cheie de securitate",
     securityKeyHint: "Necesară pentru a conecta alte dispozitive la această sesiune",
-    openOnStartup: "Deschide la pornirea sistemului",
+    openOnStartup: "Deschide BisHub la pornirea calculatorului",
     displayTip:
       "Alege pe ce monitor se afișează conținutul proiectat. Modul **Auto** folosește al doilea monitor — apare cu chenar punctat în picker. Apasă pe orice monitor pentru a-l selecta manual.",
     idleScreenTip:
@@ -911,6 +940,70 @@ const ro: Translations = {
       "Controlează proiecția de pe telefon. Asigură-te că telefonul este pe **aceeași rețea WiFi**, apoi scanează codul QR sau tastează adresa URL în browser.",
     keyboardShortcutsTip:
       "Aceste scurtături funcționează în fereastra de control. Folosește **tastele săgeți** pentru a naviga între slide-uri.",
+    sections: {
+      general: { title: "General", description: "Limba și pornirea aplicației" },
+      display: {
+        title: "Ecranul de proiecție",
+        description: "Pe ce ecran se proiectează și cum arată slide-urile",
+      },
+      idle: {
+        title: "Ecran de așteptare",
+        description: "Ce apare pe proiecție când nu se prezintă nimic",
+      },
+      content: {
+        title: "Biblie și imnuri",
+        description: "Traducerea Bibliei, cartea de imnuri și muzica imnurilor",
+      },
+      devices: {
+        title: "Telefoane și tablete",
+        description: "Controlează proiecția de pe telefon",
+      },
+      storage: {
+        title: "Descărcări",
+        description: "Muzica imnurilor salvată pe acest calculator",
+      },
+      shortcuts: {
+        title: "Scurtături de tastatură",
+        description: "Taste care te ajută să lucrezi mai repede",
+      },
+      about: {
+        title: "Despre și actualizări",
+        description: "Versiunea aplicației și actualizări",
+      },
+    },
+    searchPlaceholder: "Caută în setări...",
+    searchNoResults: "Nicio setare nu se potrivește cu „{query}”",
+    searchClear: "Șterge căutarea",
+    allSettings: "Toate setările",
+    languageHint: "Pentru meniuri, butoane și numele cărților din Biblie.",
+    openOnStartupHint: "Util dacă acest calculator este folosit doar pentru proiecție.",
+    bibleTranslationHint: "Folosită pentru toate versetele pe care le afișezi.",
+    hymnalHint: "Cartea deschisă implicit în pagina Imnuri.",
+    displayMonitorHint: "Alege ecranul conectat la videoproiector sau televizor.",
+    previewTitle: "Previzualizare",
+    previewHint: "Un slide de exemplu — modificările apar aici imediat.",
+    previewHymnTitle: "Imn de exemplu",
+    previewHymnText: "Lăudați pe Domnul, toate neamurile,\nlăudați-L, toate popoarele!",
+    previewBibleTitle: "Ioan 3:16",
+    previewBibleText:
+      "Fiindcă atât de mult a iubit Dumnezeu lumea, că a dat pe singurul Lui Fiu, pentru ca oricine crede în El să nu piară, ci să aibă viața veșnică.",
+    previewHymnLabel: "Imnuri",
+    previewBibleLabel: "Biblie",
+    wallpaperHint: "Apare în spatele ceasului când nu se prezintă nimic.",
+    wallpaperOnMainComputer: "Imaginea de fundal se poate schimba de pe calculatorul principal.",
+    clockFontSizeHint: "Cât de mare apare ceasul pe ecranul de așteptare.",
+    clockSmaller: "Mai mic",
+    clockLarger: "Mai mare",
+    manageDownloads: "Gestionează descărcările",
+    instrumentalsTitle: "Instrumentale pentru imnuri",
+    instrumentalsHint:
+      "Descarcă muzica imnurilor din timp, ca să pornească imediat în timpul serviciului.",
+    noInstrumentals: "Pentru această carte de imnuri nu există muzică de descărcat.",
+    connectPhoneTitle: "Conectează un telefon",
+    devicesHint:
+      "Telefoanele și tabletele care s-au conectat. Revocă unul ca să nu mai poată controla proiecția.",
+    updatesTitle: "Actualizări",
+    technicalDetails: "Detalii tehnice",
   },
   videoLibrary: {
     addLocalFiles: "Adaugă fișiere",
@@ -1188,6 +1281,8 @@ const ro: Translations = {
     scheduleMissed: "Ratat",
     displayClosed: "Fereastra de afișare este închisă",
     monitorMissing: "Monitorul de afișare nu este conectat",
+    chooseScreen: "Alege ecranul",
+    volume: "Volum",
     devices: "Dispozitive: {n}",
     copyAddress: "Copiază adresa",
     phoneRemoteTitle: "Controlează de pe telefon",
@@ -1461,18 +1556,17 @@ const en: Translations = {
   },
   settings: {
     language: "Language",
-    display: "Display",
-    displayMonitor: "Display Monitor",
+    displayMonitor: "Screen to project on",
     autoSecondary: "Auto",
     selectMonitorHint: "Tap a monitor to display content on it",
     autoResolvedTo: "Auto → ",
     resetToAuto: "Reset to auto",
-    chromeSizes: "On-screen sizes",
+    chromeSizes: "Size of slide details",
     chromeSizesHint:
-      "Adjust how large the items should appear on the display.",
+      "Make the title, slide number and progress dots bigger or smaller.",
     titleSize: "Title",
-    slideCounterSize: "Slide counter",
-    slideDotsSize: "Slide dots",
+    slideCounterSize: "Slide number",
+    slideDotsSize: "Progress dots",
     resetToDefault: "Reset",
     slideBackground: "Slide background",
     slideBackgroundHint:
@@ -1496,23 +1590,20 @@ const en: Translations = {
     monitorPrimary: "Primary",
     monitorInternal: "Internal",
     onlyMonitor: "Only monitor",
-    mobileRemote: "Mobile Remote",
+    mobileRemote: "Phone remote",
     scanOrVisit: "Scan or visit:",
     sameWifi: "Make sure your phone is connected to the same WiFi network",
-    about: "About",
     churchDisplayApp: "Church Display Application",
-    keyboardShortcuts: "Keyboard Shortcuts",
+    keyboardShortcuts: "Keyboard shortcuts",
     nextSlide: "Next slide",
     previousSlide: "Previous slide",
     goToIdle: "Go to idle",
-    volume: "Volume",
     focusSearch: "Focus search input",
     switchPage: "Switch page",
     quickSearch: "Quick search",
     shufflePlaylist: "Shuffle play a playlist (in Quick Search)",
     // Idle screen settings
-    idleScreen: "Idle Screen",
-    wallpaper: "Wallpaper",
+    wallpaper: "Background image",
     selectWallpaper: "Select image",
     clearWallpaper: "Clear",
     noWallpaper: "No image",
@@ -1523,13 +1614,13 @@ const en: Translations = {
     positionBottomLeft: "Bottom left",
     positionBottomRight: "Bottom right",
     positionCenter: "Center",
-    audioWidgetPosition: "Audio widget position",
-    bibleTranslation: "Bible Translation",
+    audioWidgetPosition: "Song info position",
+    bibleTranslation: "Bible translation",
     downloadingBible: "Downloading translation...",
     bibleDownloadError: "Download failed",
-    securityKey: "Security Key:",
+    securityKey: "Security key",
     securityKeyHint: "Required to connect other devices to this session",
-    openOnStartup: "Open on system startup",
+    openOnStartup: "Open BisHub when the computer starts",
     displayTip:
       "Choose which monitor shows the projected content. **Auto** mode uses the secondary monitor — it appears with a dashed outline in the picker. Tap any monitor to pin a specific one.",
     idleScreenTip:
@@ -1538,6 +1629,70 @@ const en: Translations = {
       "Control the projection from your phone. Make sure your phone is on the **same WiFi network**, then scan the QR code or type the URL into your browser.",
     keyboardShortcutsTip:
       "These shortcuts work in the remote control window. Use **arrow keys** to navigate between slides.",
+    sections: {
+      general: { title: "General", description: "Language and how BisHub starts" },
+      display: {
+        title: "Projector screen",
+        description: "Which screen to project on and how slides look",
+      },
+      idle: {
+        title: "Idle screen",
+        description: "What the projection shows when nothing is presented",
+      },
+      content: {
+        title: "Bible & hymns",
+        description: "Bible translation, hymn book and hymn music",
+      },
+      devices: {
+        title: "Phones & tablets",
+        description: "Control the projection from a phone",
+      },
+      storage: {
+        title: "Downloads",
+        description: "Hymn music saved on this computer",
+      },
+      shortcuts: {
+        title: "Keyboard shortcuts",
+        description: "Keys that help you work faster",
+      },
+      about: {
+        title: "About & updates",
+        description: "App version and updates",
+      },
+    },
+    searchPlaceholder: "Search settings...",
+    searchNoResults: "No settings match “{query}”",
+    searchClear: "Clear search",
+    allSettings: "All settings",
+    languageHint: "Used for menus, buttons and Bible book names.",
+    openOnStartupHint: "Handy if this computer is only used for projecting.",
+    bibleTranslationHint: "Used for every verse you show.",
+    hymnalHint: "The book that opens by default on the Hymns page.",
+    displayMonitorHint: "Pick the screen connected to the projector or TV.",
+    previewTitle: "Preview",
+    previewHint: "A sample slide — your changes show up here right away.",
+    previewHymnTitle: "Sample hymn",
+    previewHymnText: "O praise the Lord, all ye nations:\npraise him, all ye people.",
+    previewBibleTitle: "John 3:16",
+    previewBibleText:
+      "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
+    previewHymnLabel: "Hymns",
+    previewBibleLabel: "Bible",
+    wallpaperHint: "Shown behind the clock when nothing is presented.",
+    wallpaperOnMainComputer: "The background image can be changed on the main computer.",
+    clockFontSizeHint: "How big the clock appears on the idle screen.",
+    clockSmaller: "Smaller",
+    clockLarger: "Larger",
+    manageDownloads: "Manage downloads",
+    instrumentalsTitle: "Hymn instrumentals",
+    instrumentalsHint:
+      "Download hymn music ahead of time so it starts instantly during the service.",
+    noInstrumentals: "There's no hymn music to download for this hymn book.",
+    connectPhoneTitle: "Connect a phone",
+    devicesHint:
+      "Phones and tablets that have connected. Revoke one to stop it controlling the projection.",
+    updatesTitle: "Updates",
+    technicalDetails: "Technical details",
   },
   videoLibrary: {
     addLocalFiles: "Add files",
@@ -1815,6 +1970,8 @@ const en: Translations = {
     scheduleMissed: "Missed",
     displayClosed: "The display window is closed",
     monitorMissing: "The display monitor isn't connected",
+    chooseScreen: "Choose screen",
+    volume: "Volume",
     devices: "Devices: {n}",
     copyAddress: "Copy address",
     phoneRemoteTitle: "Control from your phone",

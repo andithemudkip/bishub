@@ -90,7 +90,9 @@ export default function Layout({
   const [stageSheetOpen, setStageSheetOpen] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
-  const preview = usePreviewState({ isMobile });
+  // Settings has its own section sidebar; next to the app nav and the Stage
+  // it would be squeezed, so the Stage folds to its rail there.
+  const preview = usePreviewState({ isMobile, autoCollapse: currentPage === "settings" });
 
   const t = getTranslations(settings.language);
   const isElectron = !!window.electronAPI;
