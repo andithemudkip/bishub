@@ -41,4 +41,24 @@ describe("ShortcutHint", () => {
     expect(kbd.classList).toContain("hidden");
     expect(kbd.classList).toContain("md:inline-flex");
   });
+
+  it("stays visible by default", () => {
+    const kbd = render(<ShortcutHint shortcut="goIdle" />).container.firstElementChild!;
+    expect(kbd.classList).toContain("opacity-60");
+  });
+
+  it("with onHover, hides until its group is hovered or focused", () => {
+    const kbd = render(<ShortcutHint shortcut="switchPage" keyLabel="1" onHover />).container
+      .firstElementChild!;
+    expect(kbd.classList).toContain("opacity-0");
+    expect(kbd.classList).toContain("group-hover:opacity-70");
+    expect(kbd.classList).toContain("group-focus-visible:opacity-70");
+  });
+
+  it("with onHover, shows when revealed", () => {
+    const kbd = render(<ShortcutHint shortcut="switchPage" keyLabel="1" onHover revealed />)
+      .container.firstElementChild!;
+    expect(kbd.classList).not.toContain("opacity-0");
+    expect(kbd.classList).toContain("opacity-70");
+  });
 });
