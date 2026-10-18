@@ -27,6 +27,7 @@ import {
   TrashIcon,
 } from "../components/icons/ui";
 import { StatusBanner } from "../components/ui/Card";
+import { HymnModeSwitch } from "../components/HymnModeSwitch";
 import {
   getHymnalBySlug,
   getHymnalsForLanguage,
@@ -299,6 +300,10 @@ export default function HymnsPage({
         ? "synced"
         : "instrumental";
 
+  const switchHymnMode = (mode: HymnPlaybackMode) =>
+    textState.hymnRef &&
+    onLoadHymn(textState.hymnRef.book, textState.hymnRef.number, mode);
+
   // Karaoke assets exist for one book only, so don't advertise them elsewhere.
   const bookHasKaraoke = !!getHymnalBySlug(allHymnals, hymnsSlug)?.karaoke;
   const showKaraokeBanner =
@@ -434,7 +439,7 @@ export default function HymnsPage({
       {/* Current hymn indicator */}
       {isTextMode && textState.slides.length > 0 && !hasHymnAudio && (
         <StatusBanner>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-sm text-blue-400 mb-1">
                 {t.hymns.nowDisplaying}
@@ -446,21 +451,12 @@ export default function HymnsPage({
               </div>
             </div>
             {audioOverride && (
-              <button
-                onClick={() =>
-                  textState.hymnRef &&
-                  onLoadHymn(
-                    textState.hymnRef.book,
-                    textState.hymnRef.number,
-                    audioOverride,
-                  )
-                }
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-600/40"
-              >
-                {audioOverride === "synced"
-                  ? t.hymns.switchToSynced
-                  : t.hymns.playInstrumental}
-              </button>
+              <HymnModeSwitch
+                current="static"
+                audioMode={audioOverride}
+                onSelect={switchHymnMode}
+                t={t}
+              />
             )}
           </div>
         </StatusBanner>
@@ -469,7 +465,7 @@ export default function HymnsPage({
       {/* Hymn audio playback controls — karaoke and instrumental alike */}
       {isTextMode && hasHymnAudio && (
         <StatusBanner color="green">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-sm text-green-400 mb-1">
                 {t.hymns.nowPlaying}
@@ -484,19 +480,12 @@ export default function HymnsPage({
                 </div>
               )}
             </div>
-            <button
-              onClick={() =>
-                textState.hymnRef &&
-                onLoadHymn(
-                  textState.hymnRef.book,
-                  textState.hymnRef.number,
-                  "static",
-                )
-              }
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-600/20 text-gray-400 hover:bg-gray-600/30 border border-gray-600/40"
-            >
-              {t.hymns.switchToStatic}
-            </button>
+            <HymnModeSwitch
+              current={isSynced ? "synced" : "instrumental"}
+              audioMode={isSynced ? "synced" : "instrumental"}
+              onSelect={switchHymnMode}
+              t={t}
+            />
           </div>
 
           {/* Progress bar */}

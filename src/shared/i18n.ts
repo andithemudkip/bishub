@@ -55,9 +55,10 @@ export interface Translations {
     chorus: string;
     chorusPrefix: string;
     nowPlaying: string;
-    switchToStatic: string;
-    switchToSynced: string;
-    playInstrumental: string;
+    playbackMode: string;
+    modeText: string;
+    modeKaraoke: string;
+    modeInstrumental: string;
     hymnal: string;
     allHymnals: string;
     scrollBooksLeft: string;
@@ -703,9 +704,10 @@ const ro: Translations = {
     chorus: "refren",
     chorusPrefix: "R",
     nowPlaying: "Redare:",
-    switchToStatic: "Text simplu",
-    switchToSynced: "Sincronizat",
-    playInstrumental: "Cu instrumental",
+    playbackMode: "Mod de redare",
+    modeText: "Doar text",
+    modeKaraoke: "Karaoke",
+    modeInstrumental: "Instrumental",
     hymnal: "Imnuri",
     allHymnals: "Toate imnurile",
     scrollBooksLeft: "Imnurile anterioare",
@@ -1323,9 +1325,10 @@ const en: Translations = {
     chorus: "chorus",
     chorusPrefix: "Ch",
     nowPlaying: "Now playing:",
-    switchToStatic: "Static",
-    switchToSynced: "Synced",
-    playInstrumental: "With instrumental",
+    playbackMode: "Playback mode",
+    modeText: "Text only",
+    modeKaraoke: "Karaoke",
+    modeInstrumental: "Instrumental",
     hymnal: "Hymnal",
     allHymnals: "All hymnals",
     scrollBooksLeft: "Previous hymnals",
