@@ -33,12 +33,14 @@ export default function AudioPlayer({
     }
   }, [config.playing, config.src]);
 
-  // Handle volume changes
+  // Apply the volume to every newly loaded file too, not just on changes: the
+  // element only exists once something is loaded and starts at full volume,
+  // while the saved volume arrived long before.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.volume = config.volume;
-  }, [config.volume]);
+  }, [config.volume, config.src]);
 
   // Handle seeking from remote
   useEffect(() => {
