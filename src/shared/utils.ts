@@ -261,6 +261,15 @@ export function formatTimeUntil(
   return common.inDays.replace("{n}", String(days));
 }
 
+/**
+ * The address a phone opens to pair as a web remote. The key is the session's
+ * pairing key — anyone holding this URL can pair, so show it only on the
+ * operator's own screen.
+ */
+export function buildRemoteURL(host: string, port: number | string, pairingKey: string): string {
+  return `http://${host}:${port}/remote?key=${encodeURIComponent(pairingKey)}`;
+}
+
 /** Whether shortcuts use ⌘ (Mac) or Ctrl. Renderer-only: false where there's no navigator. */
 export function isMacPlatform(): boolean {
   return typeof navigator !== "undefined" && navigator.platform.includes("Mac");

@@ -25,6 +25,7 @@ import {
   CHROME_SIZE_MAX,
   CHROME_SIZE_STEP,
   isMacPlatform,
+  buildRemoteURL,
 } from "../../shared/utils";
 import { CheckIcon } from "../components/icons/ui";
 import {
@@ -457,7 +458,7 @@ export default function SettingsPage({
   };
 
   const port = isElectron ? settings.serverPort : window.location.port;
-  const remoteURL = `http://${localIP}:${port}/remote?key=${securityKey}`;
+  const remoteURL = buildRemoteURL(localIP, port, securityKey);
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-2xl mx-auto px-2 sm:px-0">
