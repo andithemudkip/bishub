@@ -350,7 +350,8 @@ export type ClientToServerEvents = {
   setHymnal: (slug: string) => void;
   searchAllHymns: (query: string) => void;
   /** Reply: quickSearchResults. */
-  quickSearch: (query: string) => void;
+  /** `hymnal` is the book the asking remote is browsing, ranked first. */
+  quickSearch: (query: string, hymnal?: string) => void;
   /** Reply: quickSearchVerseResults. */
   quickSearchVerses: (query: string) => void;
   /**

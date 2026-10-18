@@ -13,7 +13,11 @@ import {
   formatBibleChapterForDisplay,
   searchBibleVerses,
 } from "./dataLoader";
-import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
+import {
+  hymnalsAffectedByAssets,
+  presentHymn,
+  resolveHymnalSlug,
+} from "./hymnPresenter";
 import {
   commitHymn,
   deleteCustomHymn,
@@ -388,9 +392,14 @@ function setupIPC() {
     return searchAllHymns(query);
   });
 
-  ipcMain.handle("quick-search", (_event, query: string) => {
+  ipcMain.handle("quick-search", (_event, query: string, hymnal?: string) => {
     const settings = stateManager.getSettings();
-    return quickSearch(query, settings.language, settings.bibleTranslation, settings.hymnal);
+    return quickSearch(
+      query,
+      settings.language,
+      settings.bibleTranslation,
+      resolveHymnalSlug(stateManager, hymnal),
+    );
   });
 
   ipcMain.handle("quick-search-verses", (_event, query: string) => {
@@ -433,8 +442,9 @@ function setupIPC() {
   });
 
   onHymnAssetsUpdated(() => {
-    const slug = resolveHymnalSlug(stateManager);
-    windowManager.broadcastToAll("hymns-update", slug, loadHymns(slug));
+    for (const { slug, hymns } of hymnalsAffectedByAssets()) {
+      windowManager.broadcastToAll("hymns-update", slug, hymns);
+    }
     windowManager.broadcastToAll(
       "hymn-mp3-cache-stats",
       getMP3CacheStats(),

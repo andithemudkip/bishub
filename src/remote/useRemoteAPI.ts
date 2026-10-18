@@ -24,6 +24,7 @@ import type {
 import type { Language } from "../shared/i18n";
 import type { QuickSearchResponse } from "../shared/quickSearch.types";
 import { DEFAULT_STATE, DEFAULT_SETTINGS } from "../shared/types";
+import { useBrowsingHymnal } from "./hooks/useBrowsingHymnal";
 
 /** Stable empty list, so consumers' memos don't see a new array each render. */
 const EMPTY_MONITORS: MonitorInfo[] = [];
@@ -46,7 +47,9 @@ interface RemoteAPI {
   /** Bundled hymnals plus the user's own books, pushed from the main process. */
   hymnals: HymnalInfo[];
   hymns: Hymn[];
-  /** Which book `hymns` holds — lags `settings.hymnal` while a fetch is in flight. */
+  /** The book this remote is browsing; its own, never shared with other remotes. */
+  hymnal: string;
+  /** Which book `hymns` holds — lags `hymnal` while a fetch is in flight. */
   hymnsSlug: string;
   isConnected: boolean;
   /** Running inside the desktop app, where native pickers are available. */
@@ -82,7 +85,10 @@ interface RemoteAPI {
     hymnNumber: string,
     playbackMode?: HymnPlaybackMode,
   ) => void;
-  setHymnal: (slug: string) => void;
+  /** Browse another book on this remote only. */
+  selectHymnal: (slug: string) => void;
+  /** The book every remote opens on, from Settings. */
+  setDefaultHymnal: (slug: string) => void;
   searchAllHymns: (query: string) => Promise<HymnSearchResult[]>;
   quickSearch: (query: string) => Promise<QuickSearchResponse>;
   quickSearchVerses: (query: string) => Promise<QuickSearchResponse>;
@@ -492,7 +498,7 @@ export function useRemoteAPI(): RemoteAPI {
   // Hymns are fetched one book at a time rather than all at once: the full
   // corpus is several MB across every bundled book, which each web remote would
   // pull on connect.
-  const selectedHymnal = settings.hymnal;
+  const { hymnal: selectedHymnal, selectHymnal } = useBrowsingHymnal(settings.hymnal);
   useEffect(() => {
     if (!isConnected || !selectedHymnal) return;
     if (isElectron) {
@@ -511,6 +517,7 @@ export function useRemoteAPI(): RemoteAPI {
     monitors,
     monitorsLoaded: monitorList !== null,
     hymnals,
+    hymnal: selectedHymnal,
     hymns: hymnData.hymns,
     hymnsSlug: hymnData.slug,
     isConnected,
@@ -675,14 +682,15 @@ export function useRemoteAPI(): RemoteAPI {
 
     quickSearch: useCallback(
       (query: string) => {
-        if (isElectron) return window.electronAPI!.quickSearch(query);
+        // Ranks this remote's book first, not the shared default.
+        if (isElectron) return window.electronAPI!.quickSearch(query, selectedHymnal);
         return new Promise<QuickSearchResponse>((resolve) => {
           const waiting = quickSearchCbs.current.get(query) ?? [];
           quickSearchCbs.current.set(query, [...waiting, resolve]);
-          socketRef.current?.emit("quickSearch", query);
+          socketRef.current?.emit("quickSearch", query, selectedHymnal);
         });
       },
-      [isElectron],
+      [isElectron, selectedHymnal],
     ),
 
     quickSearchVerses: useCallback(
@@ -697,7 +705,9 @@ export function useRemoteAPI(): RemoteAPI {
       [isElectron],
     ),
 
-    setHymnal: useCallback(
+    selectHymnal,
+
+    setDefaultHymnal: useCallback(
       (slug: string) => {
         if (isElectron) window.electronAPI!.setHymnal(slug);
         else socketRef.current?.emit("setHymnal", slug);

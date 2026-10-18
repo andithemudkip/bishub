@@ -25,7 +25,11 @@ import {
   formatBibleChapterForDisplay,
   searchBibleVerses,
 } from "./dataLoader";
-import { presentHymn, resolveHymnalSlug } from "./hymnPresenter";
+import {
+  hymnalsAffectedByAssets,
+  presentHymn,
+  resolveHymnalSlug,
+} from "./hymnPresenter";
 import {
   commitHymn,
   deleteCustomHymn,
@@ -464,8 +468,9 @@ export function createServer(
     io.emit("mp3DownloadProgress", progress);
   });
   onHymnAssetsUpdated(() => {
-    const slug = resolveHymnalSlug(stateManager);
-    io.emit("hymns", slug, loadHymns(slug));
+    for (const { slug, hymns } of hymnalsAffectedByAssets()) {
+      io.emit("hymns", slug, hymns);
+    }
     io.emit("mp3CacheStats", getMP3CacheStats());
   });
 
@@ -899,11 +904,16 @@ export function createServer(
       socket.emit("hymnSearchResults", searchAllHymns(query));
     });
 
-    socket.on("quickSearch", (query) => {
+    socket.on("quickSearch", (query, hymnal) => {
       const settings = stateManager.getSettings();
       socket.emit(
         "quickSearchResults",
-        quickSearch(query, settings.language, settings.bibleTranslation, settings.hymnal)
+        quickSearch(
+          query,
+          settings.language,
+          settings.bibleTranslation,
+          resolveHymnalSlug(stateManager, hymnal),
+        )
       );
     });
 
