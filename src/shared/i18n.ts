@@ -287,6 +287,20 @@ export interface Translations {
     clockSmaller: string;
     clockLarger: string;
     manageDownloads: string;
+    storageUsageTitle: string;
+    storageUsageHint: string;
+    storageVideos: string;
+    storageAudio: string;
+    storageImages: string;
+    storageTransfers: string;
+    storageTotal: string;
+    storageLoading: string;
+    spareCopiesTitle: string;
+    spareCopiesHint: string;
+    spareCopiesFree: string; // {size}
+    spareCopiesConfirm: string;
+    spareCopiesDelete: string;
+    spareCopiesCancel: string;
     instrumentalsTitle: string;
     instrumentalsHint: string;
     noInstrumentals: string;
@@ -517,18 +531,21 @@ export interface Translations {
     uploadHint: string;
     noFiles: string;
     noFilesHint: string;
-    addToVideo: string;
-    addToAudio: string;
-    addToImages: string;
+    /** "Video library" etc., for {library} below. */
+    libraries: Record<"video" | "audio" | "image", string>;
+    moveTo: string; // {library}
+    moving: string;
+    movedTo: string; // {library}
+    moveFailed: string; // {name}
+    alreadyIn: string; // {library}
     openInExplorer: string;
     delete: string;
-    confirmDelete: string;
+    cancel: string;
+    confirmDelete: string; // {name}
+    confirmDeleteSpare: string; // {name}, {library}
     uploading: string;
     complete: string;
     uploadFailed: string;
-    addedToVideo: string;
-    addedToAudio: string;
-    addedToImages: string;
     files: string;
     uploadTip: string;
     filesTip: string;
@@ -961,8 +978,8 @@ const ro: Translations = {
         description: "Controlează proiecția de pe telefon",
       },
       storage: {
-        title: "Descărcări",
-        description: "Muzica imnurilor salvată pe acest calculator",
+        title: "Stocare",
+        description: "Spațiul folosit pe acest calculator",
       },
       shortcuts: {
         title: "Scurtături",
@@ -997,7 +1014,22 @@ const ro: Translations = {
     clockSmaller: "Mai mic",
     clockLarger: "Mai mare",
     manageDownloads: "Gestionează descărcările",
-    instrumentalsTitle: "Instrumentale pentru imnuri",
+    storageUsageTitle: "Spațiu folosit",
+    storageUsageHint: "Cât ocupă fișierele BisHub pe calculatorul principal.",
+    storageVideos: "Video",
+    storageAudio: "Audio",
+    storageImages: "Imagini",
+    storageTransfers: "Transferuri",
+    storageTotal: "Total",
+    storageLoading: "Se calculează...",
+    spareCopiesTitle: "Copii în plus în Transferuri",
+    spareCopiesHint:
+      "Fișiere care au o copie și în Transferuri. Le poți șterge fără grijă: fișierele din biblioteci rămân.",
+    spareCopiesFree: "Eliberează {size}",
+    spareCopiesConfirm: "Ștergi copiile în plus din Transferuri? Fișierele din biblioteci rămân.",
+    spareCopiesDelete: "Șterge copiile",
+    spareCopiesCancel: "Anulează",
+    instrumentalsTitle: "Instrumentale",
     instrumentalsHint:
       "Descarcă muzica imnurilor din timp, ca să pornească imediat în timpul serviciului.",
     noInstrumentals: "Pentru această carte de imnuri nu există muzică de descărcat.",
@@ -1223,23 +1255,29 @@ const ro: Translations = {
     uploadHint: "Orice tip de fișier, max 2GB",
     noFiles: "Niciun fișier transferat",
     noFilesHint: "Deschide această pagină pe telefon pentru a trimite fișiere",
-    addToVideo: "Adaugă la video",
-    addToAudio: "Adaugă la audio",
-    addToImages: "Adaugă la imagini",
+    libraries: {
+      video: "biblioteca video",
+      audio: "biblioteca audio",
+      image: "biblioteca de imagini",
+    },
+    moveTo: "Mută în {library}",
+    moving: "Se mută...",
+    movedTo: "Mutat în {library}",
+    moveFailed: "„{name}” nu a putut fi mutat",
+    alreadyIn: "Este deja în {library}",
     openInExplorer: "Deschide în explorer",
     delete: "Șterge",
-    confirmDelete: "Sigur vrei să ștergi acest fișier?",
+    cancel: "Anulează",
+    confirmDelete: "Ștergi „{name}”? Va fi șters de pe acest calculator.",
+    confirmDeleteSpare: "Ștergi această copie a „{name}”? Cea din {library} rămâne.",
     uploading: "Se încarcă...",
     complete: "Complet!",
     uploadFailed: "Încărcarea a eșuat",
-    addedToVideo: "Adăugat în biblioteca video",
-    addedToAudio: "Adăugat în biblioteca audio",
-    addedToImages: "Adăugat în biblioteca de imagini",
     files: "Fișiere",
     uploadTip:
-      "Trage fișiere aici sau apasă pentru a selecta. Fișierele încărcate sunt păstrate temporar până le muți în biblioteca **video** sau **audio**.",
+      "Trage fișiere aici sau apasă pentru a selecta. Fișierele încărcate așteaptă aici până le muți în biblioteca **video**, **audio** sau de **imagini**.",
     filesTip:
-      "Aici poți trimite fișiere de pe **telefon** sau din **browser** către calculatorul principal. Adăugarea într-o bibliotecă **copiază** fișierul — originalul rămâne aici și ocupă spațiu. După ce l-ai adăugat la **video** sau **audio**, poți să-l **ștergi** în siguranță de aici.",
+      "Fișierele trimise de pe **telefon** sau din **browser** ajung aici. **Mută** un video, o melodie sau o imagine în biblioteca ei ca s-o folosești. Fișierul este mutat, nu copiat, deci nu ocupă spațiu în plus.",
   },
   preview: {
     title: "Previzualizare",
@@ -1652,8 +1690,8 @@ const en: Translations = {
         description: "Control the projection from a phone",
       },
       storage: {
-        title: "Downloads",
-        description: "Hymn music saved on this computer",
+        title: "Storage",
+        description: "Space used on this computer and hymn music downloads",
       },
       shortcuts: {
         title: "Keyboard shortcuts",
@@ -1688,6 +1726,21 @@ const en: Translations = {
     clockSmaller: "Smaller",
     clockLarger: "Larger",
     manageDownloads: "Manage downloads",
+    storageUsageTitle: "Space used",
+    storageUsageHint: "What BisHub's files take up on the main computer.",
+    storageVideos: "Videos",
+    storageAudio: "Audio",
+    storageImages: "Images",
+    storageTransfers: "Transfers",
+    storageTotal: "Total",
+    storageLoading: "Working it out...",
+    spareCopiesTitle: "Spare copies in Transfers",
+    spareCopiesHint:
+      "Older versions copied files into a library instead of moving them, so a second copy stayed in Transfers. They're safe to delete: the files in your libraries stay.",
+    spareCopiesFree: "Free up {size}",
+    spareCopiesConfirm: "Delete the spare copies from Transfers? The files in your libraries stay.",
+    spareCopiesDelete: "Delete copies",
+    spareCopiesCancel: "Cancel",
     instrumentalsTitle: "Hymn instrumentals",
     instrumentalsHint:
       "Download hymn music ahead of time so it starts instantly during the service.",
@@ -1914,23 +1967,29 @@ const en: Translations = {
     uploadHint: "Any file type, max 2GB",
     noFiles: "No transferred files",
     noFilesHint: "Open this page on your phone to upload files",
-    addToVideo: "Add to video",
-    addToAudio: "Add to audio",
-    addToImages: "Add to images",
+    libraries: {
+      video: "Video library",
+      audio: "Audio library",
+      image: "Images library",
+    },
+    moveTo: "Move to {library}",
+    moving: "Moving...",
+    movedTo: "Moved to {library}",
+    moveFailed: "Couldn't move \u201c{name}\u201d",
+    alreadyIn: "Already in {library}",
     openInExplorer: "Open in explorer",
     delete: "Delete",
-    confirmDelete: "Are you sure you want to delete this file?",
+    cancel: "Cancel",
+    confirmDelete: "Delete \u201c{name}\u201d? It will be removed from this computer.",
+    confirmDeleteSpare: "Delete this copy of \u201c{name}\u201d? The one in your {library} stays.",
     uploading: "Uploading...",
     complete: "Complete!",
     uploadFailed: "Upload failed",
-    addedToVideo: "Added to video library",
-    addedToAudio: "Added to audio library",
-    addedToImages: "Added to image library",
     files: "Files",
     uploadTip:
-      "Drag files here or tap to browse. Uploaded files are held in a temporary area until you move them to the **video** or **audio** library.",
+      "Drag files here or tap to browse. Uploaded files wait here until you move them into the **Video**, **Audio** or **Images** library.",
     filesTip:
-      "Transfer files from your **phone** or **browser** to the main computer here. Adding to a library **copies** the file — the original stays here and still takes up space. Once added to **video** or **audio**, you can safely **delete** it from here.",
+      "Files sent from a **phone** or **browser** arrive here. **Move** a video, song or picture into its library to use it. The file is moved, not copied, so it takes no extra space.",
   },
   preview: {
     title: "Preview",

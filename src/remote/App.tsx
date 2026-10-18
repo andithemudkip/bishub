@@ -265,7 +265,12 @@ export default function App() {
           />
         );
       case "transfer":
-        return <TransferPage settings={api.settings} />;
+        return (
+          <TransferPage
+            settings={api.settings}
+            onOpenLibrary={(library) => navigateTo(library === "image" ? "images" : library)}
+          />
+        );
       case "settings":
         return (
           <SettingsPage

@@ -1,6 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { getSocket, listen, onConnected, type SocketType } from "./socket";
-import type { TransferItem, TransferUploadProgress } from "../shared/transfer.types";
+import type {
+  TransferItem,
+  TransferLibrary,
+  TransferUploadProgress,
+} from "../shared/transfer.types";
 import { getApiUrl, updateProgressList } from "../shared/utils";
 
 
@@ -10,9 +14,8 @@ interface TransferAPI {
   isElectron: boolean;
   uploadFile: (file: File) => Promise<void>;
   deleteTransfer: (id: string) => Promise<boolean>;
-  addToVideoLibrary: (id: string) => Promise<boolean>;
-  addToAudioLibrary: (id: string) => Promise<boolean>;
-  addToImageLibrary: (id: string) => Promise<boolean>;
+  /** Resolves false if the move failed (the transfer is left where it was). */
+  moveToLibrary: (id: string, library: TransferLibrary) => Promise<boolean>;
 }
 
 export function useTransfers(): TransferAPI {
@@ -87,41 +90,15 @@ export function useTransfers(): TransferAPI {
       return res.ok;
     }, []),
 
-    addToVideoLibrary: useCallback(async (id: string) => {
+    moveToLibrary: useCallback(async (id: string, library: TransferLibrary) => {
       if (window.electronAPI) {
-        const result = await window.electronAPI.addTransferToVideo(id);
+        const result = await window.electronAPI.moveTransferToLibrary(id, library);
         return !!result;
       }
-      const res = await fetch(getApiUrl("/api/transfers/add-to-video"), {
+      const res = await fetch(getApiUrl("/api/transfers/move-to-library"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      return res.ok;
-    }, []),
-
-    addToAudioLibrary: useCallback(async (id: string) => {
-      if (window.electronAPI) {
-        const result = await window.electronAPI.addTransferToAudio(id);
-        return !!result;
-      }
-      const res = await fetch(getApiUrl("/api/transfers/add-to-audio"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      return res.ok;
-    }, []),
-
-    addToImageLibrary: useCallback(async (id: string) => {
-      if (window.electronAPI) {
-        const result = await window.electronAPI.addTransferToImage(id);
-        return !!result;
-      }
-      const res = await fetch(getApiUrl("/api/transfers/add-to-image"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, library }),
       });
       return res.ok;
     }, []),

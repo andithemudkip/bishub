@@ -7,7 +7,7 @@ import {
   ChevronRightIcon,
   ClockIcon,
   CloseIcon,
-  CloudDownloadIcon,
+  StorageIcon,
   InfoIcon,
   KeyboardIcon,
   MonitorIcon,
@@ -37,7 +37,7 @@ const SECTION_ICONS: Record<SettingsSectionId, (props: { className?: string }) =
   idle: ClockIcon,
   content: BibleIcon,
   devices: PhoneIcon,
-  storage: CloudDownloadIcon,
+  storage: StorageIcon,
   shortcuts: KeyboardIcon,
   about: InfoIcon,
 };

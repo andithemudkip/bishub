@@ -4,6 +4,13 @@ import { DEFAULT_SETTINGS, DEFAULT_STATE } from "../../shared/types";
 import { sendPageIntent } from "../hooks/usePageIntent";
 import SettingsPage from "./SettingsPage";
 import type { SettingsPageProps } from "./settings/types";
+import type { StorageStats } from "../../shared/storage.types";
+
+const storage = vi.hoisted(() => ({
+  stats: null as StorageStats | null,
+  deleteSpareTransfers: vi.fn(),
+}));
+vi.mock("../hooks/useStorageStats", () => ({ useStorageStats: () => storage }));
 
 function props(overrides: Partial<SettingsPageProps> = {}): SettingsPageProps {
   return {
@@ -125,7 +132,7 @@ describe("SettingsPage", () => {
   it("opens the section another page asked for, whether sent before or after mounting", () => {
     sendPageIntent({ page: "settings", section: "storage", settingId: "instrumentalDownloads" });
     render(<SettingsPage {...props()} />);
-    expect(openHeading()).toBe("Downloads");
+    expect(openHeading()).toBe("Storage");
 
     act(() => sendPageIntent({ page: "settings", section: "display" }));
     expect(openHeading()).toBe("Projector screen");
@@ -150,15 +157,54 @@ describe("SettingsPage", () => {
     render(<SettingsPage {...props()} />);
     fireEvent.click(sectionButton("Bible & hymns"));
     fireEvent.click(screen.getByRole("button", { name: "Manage downloads" }));
-    expect(openHeading()).toBe("Downloads");
+    expect(openHeading()).toBe("Storage");
   });
 });
 
-describe("Downloads section", () => {
+describe("Storage section", () => {
   const openDownloads = (p: SettingsPageProps) => {
     render(<SettingsPage {...p} />);
-    fireEvent.click(sectionButton("Downloads"));
+    fireEvent.click(sectionButton("Storage"));
   };
+
+  const usage = (bytes: number, count = 1) => ({ count, bytes });
+  const MB = 1024 * 1024;
+
+  const stats = (spareBytes: number): StorageStats => ({
+    videos: usage(300 * MB),
+    audio: usage(20 * MB),
+    images: usage(5 * MB),
+    transfers: usage(spareBytes + MB, 2),
+    spareTransfers: usage(spareBytes, spareBytes ? 1 : 0),
+  });
+
+  it("shows what each kind of media takes up, with the total", () => {
+    storage.stats = stats(0);
+    openDownloads(props({ mp3CacheStats: { count: 2, sizeBytes: 8 * MB, availableCount: 10 } }));
+
+    expect(screen.getByText("300.0 MB")).toBeTruthy();
+    expect(screen.getByText("8.0 MB")).toBeTruthy();
+    expect(screen.getByText("334.0 MB")).toBeTruthy();
+    expect(screen.queryByText("Spare copies in Transfers")).toBeNull();
+  });
+
+  it("frees the spare copies older versions left, after asking inline", () => {
+    storage.stats = stats(40 * MB);
+    openDownloads(props());
+
+    fireEvent.click(screen.getByRole("button", { name: "Free up 40.0 MB" }));
+    expect(storage.deleteSpareTransfers).not.toHaveBeenCalled();
+    expect(screen.getByText(/The files in your libraries stay/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete copies" }));
+    expect(storage.deleteSpareTransfers).toHaveBeenCalledOnce();
+  });
+
+  it("says it's still working out the sizes before the first answer", () => {
+    storage.stats = null;
+    openDownloads(props());
+    expect(screen.getByText("Working it out...")).toBeTruthy();
+  });
 
   it("asks inline before downloading every instrumental", () => {
     const confirmSpy = vi.spyOn(window, "confirm");

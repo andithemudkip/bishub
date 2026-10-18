@@ -115,6 +115,12 @@ export const SETTINGS_INDEX: SettingEntry[] = [
     electronOnly: true,
   },
   {
+    id: "storageUsage",
+    section: "storage",
+    label: (t) => t.settings.storageUsageTitle,
+    hint: (t) => `${t.settings.storageUsageHint} ${t.settings.spareCopiesTitle}`,
+  },
+  {
     id: "instrumentalDownloads",
     section: "storage",
     label: (t) => t.settings.instrumentalsTitle,

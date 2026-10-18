@@ -17,6 +17,7 @@ import type {
   TransferItem,
   TransferUploadProgress,
 } from "./transfer.types";
+import type { StorageStats } from "./storage.types";
 import type {
   ImageItem,
   Slideshow,
@@ -294,6 +295,7 @@ export type ServerToClientEvents = {
   imageUploadProgress: (progress: ImageUploadProgress) => void;
   // File Transfers
   transfers: (transfers: TransferItem[]) => void;
+  storageStats: (stats: StorageStats) => void;
   transferUploadProgress: (progress: TransferUploadProgress) => void;
   // Hymn karaoke MP3 downloads
   mp3DownloadProgress: (progress: MP3DownloadProgress) => void;
@@ -448,6 +450,8 @@ export type ClientToServerEvents = {
   setImageAutoAdvanceInterval: (intervalMs: number) => void;
   // File Transfers
   getTransfers: () => void;
+  getStorageStats: () => void;
+  deleteSpareTransfers: () => void;
   // Idle
   setClockFontSize: (size: number) => void;
   setClockPosition: (position: ClockPosition) => void;

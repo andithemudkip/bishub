@@ -11,7 +11,7 @@ import type {
   ImageUploadProgress,
 } from "../src/shared/imageLibrary.types";
 import { getFfmpegPath } from "./utils";
-import { copyIntoDir } from "./uploadFilename";
+import { copyIntoDir, moveIntoDir } from "./uploadFilename";
 
 interface ImageLibrarySchema {
   images: ImageItem[];
@@ -130,15 +130,19 @@ export class ImageLibraryManager {
     options?: {
       name?: string;
       copyToLibrary?: boolean;
+      /** Move the file in instead of copying it: for files BisHub already owns (transfers). */
+      move?: boolean;
     }
   ): Promise<ImageItem> {
-    const { name, copyToLibrary = true } = options || {};
+    const { name, copyToLibrary = true, move = false } = options || {};
 
     let finalPath = sourcePath;
     let filename = path.basename(sourcePath);
 
     if (copyToLibrary && !sourcePath.startsWith(this.imagesDir)) {
-      finalPath = await copyIntoDir(sourcePath, this.imagesDir);
+      finalPath = move
+        ? await moveIntoDir(sourcePath, this.imagesDir)
+        : await copyIntoDir(sourcePath, this.imagesDir);
       filename = path.basename(finalPath);
     }
 

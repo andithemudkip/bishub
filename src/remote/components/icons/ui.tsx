@@ -100,6 +100,13 @@ export const CloudDownloadIcon = ({ className = "w-4 h-4" }: IconProps) => (
   </svg>
 );
 
+export const StorageIcon = ({ className = "w-4 h-4" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <ellipse cx="12" cy="6" rx="8" ry="3" strokeWidth={2} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6" />
+  </svg>
+);
+
 export const CheckIcon = ({ className = "w-4 h-4" }: IconProps) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

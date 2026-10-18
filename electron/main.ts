@@ -54,6 +54,8 @@ import { IMAGE_EXTENSIONS_NO_DOT } from "../src/shared/imageLibrary.types";
 import type { VideoItem } from "../src/shared/videoLibrary.types";
 import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getTransferManager } from "./transferManager";
+import { getStorageStats } from "./storageStats";
+import type { TransferLibrary } from "../src/shared/transfer.types";
 import { quickSearch, quickSearchVerses, warmQuickSearch } from "./quickSearch";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import type {
@@ -1060,41 +1062,17 @@ function setupIPC() {
     return transferManager.deleteTransfer(id);
   });
 
-  ipcMain.handle("add-transfer-to-video", async (_event, id: string) => {
-    const transfer = transferManager.getById(id);
-    if (!transfer) return null;
-    const videoLibrary = getVideoLibrary();
-    const video = await videoLibrary.addVideo(transfer.path, "upload", {
-      name: transfer.name,
-      copyToLibrary: true,
-    });
-    transferManager.markAddedToLibrary(id, "video");
-    return video;
+  ipcMain.handle(
+    "move-transfer-to-library",
+    (_event, id: string, library: TransferLibrary) => transferManager.moveToLibrary(id, library)
+  );
+
+  ipcMain.handle("delete-spare-transfers", () => {
+    transferManager.deleteSpareCopies();
+    return getStorageStats();
   });
 
-  ipcMain.handle("add-transfer-to-audio", async (_event, id: string) => {
-    const transfer = transferManager.getById(id);
-    if (!transfer) return null;
-    const audioLibrary = getAudioLibrary();
-    const audio = await audioLibrary.addAudio(transfer.path, "upload", {
-      name: transfer.name,
-      copyToLibrary: true,
-    });
-    transferManager.markAddedToLibrary(id, "audio");
-    return audio;
-  });
-
-  ipcMain.handle("add-transfer-to-image", async (_event, id: string) => {
-    const transfer = transferManager.getById(id);
-    if (!transfer) return null;
-    const imageLibrary = getImageLibrary();
-    const image = await imageLibrary.addImage(transfer.path, "upload", {
-      name: transfer.name,
-      copyToLibrary: true,
-    });
-    transferManager.markAddedToLibrary(id, "image");
-    return image;
-  });
+  ipcMain.handle("get-storage-stats", () => getStorageStats());
 }
 
 // Ensure single instance

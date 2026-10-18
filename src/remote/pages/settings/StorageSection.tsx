@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { CheckIcon } from "../../components/icons/ui";
 import { formatFileSize } from "../../../shared/utils";
+import type { Translations } from "../../../shared/i18n";
+import type { MP3CacheStats } from "../../../shared/types";
+import { useStorageStats } from "../../hooks/useStorageStats";
 import { SettingRow, SettingsGroup } from "./SettingRow";
 import type { SectionProps } from "./types";
 
@@ -10,7 +13,106 @@ const ESTIMATED_MP3_BYTES = 4 * 1024 * 1024;
 const buttonBase =
   "px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
 
-export function StorageSection({
+export function StorageSection(props: SectionProps) {
+  return (
+    <>
+      <SpaceUsedGroup mp3CacheStats={props.mp3CacheStats} t={props.t} />
+      <InstrumentalsGroup {...props} />
+    </>
+  );
+}
+
+/**
+ * What each kind of media takes up, and — on installs that predate moving
+ * transfers into libraries — a one-tap clean-up of the copies that left.
+ */
+function SpaceUsedGroup({ mp3CacheStats, t }: { mp3CacheStats: MP3CacheStats; t: Translations }) {
+  const { stats, deleteSpareTransfers } = useStorageStats();
+  const [confirming, setConfirming] = useState(false);
+
+  const rows = stats
+    ? [
+        { label: t.settings.storageVideos, bytes: stats.videos.bytes },
+        { label: t.settings.storageAudio, bytes: stats.audio.bytes },
+        { label: t.settings.storageImages, bytes: stats.images.bytes },
+        { label: t.settings.storageTransfers, bytes: stats.transfers.bytes },
+        { label: t.settings.instrumentalsTitle, bytes: mp3CacheStats.sizeBytes },
+      ]
+    : [];
+  const total = rows.reduce((sum, row) => sum + row.bytes, 0);
+  const largest = Math.max(1, ...rows.map((row) => row.bytes));
+  const spares = stats?.spareTransfers;
+
+  return (
+    <SettingsGroup>
+      <SettingRow id="storageUsage" label={t.settings.storageUsageTitle} hint={t.settings.storageUsageHint}>
+        {!stats ? (
+          <p className="text-sm text-gray-500">{t.settings.storageLoading}</p>
+        ) : (
+          <dl className="space-y-2 text-sm">
+            {rows.map((row) => (
+              <div key={row.label} className="flex items-center gap-3">
+                <dt className="w-32 sm:w-40 flex-shrink-0 truncate text-gray-300">{row.label}</dt>
+                <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-400/70 rounded-full"
+                    style={{ width: `${(row.bytes / largest) * 100}%` }}
+                  />
+                </div>
+                <dd className="w-20 flex-shrink-0 text-right tabular-nums text-gray-400">
+                  {formatFileSize(row.bytes)}
+                </dd>
+              </div>
+            ))}
+            <div className="flex items-center gap-3 pt-2 border-t border-gray-700/50">
+              <dt className="flex-1 font-medium text-gray-200">{t.settings.storageTotal}</dt>
+              <dd className="w-20 flex-shrink-0 text-right tabular-nums font-medium text-gray-200">
+                {formatFileSize(total)}
+              </dd>
+            </div>
+          </dl>
+        )}
+      </SettingRow>
+
+      {spares && spares.count > 0 && (
+        <SettingRow id="spareCopies" label={t.settings.spareCopiesTitle} hint={t.settings.spareCopiesHint}>
+          {confirming ? (
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-gray-300">{t.settings.spareCopiesConfirm}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirming(false);
+                  deleteSpareTransfers();
+                }}
+                className={`${buttonBase} bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-600/40`}
+              >
+                {t.settings.spareCopiesDelete}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirming(false)}
+                className={`${buttonBase} bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 border border-gray-600/40`}
+              >
+                {t.settings.spareCopiesCancel}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirming(true)}
+              className={`${buttonBase} bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-600/40`}
+            >
+              {t.settings.spareCopiesFree.replace("{size}", formatFileSize(spares.bytes))}
+            </button>
+          )}
+        </SettingRow>
+      )}
+    </SettingsGroup>
+  );
+}
+
+function InstrumentalsGroup({
   mp3CacheStats,
   mp3Downloads,
   onDownloadAllHymnMP3s,

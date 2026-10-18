@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Busboy (under multer 1.x) decodes multipart filenames as latin1, so a
@@ -69,14 +70,74 @@ export function moveToOriginalName(tempPath: string, originalName: string): stri
 /**
  * Copy `sourcePath` into `dir` under its own (sanitised) name, numbered if
  * taken. Returns the new path.
+ *
+ * The library keeps a file of its own — it must survive the original being
+ * moved, deleted or on a USB stick that's pulled out — but on the same disk
+ * that needn't cost the space twice:
+ * - Windows: a hard link (NTFS has no copy-on-write). Deleting either name
+ *   leaves the other working. Read-only sources are copied, since a read-only
+ *   link couldn't be deleted from the library later.
+ * - Elsewhere: a copy-on-write clone (APFS, Btrfs), which copyFile falls back
+ *   from to a plain copy by itself.
+ * Another drive, FAT/exFAT or any other refusal ends in a plain copy.
  */
-export async function copyIntoDir(sourcePath: string, dir: string): Promise<string> {
+export async function copyIntoDir(
+  sourcePath: string,
+  dir: string,
+  platform: NodeJS.Platform = process.platform
+): Promise<string> {
   const finalPath = claimFilePath(dir, safeFilename(path.basename(sourcePath)));
   try {
-    await fs.promises.copyFile(sourcePath, finalPath);
+    if (!(platform === "win32" && (await linkOnto(sourcePath, finalPath)))) {
+      await fs.promises.copyFile(sourcePath, finalPath, fs.constants.COPYFILE_FICLONE);
+    }
   } catch (err) {
     await fs.promises.rm(finalPath, { force: true });
     throw err;
+  }
+  return finalPath;
+}
+
+/**
+ * Hard-link `sourcePath` over the empty file `claimFilePath` left at
+ * `finalPath`. Links can't overwrite, and freeing the name first would let
+ * another claim take it, so link beside it and rename over it.
+ */
+async function linkOnto(sourcePath: string, finalPath: string): Promise<boolean> {
+  const temp = path.join(path.dirname(finalPath), `.${uuidv4()}.link`);
+  try {
+    const { mode } = await fs.promises.stat(sourcePath);
+    if (!(mode & 0o200)) return false;
+    await fs.promises.link(sourcePath, temp);
+    await fs.promises.rename(temp, finalPath);
+    return true;
+  } catch {
+    await fs.promises.rm(temp, { force: true });
+    return false;
+  }
+}
+
+/**
+ * Move a file BisHub already owns (a transfer) into `dir`, under its own name,
+ * numbered if taken. Instant on the same disk; across disks it copies and then
+ * deletes the source. Returns the new path.
+ */
+export async function moveIntoDir(sourcePath: string, dir: string): Promise<string> {
+  const finalPath = claimFilePath(dir, safeFilename(path.basename(sourcePath)));
+  try {
+    await fs.promises.rename(sourcePath, finalPath);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "EXDEV") {
+      await fs.promises.rm(finalPath, { force: true });
+      throw err;
+    }
+    try {
+      await fs.promises.copyFile(sourcePath, finalPath);
+    } catch (copyErr) {
+      await fs.promises.rm(finalPath, { force: true });
+      throw copyErr;
+    }
+    await fs.promises.rm(sourcePath, { force: true });
   }
   return finalPath;
 }

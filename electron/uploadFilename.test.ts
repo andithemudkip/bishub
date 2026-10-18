@@ -1,11 +1,12 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   claimFilePath,
   copyIntoDir,
   decodeUploadName,
+  moveIntoDir,
   moveToOriginalName,
   safeFilename,
 } from "./uploadFilename";
@@ -127,5 +128,99 @@ describe("placing files", () => {
     const missing = path.join(os.tmpdir(), "bishub-missing", "Predica.mp4");
     await expect(copyIntoDir(missing, dir)).rejects.toThrow();
     expect(fs.readdirSync(dir)).toEqual([]);
+  });
+});
+
+describe("bringing files into a library without doubling the space", () => {
+  let src: string;
+  let lib: string;
+  beforeEach(() => {
+    src = fs.mkdtempSync(path.join(os.tmpdir(), "bishub-src-"));
+    lib = fs.mkdtempSync(path.join(os.tmpdir(), "bishub-lib-"));
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    fs.rmSync(src, { recursive: true, force: true });
+    fs.rmSync(lib, { recursive: true, force: true });
+  });
+
+  const source = (name = "Predica.mp4", contents = "video") => {
+    const file = path.join(src, name);
+    fs.writeFileSync(file, contents);
+    return file;
+  };
+  const errno = (code: string) => Object.assign(new Error(code), { code });
+
+  it("hard-links on Windows, and the library copy outlives the original", async () => {
+    const original = source();
+    const added = await copyIntoDir(original, lib, "win32");
+
+    expect(added).toBe(path.join(lib, "Predica.mp4"));
+    expect(fs.statSync(added).ino).toBe(fs.statSync(original).ino);
+    expect(fs.statSync(added).nlink).toBe(2);
+
+    fs.rmSync(original);
+    expect(fs.readFileSync(added, "utf8")).toBe("video");
+    expect(fs.readdirSync(lib)).toEqual(["Predica.mp4"]);
+  });
+
+  it("copies a read-only file on Windows, so the library can still delete it", async () => {
+    const original = source();
+    fs.chmodSync(original, 0o444);
+    const added = await copyIntoDir(original, lib, "win32");
+
+    expect(fs.statSync(added).ino).not.toBe(fs.statSync(original).ino);
+    expect(fs.readFileSync(added, "utf8")).toBe("video");
+    fs.chmodSync(original, 0o644);
+  });
+
+  it("copies when the link is refused (another drive, FAT), leaving nothing stray", async () => {
+    vi.spyOn(fs.promises, "link").mockRejectedValueOnce(errno("EXDEV"));
+    const original = source();
+    const added = await copyIntoDir(original, lib, "win32");
+
+    expect(fs.statSync(added).ino).not.toBe(fs.statSync(original).ino);
+    expect(fs.readFileSync(added, "utf8")).toBe("video");
+    expect(fs.readdirSync(lib)).toEqual(["Predica.mp4"]);
+  });
+
+  it("asks for a copy-on-write clone elsewhere, giving the library its own file", async () => {
+    const copyFile = vi.spyOn(fs.promises, "copyFile");
+    const link = vi.spyOn(fs.promises, "link");
+    const original = source();
+    const added = await copyIntoDir(original, lib, "darwin");
+
+    expect(copyFile).toHaveBeenCalledWith(original, added, fs.constants.COPYFILE_FICLONE);
+    expect(link).not.toHaveBeenCalled();
+    fs.writeFileSync(original, "edited");
+    expect(fs.readFileSync(added, "utf8")).toBe("video");
+  });
+
+  it("moves a file in, numbering the name if it's taken", async () => {
+    fs.writeFileSync(path.join(lib, "Predica.mp4"), "existing");
+    const original = source();
+    const moved = await moveIntoDir(original, lib);
+
+    expect(moved).toBe(path.join(lib, "Predica (2).mp4"));
+    expect(fs.readFileSync(moved, "utf8")).toBe("video");
+    expect(fs.existsSync(original)).toBe(false);
+  });
+
+  it("moves across drives by copying, then deleting the source", async () => {
+    vi.spyOn(fs.promises, "rename").mockRejectedValueOnce(errno("EXDEV"));
+    const original = source();
+    const moved = await moveIntoDir(original, lib);
+
+    expect(fs.readFileSync(moved, "utf8")).toBe("video");
+    expect(fs.existsSync(original)).toBe(false);
+  });
+
+  it("keeps the source and leaves nothing behind when a move fails", async () => {
+    vi.spyOn(fs.promises, "rename").mockRejectedValueOnce(errno("EACCES"));
+    const original = source();
+
+    await expect(moveIntoDir(original, lib)).rejects.toThrow("EACCES");
+    expect(fs.existsSync(original)).toBe(true);
+    expect(fs.readdirSync(lib)).toEqual([]);
   });
 });

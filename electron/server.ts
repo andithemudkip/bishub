@@ -66,6 +66,8 @@ import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
+import { getStorageStats } from "./storageStats";
+import { TRANSFER_LIBRARIES } from "../src/shared/transfer.types";
 import { decodeUploadName, moveToOriginalName } from "./uploadFilename";
 import { quickSearch, quickSearchVerses } from "./quickSearch";
 import {
@@ -658,57 +660,18 @@ export function createServer(
     res.json({ success: ok });
   });
 
-  app.post("/api/transfers/add-to-video", async (req, res) => {
+  app.post("/api/transfers/move-to-library", async (req, res) => {
     try {
-      const { id } = req.body;
-      const transfer = transferManager.getById(id);
-      if (!transfer) return res.status(404).json({ error: "Transfer not found" });
-
-      const video = await videoLibrary.addVideo(transfer.path, "upload", {
-        name: transfer.name,
-        copyToLibrary: true,
-      });
-      transferManager.markAddedToLibrary(id, "video");
-      res.json({ video });
+      const { id, library } = req.body;
+      if (!id || !TRANSFER_LIBRARIES.includes(library)) {
+        return res.status(400).json({ error: "Missing id or library" });
+      }
+      const item = await transferManager.moveToLibrary(id, library);
+      if (!item) return res.status(404).json({ error: "Transfer not found" });
+      res.json({ item });
     } catch (error) {
-      console.error("Add to video error:", error);
-      res.status(500).json({ error: "Failed to add to video library" });
-    }
-  });
-
-  app.post("/api/transfers/add-to-audio", async (req, res) => {
-    try {
-      const { id } = req.body;
-      const transfer = transferManager.getById(id);
-      if (!transfer) return res.status(404).json({ error: "Transfer not found" });
-
-      const audio = await audioLibrary.addAudio(transfer.path, "upload", {
-        name: transfer.name,
-        copyToLibrary: true,
-      });
-      transferManager.markAddedToLibrary(id, "audio");
-      res.json({ audio });
-    } catch (error) {
-      console.error("Add to audio error:", error);
-      res.status(500).json({ error: "Failed to add to audio library" });
-    }
-  });
-
-  app.post("/api/transfers/add-to-image", async (req, res) => {
-    try {
-      const { id } = req.body;
-      const transfer = transferManager.getById(id);
-      if (!transfer) return res.status(404).json({ error: "Transfer not found" });
-
-      const image = await imageLibrary.addImage(transfer.path, "upload", {
-        name: transfer.name,
-        copyToLibrary: true,
-      });
-      transferManager.markAddedToLibrary(id, "image");
-      res.json({ image });
-    } catch (error) {
-      console.error("Add to image error:", error);
-      res.status(500).json({ error: "Failed to add to image library" });
+      console.error("Move to library error:", error);
+      res.status(500).json({ error: "Failed to move to library" });
     }
   });
 
@@ -1295,6 +1258,16 @@ export function createServer(
     // File Transfers
     socket.on("getTransfers", () => {
       socket.emit("transfers", transferManager.getAll());
+    });
+
+    // Storage
+    socket.on("getStorageStats", () => {
+      socket.emit("storageStats", getStorageStats());
+    });
+
+    socket.on("deleteSpareTransfers", () => {
+      transferManager.deleteSpareCopies();
+      socket.emit("storageStats", getStorageStats());
     });
 
     // Idle

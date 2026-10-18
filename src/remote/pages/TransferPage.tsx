@@ -1,39 +1,81 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AppSettings } from "../../shared/types";
-import type { TransferItem } from "../../shared/transfer.types";
+import {
+  libraryAlreadyCopiedTo,
+  libraryForExtension,
+  type TransferItem,
+  type TransferLibrary,
+} from "../../shared/transfer.types";
 import { useTransfers } from "../useTransfers";
 import MediaUploader from "../components/MediaUploader";
 import { getTranslations } from "@shared/i18n";
 import { formatFileSize, formatDate } from "@shared/utils";
 import { Card } from "../components/ui/Card";
 import { renderTip } from "../components/ui/renderTip";
+import { ToastStack, type ToastItem } from "../components/ui/Toast";
+import { CheckIcon } from "../components/icons/ui";
 
-const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".avi", ".mkv"];
-const AUDIO_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a", ".flac"];
-const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff"];
+type Translations = ReturnType<typeof getTranslations>;
+
+const SUCCESS_MS = 4000;
+const ERROR_MS = 7000;
+
+const buttonBase =
+  "px-2 py-1 rounded-md text-xs font-medium border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
 
 interface Props {
   settings: AppSettings;
+  /** Open a library page, from the toast after moving a file into it. */
+  onOpenLibrary: (library: TransferLibrary) => void;
 }
 
-export default function TransferPage({ settings }: Props) {
+/**
+ * An inbox for files sent from phones and browsers. Media is moved — not
+ * copied — into its library, so it leaves here and costs no extra space.
+ */
+export default function TransferPage({ settings, onOpenLibrary }: Props) {
   const api = useTransfers();
   const t = getTranslations(settings.language);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
-  const handleDelete = async (transfer: TransferItem) => {
-    if (!confirm(t.transfer.confirmDelete)) return;
-    await api.deleteTransfer(transfer.id);
+  const dismiss = useCallback((id: string) => {
+    clearTimeout(timers.current.get(id));
+    timers.current.delete(id);
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
+  useEffect(() => {
+    const pending = timers.current;
+    return () => pending.forEach(clearTimeout);
+  }, []);
+
+  const toast = (item: ToastItem) => {
+    timers.current.set(
+      item.id,
+      setTimeout(() => dismiss(item.id), item.tone === "error" ? ERROR_MS : SUCCESS_MS)
+    );
+    setToasts((prev) => [...prev, item].slice(-3));
   };
 
-  const handleAddToVideo = async (transfer: TransferItem) => {
-    await api.addToVideoLibrary(transfer.id);
-  };
-
-  const handleAddToAudio = async (transfer: TransferItem) => {
-    await api.addToAudioLibrary(transfer.id);
-  };
-
-  const handleAddToImage = async (transfer: TransferItem) => {
-    await api.addToImageLibrary(transfer.id);
+  const handleMove = async (transfer: TransferItem, library: TransferLibrary) => {
+    const moved = await api.moveToLibrary(transfer.id, library).catch(() => false);
+    const libraryName = t.transfer.libraries[library];
+    toast(
+      moved
+        ? {
+            id: `moved-${transfer.id}`,
+            tone: "success",
+            title: t.transfer.movedTo.replace("{library}", libraryName),
+            detail: transfer.name,
+            onSelect: () => onOpenLibrary(library),
+          }
+        : {
+            id: `failed-${transfer.id}-${Date.now()}`,
+            tone: "error",
+            title: t.transfer.moveFailed.replace("{name}", transfer.name),
+          }
+    );
   };
 
   return (
@@ -87,16 +129,16 @@ export default function TransferPage({ settings }: Props) {
                 key={transfer.id}
                 transfer={transfer}
                 isElectron={api.isElectron}
-                onDelete={handleDelete}
-                onAddToVideo={handleAddToVideo}
-                onAddToAudio={handleAddToAudio}
-                onAddToImage={handleAddToImage}
+                onDelete={(item) => api.deleteTransfer(item.id)}
+                onMove={handleMove}
                 t={t}
               />
             ))}
           </div>
         )}
       </Card>
+
+      <ToastStack toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 }
@@ -105,22 +147,31 @@ function TransferFileItem({
   transfer,
   isElectron,
   onDelete,
-  onAddToVideo,
-  onAddToAudio,
-  onAddToImage,
+  onMove,
   t,
 }: {
   transfer: TransferItem;
   isElectron: boolean;
   onDelete: (t: TransferItem) => void;
-  onAddToVideo: (t: TransferItem) => void;
-  onAddToAudio: (t: TransferItem) => void;
-  onAddToImage: (t: TransferItem) => void;
-  t: ReturnType<typeof getTranslations>;
+  onMove: (t: TransferItem, library: TransferLibrary) => Promise<void>;
+  t: Translations;
 }) {
-  const isVideo = VIDEO_EXTENSIONS.includes(transfer.extension);
-  const isAudio = AUDIO_EXTENSIONS.includes(transfer.extension);
-  const isImage = IMAGE_EXTENSIONS.includes(transfer.extension);
+  const [moving, setMoving] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  // Older versions copied instead of moving: this one is a spare.
+  const copiedTo = libraryAlreadyCopiedTo(transfer);
+  const library = copiedTo ? null : libraryForExtension(transfer.extension);
+
+  const move = async (target: TransferLibrary) => {
+    setMoving(true);
+    try {
+      await onMove(transfer, target);
+    } finally {
+      // On success the row is gone by now; on failure it's movable again.
+      setMoving(false);
+    }
+  };
 
   return (
     <div className="bg-gray-900/50 border border-gray-700/30 rounded-lg p-2.5 sm:p-3">
@@ -143,64 +194,67 @@ function TransferFileItem({
         </span>
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-wrap gap-1.5 mt-2">
-        {isVideo && (
+      {confirmingDelete ? (
+        <div className="flex flex-wrap items-center gap-1.5 mt-2 text-xs">
+          <span className="text-gray-300 mr-1">
+            {copiedTo
+              ? t.transfer.confirmDeleteSpare
+                  .replace("{name}", transfer.name)
+                  .replace("{library}", t.transfer.libraries[copiedTo])
+              : t.transfer.confirmDelete.replace("{name}", transfer.name)}
+          </span>
           <button
-            onClick={() => onAddToVideo(transfer)}
-            disabled={transfer.addedToVideo}
-            className={`px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
-              transfer.addedToVideo
-                ? "bg-green-600/10 text-green-500/60 border-green-600/30 cursor-default"
-                : "bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border-blue-600/40"
-            }`}
+            onClick={() => {
+              setConfirmingDelete(false);
+              onDelete(transfer);
+            }}
+            className={`${buttonBase} bg-red-600/20 text-red-400 hover:bg-red-600/30 border-red-600/40`}
           >
-            {transfer.addedToVideo ? t.transfer.addedToVideo : t.transfer.addToVideo}
+            {t.transfer.delete}
           </button>
-        )}
-        {isAudio && (
           <button
-            onClick={() => onAddToAudio(transfer)}
-            disabled={transfer.addedToAudio}
-            className={`px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
-              transfer.addedToAudio
-                ? "bg-green-600/10 text-green-500/60 border-green-600/30 cursor-default"
-                : "bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border-blue-600/40"
-            }`}
+            onClick={() => setConfirmingDelete(false)}
+            className={`${buttonBase} bg-gray-600/20 text-gray-300 hover:bg-gray-600/30 border-gray-600/40`}
           >
-            {transfer.addedToAudio ? t.transfer.addedToAudio : t.transfer.addToAudio}
+            {t.transfer.cancel}
           </button>
-        )}
-        {isImage && (
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+          {library && (
+            <button
+              onClick={() => move(library)}
+              disabled={moving}
+              className={`${buttonBase} bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border-blue-600/40 disabled:opacity-60 disabled:cursor-wait`}
+            >
+              {moving
+                ? t.transfer.moving
+                : t.transfer.moveTo.replace("{library}", t.transfer.libraries[library])}
+            </button>
+          )}
+          {copiedTo && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-green-400/80">
+              <CheckIcon className="w-3.5 h-3.5" />
+              {t.transfer.alreadyIn.replace("{library}", t.transfer.libraries[copiedTo])}
+            </span>
+          )}
+          {isElectron && (
+            <button
+              onClick={() => window.electronAPI?.showItemInFolder(transfer.path)}
+              className={`${buttonBase} bg-gray-700/50 text-gray-300 hover:bg-gray-700 border-gray-600/40`}
+            >
+              {t.transfer.openInExplorer}
+            </button>
+          )}
           <button
-            onClick={() => onAddToImage(transfer)}
-            disabled={transfer.addedToImage}
-            className={`px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
-              transfer.addedToImage
-                ? "bg-green-600/10 text-green-500/60 border-green-600/30 cursor-default"
-                : "bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border-blue-600/40"
-            }`}
+            onClick={() => setConfirmingDelete(true)}
+            disabled={moving}
+            className={`${buttonBase} bg-red-600/20 text-red-400 hover:bg-red-600/30 border-red-600/40 disabled:opacity-60`}
           >
-            {transfer.addedToImage ? t.transfer.addedToImages : t.transfer.addToImages}
+            {t.transfer.delete}
           </button>
-        )}
-        {isElectron && (
-          <button
-            onClick={() =>
-              window.electronAPI?.showItemInFolder(transfer.path)
-            }
-            className="px-2 py-1 rounded-md text-xs font-medium bg-gray-700/50 text-gray-300 hover:bg-gray-700 border border-gray-600/40 transition-colors"
-          >
-            {t.transfer.openInExplorer}
-          </button>
-        )}
-        <button
-          onClick={() => onDelete(transfer)}
-          className="px-2 py-1 rounded-md text-xs font-medium bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-600/40 transition-colors"
-        >
-          {t.transfer.delete}
-        </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

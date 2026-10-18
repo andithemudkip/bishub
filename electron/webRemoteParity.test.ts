@@ -35,9 +35,7 @@ const IPC_COUNTERPARTS: Record<string, Counterpart> = {
   "get-video-thumbnail": { http: "GET /api/videos/thumbnail/:id" },
   "import-pptx": { http: "POST /api/hymns/import" },
   "delete-transfer": { http: "POST /api/transfers/delete" },
-  "add-transfer-to-video": { http: "POST /api/transfers/add-to-video" },
-  "add-transfer-to-audio": { http: "POST /api/transfers/add-to-audio" },
-  "add-transfer-to-image": { http: "POST /api/transfers/add-to-image" },
+  "move-transfer-to-library": { http: "POST /api/transfers/move-to-library" },
 
   // Native pickers and the local filesystem; web remotes upload instead
   "open-file-dialog": { electronOnly: "native file picker" },

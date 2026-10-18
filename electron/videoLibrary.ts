@@ -11,7 +11,7 @@ import type {
   UploadProgress,
 } from "../src/shared/videoLibrary.types";
 import { getFfmpegPath, extractDurationWithFfprobe } from "./utils";
-import { copyIntoDir } from "./uploadFilename";
+import { copyIntoDir, moveIntoDir } from "./uploadFilename";
 interface VideoLibrarySchema {
   videos: VideoItem[];
   version: number;
@@ -123,16 +123,20 @@ export class VideoLibraryManager {
       name?: string;
       sourceUrl?: string;
       copyToLibrary?: boolean;
+      /** Move the file in instead of copying it: for files BisHub already owns (transfers). */
+      move?: boolean;
     }
   ): Promise<VideoItem> {
-    const { name, sourceUrl, copyToLibrary = true } = options || {};
+    const { name, sourceUrl, copyToLibrary = true, move = false } = options || {};
 
     let finalPath = sourcePath;
     let filename = path.basename(sourcePath);
 
     // Copy file to library directory if needed
     if (copyToLibrary && !sourcePath.startsWith(this.videosDir)) {
-      finalPath = await copyIntoDir(sourcePath, this.videosDir);
+      finalPath = move
+        ? await moveIntoDir(sourcePath, this.videosDir)
+        : await copyIntoDir(sourcePath, this.videosDir);
       filename = path.basename(finalPath);
     }
 

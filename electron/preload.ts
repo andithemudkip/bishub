@@ -42,7 +42,12 @@ import type {
   CreateScheduleParams,
   UpdateScheduleParams,
 } from "../src/shared/audioSchedule.types";
-import type { TransferItem, TransferUploadProgress } from "../src/shared/transfer.types";
+import type {
+  TransferItem,
+  TransferLibrary,
+  TransferUploadProgress,
+} from "../src/shared/transfer.types";
+import type { StorageStats } from "../src/shared/storage.types";
 import type { QuickSearchResponse } from "../src/shared/quickSearch.types";
 import type { HymnalInfo } from "../src/shared/hymnals";
 import type {
@@ -533,12 +538,13 @@ const electronAPI = {
     ipcRenderer.invoke("get-transfers"),
   deleteTransfer: (id: string): Promise<boolean> =>
     ipcRenderer.invoke("delete-transfer", id),
-  addTransferToVideo: (id: string): Promise<VideoItem | null> =>
-    ipcRenderer.invoke("add-transfer-to-video", id),
-  addTransferToAudio: (id: string): Promise<AudioItem | null> =>
-    ipcRenderer.invoke("add-transfer-to-audio", id),
-  addTransferToImage: (id: string): Promise<ImageItem | null> =>
-    ipcRenderer.invoke("add-transfer-to-image", id),
+  moveTransferToLibrary: (
+    id: string,
+    library: TransferLibrary
+  ): Promise<VideoItem | AudioItem | ImageItem | null> =>
+    ipcRenderer.invoke("move-transfer-to-library", id, library),
+  getStorageStats: (): Promise<StorageStats> => ipcRenderer.invoke("get-storage-stats"),
+  deleteSpareTransfers: (): Promise<StorageStats> => ipcRenderer.invoke("delete-spare-transfers"),
   onTransfersUpdate: (callback: (transfers: TransferItem[]) => void) => {
     const handler = (_event: IpcRendererEvent, transfers: TransferItem[]) => callback(transfers);
     ipcRenderer.on("transfers-update", handler);

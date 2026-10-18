@@ -12,7 +12,7 @@ import type {
 } from "../src/shared/audioLibrary.types";
 
 import { extractDurationWithFfprobe } from "./utils";
-import { copyIntoDir } from "./uploadFilename";
+import { copyIntoDir, moveIntoDir } from "./uploadFilename";
 interface AudioLibrarySchema {
   audios: AudioItem[];
   version: number;
@@ -158,16 +158,20 @@ export class AudioLibraryManager {
     options?: {
       name?: string;
       copyToLibrary?: boolean;
+      /** Move the file in instead of copying it: for files BisHub already owns (transfers). */
+      move?: boolean;
     }
   ): Promise<AudioItem> {
-    const { name, copyToLibrary = true } = options || {};
+    const { name, copyToLibrary = true, move = false } = options || {};
 
     let finalPath = sourcePath;
     let filename = path.basename(sourcePath);
 
     // Copy file to library directory if needed
     if (copyToLibrary && !sourcePath.startsWith(this.audiosDir)) {
-      finalPath = await copyIntoDir(sourcePath, this.audiosDir);
+      finalPath = move
+        ? await moveIntoDir(sourcePath, this.audiosDir)
+        : await copyIntoDir(sourcePath, this.audiosDir);
       filename = path.basename(finalPath);
     }
 
