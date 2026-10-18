@@ -5,6 +5,7 @@ import { getLoadedLayers } from "../../../shared/stage";
 import LivePreview from "../preview/LivePreview";
 import { HealthBanner } from "./HealthBanner";
 import { LoadedSection } from "./LoadedSection";
+import { VolumeSection } from "./VolumeSection";
 import { ActivitySection } from "./ActivitySection";
 import { UpcomingSection } from "./UpcomingSection";
 import { useStage } from "./stageContext";
@@ -32,6 +33,7 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
 
   const isEmpty =
     layers.length === 0 &&
+    state.video.src === null &&
     stage.activities.length === 0 &&
     stage.upcomingSchedules.length === 0 &&
     stage.recentScheduleEvents.length === 0;
@@ -79,6 +81,7 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
       <HealthBanner
         displayWindowOpen={stage.displayWindowOpen}
         monitorMissing={stage.monitorMissing}
+        onNavigate={onNavigate}
         t={t}
       />
 
@@ -95,6 +98,7 @@ export function StageSections({ state, settings, t, actions, onNavigate, variant
         onNavigate={onNavigate}
         t={t}
       />
+      <VolumeSection state={state} actions={actions} t={t} />
       <ActivitySection
         activities={stage.activities}
         onDismiss={stage.dismiss}

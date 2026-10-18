@@ -13,6 +13,8 @@ const actions = {
   playAudio: vi.fn(),
   pauseAudio: vi.fn(),
   stopAudio: vi.fn(),
+  setVideoVolume: vi.fn(),
+  setAudioVolume: vi.fn(),
 };
 
 function textLayerIcon(contentType: TextContentType) {

@@ -12,6 +12,7 @@ import VideoLibraryPage from "./pages/VideoLibraryPage";
 import AudioLibraryPage from "./pages/AudioLibraryPage";
 import TransferPage from "./pages/TransferPage";
 import SettingsPage from "./pages/SettingsPage";
+import { sendPageIntent } from "./hooks/usePageIntent";
 import AccessDeniedPage from "./pages/AccessDeniedPage";
 import { useRemoteAPI } from "./useRemoteAPI";
 
@@ -122,8 +123,18 @@ export default function App() {
       playAudio: api.playAudio,
       pauseAudio: api.pauseAudio,
       stopAudio: api.stopAudio,
+      setVideoVolume: api.setVolume,
+      setAudioVolume: api.setAudioVolume,
     }),
-    [api.setMode, api.clearLayer, api.playAudio, api.pauseAudio, api.stopAudio]
+    [
+      api.setMode,
+      api.clearLayer,
+      api.playAudio,
+      api.pauseAudio,
+      api.stopAudio,
+      api.setVolume,
+      api.setAudioVolume,
+    ]
   );
 
   const quickSearchActions = useMemo(
@@ -175,7 +186,10 @@ export default function App() {
             mp3CacheStats={api.mp3CacheStats}
             onDownloadHymnMP3={api.downloadHymnMP3}
             onDismissKaraokeBanner={() => api.setKaraokeBannerDismissed(true)}
-            onOpenKaraokeSettings={() => navigateTo("settings")}
+            onOpenKaraokeSettings={() => {
+              navigateTo("settings");
+              sendPageIntent({ page: "settings", section: "content", settingId: "instrumentals" });
+            }}
             isElectron={api.isElectron}
             onImportPptx={api.importPptx}
             onCommitHymnImport={api.commitHymnImport}
@@ -248,8 +262,6 @@ export default function App() {
             monitors={api.monitors}
             settings={api.settings}
             idleState={api.state.idle}
-            videoVolume={api.state.video.volume}
-            audioVolume={api.state.audio.volume}
             onSetLanguage={api.setLanguage}
             onSetBibleTranslation={api.setBibleTranslation}
             onSetHymnal={api.setHymnal}
@@ -259,8 +271,6 @@ export default function App() {
             onSetClockFontSize={api.setClockFontSize}
             onSetClockPosition={api.setClockPosition}
             onSetAudioWidgetPosition={api.setAudioWidgetPosition}
-            onSetVolume={api.setVolume}
-            onSetAudioVolume={api.setAudioVolume}
             onSetSyncedLyrics={api.setSyncedLyrics}
             onSetChromeSize={api.setChromeSize}
             onSetSlideBackground={api.setSlideBackground}

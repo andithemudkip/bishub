@@ -74,7 +74,7 @@ export default function LivePreview({
  * Renders a single slide at virtual (1920×1080) resolution with the exact same
  * structure and styling as TextMode.tsx, then scales it down to fit the preview.
  */
-function ScaledSlide({
+export function ScaledSlide({
   content,
   title,
   contentType,

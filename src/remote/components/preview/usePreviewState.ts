@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 const STORAGE_KEY_WIDTH = "preview-panel-width";
 const STORAGE_KEY_COLLAPSED = "preview-collapsed";
@@ -9,6 +9,11 @@ const DEFAULT_WIDTH = 300;
 
 interface UsePreviewStateOptions {
   isMobile: boolean;
+  /**
+   * Fold the panel away for now without touching the saved choice — Settings
+   * needs the width. Opening it anyway lasts until `autoCollapse` turns off.
+   */
+  autoCollapse?: boolean;
 }
 
 interface PreviewState {
@@ -24,6 +29,7 @@ interface PreviewState {
 
 export function usePreviewState({
   isMobile,
+  autoCollapse = false,
 }: UsePreviewStateOptions): PreviewState {
   // Load initial state from localStorage
   const [panelWidth, setPanelWidth] = useState(() => {
@@ -46,6 +52,14 @@ export function usePreviewState({
 
   const [isResizing, setIsResizing] = useState(false);
 
+  // Opened by hand while auto-collapsed: shown, but not saved as the choice.
+  const [openedAnyway, setOpenedAnyway] = useState(false);
+  useEffect(() => {
+    setOpenedAnyway(false);
+  }, [autoCollapse]);
+
+  const isOpen = !isCollapsed && (!autoCollapse || openedAnyway);
+
   const persistCollapsed = useCallback((collapsed: boolean) => {
     setIsCollapsed(collapsed);
     try {
@@ -55,11 +69,17 @@ export function usePreviewState({
     }
   }, []);
 
-  const toggle = useCallback(() => {
-    persistCollapsed(!isCollapsed);
-  }, [isCollapsed, persistCollapsed]);
+  const open = useCallback(() => {
+    if (autoCollapse) setOpenedAnyway(true);
+    persistCollapsed(false);
+  }, [autoCollapse, persistCollapsed]);
 
-  const open = useCallback(() => persistCollapsed(false), [persistCollapsed]);
+  const toggle = useCallback(() => {
+    if (!isOpen) open();
+    // Closing what was only opened for this visit leaves the saved choice alone.
+    else if (autoCollapse) setOpenedAnyway(false);
+    else persistCollapsed(true);
+  }, [isOpen, open, autoCollapse, persistCollapsed]);
 
   const setWidth = useCallback((width: number) => {
     const maxWidth = window.innerWidth * MAX_WIDTH_PERCENT;
@@ -72,7 +92,7 @@ export function usePreviewState({
   const endResize = useCallback(() => setIsResizing(false), []);
 
   return {
-    isOpen: !isCollapsed,
+    isOpen,
     panelWidth: isMobile ? 0 : panelWidth,
     toggle,
     open,

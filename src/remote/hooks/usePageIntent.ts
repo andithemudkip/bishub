@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import type { SettingsSectionId } from "../pages/settings/settingsIndex";
 
 /**
  * Something another part of the remote wants a page to do on arrival —
@@ -15,6 +16,12 @@ export type PageIntent =
       open: { bookId: string; bookName: string; chapter: number; verse: number; endVerse: number };
       /** What was typed to find it, for the page's search history. */
       query: string;
+    }
+  | {
+      page: "settings";
+      section: SettingsSectionId;
+      /** A `SettingRow` id to scroll to and highlight. */
+      settingId?: string;
     };
 
 const EVENT = "bishub:page-intent";
