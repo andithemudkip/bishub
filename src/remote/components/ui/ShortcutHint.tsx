@@ -6,10 +6,13 @@ interface Props {
   /** Which key to show when the shortcut has several (switchPage: "1"…"7"). */
   keyLabel?: string;
   /**
-   * Fainter, for lists of hints (the nav) where a column of them at full
-   * strength would shout. Brightens when a `group` ancestor is hovered.
+   * Hidden until its `group` ancestor is hovered or keyboard-focused, for
+   * lists (the nav) where a column of hints would clutter. It keeps its space
+   * so nothing shifts when it appears.
    */
-  quiet?: boolean;
+  onHover?: boolean;
+  /** Show an `onHover` hint regardless — e.g. while ⌘/Ctrl is held. */
+  revealed?: boolean;
   className?: string;
 }
 
@@ -23,7 +26,13 @@ interface Props {
  * on the active nav item — so pass a text colour only where the surrounding
  * text isn't the one to match (e.g. inside an input's wrapper).
  */
-export function ShortcutHint({ shortcut, keyLabel, quiet = false, className = "" }: Props) {
+export function ShortcutHint({
+  shortcut,
+  keyLabel,
+  onHover = false,
+  revealed = false,
+  className = "",
+}: Props) {
   const definition = SHORTCUTS[shortcut];
   const key = keyLabel ?? definition.display[0];
   const mac = isMacPlatform();
@@ -37,7 +46,11 @@ export function ShortcutHint({ shortcut, keyLabel, quiet = false, className = ""
   return (
     <kbd
       className={`hidden md:inline-flex flex-shrink-0 items-center px-1 rounded border border-current text-[10px] leading-4 font-sans tabular-nums transition-opacity ${
-        quiet ? "opacity-40 group-hover:opacity-70" : "opacity-60"
+        !onHover
+          ? "opacity-60"
+          : revealed
+            ? "opacity-70"
+            : "opacity-0 group-hover:opacity-70 group-focus-visible:opacity-70"
       } ${className}`}
     >
       {label}

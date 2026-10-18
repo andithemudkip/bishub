@@ -267,3 +267,19 @@ export const SearchIcon = ({ className = "w-4 h-4" }: IconProps) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 20l-4-4" />
   </svg>
 );
+
+export const QrCodeIcon = ({ className = "w-4 h-4" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <rect x="4" y="4" width="6" height="6" rx="1" strokeWidth={2} />
+    <rect x="14" y="4" width="6" height="6" rx="1" strokeWidth={2} />
+    <rect x="4" y="14" width="6" height="6" rx="1" strokeWidth={2} />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18v2M18 14h2" />
+  </svg>
+);
+
+export const PhoneIcon = ({ className = "w-4 h-4" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <rect x="7" y="3" width="10" height="18" rx="2" strokeWidth={2} />
+    <path strokeLinecap="round" strokeWidth={2} d="M11 18h2" />
+  </svg>
+);

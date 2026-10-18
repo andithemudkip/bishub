@@ -55,9 +55,10 @@ export interface Translations {
     chorus: string;
     chorusPrefix: string;
     nowPlaying: string;
-    switchToStatic: string;
-    switchToSynced: string;
-    playInstrumental: string;
+    playbackMode: string;
+    modeText: string;
+    modeKaraoke: string;
+    modeInstrumental: string;
     hymnal: string;
     allHymnals: string;
     scrollBooksLeft: string;
@@ -573,6 +574,10 @@ export interface Translations {
     monitorMissing: string;
     devices: string;
     copyAddress: string;
+    phoneRemoteTitle: string;
+    phoneRemoteHint: string;
+    showPhoneQr: string;
+    hidePhoneQr: string;
     copied: string;
     railAudio: string;
     railActivity: string;
@@ -703,9 +708,10 @@ const ro: Translations = {
     chorus: "refren",
     chorusPrefix: "R",
     nowPlaying: "Redare:",
-    switchToStatic: "Text simplu",
-    switchToSynced: "Sincronizat",
-    playInstrumental: "Cu instrumental",
+    playbackMode: "Mod de redare",
+    modeText: "Doar text",
+    modeKaraoke: "Karaoke",
+    modeInstrumental: "Instrumental",
     hymnal: "Imnuri",
     allHymnals: "Toate imnurile",
     scrollBooksLeft: "Imnurile anterioare",
@@ -1184,6 +1190,10 @@ const ro: Translations = {
     monitorMissing: "Monitorul de afișare nu este conectat",
     devices: "Dispozitive: {n}",
     copyAddress: "Copiază adresa",
+    phoneRemoteTitle: "Controlează de pe telefon",
+    phoneRemoteHint: "Scanează cu un telefon conectat la aceeași rețea Wi-Fi.",
+    showPhoneQr: "Conectează un telefon",
+    hidePhoneQr: "Ascunde codul QR",
     copied: "Copiat",
     railAudio: "Se redă audio",
     railActivity: "Activitate în fundal",
@@ -1323,9 +1333,10 @@ const en: Translations = {
     chorus: "chorus",
     chorusPrefix: "Ch",
     nowPlaying: "Now playing:",
-    switchToStatic: "Static",
-    switchToSynced: "Synced",
-    playInstrumental: "With instrumental",
+    playbackMode: "Playback mode",
+    modeText: "Text only",
+    modeKaraoke: "Karaoke",
+    modeInstrumental: "Instrumental",
     hymnal: "Hymnal",
     allHymnals: "All hymnals",
     scrollBooksLeft: "Previous hymnals",
@@ -1806,6 +1817,10 @@ const en: Translations = {
     monitorMissing: "The display monitor isn't connected",
     devices: "Devices: {n}",
     copyAddress: "Copy address",
+    phoneRemoteTitle: "Control from your phone",
+    phoneRemoteHint: "Scan with a phone on the same Wi-Fi.",
+    showPhoneQr: "Connect a phone",
+    hidePhoneQr: "Hide QR code",
     copied: "Copied",
     railAudio: "Audio playing",
     railActivity: "Background activity",

@@ -16,6 +16,7 @@ import {
 } from "./stage";
 import { QuickSearch, type QuickSearchActions } from "./search/QuickSearch";
 import { ShortcutHint } from "./ui/ShortcutHint";
+import { useModifierHeld } from "../hooks/useModifierHeld";
 import { HymnsIcon } from "./icons/hymns";
 import { BibleIcon } from "./icons/bible";
 import { ImageIcon } from "./icons/image";
@@ -93,6 +94,8 @@ export default function Layout({
 
   const t = getTranslations(settings.language);
   const isElectron = !!window.electronAPI;
+  // Only the in-app nav hints need it (browsers keep ⌘1–⌘7 for tabs).
+  const modifierHeld = useModifierHeld(isElectron && sidebarOpen && !isMobile);
 
   const navItems = useMemo(
     () => [
@@ -252,7 +255,8 @@ export default function Layout({
                   <ShortcutHint
                     shortcut="switchPage"
                     keyLabel={String(PAGE_ORDER.indexOf(item.id) + 1)}
-                    quiet
+                    onHover
+                    revealed={modifierHeld}
                     className="ml-auto"
                   />
                 )}
