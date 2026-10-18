@@ -50,7 +50,7 @@ import { IMAGE_EXTENSIONS_NO_DOT } from "../src/shared/imageLibrary.types";
 import type { VideoItem } from "../src/shared/videoLibrary.types";
 import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getTransferManager } from "./transferManager";
-import { quickSearch } from "./quickSearch";
+import { quickSearch, quickSearchVerses, warmQuickSearch } from "./quickSearch";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import type {
   CreateScheduleParams,
@@ -67,6 +67,9 @@ import type {
   ChromeSizeKey,
 } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
+
+/** Long enough for the windows to finish loading first; far shorter than a first search. */
+const WARM_SEARCH_DELAY_MS = 3000;
 
 function getLocalIPAddress(): string {
   const interfaces = os.networkInterfaces();
@@ -388,6 +391,11 @@ function setupIPC() {
   ipcMain.handle("quick-search", (_event, query: string) => {
     const settings = stateManager.getSettings();
     return quickSearch(query, settings.language, settings.bibleTranslation, settings.hymnal);
+  });
+
+  ipcMain.handle("quick-search-verses", (_event, query: string) => {
+    const settings = stateManager.getSettings();
+    return quickSearchVerses(query, settings.language, settings.bibleTranslation);
   });
 
   ipcMain.handle("set-hymnal", (_event, slug: string) => {
@@ -1100,6 +1108,8 @@ if (!gotTheLock) {
     createWindows();
     checkForBinaryUpdates();
     checkForHymnAssetUpdates();
+    // Once the windows are up, so the first Quick Search doesn't pay for it.
+    setTimeout(() => warmQuickSearch(stateManager.getSettings().bibleTranslation), WARM_SEARCH_DELAY_MS);
   });
 }
 

@@ -160,6 +160,8 @@ const electronAPI = {
     ipcRenderer.invoke("load-hymn", slug, hymnNumber, playbackMode),
   quickSearch: (query: string): Promise<QuickSearchResponse> =>
     ipcRenderer.invoke("quick-search", query),
+  quickSearchVerses: (query: string): Promise<QuickSearchResponse> =>
+    ipcRenderer.invoke("quick-search-verses", query),
   searchAllHymns: (query: string): Promise<HymnSearchResult[]> =>
     ipcRenderer.invoke("search-all-hymns", query),
   setHymnal: (slug: string): Promise<void> =>

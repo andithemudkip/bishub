@@ -129,6 +129,7 @@ export default function App() {
   const quickSearchActions = useMemo(
     () => ({
       search: api.quickSearch,
+      searchVerses: api.quickSearchVerses,
       loadHymn: api.loadHymn,
       loadVideo: api.loadVideo,
       playVideo: api.playVideo,
@@ -139,6 +140,7 @@ export default function App() {
     }),
     [
       api.quickSearch,
+      api.quickSearchVerses,
       api.loadHymn,
       api.loadVideo,
       api.playVideo,

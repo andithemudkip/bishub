@@ -340,36 +340,58 @@ export function formatBibleChapterForDisplay(
 }
 
 
-// Cache for normalized verse text
-const normalizedBibleCache = new Map<string, Map<string, string>>();
+interface IndexedVerse {
+  bookId: string;
+  bookName: string;
+  chapter: number;
+  verse: number;
+  text: string;
+  normalized: string;
+  /** Split on demand: most verses are rejected before their words matter. */
+  words?: string[];
+}
 
-function getNormalizedVerse(
-  bookId: string,
-  chapter: number,
-  verse: number,
-  text: string,
-  translationId: string
-): string {
-  let cache = normalizedBibleCache.get(translationId);
-  if (!cache) {
-    cache = new Map();
-    normalizedBibleCache.set(translationId, cache);
-  }
+/**
+ * Every verse of a Bible, flattened and normalized once. Keyed by the parsed
+ * Bible object, so a re-downloaded translation gets a fresh index.
+ */
+const bibleIndexCache = new WeakMap<BibleData, IndexedVerse[]>();
 
-  const key = `${bookId}:${chapter}:${verse}`;
-  let normalized = cache.get(key);
-  if (!normalized) {
-    normalized = normalizeForSearch(text);
-    cache.set(key, normalized);
+function getBibleIndex(bible: BibleData): IndexedVerse[] {
+  let index = bibleIndexCache.get(bible);
+  if (!index) {
+    index = [];
+    for (const book of bible.books) {
+      for (const chapter of book.chapters) {
+        for (const verse of chapter.verses) {
+          index.push({
+            bookId: book.id,
+            bookName: book.name,
+            chapter: chapter.number,
+            verse: verse.verse,
+            text: verse.text,
+            normalized: normalizeForSearch(verse.text),
+          });
+        }
+      }
+    }
+    bibleIndexCache.set(bible, index);
   }
-  return normalized;
+  return index;
+}
+
+/**
+ * Builds the search index ahead of the first search, which would otherwise
+ * pay for normalizing every verse while the operator waits.
+ */
+export function warmBibleSearch(translationId: string = DEFAULT_TRANSLATION_ID): void {
+  getBibleIndex(loadBible(translationId));
 }
 
 export function searchBibleVerses(
   query: string,
   translationId: string = DEFAULT_TRANSLATION_ID
 ): BibleSearchResult[] {
-  const bible = loadBible(translationId);
   const normalizedQuery = normalizeForSearch(query.trim());
 
   if (normalizedQuery.length < 3) {
@@ -381,61 +403,32 @@ export function searchBibleVerses(
     return [];
   }
 
-  const results: BibleSearchResult[] = [];
-
-  for (const book of bible.books) {
-    for (const chapter of book.chapters) {
-      for (const verse of chapter.verses) {
-        const normalizedText = getNormalizedVerse(
-          book.id,
-          chapter.number,
-          verse.verse,
-          verse.text,
-          translationId
-        );
-
-        const score = calculateRelevanceScore(
-          normalizedQuery,
-          queryWords,
-          normalizedText
-        );
-
-        if (score > 0) {
-          results.push({
-            bookId: book.id,
-            bookName: book.name,
-            chapter: chapter.number,
-            verse: verse.verse,
-            text: verse.text,
-            score,
-          });
-        }
-      }
-    }
+  const index = getBibleIndex(loadBible(translationId));
+  const matches: { entry: IndexedVerse; at: number; score: number }[] = [];
+  for (let at = 0; at < index.length; at++) {
+    const score = calculateRelevanceScore(normalizedQuery, queryWords, index[at]);
+    if (score > 0) matches.push({ entry: index[at], at, score });
   }
 
-  // Build book index for canonical ordering
-  const bookIndex = new Map<string, number>();
-  bible.books.forEach((book, i) => bookIndex.set(book.id, i));
+  // Sort by score descending, then by canonical (index) order
+  matches.sort((a, b) => b.score - a.score || a.at - b.at);
 
-  // Sort by score descending, then by canonical order
-  results.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    if (a.bookId !== b.bookId) {
-      return (bookIndex.get(a.bookId) ?? 0) - (bookIndex.get(b.bookId) ?? 0);
-    }
-    if (a.chapter !== b.chapter) return a.chapter - b.chapter;
-    return a.verse - b.verse;
-  });
-
-  return results.slice(0, 50);
+  return matches.slice(0, 50).map(({ entry, score }) => ({
+    bookId: entry.bookId,
+    bookName: entry.bookName,
+    chapter: entry.chapter,
+    verse: entry.verse,
+    text: entry.text,
+    score,
+  }));
 }
 
 function calculateRelevanceScore(
   normalizedQuery: string,
   queryWords: string[],
-  normalizedText: string
+  entry: IndexedVerse
 ): number {
+  const normalizedText = entry.normalized;
   // Tier 1: Exact phrase match (highest priority)
   if (normalizedText.includes(normalizedQuery)) {
     let score = 100;
@@ -446,8 +439,15 @@ function calculateRelevanceScore(
     return score;
   }
 
+  // A word found as an exact or prefix match is also a substring, so counting
+  // substrings first rules out nearly every verse without splitting it.
+  const minRequired = Math.ceil(queryWords.length / 2);
+  let present = 0;
+  for (const qw of queryWords) if (normalizedText.includes(qw)) present++;
+  if (present < minRequired) return 0;
+
   // Find positions of each query word in the text
-  const textWords = normalizedText.split(/\s+/);
+  const textWords = (entry.words ??= normalizedText.split(/\s+/));
   const wordPositions: number[] = []; // position of first occurrence of each query word
   let matchedCount = 0;
 
@@ -462,7 +462,6 @@ function calculateRelevanceScore(
   }
 
   // Require at least half the query words to match (rounded up)
-  const minRequired = Math.ceil(queryWords.length / 2);
   if (matchedCount < minRequired) return 0;
 
   const matchRatio = matchedCount / queryWords.length;

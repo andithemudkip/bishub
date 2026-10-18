@@ -62,7 +62,7 @@ import { getImageLibrary } from "./imageLibrary";
 import { IMAGE_EXTENSIONS } from "../src/shared/imageLibrary.types";
 import { getAudioScheduler } from "./audioScheduler";
 import { getTransferManager } from "./transferManager";
-import { quickSearch } from "./quickSearch";
+import { quickSearch, quickSearchVerses } from "./quickSearch";
 import {
   startDownload,
   startAudioDownload,
@@ -912,6 +912,14 @@ export function createServer(
       socket.emit(
         "quickSearchResults",
         quickSearch(query, settings.language, settings.bibleTranslation, settings.hymnal)
+      );
+    });
+
+    socket.on("quickSearchVerses", (query) => {
+      const settings = stateManager.getSettings();
+      socket.emit(
+        "quickSearchVerseResults",
+        quickSearchVerses(query, settings.language, settings.bibleTranslation)
       );
     });
 

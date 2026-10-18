@@ -266,6 +266,7 @@ export type ServerToClientEvents = {
   customHymnDeleted: (slug: string, number: string, deleted: boolean) => void;
   hymnSearchResults: (results: HymnSearchResult[]) => void;
   quickSearchResults: (response: QuickSearchResponse) => void;
+  quickSearchVerseResults: (response: QuickSearchResponse) => void;
   bibleBooks: (
     books: { id: string; name: string; chapterCount: number }[]
   ) => void;
@@ -350,6 +351,8 @@ export type ClientToServerEvents = {
   searchAllHymns: (query: string) => void;
   /** Reply: quickSearchResults. */
   quickSearch: (query: string) => void;
+  /** Reply: quickSearchVerseResults. */
+  quickSearchVerses: (query: string) => void;
   /**
    * Hymn import. There is no parse event here on purpose: a deck arrives over
    * HTTP at POST /api/hymns/import, because a .pptx is megabytes of binary and

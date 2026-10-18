@@ -8,7 +8,7 @@ import type {
 import { normalizeForSearch } from "../src/shared/utils";
 import { parseBibleReferenceWithBooks } from "../src/shared/bibleParser";
 import { getHymnals } from "./hymnalRegistry";
-import { loadHymns, getBibleBooks, searchBibleVerses } from "./dataLoader";
+import { loadHymns, getBibleBooks, searchBibleVerses, warmBibleSearch } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
 import { getAudioLibrary } from "./audioLibrary";
 import { getImageLibrary } from "./imageLibrary";
@@ -48,6 +48,18 @@ const PSALM_COUNT = 150;
  */
 const lyricsCache = new WeakMap<HymnBlock[], string>();
 
+/** Titles repeat across calls; normalizing ~3,000 of them per keystroke adds up. */
+const titleCache = new Map<string, string>();
+
+function normalizedTitle(hymn: Hymn): string {
+  let title = titleCache.get(hymn.title);
+  if (title === undefined) {
+    title = normalizeForSearch(hymn.title);
+    titleCache.set(hymn.title, title);
+  }
+  return title;
+}
+
 function normalizedLyrics(hymn: Hymn): string {
   let text = lyricsCache.get(hymn.blocks);
   if (text === undefined) {
@@ -74,10 +86,10 @@ function group(kind: QuickSearchGroup["kind"], ranked: Ranked[]) {
 }
 
 /**
- * One search across hymns, Bible and media, ranked and grouped on the server
- * so the Electron and web remotes get identical results from one round trip.
- * Measured at ~30–50ms warm (the Bible full-text scan dominates), which is
- * fast enough to run as the operator types.
+ * One search across hymns, Bible references and media, ranked and grouped on
+ * the server so the Electron and web remotes get identical results. Bible
+ * full text comes from `quickSearchVerses` when `versesFollow` says so. Warm,
+ * this half measures ~2ms on a recent Mac and the verse scan ~10ms.
  */
 export function quickSearch(
   query: string,
@@ -87,7 +99,7 @@ export function quickSearch(
 ): QuickSearchResponse {
   const trimmed = query.trim();
   const normalized = normalizeForSearch(trimmed);
-  if (!normalized) return { query, groups: [] };
+  if (!normalized) return { query, groups: [], versesFollow: false };
 
   const words = normalized.split(/\s+/).filter(Boolean);
   const hasAllWords = (text: string) => words.every((w) => text.includes(w));
@@ -110,7 +122,7 @@ export function quickSearch(
           match = "number";
         }
       } else {
-        const title = normalizeForSearch(hymn.title);
+        const title = normalizedTitle(hymn);
         if (title.startsWith(normalized)) tier = TIER.hymnTitlePrefix;
         else if (hasAllWords(title)) tier = TIER.hymnTitle;
         // Titles match words in any order; lyrics only the phrase — any-order
@@ -143,39 +155,7 @@ export function quickSearch(
   }
 
   // ── Bible reference ──────────────────────────────────────────────────────
-  const books = getBibleBooks(translationId);
-  let reference: QuickSearchHit | null = null;
-  // A bare number is a hymn or a psalm, never a reference the parser would
-  // read into it ("23" as book "2", chapter 3).
-  const parsed = isNumber ? null : parseBibleReferenceWithBooks(trimmed, books, language);
-  if (parsed && !parsed.bookOnly) {
-    const book = books.find((b) => b.id === parsed.bookId);
-    if (book && parsed.chapter >= 1 && parsed.chapter <= book.chapterCount) {
-      reference = {
-        kind: "reference",
-        bookId: parsed.bookId,
-        bookName: book.name,
-        chapter: parsed.chapter,
-        startVerse: parsed.startVerse,
-        endVerse: parsed.endVerse,
-        verseGiven: parsed.verseGiven,
-      };
-    }
-  } else if (isNumber) {
-    const n = parseInt(trimmed, 10);
-    const psalms = books.find((b) => b.id === PSALMS_ID);
-    if (psalms && n >= 1 && n <= Math.min(PSALM_COUNT, psalms.chapterCount)) {
-      reference = {
-        kind: "reference",
-        bookId: PSALMS_ID,
-        bookName: psalms.name,
-        chapter: n,
-        startVerse: 1,
-        endVerse: 1,
-        verseGiven: false,
-      };
-    }
-  }
+  const reference = findReference(trimmed, isNumber, language, translationId);
   if (reference) results.push(group("reference", [{ hit: reference, tier: TIER.reference }]));
 
   // ── Media ────────────────────────────────────────────────────────────────
@@ -193,30 +173,112 @@ export function quickSearch(
   for (const i of getImageLibrary().getAll()) addMedia({ kind: "image", id: i.id, name: i.name, path: i.path });
   if (mediaHits.length > 0) results.push(group("media", mediaHits));
 
-  // ── Bible full text ──────────────────────────────────────────────────────
-  // A typed reference is a direct jump; searching its text too would only bury it.
-  if (!reference && !isNumber && normalized.length >= MIN_LYRICS_QUERY) {
-    const verses = searchBibleVerses(trimmed, translationId);
-    if (verses.length > 0) {
-      results.push(
-        group(
-          "bible",
-          verses.map((v) => ({
-            tier: TIER.bibleText,
-            hit: {
-              kind: "verse",
-              bookId: v.bookId,
-              bookName: v.bookName,
-              chapter: v.chapter,
-              verse: v.verse,
-              text: v.text,
-            },
-          }))
-        )
-      );
+  results.sort((a, b) => a.rank - b.rank);
+  return {
+    query,
+    groups: results.map((r) => r.group),
+    versesFollow: wantsVerseSearch(normalized, isNumber, reference),
+  };
+}
+
+/**
+ * The Bible full-text half of a Quick Search, asked for separately once
+ * `quickSearch` says it applies. It scans every verse, so it costs more than
+ * everything else together; splitting it off puts hymns and references on
+ * screen without waiting for it. Its group always ranks last, so arriving
+ * second never reorders what's already shown.
+ */
+export function quickSearchVerses(
+  query: string,
+  language: Language,
+  translationId: string
+): QuickSearchResponse {
+  const trimmed = query.trim();
+  const normalized = normalizeForSearch(trimmed);
+  const isNumber = /^\d+$/.test(trimmed);
+  const reference = findReference(trimmed, isNumber, language, translationId);
+  if (!wantsVerseSearch(normalized, isNumber, reference)) {
+    return { query, groups: [], versesFollow: false };
+  }
+  const verses = searchBibleVerses(trimmed, translationId);
+  if (verses.length === 0) return { query, groups: [], versesFollow: false };
+  const { group: bible } = group(
+    "bible",
+    verses.map((v) => ({
+      tier: TIER.bibleText,
+      hit: {
+        kind: "verse",
+        bookId: v.bookId,
+        bookName: v.bookName,
+        chapter: v.chapter,
+        verse: v.verse,
+        text: v.text,
+      },
+    }))
+  );
+  return { query, groups: [bible], versesFollow: false };
+}
+
+/** A typed reference is a direct jump; searching its text too would only bury it. */
+function wantsVerseSearch(
+  normalized: string,
+  isNumber: boolean,
+  reference: QuickSearchHit | null
+): boolean {
+  return !reference && !isNumber && normalized.length >= MIN_LYRICS_QUERY;
+}
+
+function findReference(
+  trimmed: string,
+  isNumber: boolean,
+  language: Language,
+  translationId: string
+): QuickSearchHit | null {
+  const books = getBibleBooks(translationId);
+  // A bare number is a hymn or a psalm, never a reference the parser would
+  // read into it ("23" as book "2", chapter 3).
+  if (isNumber) {
+    const n = parseInt(trimmed, 10);
+    const psalms = books.find((b) => b.id === PSALMS_ID);
+    if (psalms && n >= 1 && n <= Math.min(PSALM_COUNT, psalms.chapterCount)) {
+      return {
+        kind: "reference",
+        bookId: PSALMS_ID,
+        bookName: psalms.name,
+        chapter: n,
+        startVerse: 1,
+        endVerse: 1,
+        verseGiven: false,
+      };
+    }
+    return null;
+  }
+  const parsed = parseBibleReferenceWithBooks(trimmed, books, language);
+  if (!parsed || parsed.bookOnly) return null;
+  const book = books.find((b) => b.id === parsed.bookId);
+  if (!book || parsed.chapter < 1 || parsed.chapter > book.chapterCount) return null;
+  return {
+    kind: "reference",
+    bookId: parsed.bookId,
+    bookName: book.name,
+    chapter: parsed.chapter,
+    startVerse: parsed.startVerse,
+    endVerse: parsed.endVerse,
+    verseGiven: parsed.verseGiven,
+  };
+}
+
+/**
+ * Normalizes every hymn and verse ahead of the first search, which would
+ * otherwise pay for it while the operator waits — on a slow church PC, long
+ * enough to notice.
+ */
+export function warmQuickSearch(translationId: string): void {
+  for (const hymnal of getHymnals()) {
+    for (const hymn of loadHymns(hymnal.slug)) {
+      normalizedTitle(hymn);
+      normalizedLyrics(hymn);
     }
   }
-
-  results.sort((a, b) => a.rank - b.rank);
-  return { query, groups: results.map((r) => r.group) };
+  warmBibleSearch(translationId);
 }
