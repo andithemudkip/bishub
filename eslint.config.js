@@ -14,6 +14,7 @@ export default tseslint.config(
       "scripts/**",
       "assets/**",
       "bin/**",
+      "docs/**",
     ],
   },
   js.configs.recommended,
