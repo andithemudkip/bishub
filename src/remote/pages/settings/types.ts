@@ -48,6 +48,7 @@ export interface SettingsPageProps {
   onSetChromeSize: (key: ChromeSizeKey, size: number) => void;
   onSetSlideBackground: (from: string, to: string) => void;
   onSetBibleBackground: (enabled: boolean, from: string, to: string) => void;
+  onSetVerseReminder: (minutes: number, autoHide: boolean) => void;
   onSetDisplayMonitor: (monitorId: number) => void;
   appVersion: string;
   updateStatus: UpdateStatus;

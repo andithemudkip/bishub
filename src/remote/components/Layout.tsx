@@ -10,6 +10,7 @@ import {
   StageChip,
   StageSheet,
   StageToasts,
+  VerseReminderNotice,
   StageNavSync,
   NavBadge,
   type StageActions,
@@ -33,6 +34,7 @@ interface Props {
   state: DisplayState;
   settings: AppSettings;
   onGoIdle: () => void;
+  onKeepShowingVerse: () => void;
   onNextSlide: () => void;
   onPrevSlide: () => void;
   onNextImage: () => void;
@@ -73,6 +75,7 @@ export default function Layout({
   state,
   settings,
   onGoIdle,
+  onKeepShowingVerse,
   onNextSlide,
   onPrevSlide,
   onNextImage,
@@ -516,7 +519,20 @@ export default function Layout({
         />
 
         <StageNavSync page={currentPage} />
-        <StageToasts currentPage={currentPage} onNavigate={setCurrentPage} t={t} />
+        <StageToasts
+          currentPage={currentPage}
+          onNavigate={setCurrentPage}
+          t={t}
+          pinned={
+            <VerseReminderNotice
+              state={state}
+              t={t}
+              onKeepShowing={onKeepShowingVerse}
+              onHide={onGoIdle}
+              onShowAgain={() => stageActions.setMode("text")}
+            />
+          }
+        />
 
         <StageSheet
           open={stageSheetOpen}

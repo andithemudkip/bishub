@@ -37,6 +37,7 @@ function props(overrides: Partial<SettingsPageProps> = {}): SettingsPageProps {
     onSetChromeSize: vi.fn(),
     onSetSlideBackground: vi.fn(),
     onSetBibleBackground: vi.fn(),
+    onSetVerseReminder: vi.fn(),
     onSetDisplayMonitor: vi.fn(),
     appVersion: "1.2.3",
     updateStatus: { state: "idle" },
@@ -238,5 +239,25 @@ describe("Storage section", () => {
   it("explains when the hymn book has no music to download", () => {
     openDownloads(props({ mp3CacheStats: { count: 0, sizeBytes: 0, availableCount: 0 } }));
     expect(screen.getByText("There's no hymn music to download for this hymn book.")).toBeTruthy();
+  });
+
+  it("sets the verse reminder, and offers Then only while it's on", () => {
+    const onSetVerseReminder = vi.fn();
+    const { rerender } = render(<SettingsPage {...props({ onSetVerseReminder })} />);
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "remind" } });
+    fireEvent.click(sectionButton("Remind me after"));
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Remind me after" }), {
+      target: { value: "15" },
+    });
+    expect(onSetVerseReminder).toHaveBeenLastCalledWith(15, true);
+    fireEvent.change(screen.getByRole("combobox", { name: "Then" }), {
+      target: { value: "remind" },
+    });
+    expect(onSetVerseReminder).toHaveBeenLastCalledWith(10, false);
+
+    const off = { ...DEFAULT_SETTINGS, language: "en" as const, verseReminderMinutes: 0 };
+    rerender(<SettingsPage {...props({ onSetVerseReminder, settings: off })} />);
+    expect(screen.queryByRole("combobox", { name: "Then" })).toBeNull();
   });
 });

@@ -763,6 +763,10 @@ export function createServer(
       stateManager.goIdle();
     });
 
+    socket.on("keepShowingVerse", () => {
+      stateManager.keepShowingVerse();
+    });
+
     // Text mode
     socket.on("loadText", (title, content) => {
       stateManager.loadText(title, content);
@@ -848,6 +852,10 @@ export function createServer(
         stateManager.setBibleBackground(enabled, from, to);
       },
     );
+
+    socket.on("setVerseReminder", (minutes: number, autoHide: boolean) => {
+      stateManager.setVerseReminder(minutes, autoHide);
+    });
 
     // Hymns
     socket.on("getHymns", (slug) => {

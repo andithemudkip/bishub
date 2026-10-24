@@ -98,6 +98,14 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   },
   { id: "hymnal", section: "content", label: (t) => t.hymns.hymnal, hint: (t) => t.settings.hymnalHint },
   {
+    id: "verseReminder",
+    section: "content",
+    label: (t) => t.verseReminder.remindAfter,
+    // The "Then" row only exists while the reminder is on, so it's found through this one.
+    hint: (t) =>
+      `${t.verseReminder.sectionTitle} ${t.verseReminder.remindAfterHint} ${t.verseReminder.autoHide} ${t.verseReminder.remindOnly}`,
+  },
+  {
     id: "syncedLyrics",
     section: "content",
     label: (t) => t.karaoke.defaultToggleLabel,

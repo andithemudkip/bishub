@@ -7,6 +7,9 @@ import { formatFileSize } from "../../../shared/utils";
 import { SettingRow, SettingsGroup } from "./SettingRow";
 import type { SectionProps } from "./types";
 
+/** 0 is off. Shorter than five would nag through an ordinary exposition. */
+const VERSE_REMINDER_MINUTES = [0, 5, 10, 15, 20, 30];
+
 export function ContentSection({
   settings,
   hymnals,
@@ -16,6 +19,7 @@ export function ContentSection({
   downloadedTranslations,
   onSetSyncedLyrics,
   onSetInstrumentals,
+  onSetVerseReminder,
   mp3CacheStats,
   onOpenSection,
   t,
@@ -61,6 +65,48 @@ export function ContentSection({
             ))}
           </Select>
         </SettingRow>
+      </SettingsGroup>
+
+      <SettingsGroup title={t.verseReminder.sectionTitle}>
+        <SettingRow
+          id="verseReminder"
+          label={t.verseReminder.remindAfter}
+          hint={t.verseReminder.remindAfterHint}
+          control={
+            <Select
+              value={String(settings.verseReminderMinutes)}
+              onChange={(e) => onSetVerseReminder(Number(e.target.value), settings.verseAutoHide)}
+              aria-label={t.verseReminder.remindAfter}
+            >
+              {VERSE_REMINDER_MINUTES.map((minutes) => (
+                <option key={minutes} value={minutes}>
+                  {minutes === 0
+                    ? t.verseReminder.off
+                    : t.verseReminder.minutesOption.replace("{n}", String(minutes))}
+                </option>
+              ))}
+            </Select>
+          }
+        />
+        {settings.verseReminderMinutes > 0 && (
+          <SettingRow
+            id="verseAutoHide"
+            label={t.verseReminder.then}
+            hint={t.verseReminder.thenHint}
+            control={
+              <Select
+                value={settings.verseAutoHide ? "hide" : "remind"}
+                onChange={(e) =>
+                  onSetVerseReminder(settings.verseReminderMinutes, e.target.value === "hide")
+                }
+                aria-label={t.verseReminder.then}
+              >
+                <option value="hide">{t.verseReminder.autoHide}</option>
+                <option value="remind">{t.verseReminder.remindOnly}</option>
+              </Select>
+            }
+          />
+        )}
       </SettingsGroup>
 
       <SettingsGroup title={t.karaoke.sectionTitle}>

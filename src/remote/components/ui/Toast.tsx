@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { CheckIcon, WarningIcon } from "../icons/ui";
 
 export interface ToastItem {
@@ -13,19 +13,22 @@ export interface ToastItem {
 interface Props {
   toasts: ToastItem[];
   onDismiss: (id: string) => void;
+  /** A notice that stays until it's answered, above the toasts; may render nothing. */
+  pinned?: ReactNode;
 }
 
 /**
  * Stacked notices, newest at the bottom. On phones they sit above the bottom
  * nav, clear of the preview and the slide controls.
  */
-export function ToastStack({ toasts, onDismiss }: Props) {
-  if (toasts.length === 0) return null;
+export function ToastStack({ toasts, onDismiss, pinned }: Props) {
+  if (toasts.length === 0 && !pinned) return null;
   return (
     <div
       className="fixed z-50 inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:bottom-4 md:w-80 flex flex-col gap-2 pointer-events-none"
       aria-live="polite"
     >
+      {pinned}
       {toasts.map((toast) => (
         <Toast key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}

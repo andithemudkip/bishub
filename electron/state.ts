@@ -7,6 +7,7 @@ import type {
   AudioWidgetPosition,
   IdleBackground,
   TextContentType,
+  TextState,
   HymnRef,
   BibleContext,
   ChromeSizeKey,
@@ -39,6 +40,10 @@ import crypto from "crypto";
 type StateChangeCallback = (state: DisplayState) => void;
 type SettingsChangeCallback = (settings: AppSettings) => void;
 
+/** Between the reminder and the verse fading to idle — long enough to reach a remote. */
+export const VERSE_HIDE_COUNTDOWN_MS = 60_000;
+const VERSE_REMINDER_MAX_MINUTES = 120;
+
 interface SettingsSchema {
   settings: AppSettings;
   idleSettings: {
@@ -67,6 +72,10 @@ export class StateManager {
   /** Consecutive failed audio loads; reset by updateAudioTime(). See handleAudioError(). */
   private consecutiveAudioErrors = 0;
   private legacyWallpaper: string | null = null;
+  private verseReminderTimer: NodeJS.Timeout | null = null;
+  /** The verse the reminder was armed for; a different text object or slide re-arms it. */
+  private verseReminderFor: { text: TextState; slide: number } | null = null;
+  private verseReminderListeners: (() => void)[] = [];
 
   constructor() {
     // Generate random security key for web remote authentication
@@ -162,7 +171,16 @@ export class StateManager {
     };
   }
 
+  /** Fires when a verse's reminder starts, so the main computer can draw attention to it. */
+  onVerseReminder(callback: () => void) {
+    this.verseReminderListeners.push(callback);
+    return () => {
+      this.verseReminderListeners = this.verseReminderListeners.filter((cb) => cb !== callback);
+    };
+  }
+
   private notifyStateChange() {
+    this.syncVerseReminder();
     const stateCopy = this.getState();
     this.stateListeners.forEach((cb) => cb(stateCopy));
   }
@@ -378,6 +396,57 @@ export class StateManager {
     }
   }
 
+  /** "Keep showing": the verse on screen gets a full interval again. */
+  keepShowingVerse() {
+    if (!this.state.text.verseReminder) return;
+    this.verseReminderFor = null;
+    this.notifyStateChange();
+  }
+
+  /**
+   * Arms, re-arms or clears the reminder from whatever the state is now, so
+   * every way of showing, moving or leaving a verse is covered without each
+   * one remembering to. Only a slide change or new content counts as activity:
+   * a verse being talked through for ten minutes looks exactly like a
+   * forgotten one, which is why the reminder asks before it hides.
+   */
+  private syncVerseReminder() {
+    const { mode, text } = this.state;
+    if (mode === "text") text.autoHiddenAt = undefined;
+    const minutes = this.settings.verseReminderMinutes;
+    if (mode !== "text" || text.contentType !== "bible" || minutes <= 0) {
+      this.clearVerseReminder();
+      return;
+    }
+    const armed = this.verseReminderFor;
+    if (armed && armed.text === text && armed.slide === text.currentSlide) return;
+
+    this.clearVerseReminder();
+    const now = Date.now();
+    const remindAt = now + minutes * 60_000;
+    const hideAt = this.settings.verseAutoHide ? remindAt + VERSE_HIDE_COUNTDOWN_MS : null;
+    text.verseReminder = { since: now, remindAt, hideAt };
+    this.verseReminderFor = { text, slide: text.currentSlide };
+    this.verseReminderTimer = setTimeout(() => {
+      this.verseReminderListeners.forEach((cb) => cb());
+      if (hideAt === null) return;
+      this.verseReminderTimer = setTimeout(() => {
+        // Hidden, not cleared: "Show again" brings back this verse and slide.
+        this.state.text.autoHiddenAt = Date.now();
+        this.goIdle();
+      }, hideAt - remindAt);
+    }, remindAt - now);
+  }
+
+  private clearVerseReminder() {
+    if (this.verseReminderTimer) {
+      clearTimeout(this.verseReminderTimer);
+      this.verseReminderTimer = null;
+    }
+    this.verseReminderFor = null;
+    this.state.text.verseReminder = undefined;
+  }
+
   // Video mode
   loadVideo(src: string, videoId?: string) {
     this.stopHymnAudio();
@@ -515,6 +584,19 @@ export class StateManager {
       DEFAULT_BIBLE_BACKGROUND.to,
     );
     this.notifySettingsChange();
+  }
+
+  setVerseReminder(minutes: number, autoHide: boolean) {
+    if (!Number.isFinite(minutes)) return;
+    this.settings.verseReminderMinutes = Math.min(
+      VERSE_REMINDER_MAX_MINUTES,
+      Math.max(0, Math.round(minutes))
+    );
+    this.settings.verseAutoHide = autoHide === true;
+    this.notifySettingsChange();
+    // Start the verse on screen over under the new setting.
+    this.verseReminderFor = null;
+    this.notifyStateChange();
   }
 
   setKaraokeBannerDismissed(dismissed: boolean) {

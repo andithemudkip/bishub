@@ -135,11 +135,14 @@ const electronAPI = {
     to: string,
   ): Promise<void> =>
     ipcRenderer.invoke("set-bible-background", enabled, from, to),
+  setVerseReminder: (minutes: number, autoHide: boolean): Promise<void> =>
+    ipcRenderer.invoke("set-verse-reminder", minutes, autoHide),
   setOpenOnStartup: (openOnStartup: boolean): Promise<void> =>
     ipcRenderer.invoke("set-open-on-startup", openOnStartup),
   getOpenOnStartup: (): Promise<boolean> =>
     ipcRenderer.invoke("get-open-on-startup"),
   goIdle: (): Promise<void> => ipcRenderer.invoke("go-idle"),
+  keepShowingVerse: (): Promise<void> => ipcRenderer.invoke("keep-showing-verse"),
 
   // Idle screen settings
   setIdleBackground: (background: IdleBackground): Promise<void> =>

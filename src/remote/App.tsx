@@ -296,6 +296,7 @@ export default function App() {
             onSetChromeSize={api.setChromeSize}
             onSetSlideBackground={api.setSlideBackground}
             onSetBibleBackground={api.setBibleBackground}
+            onSetVerseReminder={api.setVerseReminder}
             onSetInstrumentals={api.setInstrumentals}
             onSetDisplayMonitor={api.setDisplayMonitor}
             appVersion={appVersion}
@@ -343,6 +344,7 @@ export default function App() {
         state={api.state}
         settings={api.settings}
         onGoIdle={handleGoIdle}
+        onKeepShowingVerse={api.keepShowingVerse}
         onNextSlide={handleNextSlide}
         onPrevSlide={handlePrevSlide}
         onNextImage={api.nextImage}

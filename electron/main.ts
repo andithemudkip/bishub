@@ -101,6 +101,8 @@ let stateManager: StateManager;
 async function createWindows() {
   stateManager = new StateManager();
   windowManager = new WindowManager(stateManager);
+  // The remotes show the reminder; this catches an operator looking at another app.
+  stateManager.onVerseReminder(() => windowManager.flashRemote());
   initIdleBackground(stateManager, getImageLibrary()).catch((err) =>
     console.error("Failed to set up the idle background:", err)
   );
@@ -309,6 +311,10 @@ function setupIPC() {
     },
   );
 
+  ipcMain.handle("set-verse-reminder", (_event, minutes: number, autoHide: boolean) => {
+    stateManager.setVerseReminder(minutes, autoHide);
+  });
+
   ipcMain.handle("set-open-on-startup", (_event, openOnStartup: boolean) => {
     stateManager.setOpenOnStartup(openOnStartup);
 
@@ -326,6 +332,10 @@ function setupIPC() {
 
   ipcMain.handle("go-idle", () => {
     stateManager.goIdle();
+  });
+
+  ipcMain.handle("keep-showing-verse", () => {
+    stateManager.keepShowingVerse();
   });
 
   // Idle screen settings

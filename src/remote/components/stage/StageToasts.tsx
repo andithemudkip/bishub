@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Translations } from "../../../shared/i18n";
 import type { ActivityTarget } from "../../../shared/stage.types";
 import { ToastStack, type ToastItem } from "../ui/Toast";
@@ -10,6 +10,8 @@ interface Props {
   currentPage: ActivityTarget;
   onNavigate: NavigateTo;
   t: Translations;
+  /** Passed through to `ToastStack`, so it stacks with the toasts instead of under them. */
+  pinned?: ReactNode;
 }
 
 const SUCCESS_MS = 4000;
@@ -26,7 +28,7 @@ const MAX_TOASTS = 3;
  * bulk run itself is one grouped row, so it ends in one toast. Nothing
  * toasts for the page you're on — you can see it there.
  */
-export function StageToasts({ currentPage, onNavigate, t }: Props) {
+export function StageToasts({ currentPage, onNavigate, t, pinned }: Props) {
   const { activities } = useStage();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const seenLive = useRef(new Set<string>());
@@ -75,5 +77,5 @@ export function StageToasts({ currentPage, onNavigate, t }: Props) {
     return () => pending.forEach(clearTimeout);
   }, []);
 
-  return <ToastStack toasts={toasts} onDismiss={dismiss} />;
+  return <ToastStack toasts={toasts} onDismiss={dismiss} pinned={pinned} />;
 }

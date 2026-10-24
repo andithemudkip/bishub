@@ -269,6 +269,14 @@ export class WindowManager {
     return this.remoteWindow;
   }
 
+  /** Bounces the dock icon / flashes the taskbar until the remote is focused. */
+  flashRemote() {
+    const win = this.remoteWindow;
+    if (!win || win.isFocused()) return;
+    win.flashFrame(true);
+    win.once("focus", () => win.flashFrame(false));
+  }
+
   broadcastToAll(channel: string, ...args: unknown[]) {
     this.displayWindow?.webContents.send(channel, ...args);
     this.remoteWindow?.webContents.send(channel, ...args);

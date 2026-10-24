@@ -79,7 +79,9 @@ interface RemoteAPI {
   setChromeSize: (key: ChromeSizeKey, size: number) => void;
   setSlideBackground: (from: string, to: string) => void;
   setBibleBackground: (enabled: boolean, from: string, to: string) => void;
+  setVerseReminder: (minutes: number, autoHide: boolean) => void;
   goIdle: () => void;
+  keepShowingVerse: () => void;
   // Hymns
   loadHymn: (
     slug: string,
@@ -671,9 +673,22 @@ export function useRemoteAPI(): RemoteAPI {
       [isElectron]
     ),
 
+    setVerseReminder: useCallback(
+      (minutes: number, autoHide: boolean) => {
+        if (isElectron) window.electronAPI!.setVerseReminder(minutes, autoHide);
+        else socketRef.current?.emit("setVerseReminder", minutes, autoHide);
+      },
+      [isElectron]
+    ),
+
     goIdle: useCallback(() => {
       if (isElectron) window.electronAPI!.goIdle();
       else socketRef.current?.emit("goIdle");
+    }, [isElectron]),
+
+    keepShowingVerse: useCallback(() => {
+      if (isElectron) window.electronAPI!.keepShowingVerse();
+      else socketRef.current?.emit("keepShowingVerse");
     }, [isElectron]),
 
     searchAllHymns: useCallback(

@@ -87,6 +87,23 @@ export interface TextState {
   bibleContext?: BibleContext;
   hymnRef?: HymnRef;
   syncedLyrics?: ParsedTTML;
+  /** Set while a Bible verse is on screen and the reminder is on. See `StateManager.syncVerseReminder`. */
+  verseReminder?: VerseReminderState;
+  /** Epoch ms when the reminder hid this text, so remotes can offer it back. Cleared once it shows again. */
+  autoHiddenAt?: number;
+}
+
+/**
+ * A Bible verse left on screen is easy to forget once the preacher moves on.
+ * Times are epoch ms on the main computer; any slide change starts them over.
+ */
+export interface VerseReminderState {
+  /** When the verse last changed. */
+  since: number;
+  /** When remotes start reminding. */
+  remindAt: number;
+  /** When it fades to idle; null when the setting only reminds. */
+  hideAt: number | null;
 }
 
 export interface VideoState {
@@ -204,6 +221,10 @@ export interface AppSettings {
   bibleBackgroundEnabled: boolean;
   bibleBackgroundFrom: string;
   bibleBackgroundTo: string;
+  /** Minutes a Bible verse may sit untouched before remotes remind; 0 turns the reminder off. */
+  verseReminderMinutes: number;
+  /** After the reminder, hide the verse unless someone keeps it; false only reminds. */
+  verseAutoHide: boolean;
 }
 
 /** The chrome elements whose size the operator can tune. */
@@ -346,9 +367,11 @@ export type ClientToServerEvents = {
     from: string,
     to: string,
   ) => void;
+  setVerseReminder: (minutes: number, autoHide: boolean) => void;
   getMonitors: () => void;
   getHymnals: () => void;
   goIdle: () => void;
+  keepShowingVerse: () => void;
   // Devices
   getDevices: () => void;
   renameDevice: (deviceId: string, name: string) => void;
@@ -561,6 +584,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   bibleBackgroundEnabled: false,
   bibleBackgroundFrom: DEFAULT_BIBLE_BACKGROUND.from,
   bibleBackgroundTo: DEFAULT_BIBLE_BACKGROUND.to,
+  verseReminderMinutes: 10,
+  verseAutoHide: true,
 };
 
 // Hymn types

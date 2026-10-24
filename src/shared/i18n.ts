@@ -606,6 +606,24 @@ export interface Translations {
     hintClose: string;
   };
 
+  // Bible verses left on screen: the reminder, its countdown and its settings
+  verseReminder: {
+    sectionTitle: string;
+    remindAfter: string;
+    remindAfterHint: string;
+    off: string;
+    minutesOption: string;
+    then: string;
+    thenHint: string;
+    autoHide: string;
+    remindOnly: string;
+    onScreenFor: string;
+    hidingIn: string;
+    keepShowing: string;
+    hide: string;
+    hidden: string;
+    showAgain: string;
+  };
   // Stage: the live panel beside every page (preview, loaded layers,
   // background activity, upcoming schedules, system health)
   stage: {
@@ -1337,6 +1355,24 @@ const ro: Translations = {
     current: "Curent",
     next: "Următor",
     endOfSlides: "Sfârșitul slide-urilor",
+  },
+  verseReminder: {
+    sectionTitle: "Temporizator verset afișat",
+    remindAfter: "Amintește-mi după",
+    remindAfterHint:
+      "Când un verset rămâne pe ecran atât timp fără să schimbi slide-ul, primești o notificare.",
+    off: "Oprit",
+    minutesOption: "{n} min",
+    then: "Apoi",
+    thenHint: "Dacă nu alegi nimic după un minut.",
+    autoHide: "Ascunde versetul",
+    remindOnly: "Doar amintește",
+    onScreenFor: "Verset pe ecran de {n} min",
+    hidingIn: "Se ascunde în {time}",
+    keepShowing: "Păstrează pe ecran",
+    hide: "Ascunde",
+    hidden: "Versetul a fost ascuns",
+    showAgain: "Arată din nou",
   },
   stage: {
     title: "În direct",
@@ -2078,6 +2114,24 @@ const en: Translations = {
     current: "Current",
     next: "Next",
     endOfSlides: "End of slides",
+  },
+  verseReminder: {
+    sectionTitle: "Verse reminder",
+    remindAfter: "Remind me after",
+    remindAfterHint:
+      "When a verse stays on screen this long without a slide change, every remote reminds you.",
+    off: "Off",
+    minutesOption: "{n} min",
+    then: "Then",
+    thenHint: "If nobody responds within a minute.",
+    autoHide: "Hide the verse",
+    remindOnly: "Only remind",
+    onScreenFor: "Verse on screen for {n} min",
+    hidingIn: "Hiding in {time}",
+    keepShowing: "Keep showing",
+    hide: "Hide",
+    hidden: "Verse hidden",
+    showAgain: "Show again",
   },
   stage: {
     title: "Live",
