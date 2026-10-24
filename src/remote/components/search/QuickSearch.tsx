@@ -663,6 +663,18 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
                   </li>
                 ))}
               </ul>
+              <button
+                type="button"
+                onClick={() => {
+                  onNavigate("settings");
+                  sendPageIntent({ page: "settings", section: "shortcuts", settingId: "quickSearchSyntax" });
+                  close();
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-blue-400 hover:bg-blue-950/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                {t.quickSearch.moreExamples}
+                <ArrowRightIcon className="w-4 h-4" />
+              </button>
             </div>
           )}
         </div>

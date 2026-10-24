@@ -613,7 +613,11 @@ export interface Translations {
     filterNeedsWords: string;
     suggestBook: string;
     examplesTitle: string;
+    moreExamples: string;
     examples: { query: string; label: string }[];
+    cheatsheetTitle: string;
+    cheatsheetIntro: string;
+    cheatsheet: { title: string; rows: { syntax: string[]; label: string }[] }[];
   };
 
   // Bible verses left on screen: the reminder, its countdown and its settings
@@ -1464,11 +1468,38 @@ const ro: Translations = {
     filterNeedsWords: "Scrie un cuvânt de căutat în aceste versete",
     suggestBook: "Caută doar în {book}",
     examplesTitle: "Încearcă",
+    moreExamples: "Mai multe exemple",
     examples: [
       { query: "ioan: pâine", label: "„pâine”, doar în Ioan" },
       { query: ":18 talant", label: "versetul 18 din orice carte, cu „talant”" },
       { query: "6:18", label: "capitolul 6, versetul 18, din orice carte" },
       { query: "b: har", label: "doar în Biblie" },
+    ],
+    cheatsheetTitle: "Căutarea rapidă",
+    cheatsheetIntro: "Ce poți scrie în Căutarea rapidă {shortcut}",
+    cheatsheet: [
+      {
+        title: "Căutări simple",
+        rows: [
+          { syntax: ["23"], label: "Imnul 23 sau Psalmul 23" },
+          { syntax: ["ce mare ești"], label: "Câteva cuvinte din titlul sau versurile unui imn" },
+          { syntax: ["ioan 3"], label: "Un capitol întreg" },
+          { syntax: ["ioan 3:16"], label: "Un verset" },
+          { syntax: ["ioan 3:16-18"], label: "Mai multe versete" },
+          { syntax: ["1 cor 13"], label: "Numele cărților se pot prescurta" },
+        ],
+      },
+      {
+        title: "Filtre",
+        rows: [
+          { syntax: ["b:", "i:", "m:"], label: "Caută doar în Biblie / imnuri / media" },
+          { syntax: ["ioan: pâine"], label: "Un cuvânt, doar într-o carte" },
+          { syntax: ["ioan 6: pâine"], label: "Un cuvânt, doar într-un capitol" },
+          { syntax: [":18 talant"], label: "Versetul 18 din orice carte, cu acel cuvânt" },
+          { syntax: ["6:18"], label: "Capitolul 6, versetul 18, din toate cărțile" },
+          { syntax: ['"pâinea vieții"'], label: "Exact aceste cuvinte, în această ordine" },
+        ],
+      },
     ],
   },
   updates: {
@@ -2238,11 +2269,38 @@ const en: Translations = {
     filterNeedsWords: "Type a word to search these verses",
     suggestBook: "Search only in {book}",
     examplesTitle: "Try",
+    moreExamples: "More examples",
     examples: [
       { query: "john: bread", label: "“bread”, in John only" },
       { query: ":16 loved", label: "verse 16 of any book, with “loved”" },
       { query: "6:18", label: "chapter 6, verse 18, of any book" },
       { query: "b: grace", label: "Bible only" },
+    ],
+    cheatsheetTitle: "Quick Search",
+    cheatsheetIntro: "What you can type in Quick Search {shortcut}",
+    cheatsheet: [
+      {
+        title: "Simple searches",
+        rows: [
+          { syntax: ["23"], label: "Hymn 23, or Psalm 23" },
+          { syntax: ["awesome wonder"], label: "A few words from a hymn's title or lyrics" },
+          { syntax: ["john 3"], label: "A whole chapter" },
+          { syntax: ["john 3:16"], label: "One verse" },
+          { syntax: ["john 3:16-18"], label: "Several verses" },
+          { syntax: ["1 cor 13"], label: "Book names can be shortened" },
+        ],
+      },
+      {
+        title: "Filters",
+        rows: [
+          { syntax: ["b:", "i:", "m:"], label: "Search only the Bible / hymns / media" },
+          { syntax: ["john: bread"], label: "A word, in one book only" },
+          { syntax: ["john 6: bread"], label: "A word, in one chapter only" },
+          { syntax: [":16 loved"], label: "Verse 16 of any book, with that word" },
+          { syntax: ["6:18"], label: "Chapter 6, verse 18, in every book" },
+          { syntax: ['"bread of life"'], label: "These exact words, in this order" },
+        ],
+      },
     ],
   },
   updates: {

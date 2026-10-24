@@ -150,6 +150,15 @@ export const SETTINGS_INDEX: SettingEntry[] = [
     hint: (t) => t.settings.sections.shortcuts.description,
   },
   {
+    id: "quickSearchSyntax",
+    section: "shortcuts",
+    label: (t) => t.quickSearch.cheatsheetTitle,
+    hint: (t) =>
+      t.quickSearch.cheatsheet
+        .flatMap((part) => [part.title, ...part.rows.map((row) => row.label)])
+        .join(" "),
+  },
+  {
     id: "updates",
     section: "about",
     label: (t) => t.settings.updatesTitle,

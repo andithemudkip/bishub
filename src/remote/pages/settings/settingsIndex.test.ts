@@ -46,6 +46,12 @@ describe("searchSettings", () => {
     expect(ids("startup", en, false)).not.toContain("openOnStartup");
   });
 
+  it("finds the Quick Search cheatsheet by what it teaches", () => {
+    expect(ids("filtre", ro)).toContain("quickSearchSyntax");
+    expect(ids("versurile", ro)).toContain("quickSearchSyntax");
+    expect(ids("verse any book")).toContain("quickSearchSyntax");
+  });
+
   it("gives every indexed setting a label in both languages", () => {
     for (const entry of SETTINGS_INDEX) {
       expect(entry.label(en)).toBeTruthy();

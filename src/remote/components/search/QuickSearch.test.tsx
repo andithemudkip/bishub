@@ -289,6 +289,16 @@ describe("QuickSearch syntax", () => {
     await vi.waitFor(() => expect(actions.search).toHaveBeenCalledWith("ioan: paine"));
   });
 
+  it("links from the examples to the full cheatsheet in Settings", () => {
+    const { onNavigate, onClose } = mount("", actionsFor(empty));
+    const handler = vi.fn<(intent: PageIntent) => void>();
+    fireEvent.click(screen.getByText(t.quickSearch.moreExamples));
+    renderHook(() => usePageIntent("settings", handler));
+    expect(onNavigate).toHaveBeenCalledWith("settings");
+    expect(onClose).toHaveBeenCalled();
+    expect(handler).toHaveBeenCalledWith({ page: "settings", section: "shortcuts", settingId: "quickSearchSyntax" });
+  });
+
   it("fills in an example when it's picked, scope and all", () => {
     mount("", actionsFor(empty));
     fireEvent.click(screen.getByText("b: grace"));
