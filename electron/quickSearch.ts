@@ -234,6 +234,7 @@ export function quickSearch(
       startVerse: filter.startVerse,
       endVerse: filter.endVerse,
       text: parsed.text,
+      range: parsed.filterRange,
     };
   }
   if (p.versesFollow) {

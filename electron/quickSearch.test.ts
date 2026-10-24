@@ -335,7 +335,7 @@ describe("quickSearch", () => {
 
     it("say how the query was read", () => {
       const r = quickSearch("ioan 6: paine", "ro", "ron-rccv", CURRENT);
-      expect(r.filter).toEqual({ bookName: "Ioan", chapter: 6, text: "paine" });
+      expect(r.filter).toEqual({ bookName: "Ioan", chapter: 6, text: "paine", range: [0, 7] });
       expect(r.versesFollow).toBe(true);
     });
 
@@ -359,14 +359,14 @@ describe("quickSearch", () => {
       data.verses = [verse(6, 18, "duh")];
       const r = search("6:18");
       expect(groupKinds(r)).toEqual(["bible"]);
-      expect(r.filter).toEqual({ chapter: 6, startVerse: 18, endVerse: 18, text: "" });
+      expect(r.filter).toEqual({ chapter: 6, startVerse: 18, endVerse: 18, text: "", range: [0, 4] });
     });
 
     it("on their own, don't scan for a verse number in every book", () => {
       const r = search(":18");
       expect(r.groups).toEqual([]);
       expect(r.versesFollow).toBe(false);
-      expect(r.filter).toEqual({ startVerse: 18, endVerse: 18, text: "" });
+      expect(r.filter).toEqual({ startVerse: 18, endVerse: 18, text: "", range: [0, 3] });
     });
 
     it("keep a plain reference exactly as before", () => {

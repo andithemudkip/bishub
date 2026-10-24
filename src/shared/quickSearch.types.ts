@@ -78,4 +78,6 @@ export interface QuickSearchFilter {
   endVerse?: number;
   /** The words searched within it; empty when the filter stands alone. */
   text: string;
+  /** Where it was typed, as [start, end) offsets into `query`, for highlighting. */
+  range?: [number, number];
 }

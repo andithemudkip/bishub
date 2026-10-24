@@ -55,7 +55,9 @@ describe("parseQuickSearchQuery", () => {
   });
 
   it("doesn't care where the filter sits", () => {
-    expect(parse("talant :18")).toEqual(parse(":18 talant"));
+    const { filterRange: _a, ...after } = parse("talant :18");
+    const { filterRange: _b, ...before } = parse(":18 talant");
+    expect(after).toEqual(before);
     expect(parse("paine ioan:")).toMatchObject({ filter: { bookId: "JHN" }, text: "paine" });
   });
 
@@ -107,6 +109,21 @@ describe("parseQuickSearchQuery", () => {
 
   it("runs an unclosed quote to the end", () => {
     expect(parse('ioan: "a iubit').phrases).toEqual(["a iubit"]);
+  });
+
+  it("says where the filter was typed, so the remote can highlight it", () => {
+    const range = (query: string) => {
+      const r = parse(query).filterRange;
+      return r && query.slice(r[0], r[1]);
+    };
+    expect(range("ioan 6: paine")).toBe("ioan 6:");
+    expect(range("paine :18")).toBe(":18");
+    expect(range("dragoste 1 ioan 4: pace")).toBe("1 ioan 4:");
+    expect(range("plangerile lui ieremia: mila")).toBe("plangerile lui ieremia:");
+    expect(range('b:  "a b" 6:18')).toBe("6:18");
+    expect(range("xyz: ioan: paine")).toBe("ioan:");
+    expect(parse("ioan paine").filterRange).toBeUndefined();
+    expect(parse("xyz: paine").filterRange).toBeUndefined();
   });
 
   it("reads a scope before the filter", () => {

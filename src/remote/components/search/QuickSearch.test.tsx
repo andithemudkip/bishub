@@ -296,3 +296,52 @@ describe("QuickSearch syntax", () => {
     expect(pill(t.quickSearch.groupBible)).toBeTruthy();
   });
 });
+
+describe("QuickSearch filter highlight", () => {
+  // The server reports where it read "ioan 6:"; here, always at the start.
+  const withFilter = (q: string): QuickSearchResponse => ({
+    query: q,
+    groups: [],
+    versesFollow: false,
+    filter: { bookName: "Ioan", chapter: 6, text: "paine", range: [0, 7] },
+  });
+  const marked = () => document.querySelector("mark")?.textContent ?? null;
+
+  it("highlights the part of the box a filter was read from", async () => {
+    mount("ioan 6: paine", actionsFor(withFilter));
+    await vi.waitFor(() => expect(marked()).toBe("ioan 6:"));
+  });
+
+  it("stays while typing elsewhere, and goes when the filter is edited", async () => {
+    mount("ioan 6: paine", actionsFor(withFilter));
+    await vi.waitFor(() => expect(marked()).toBe("ioan 6:"));
+    const input = screen.getByRole("textbox");
+
+    fireEvent.change(input, { target: { value: "ioan 6: painea" } });
+    expect(marked()).toBe("ioan 6:");
+
+    // Checked before the reply for the new text lands.
+    fireEvent.change(input, { target: { value: "ioan 7: painea" } });
+    expect(marked()).toBeNull();
+    fireEvent.change(input, { target: { value: "ioan 66: painea" } });
+    expect(marked()).toBeNull();
+  });
+
+  it("lines up with the box when a scope chip is on", async () => {
+    // Sent as "b: ioan 6: paine", so the server's range starts after the prefix.
+    const actions = actionsFor((q) => ({ ...withFilter(q), filter: { ...withFilter(q).filter!, range: [3, 10] } }));
+    mount("", actions);
+    const input = screen.getByRole("textbox");
+    fireEvent.change(input, { target: { value: "b:" } });
+    fireEvent.change(input, { target: { value: "ioan 6: paine" } });
+    await vi.waitFor(() => expect(marked()).toBe("ioan 6:"));
+  });
+
+  it("leaves a plain search as an ordinary input", async () => {
+    const actions = actionsFor((q) => ({ query: q, groups: [], versesFollow: true }));
+    mount("ioan paine", actions);
+    await vi.waitFor(() => expect(actions.search).toHaveBeenCalled());
+    expect(marked()).toBeNull();
+    expect(screen.getByRole("textbox").className).not.toContain("text-transparent");
+  });
+});

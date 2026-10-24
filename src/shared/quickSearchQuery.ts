@@ -60,6 +60,8 @@ export interface ParsedQuickSearch {
   text: string;
   /** Quoted parts, each of which a verse must contain as written. */
   phrases: string[];
+  /** Where the filter was typed, as [start, end) offsets into the query. */
+  filterRange?: [number, number];
 }
 
 export type FilterBook = DynamicBookInfo & { chapterCount: number };
@@ -67,6 +69,9 @@ export type FilterBook = DynamicBookInfo & { chapterCount: number };
 interface Token {
   s: string;
   quoted: boolean;
+  /** Offsets into the query, end exclusive. */
+  start: number;
+  end: number;
 }
 
 /** Book names run to three words ("Plângerile lui Ieremia", "Song of Songs"). */
@@ -76,17 +81,21 @@ const MAX_BOOK_WORDS = 3;
 // being typed.
 const REF_TOKEN = /^([^:]*):(\d+)?(?:-(\d*))?$/;
 
-function tokenize(rest: string): Token[] {
+// A quoted phrase (an unclosed quote runs to the end), or a word.
+const TOKEN = /"([^"]*)(?:"|$)|[^\s"]+/g;
+
+/** `offset`: where `rest` starts in the query, so offsets point into it. */
+function tokenize(rest: string, offset: number): Token[] {
   const tokens: Token[] = [];
-  // Even segments are outside quotes; an unclosed quote runs to the end.
-  rest.split('"').forEach((segment, i) => {
-    if (i % 2 === 1) {
-      const phrase = segment.trim();
-      if (phrase) tokens.push({ s: phrase, quoted: true });
-    } else {
-      for (const word of segment.split(/\s+/)) if (word) tokens.push({ s: word, quoted: false });
+  for (const match of rest.matchAll(TOKEN)) {
+    const start = offset + (match.index ?? 0);
+    const end = start + match[0].length;
+    if (match[1] === undefined) {
+      tokens.push({ s: match[0], quoted: false, start, end });
+    } else if (match[1].trim()) {
+      tokens.push({ s: match[1].trim(), quoted: true, start, end });
     }
-  });
+  }
   return tokens;
 }
 
@@ -176,7 +185,7 @@ export function parseQuickSearchQuery<T extends FilterBook>(
     return { scope, filter: null, text: rest.trim(), phrases: [] };
   }
 
-  const tokens = tokenize(rest);
+  const tokens = tokenize(rest, query.length - rest.length);
   let found: FoundFilter | null = null;
   let colonAt = -1;
   for (let i = 0; i < tokens.length && !found; i++) {
@@ -196,6 +205,7 @@ export function parseQuickSearchQuery<T extends FilterBook>(
     ...(found?.bookName ? { bookName: found.bookName } : {}),
     text,
     phrases,
+    ...(found ? { filterRange: [tokens[found.start].start, tokens[colonAt].end] } : {}),
   };
 }
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Translations } from "../../../shared/i18n";
 import type { ActivityTarget } from "../../../shared/stage.types";
 import type {
@@ -120,6 +120,7 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
   const [pendingEnter, setPendingEnter] = useState<PendingEnter | null>(null);
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const mirrorRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const latestQuery = useRef(initialQuery);
   /** The query already sent, so Enter and the debounce don't both send it. */
@@ -217,6 +218,30 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
     });
     return out;
   }, [groups, showingRecents]);
+
+  /**
+   * The part of the box a filter was read from ("ioan 6:"), as offsets into
+   * `query`. A reply for an earlier keystroke still counts while those
+   * characters stand as a whole word, so typing elsewhere doesn't blink it.
+   */
+  const highlight = useMemo((): [number, number] | null => {
+    const range = response?.filter?.range;
+    if (!range || showingRecents) return null;
+    const [start, end] = range;
+    if (response.query.slice(start, end) !== searchQuery.slice(start, end)) return null;
+    const edge = (i: number) => i < 0 || i >= searchQuery.length || /\s/.test(searchQuery[i]);
+    if (!edge(start - 1) || !edge(end)) return null;
+    // The scope chip's prefix isn't in the box.
+    const offset = searchQuery.length - query.length;
+    return start >= offset ? [start - offset, end - offset] : null;
+  }, [response, showingRecents, searchQuery, query]);
+
+  // The highlight is drawn by a copy of the text behind the input, which has
+  // to scroll with it once the text is wider than the box.
+  const syncMirror = () => {
+    if (mirrorRef.current && inputRef.current) mirrorRef.current.scrollLeft = inputRef.current.scrollLeft;
+  };
+  useLayoutEffect(syncMirror);
 
   /** Everything for what's typed has arrived, verses included. */
   const settled =
@@ -464,18 +489,36 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
               </button>
             </span>
           )}
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => changeQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={t.quickSearch.placeholder}
-            className="flex-1 min-w-0 bg-transparent py-3.5 text-base focus:outline-none placeholder:text-gray-500"
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            enterKeyHint="go"
-          />
+          <div className="relative flex-1 min-w-0">
+            {highlight && (
+              <div
+                ref={mirrorRef}
+                aria-hidden="true"
+                className="absolute inset-0 py-3.5 text-base whitespace-pre overflow-hidden pointer-events-none"
+              >
+                {query.slice(0, highlight[0])}
+                <mark className="p-0 rounded-sm bg-blue-500/20 text-blue-300">
+                  {query.slice(highlight[0], highlight[1])}
+                </mark>
+                {query.slice(highlight[1])}
+              </div>
+            )}
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => changeQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onScroll={syncMirror}
+              placeholder={t.quickSearch.placeholder}
+              className={`relative w-full bg-transparent py-3.5 text-base focus:outline-none placeholder:text-gray-500 ${
+                highlight ? "text-transparent caret-gray-100 selection:bg-blue-500/30" : ""
+              }`}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="go"
+            />
+          </div>
           <button
             onClick={close}
             className="min-w-11 min-h-11 flex items-center justify-center rounded-lg text-gray-400 hover:text-white md:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
