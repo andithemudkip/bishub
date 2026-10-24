@@ -10,6 +10,21 @@ BisHub is a church display app (Electron + React + TypeScript). A fullscreen **d
 
 These can't be derived from the code. Always apply them.
 
+### Design for the least technical operator, without slowing the expert
+
+The person at the computer on Sunday is often a volunteer, not a techie, and is working live: the congregation sees every hesitation. Power users run the same app. Every new feature or UI change must:
+
+1. **Match the existing design language.** Before building a screen, open the closest sibling page and copy its structure, spacing, component choices and wording style. Use the shared components and conventions in **UI Design System** below. A new feature should look like it was always there.
+2. **Be obvious on first use.** Someone who has never seen it should succeed without docs:
+   - Works out of the box: sensible defaults, no setup step before the first useful action.
+   - The common path is one or two clicks/taps; settings tune it, they don't unlock it.
+   - Plain words in labels, hints and errors — no jargon (codec, socket, slug, IPC). An error says what happened and what to do next.
+   - Visible state: it is always clear what is on the display now and what a control will change. Show progress for anything slow (via the Stage/`Activity` model).
+   - Forgiving: prefer undo or easy reversal over confirmation dialogs; never block the live flow with a modal mid-service. Confirm only genuinely destructive actions (deleting files).
+3. **Leave room for power users without burdening others.** Advanced options go behind progressive disclosure (an "advanced" section, a secondary menu), not in the main path. Speed-ups — keyboard shortcuts (`SHORTCUTS`), Quick Search, bulk actions — are accelerators layered on top, never the only way to do something.
+
+If a feature's UX isn't clear-cut (where it lives, what the default is, how much to expose), propose the flow briefly before building it.
+
 ### Changes come with tests
 
 A new feature or behavior change ships with tests in the same change, and a bug fix ships with a regression test that fails without the fix. Use judgment about what earns one: branching logic, parsing, ranking, dates/scheduling, state transitions and anything arriving from a remote do; pure wiring (passing a value through, a new i18n string, static markup) doesn't. In the remote and display that means hooks and components with real behavior, not every button. Work isn't done until `npm test` is green. See **Testing** below for the setup.
@@ -39,11 +54,11 @@ When adding an action, check the sibling hook (`useVideoLibrary`, `useAudioLibra
 
 ### Do NOT mutate cached data objects
 
-Hymns (`assets/hymnals/{slug}.json`) and Bible data (`assets/bible.xml`, USFX format) are parsed once and cached in memory. Treat cached objects as immutable — clone before modifying.
+Hymns (`assets/hymnals/{slug}.json`, cached per book in `electron/dataLoader.ts`) and Bible translations (bundled `assets/*.xml` plus downloads in `userData/bibles/`; USFX/OSIS/Zefania, LRU-cached in `electron/bibleManager.ts`) are parsed once and cached in memory. Treat cached objects as immutable — clone before modifying.
 
 ### Internationalization
 
-All user-facing text goes through `getTranslations(settings.language)` from `src/shared/i18n.ts`. Never hardcode strings — add keys to both `ro` and `en` in `i18n.ts` first. Bible book names/abbreviations are localized in `src/shared/bibleParser.ts`. Language-specific assets live at `assets/{language}/`; falls back to default paths.
+All user-facing text goes through `getTranslations(settings.language)` from `src/shared/i18n.ts`. Never hardcode strings — add keys to both `ro` and `en` in `i18n.ts` first. Bible book names/abbreviations are localized in `src/shared/bibleParser.ts`. Hymnals carry their own language; the default hymnal per UI language comes from `electron/hymnalRegistry.ts`.
 
 ### Mobile responsiveness
 
@@ -53,7 +68,7 @@ The remote UI must work on phones and tablets (320px+). Use Tailwind's `sm:`/`md
 
 Use the shared components — don't hand-roll equivalents:
 
-- **`src/remote/components/ui/`** — `Card`, `StatusBanner`, `Select`, `PositionPicker`, `BibleTranslationPicker`, `renderTip`, `ToastStack`, `ShortcutHint`
+- **`src/remote/components/ui/`** — `Card` / `StatusBanner` (both in `Card.tsx`), `Toggle`, `Select`, `SortableList`, `PositionPicker`, `MonitorPicker`, `BibleTranslationPicker`, `renderTip`, `ToastStack` (`Toast.tsx`), `ShortcutHint`
 - **Keyboard shortcuts** — define them in `SHORTCUTS` (`src/shared/shortcuts.ts`): Settings lists them, and `<ShortcutHint shortcut="…" />` shows one beside its control (never hand-write key badges or `navigator.platform` checks — use `isMacPlatform()`).
 - **`src/remote/components/icons/ui.tsx`** — SVG icons (Close, Chevrons, Play/Pause, etc.). Never use ASCII (✕, ←, →, ◀, ▶, ■) for UI.
 - **`src/shared/utils.ts`** — check here before writing any utility. Electron imports from `../src/shared/utils`, renderer uses `@shared/utils`.
@@ -110,6 +125,7 @@ Styling conventions:
 - `src/shared/utils.ts` — shared utilities (check before duplicating)
 - `src/remote/socket.ts` — the one Socket.io connection per tab (see invariant above)
 - `src/display/modes/TextMode.tsx` ↔ `src/remote/components/preview/LivePreview.tsx` — must stay in sync
+- `docs/PLAN_*.md` — design plans for larger features (some built, some pending); read the relevant one before extending that feature. `docs/RELEASING.md` covers releases.
 
 Everything else is discoverable via Grep / Glob.
 
@@ -117,19 +133,15 @@ Everything else is discoverable via Grep / Glob.
 
 ```bash
 npm run electron:dev    # Vite + Electron with HMR (normal dev loop)
-npm run dev             # Vite only (builds preload first)
+npm run dev             # Vite only (builds TTML + preload first)
 npm run typecheck       # Type-check all three tsconfigs (main + node + electron)
 npm run lint            # ESLint — run before declaring work done; all rules are errors
 npm run lint:fix        # Auto-fix what ESLint can
 npm test                # Vitest, once (run before declaring work done)
 npm run test:watch      # Vitest in watch mode
 npm run build           # typecheck + bundle renderer — use to verify before declaring work done
-npm run electron:build  # Package for current platform locally (no publish)
-npm run build:mac       # Package macOS locally
-npm run build:win       # Package Windows locally
-npm run release         # Build + publish to GitHub (current platform)
-npm run release:mac
-npm run release:win
+npm run electron:build  # Package for current platform locally (no publish); build:mac / build:win for one OS
+npm run release         # Build + publish to GitHub — only when asked; see docs/RELEASING.md
 npm run build:preload   # Rebundle preload.ts manually
 npm run build:ttml      # Rebundle TTML hymns manually
 ```
