@@ -23,7 +23,6 @@ import {
   getBibleBooks,
   getBibleChapter,
   formatBibleChapterForDisplay,
-  searchBibleVerses,
 } from "./dataLoader";
 import {
   hymnalsAffectedByAssets,
@@ -70,7 +69,7 @@ import { getTransferManager } from "./transferManager";
 import { getStorageStats } from "./storageStats";
 import { TRANSFER_LIBRARIES } from "../src/shared/transfer.types";
 import { decodeUploadName, moveToOriginalName } from "./uploadFilename";
-import { quickSearch, quickSearchVerses } from "./quickSearch";
+import { quickSearch, quickSearchVerses, searchBibleText } from "./quickSearch";
 import {
   startDownload,
   startAudioDownload,
@@ -982,7 +981,7 @@ export function createServer(
 
     socket.on("searchBibleVerses", (query) => {
       const translationId = stateManager.getSettings().bibleTranslation;
-      const results = searchBibleVerses(query, translationId);
+      const results = searchBibleText(query, stateManager.getSettings().language, translationId);
       socket.emit("bibleSearchResults", results);
     });
 

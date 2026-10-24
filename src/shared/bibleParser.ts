@@ -418,6 +418,21 @@ interface MatchableBook {
 }
 
 /**
+ * Book lists are rebuilt per call, so cache by name: Quick Search matches
+ * books on every keystroke, and a miss walks every book four times.
+ */
+const bookNameCache = new Map<string, string>();
+
+function normalizedBookName(name: string): string {
+  let normalized = bookNameCache.get(name);
+  if (normalized === undefined) {
+    normalized = normalizeForSearch(name);
+    bookNameCache.set(name, normalized);
+  }
+  return normalized;
+}
+
+/**
  * Find a book by a normalized (lowercase, diacritic-free) search string.
  *
  * The active language's aliases win, then the other language's, so "lamentations"
@@ -434,7 +449,7 @@ function findBook<T extends MatchableBook>(
   const other: Language = language === "en" ? "ro" : "en";
   // The loaded translation may name a book differently than our tables
   // ("Plângerile lui Ieremia" vs "Plângerile"), so always match its own name too.
-  const own = (b: T) => normalizeForSearch(b.name);
+  const own = (b: T) => normalizedBookName(b.name);
   const passes = [
     (b: T) => [own(b), ...(BOOK_ALIASES[language].get(b.id) ?? [])],
     (b: T) => [own(b), ...(BOOK_ALIASES[other].get(b.id) ?? [])],
@@ -557,4 +572,19 @@ export function parseBibleReferenceWithBooks(
   language: Language = "ro"
 ): ParsedReference | null {
   return parseReference(input, books, language);
+}
+
+/**
+ * Find a book of the loaded translation by name, ID or abbreviation, in either
+ * language. `allowPrefix` also accepts the start of a name ("fapt" → Faptele
+ * Apostolilor); exact matches still win.
+ */
+export function matchBibleBook<T extends DynamicBookInfo>(
+  input: string,
+  books: T[],
+  language: Language = "ro",
+  allowPrefix = false
+): T | undefined {
+  const search = normalizeForSearch(input);
+  return search ? findBook(books, search, language, allowPrefix) : undefined;
 }

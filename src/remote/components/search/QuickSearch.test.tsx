@@ -213,3 +213,86 @@ describe("QuickSearch timing", () => {
     expect(receivedIntent()).toMatchObject({ open: { bookId: "2KI", chapter: 23, verse: 31 } });
   });
 });
+
+describe("QuickSearch syntax", () => {
+  const empty = (q: string): QuickSearchResponse => ({ query: q, groups: [], versesFollow: false });
+  const pill = (name: string) => screen.getByRole("button", { name, pressed: true });
+
+  it("turns a typed scope prefix into its pill and searches with it", async () => {
+    const actions = actionsFor(empty);
+    mount("", actions);
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+
+    fireEvent.change(input, { target: { value: "b:" } });
+    expect(input.value).toBe("");
+    expect(screen.getByRole("button", { name: t.quickSearch.scopeRemove })).toBeTruthy();
+    expect(pill(t.quickSearch.groupBible)).toBeTruthy();
+
+    fireEvent.change(input, { target: { value: "har" } });
+    await vi.waitFor(() => expect(actions.search).toHaveBeenCalledWith("b: har"));
+  });
+
+  it("sets the scope from a pill, and Backspace in an empty box clears it", async () => {
+    const actions = actionsFor(empty);
+    mount("", actions);
+    fireEvent.click(screen.getByRole("button", { name: t.quickSearch.groupHymns }));
+    expect(pill(t.quickSearch.groupHymns)).toBeTruthy();
+
+    const input = screen.getByRole("textbox");
+    fireEvent.keyDown(input, { key: "Backspace" });
+    expect(pill(t.quickSearch.scopeAll)).toBeTruthy();
+  });
+
+  it("removes the scope from its chip", () => {
+    mount("", actionsFor(empty));
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "m:" } });
+    fireEvent.click(screen.getByRole("button", { name: t.quickSearch.scopeRemove }));
+    expect(screen.queryByRole("button", { name: t.quickSearch.scopeRemove })).toBeNull();
+    expect(pill(t.quickSearch.scopeAll)).toBeTruthy();
+  });
+
+  it("leaves a book filter in the text", () => {
+    mount("", actionsFor(empty));
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "ioan: paine" } });
+    expect(input.value).toBe("ioan: paine");
+    expect(pill(t.quickSearch.scopeAll)).toBeTruthy();
+  });
+
+  it("says how a filter was read", async () => {
+    mount(
+      "ioan 6: paine",
+      actionsFor((q) => ({
+        ...empty(q),
+        versesFollow: true,
+        filter: { bookName: "Ioan", chapter: 6, text: "paine" },
+      }))
+    );
+    expect(await screen.findByText("Ioan · ch. 6 · “paine”")).toBeTruthy();
+  });
+
+  it("asks for a word when a filter alone found nothing to list", async () => {
+    mount(":18", actionsFor((q) => ({ ...empty(q), filter: { startVerse: 18, endVerse: 18, text: "" } })));
+    expect(await screen.findByText(t.quickSearch.filterNeedsWords)).toBeTruthy();
+    expect(screen.queryByText(t.quickSearch.noResults)).toBeNull();
+  });
+
+  it("rewrites the query when the book suggestion is picked", async () => {
+    const actions = actionsFor((q) =>
+      q === "ioan paine"
+        ? { ...empty(q), versesFollow: true, suggestion: { bookName: "Ioan", query: "ioan: paine" } }
+        : empty(q)
+    );
+    mount("ioan paine", actions);
+    fireEvent.click(await screen.findByText("Search only in Ioan"));
+    expect((screen.getByRole("textbox") as HTMLInputElement).value).toBe("ioan: paine");
+    await vi.waitFor(() => expect(actions.search).toHaveBeenCalledWith("ioan: paine"));
+  });
+
+  it("fills in an example when it's picked, scope and all", () => {
+    mount("", actionsFor(empty));
+    fireEvent.click(screen.getByText("b: grace"));
+    expect((screen.getByRole("textbox") as HTMLInputElement).value).toBe("grace");
+    expect(pill(t.quickSearch.groupBible)).toBeTruthy();
+  });
+});

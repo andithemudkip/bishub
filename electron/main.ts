@@ -11,7 +11,6 @@ import {
   getBibleBooks,
   getBibleChapter,
   formatBibleChapterForDisplay,
-  searchBibleVerses,
 } from "./dataLoader";
 import {
   hymnalsAffectedByAssets,
@@ -61,7 +60,7 @@ import type { AudioItem } from "../src/shared/audioLibrary.types";
 import { getTransferManager } from "./transferManager";
 import { getStorageStats } from "./storageStats";
 import type { TransferLibrary } from "../src/shared/transfer.types";
-import { quickSearch, quickSearchVerses, warmQuickSearch } from "./quickSearch";
+import { quickSearch, quickSearchVerses, searchBibleText, warmQuickSearch } from "./quickSearch";
 import { initAudioScheduler, getAudioScheduler } from "./audioScheduler";
 import type {
   CreateScheduleParams,
@@ -545,7 +544,7 @@ function setupIPC() {
 
   ipcMain.handle("search-bible-verses", (_event, query: string) => {
     const translationId = stateManager.getSettings().bibleTranslation;
-    return searchBibleVerses(query, translationId);
+    return searchBibleText(query, stateManager.getSettings().language, translationId);
   });
 
   ipcMain.handle(

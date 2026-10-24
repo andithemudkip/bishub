@@ -1,4 +1,4 @@
-import type { Hymn, HymnBlock } from "../src/shared/types";
+import type { BibleSearchResult, Hymn, HymnBlock } from "../src/shared/types";
 import type { Language } from "../src/shared/i18n";
 import type {
   QuickSearchGroup,
@@ -7,6 +7,14 @@ import type {
 } from "../src/shared/quickSearch.types";
 import { normalizeForSearch } from "../src/shared/utils";
 import { parseBibleReferenceWithBooks } from "../src/shared/bibleParser";
+import {
+  bookSuggestion,
+  filterListsAlone,
+  parseQuickSearchQuery,
+  type ParsedQuickSearch,
+  type QuickSearchScope,
+  type VerseFilter,
+} from "../src/shared/quickSearchQuery";
 import { getHymnals } from "./hymnalRegistry";
 import { loadHymns, getBibleBooks, searchBibleVerses, warmBibleSearch } from "./dataLoader";
 import { getVideoLibrary } from "./videoLibrary";
@@ -85,6 +93,43 @@ function group(kind: QuickSearchGroup["kind"], ranked: Ranked[]) {
   };
 }
 
+type Books = ReturnType<typeof getBibleBooks>;
+
+/** What a query asks for, worked out once and shared by both halves. */
+interface Plan {
+  parsed: ParsedQuickSearch;
+  books: Books;
+  /** Text to match, normalized. */
+  normalized: string;
+  isNumber: boolean;
+  inScope: (scope: QuickSearchScope) => boolean;
+  reference: QuickSearchHit | null;
+  versesFollow: boolean;
+}
+
+function plan(query: string, language: Language, translationId: string): Plan {
+  const books = getBibleBooks(translationId);
+  const parsed = parseQuickSearchQuery(query, books, language);
+  const { filter, text } = parsed;
+  // A colon filter is a Bible search by definition.
+  const scope = filter ? "bible" : parsed.scope;
+  const inScope = (s: QuickSearchScope) => !scope || scope === s;
+  const normalized = normalizeForSearch(text);
+  const isNumber = /^\d+$/.test(text);
+
+  let reference: QuickSearchHit | null = null;
+  if (inScope("bible")) {
+    if (!filter) reference = findReference(text, isNumber, books, language);
+    else if (filter.bookId && !text) reference = referenceFromFilter(filter, parsed.bookName ?? "");
+  }
+  const versesFollow =
+    inScope("bible") &&
+    (filter
+      ? !!text || filterListsAlone(filter)
+      : !reference && !isNumber && normalized.length >= MIN_LYRICS_QUERY);
+  return { parsed, books, normalized, isNumber, inScope, reference, versesFollow };
+}
+
 /**
  * One search across hymns, Bible references and media, ranked and grouped on
  * the server so the Electron and web remotes get identical results. Bible
@@ -97,55 +142,55 @@ export function quickSearch(
   translationId: string,
   currentHymnal: string
 ): QuickSearchResponse {
-  const trimmed = query.trim();
-  const normalized = normalizeForSearch(trimmed);
-  if (!normalized) return { query, groups: [], versesFollow: false };
-
+  const p = plan(query, language, translationId);
+  const { normalized, isNumber, inScope, reference, parsed } = p;
+  const trimmed = parsed.text;
+  const results: { group: QuickSearchGroup; rank: number }[] = [];
   const words = normalized.split(/\s+/).filter(Boolean);
   const hasAllWords = (text: string) => words.every((w) => text.includes(w));
-  const isNumber = /^\d+$/.test(trimmed);
-  const results: { group: QuickSearchGroup; rank: number }[] = [];
 
   // ── Hymns ────────────────────────────────────────────────────────────────
   // The operator's current book first, then the rest in registry order.
-  const hymnals = [...getHymnals()].sort(
-    (a, b) => Number(b.slug === currentHymnal) - Number(a.slug === currentHymnal)
-  );
   const hymnHits: Ranked[] = [];
-  for (const hymnal of hymnals) {
-    for (const hymn of loadHymns(hymnal.slug)) {
-      let tier: number | null = null;
-      let match: "number" | "title" | "lyrics" = "title";
-      if (isNumber) {
-        if (parseInt(hymn.number, 10) === parseInt(trimmed, 10)) {
-          tier = TIER.hymnNumber;
-          match = "number";
+  if (normalized && inScope("hymns")) {
+    const hymnals = [...getHymnals()].sort(
+      (a, b) => Number(b.slug === currentHymnal) - Number(a.slug === currentHymnal)
+    );
+    for (const hymnal of hymnals) {
+      for (const hymn of loadHymns(hymnal.slug)) {
+        let tier: number | null = null;
+        let match: "number" | "title" | "lyrics" = "title";
+        if (isNumber) {
+          if (parseInt(hymn.number, 10) === parseInt(trimmed, 10)) {
+            tier = TIER.hymnNumber;
+            match = "number";
+          }
+        } else {
+          const title = normalizedTitle(hymn);
+          if (title.startsWith(normalized)) tier = TIER.hymnTitlePrefix;
+          else if (hasAllWords(title)) tier = TIER.hymnTitle;
+          // Titles match words in any order; lyrics only the phrase — any-order
+          // words across a whole hymn match nearly everything.
+          else if (normalized.length >= MIN_LYRICS_QUERY && normalizedLyrics(hymn).includes(normalized)) {
+            tier = TIER.hymnLyrics;
+            match = "lyrics";
+          }
         }
-      } else {
-        const title = normalizedTitle(hymn);
-        if (title.startsWith(normalized)) tier = TIER.hymnTitlePrefix;
-        else if (hasAllWords(title)) tier = TIER.hymnTitle;
-        // Titles match words in any order; lyrics only the phrase — any-order
-        // words across a whole hymn match nearly everything.
-        else if (normalized.length >= MIN_LYRICS_QUERY && normalizedLyrics(hymn).includes(normalized)) {
-          tier = TIER.hymnLyrics;
-          match = "lyrics";
-        }
+        if (tier === null) continue;
+        hymnHits.push({
+          tier,
+          hit: {
+            kind: "hymn",
+            book: hymnal.slug,
+            bookName: hymnal.shortName,
+            number: hymn.number,
+            title: hymn.title,
+            match,
+            hasMP3: hymn.audioAvailability === "cached",
+            hasSyncedLyrics: !!hymn.hasSyncedLyrics,
+          },
+        });
       }
-      if (tier === null) continue;
-      hymnHits.push({
-        tier,
-        hit: {
-          kind: "hymn",
-          book: hymnal.slug,
-          bookName: hymnal.shortName,
-          number: hymn.number,
-          title: hymn.title,
-          match,
-          hasMP3: hymn.audioAvailability === "cached",
-          hasSyncedLyrics: !!hymn.hasSyncedLyrics,
-        },
-      });
     }
   }
   if (hymnHits.length > 0) {
@@ -155,30 +200,47 @@ export function quickSearch(
   }
 
   // ── Bible reference ──────────────────────────────────────────────────────
-  const reference = findReference(trimmed, isNumber, language, translationId);
   if (reference) results.push(group("reference", [{ hit: reference, tier: TIER.reference }]));
 
   // ── Media ────────────────────────────────────────────────────────────────
   const mediaHits: Ranked[] = [];
-  const addMedia = (hit: QuickSearchHit & { name: string }) => {
-    if (hasAllWords(normalizeForSearch(hit.name))) mediaHits.push({ hit, tier: TIER.media });
-  };
-  for (const v of getVideoLibrary().getAll()) addMedia({ kind: "video", id: v.id, name: v.name, path: v.path });
-  const audioLibrary = getAudioLibrary();
-  for (const a of audioLibrary.getAll()) addMedia({ kind: "audio", id: a.id, name: a.name, path: a.path });
-  for (const p of getAudioPlaylists().getAll()) {
-    const trackCount = p.audioIds.filter((id) => audioLibrary.getById(id)).length;
-    addMedia({ kind: "playlist", id: p.id, name: p.name, trackCount });
+  if (normalized && inScope("media")) {
+    const addMedia = (hit: QuickSearchHit & { name: string }) => {
+      if (hasAllWords(normalizeForSearch(hit.name))) mediaHits.push({ hit, tier: TIER.media });
+    };
+    for (const v of getVideoLibrary().getAll()) addMedia({ kind: "video", id: v.id, name: v.name, path: v.path });
+    const audioLibrary = getAudioLibrary();
+    for (const a of audioLibrary.getAll()) addMedia({ kind: "audio", id: a.id, name: a.name, path: a.path });
+    for (const pl of getAudioPlaylists().getAll()) {
+      const trackCount = pl.audioIds.filter((id) => audioLibrary.getById(id)).length;
+      addMedia({ kind: "playlist", id: pl.id, name: pl.name, trackCount });
+    }
+    for (const i of getImageLibrary().getAll()) addMedia({ kind: "image", id: i.id, name: i.name, path: i.path });
   }
-  for (const i of getImageLibrary().getAll()) addMedia({ kind: "image", id: i.id, name: i.name, path: i.path });
   if (mediaHits.length > 0) results.push(group("media", mediaHits));
 
   results.sort((a, b) => a.rank - b.rank);
-  return {
+  const response: QuickSearchResponse = {
     query,
     groups: results.map((r) => r.group),
-    versesFollow: wantsVerseSearch(normalized, isNumber, reference),
+    versesFollow: p.versesFollow,
   };
+  const { filter } = parsed;
+  // "ioan:" alone is just the reference row; the line explains the rest.
+  if (filter && (parsed.text || !reference)) {
+    response.filter = {
+      bookName: parsed.bookName,
+      chapter: filter.chapter,
+      startVerse: filter.startVerse,
+      endVerse: filter.endVerse,
+      text: parsed.text,
+    };
+  }
+  if (p.versesFollow) {
+    const suggestion = bookSuggestion(parsed, p.books, language);
+    if (suggestion) response.suggestion = suggestion;
+  }
+  return response;
 }
 
 /**
@@ -193,14 +255,9 @@ export function quickSearchVerses(
   language: Language,
   translationId: string
 ): QuickSearchResponse {
-  const trimmed = query.trim();
-  const normalized = normalizeForSearch(trimmed);
-  const isNumber = /^\d+$/.test(trimmed);
-  const reference = findReference(trimmed, isNumber, language, translationId);
-  if (!wantsVerseSearch(normalized, isNumber, reference)) {
-    return { query, groups: [], versesFollow: false };
-  }
-  const verses = searchBibleVerses(trimmed, translationId);
+  const { parsed, versesFollow } = plan(query, language, translationId);
+  if (!versesFollow) return { query, groups: [], versesFollow: false };
+  const verses = searchParsed(parsed, translationId);
   if (verses.length === 0) return { query, groups: [], versesFollow: false };
   const { group: bible } = group(
     "bible",
@@ -219,22 +276,47 @@ export function quickSearchVerses(
   return { query, groups: [bible], versesFollow: false };
 }
 
-/** A typed reference is a direct jump; searching its text too would only bury it. */
-function wantsVerseSearch(
-  normalized: string,
-  isNumber: boolean,
-  reference: QuickSearchHit | null
-): boolean {
-  return !reference && !isNumber && normalized.length >= MIN_LYRICS_QUERY;
+function searchParsed(parsed: ParsedQuickSearch, translationId: string) {
+  return searchBibleVerses(parsed.text, translationId, {
+    filter: parsed.filter ?? undefined,
+    phrases: parsed.phrases,
+  });
+}
+
+/**
+ * The Bible page's text search, which understands the same filters and
+ * phrases, so "show all" from Quick Search lands on the same verses. A scope
+ * prefix means nothing there and is ignored.
+ */
+export function searchBibleText(
+  query: string,
+  language: Language,
+  translationId: string
+): BibleSearchResult[] {
+  const parsed = parseQuickSearchQuery(query, getBibleBooks(translationId), language);
+  if (parsed.filter && !parsed.text && !filterListsAlone(parsed.filter)) return [];
+  return searchParsed(parsed, translationId);
+}
+
+function referenceFromFilter(filter: VerseFilter, bookName: string): QuickSearchHit {
+  const startVerse = filter.startVerse ?? 1;
+  return {
+    kind: "reference",
+    bookId: filter.bookId ?? "",
+    bookName,
+    chapter: filter.chapter ?? 1,
+    startVerse,
+    endVerse: filter.endVerse ?? startVerse,
+    verseGiven: filter.startVerse !== undefined,
+  };
 }
 
 function findReference(
   trimmed: string,
   isNumber: boolean,
-  language: Language,
-  translationId: string
+  books: Books,
+  language: Language
 ): QuickSearchHit | null {
-  const books = getBibleBooks(translationId);
   // A bare number is a hymn or a psalm, never a reference the parser would
   // read into it ("23" as book "2", chapter 3).
   if (isNumber) {

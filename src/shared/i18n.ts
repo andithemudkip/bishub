@@ -604,6 +604,16 @@ export interface Translations {
     hintOpenChapter: string;
     hintGroups: string;
     hintClose: string;
+    scopeLabel: string;
+    scopeAll: string;
+    scopeRemove: string;
+    filterChapter: string;
+    filterVerse: string;
+    filterText: string;
+    filterNeedsWords: string;
+    suggestBook: string;
+    examplesTitle: string;
+    examples: { query: string; label: string }[];
   };
 
   // Bible verses left on screen: the reminder, its countdown and its settings
@@ -1445,6 +1455,21 @@ const ro: Translations = {
     hintOpenChapter: "deschide capitolul",
     hintGroups: "grupuri",
     hintClose: "închide",
+    scopeLabel: "Caută în",
+    scopeAll: "Toate",
+    scopeRemove: "Caută peste tot",
+    filterChapter: "cap. {n}",
+    filterVerse: "v. {n}",
+    filterText: "„{text}”",
+    filterNeedsWords: "Scrie un cuvânt de căutat în aceste versete",
+    suggestBook: "Caută doar în {book}",
+    examplesTitle: "Încearcă",
+    examples: [
+      { query: "ioan: pâine", label: "„pâine”, doar în Ioan" },
+      { query: ":18 talant", label: "versetul 18 din orice carte, cu „talant”" },
+      { query: "6:18", label: "capitolul 6, versetul 18, din orice carte" },
+      { query: "b: har", label: "doar în Biblie" },
+    ],
   },
   updates: {
     updateAvailable: "Actualizare disponibilă",
@@ -2204,6 +2229,21 @@ const en: Translations = {
     hintOpenChapter: "open chapter",
     hintGroups: "groups",
     hintClose: "close",
+    scopeLabel: "Search in",
+    scopeAll: "All",
+    scopeRemove: "Search everything",
+    filterChapter: "ch. {n}",
+    filterVerse: "v. {n}",
+    filterText: "“{text}”",
+    filterNeedsWords: "Type a word to search these verses",
+    suggestBook: "Search only in {book}",
+    examplesTitle: "Try",
+    examples: [
+      { query: "john: bread", label: "“bread”, in John only" },
+      { query: ":16 loved", label: "verse 16 of any book, with “loved”" },
+      { query: "6:18", label: "chapter 6, verse 18, of any book" },
+      { query: "b: grace", label: "Bible only" },
+    ],
   },
   updates: {
     updateAvailable: "Update available",

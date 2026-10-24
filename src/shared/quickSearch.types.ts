@@ -62,4 +62,20 @@ export interface QuickSearchResponse {
    * They rank last, so they append to these groups.
    */
   versesFollow: boolean;
+  /**
+   * The verses a colon filter narrowed the Bible search to ("ioan 6: paine"),
+   * shown above the results so it's clear how the query was read.
+   */
+  filter?: QuickSearchFilter;
+  /** A plain query that starts with a book name: offers to search only in it. */
+  suggestion?: { bookName: string; query: string };
+}
+
+export interface QuickSearchFilter {
+  bookName?: string;
+  chapter?: number;
+  startVerse?: number;
+  endVerse?: number;
+  /** The words searched within it; empty when the filter stands alone. */
+  text: string;
 }

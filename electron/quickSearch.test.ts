@@ -294,4 +294,99 @@ describe("quickSearch", () => {
       text: "Fiindcă atât de mult a iubit Dumnezeu lumea",
     });
   });
+
+  describe("scopes", () => {
+    beforeEach(() => {
+      data.audio = [{ id: "a1", name: "Mare intro", path: "/a1.mp3" }];
+      data.verses = [verse(3, 16, "mare")];
+    });
+
+    it.each([
+      ["b: mare", ["bible"]],
+      ["i: mare", ["hymns"]],
+      ["imn: mare", ["hymns"]],
+      ["m: mare", ["media"]],
+    ])("%s shows only its group", (query, kinds) => {
+      expect(groupKinds(search(query))).toEqual(kinds);
+    });
+
+    it("keep a bare number a hymn in the hymn scope and a psalm in the Bible scope", () => {
+      expect(groupKinds(search("i: 23"))).toEqual(["hymns"]);
+      expect(groupKinds(search("b: 23"))).toEqual(["reference"]);
+    });
+
+    it("skip the verse scan when the Bible is out of scope", () => {
+      search("i: mare");
+      expect(searchBibleVerses).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("reference filters", () => {
+    it("narrow the Bible text search and leave out hymns and media", () => {
+      data.verses = [verse(25, 18, "talant")];
+      data.hymns[CURRENT].push(hymn("70", "Talantul meu"));
+      const r = search(":18 talant");
+      expect(groupKinds(r)).toEqual(["bible"]);
+      expect(searchBibleVerses).toHaveBeenCalledWith("talant", "ron-rccv", {
+        filter: { startVerse: 18, endVerse: 18 },
+        phrases: [],
+      });
+    });
+
+    it("say how the query was read", () => {
+      const r = quickSearch("ioan 6: paine", "ro", "ron-rccv", CURRENT);
+      expect(r.filter).toEqual({ bookName: "Ioan", chapter: 6, text: "paine" });
+      expect(r.versesFollow).toBe(true);
+    });
+
+    it("pass quoted phrases through", () => {
+      search('ioan: "painea vietii"');
+      expect(searchBibleVerses).toHaveBeenCalledWith("painea vietii", "ron-rccv", {
+        filter: { bookId: "JHN" },
+        phrases: ["painea vietii"],
+      });
+    });
+
+    it("on their own, jump to a named book", () => {
+      const r = search("ioan:");
+      expect(groupKinds(r)).toEqual(["reference"]);
+      expect(hitsOf(r, "reference")[0]).toMatchObject({ bookId: "JHN", chapter: 1, verseGiven: false });
+      expect(r.filter).toBeUndefined();
+      expect(searchBibleVerses).not.toHaveBeenCalled();
+    });
+
+    it("on their own, list a chapter and verse across books", () => {
+      data.verses = [verse(6, 18, "duh")];
+      const r = search("6:18");
+      expect(groupKinds(r)).toEqual(["bible"]);
+      expect(r.filter).toEqual({ chapter: 6, startVerse: 18, endVerse: 18, text: "" });
+    });
+
+    it("on their own, don't scan for a verse number in every book", () => {
+      const r = search(":18");
+      expect(r.groups).toEqual([]);
+      expect(r.versesFollow).toBe(false);
+      expect(r.filter).toEqual({ startVerse: 18, endVerse: 18, text: "" });
+    });
+
+    it("keep a plain reference exactly as before", () => {
+      const r = search("ioan 3:16");
+      expect(groupKinds(r)).toEqual(["reference"]);
+      expect(r.filter).toBeUndefined();
+    });
+  });
+
+  describe("book suggestion", () => {
+    it("offers to search only in a book a plain query starts with", () => {
+      expect(quickSearch("ioan paine", "ro", "ron-rccv", CURRENT).suggestion).toEqual({
+        bookName: "Ioan",
+        query: "ioan: paine",
+      });
+    });
+
+    it("isn't offered without a Bible text search", () => {
+      expect(quickSearch("ioan 3", "ro", "ron-rccv", CURRENT).suggestion).toBeUndefined();
+      expect(quickSearch("i: ioan paine", "ro", "ron-rccv", CURRENT).suggestion).toBeUndefined();
+    });
+  });
 });

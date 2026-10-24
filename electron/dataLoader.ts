@@ -11,6 +11,7 @@ import type {
 } from "../src/shared/types";
 import { type Language, getTranslations } from "../src/shared/i18n";
 import { normalizeForSearch } from "../src/shared/utils";
+import type { VerseFilter } from "../src/shared/quickSearchQuery";
 import { parseTTML, type ParsedTTML } from "../src/shared/ttmlParser";
 import { DEFAULT_TRANSLATION_ID, getTranslationById } from "../src/shared/bibleTranslations";
 import { DEFAULT_HYMNAL_SLUG } from "../src/shared/hymnals";
@@ -351,20 +352,36 @@ interface IndexedVerse {
   words?: string[];
 }
 
+/** A run of `BibleIndex.verses`, end exclusive. */
+interface IndexRange {
+  start: number;
+  end: number;
+}
+
+interface BibleIndex {
+  verses: IndexedVerse[];
+  /** Where each book, and each of its chapters by number, sits in `verses`. */
+  books: Map<string, IndexRange & { chapters: Map<number, IndexRange> }>;
+}
+
 /**
  * Every verse of a Bible, flattened and normalized once. Keyed by the parsed
  * Bible object, so a re-downloaded translation gets a fresh index.
  */
-const bibleIndexCache = new WeakMap<BibleData, IndexedVerse[]>();
+const bibleIndexCache = new WeakMap<BibleData, BibleIndex>();
 
-function getBibleIndex(bible: BibleData): IndexedVerse[] {
+function getBibleIndex(bible: BibleData): BibleIndex {
   let index = bibleIndexCache.get(bible);
   if (!index) {
-    index = [];
+    const verses: IndexedVerse[] = [];
+    const books: BibleIndex["books"] = new Map();
     for (const book of bible.books) {
+      const chapters = new Map<number, IndexRange>();
+      const bookStart = verses.length;
       for (const chapter of book.chapters) {
+        const chapterStart = verses.length;
         for (const verse of chapter.verses) {
-          index.push({
+          verses.push({
             bookId: book.id,
             bookName: book.name,
             chapter: chapter.number,
@@ -373,11 +390,37 @@ function getBibleIndex(bible: BibleData): IndexedVerse[] {
             normalized: normalizeForSearch(verse.text),
           });
         }
+        chapters.set(chapter.number, { start: chapterStart, end: verses.length });
       }
+      books.set(book.id, { start: bookStart, end: verses.length, chapters });
     }
+    index = { verses, books };
     bibleIndexCache.set(bible, index);
   }
   return index;
+}
+
+/**
+ * The parts of the index a filter can match, in canonical order, so a search
+ * in one book or chapter never looks at the rest of the Bible.
+ */
+function filterRanges(index: BibleIndex, filter: VerseFilter | undefined): IndexRange[] {
+  if (filter?.bookId) {
+    const book = index.books.get(filter.bookId);
+    if (!book) return [];
+    if (filter.chapter === undefined) return [book];
+    const chapter = book.chapters.get(filter.chapter);
+    return chapter ? [chapter] : [];
+  }
+  if (filter?.chapter !== undefined) {
+    const ranges: IndexRange[] = [];
+    for (const book of index.books.values()) {
+      const chapter = book.chapters.get(filter.chapter);
+      if (chapter) ranges.push(chapter);
+    }
+    return ranges;
+  }
+  return [{ start: 0, end: index.verses.length }];
 }
 
 /**
@@ -388,26 +431,46 @@ export function warmBibleSearch(translationId: string = DEFAULT_TRANSLATION_ID):
   getBibleIndex(loadBible(translationId));
 }
 
+export interface BibleSearchOptions {
+  /** Only these verses; with a filter, the query may be empty or short. */
+  filter?: VerseFilter;
+  /** Each must appear in the verse as written (diacritics aside). */
+  phrases?: string[];
+}
+
 export function searchBibleVerses(
   query: string,
-  translationId: string = DEFAULT_TRANSLATION_ID
+  translationId: string = DEFAULT_TRANSLATION_ID,
+  { filter, phrases = [] }: BibleSearchOptions = {}
 ): BibleSearchResult[] {
   const normalizedQuery = normalizeForSearch(query.trim());
 
-  if (normalizedQuery.length < 3) {
+  // Too short to mean anything across the whole Bible, but a filter already
+  // narrows it down.
+  if (!filter && normalizedQuery.length < 3) {
     return [];
   }
 
   const queryWords = normalizedQuery.split(/\s+/).filter((w) => w.length > 0);
-  if (queryWords.length === 0) {
+  if (queryWords.length === 0 && !filter) {
     return [];
   }
+  const normalizedPhrases = phrases.map(normalizeForSearch).filter(Boolean);
+  const { startVerse, endVerse } = filter ?? {};
 
   const index = getBibleIndex(loadBible(translationId));
   const matches: { entry: IndexedVerse; at: number; score: number }[] = [];
-  for (let at = 0; at < index.length; at++) {
-    const score = calculateRelevanceScore(normalizedQuery, queryWords, index[at]);
-    if (score > 0) matches.push({ entry: index[at], at, score });
+  for (const { start, end } of filterRanges(index, filter)) {
+    for (let at = start; at < end; at++) {
+      const entry = index.verses[at];
+      if (startVerse !== undefined && (entry.verse < startVerse || entry.verse > (endVerse ?? startVerse))) {
+        continue;
+      }
+      if (!normalizedPhrases.every((p) => entry.normalized.includes(p))) continue;
+      // A filter alone ("6:18") lists what it matches, in canonical order.
+      const score = queryWords.length > 0 ? calculateRelevanceScore(normalizedQuery, queryWords, entry) : 1;
+      if (score > 0) matches.push({ entry, at, score });
+    }
   }
 
   // Sort by score descending, then by canonical (index) order

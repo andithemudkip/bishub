@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { Translations } from "../../../shared/i18n";
 import type { ActivityTarget } from "../../../shared/stage.types";
 import type {
+  QuickSearchFilter,
   QuickSearchGroup,
   QuickSearchHit,
   QuickSearchResponse,
 } from "../../../shared/quickSearch.types";
+import { splitScope, withScope, type QuickSearchScope } from "../../../shared/quickSearchQuery";
 import { ShortcutHint } from "../ui/ShortcutHint";
 import { useSearchHistory } from "../../hooks/useSearchHistory";
 import { sendPageIntent } from "../../hooks/usePageIntent";
@@ -108,7 +110,11 @@ function shuffleable(row: Row | undefined): PlaylistHit | null {
  * Enter there presents it, so it can be checked against what the speaker said.
  */
 export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, t }: Props) {
+  /** What's in the box; a typed "b:" moves out of it into `scope`. */
   const [query, setQuery] = useState(initialQuery);
+  const [scope, setScope] = useState<QuickSearchScope | null>(null);
+  /** What the server sees: the scope pill written back as its prefix. */
+  const searchQuery = withScope(scope, query);
   const [response, setResponse] = useState<QuickSearchResponse | null>(null);
   const [verses, setVerses] = useState<QuickSearchResponse | null>(null);
   const [pendingEnter, setPendingEnter] = useState<PendingEnter | null>(null);
@@ -131,6 +137,7 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
   useEffect(() => {
     if (!open) return;
     setQuery(initialQuery);
+    setScope(null);
     setResponse(null);
     setVerses(null);
     setPendingEnter(null);
@@ -160,16 +167,28 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
   }, []);
 
   useEffect(() => {
-    latestQuery.current = query;
+    latestQuery.current = searchQuery;
     sentQuery.current = null;
     if (!open || !query.trim()) {
       setResponse(null);
       setVerses(null);
       return;
     }
-    debounceTimer.current = setTimeout(() => runSearch(query), DEBOUNCE_MS);
+    debounceTimer.current = setTimeout(() => runSearch(searchQuery), DEBOUNCE_MS);
     return () => clearTimeout(debounceTimer.current);
-  }, [open, query, runSearch]);
+  }, [open, query, searchQuery, runSearch]);
+
+  /** A typed "b:" / "imn:" becomes a chip in the box instead of staying as text. */
+  const changeQuery = useCallback((value: string) => {
+    const { scope: typed, rest } = splitScope(value);
+    if (typed) setScope(typed);
+    setQuery(typed ? rest : value);
+  }, []);
+
+  const pickScope = (next: QuickSearchScope | null) => {
+    setScope(next);
+    inputRef.current?.focus();
+  };
 
   const showingRecents = !query.trim();
   // Verses for the previous query stay up until the new ones land, rather
@@ -183,10 +202,10 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
         : [];
     }
     return [
-      ...(response?.groups ?? []).map((group) => ({ group, stale: response?.query !== query })),
-      ...(shownVerses?.groups ?? []).map((group) => ({ group, stale: shownVerses?.query !== query })),
+      ...(response?.groups ?? []).map((group) => ({ group, stale: response?.query !== searchQuery })),
+      ...(shownVerses?.groups ?? []).map((group) => ({ group, stale: shownVerses?.query !== searchQuery })),
     ];
-  }, [showingRecents, recents.entries, response, shownVerses, query]);
+  }, [showingRecents, recents.entries, response, shownVerses, searchQuery]);
 
   const rows: Row[] = useMemo(() => {
     const out: Row[] = [];
@@ -201,7 +220,7 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
 
   /** Everything for what's typed has arrived, verses included. */
   const settled =
-    response?.query === query && (!response.versesFollow || verses?.query === query);
+    response?.query === searchQuery && (!response.versesFollow || verses?.query === searchQuery);
 
   const selectedRow = rows[selected];
   const selectedIsBible =
@@ -324,7 +343,7 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
   useEffect(() => {
     if (!pendingEnter) return;
     // Typing on after Enter takes it back.
-    if (pendingEnter.query !== query) {
+    if (pendingEnter.query !== searchQuery) {
       setPendingEnter(null);
       return;
     }
@@ -335,7 +354,7 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
     } else if (settled) {
       setPendingEnter(null);
     }
-  }, [pendingEnter, query, rows, settled, enter]);
+  }, [pendingEnter, searchQuery, rows, settled, enter]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
@@ -364,11 +383,18 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
         } else if (!showingRecents && !settled) {
           // What's on screen was found for an earlier query ("ieremia 18:"
           // before the "1"): wait for this one's, skipping the debounce.
-          setPendingEnter({ query, shift: e.shiftKey, alt: e.altKey });
-          runSearch(query);
+          setPendingEnter({ query: searchQuery, shift: e.shiftKey, alt: e.altKey });
+          runSearch(searchQuery);
         }
         break;
       }
+      // Like deleting a chip: an empty box backs out of its scope.
+      case "Backspace":
+        if (!query && scope) {
+          e.preventDefault();
+          setScope(null);
+        }
+        break;
       case "Escape": {
         e.preventDefault();
         e.stopPropagation();
@@ -400,6 +426,12 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
           media: t.quickSearch.groupMedia,
         }[g.kind];
 
+  const scopeLabels: Record<QuickSearchScope, string> = {
+    bible: t.quickSearch.groupBible,
+    hymns: t.quickSearch.groupHymns,
+    media: t.quickSearch.groupMedia,
+  };
+
   let rowIndex = -1;
 
   return (
@@ -416,10 +448,26 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
       >
         <div className="flex items-center gap-2 px-3 border-b border-gray-700 flex-shrink-0">
           <SearchIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+          {scope && (
+            <span className="flex items-center gap-0.5 flex-shrink-0 pl-2 pr-0.5 py-0.5 rounded-md text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-600/40">
+              {scopeLabels[scope]}
+              <button
+                type="button"
+                onClick={() => pickScope(null)}
+                // Opts out of the 44px phone touch-target rule, which would
+                // stretch the chip to the full height of the row.
+                className="min-h-0 p-1 rounded hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                aria-label={t.quickSearch.scopeRemove}
+                title={t.quickSearch.scopeRemove}
+              >
+                <CloseIcon className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          )}
           <input
             ref={inputRef}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => changeQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t.quickSearch.placeholder}
             className="flex-1 min-w-0 bg-transparent py-3.5 text-base focus:outline-none placeholder:text-gray-500"
@@ -437,7 +485,58 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
           </button>
         </div>
 
+        <div
+          role="group"
+          aria-label={t.quickSearch.scopeLabel}
+          className="flex flex-wrap gap-1 px-3 py-2 border-b border-gray-700 flex-shrink-0"
+        >
+          {(
+            [
+              [null, t.quickSearch.scopeAll],
+              ["bible", scopeLabels.bible],
+              ["hymns", scopeLabels.hymns],
+              ["media", scopeLabels.media],
+            ] as const
+          ).map(([value, label]) => {
+            const active = scope === value;
+            return (
+              <button
+                key={value ?? "all"}
+                type="button"
+                aria-pressed={active}
+                onClick={() => pickScope(value)}
+                className={`px-3 py-1 min-h-8 rounded-md text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 border ${
+                  active
+                    ? "bg-blue-600/20 text-blue-400 border-blue-600/40"
+                    : "text-gray-400 hover:text-white hover:bg-gray-700/50 border-transparent"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
         <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 space-y-3">
+          {!showingRecents && response?.filter && (
+            <p className="px-2 text-xs text-gray-400 flex items-center gap-1.5">
+              <BibleIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
+              <span className="min-w-0 truncate">{filterLabel(response.filter, t)}</span>
+            </p>
+          )}
+          {!showingRecents && response?.suggestion && (
+            <button
+              type="button"
+              onClick={() => {
+                changeQuery(response.suggestion!.query);
+                inputRef.current?.focus();
+              }}
+              className="w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-left text-xs text-blue-400 hover:bg-blue-950/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              <BibleIcon className="w-4 h-4 flex-shrink-0" />
+              {t.quickSearch.suggestBook.replace("{book}", response.suggestion.bookName)}
+            </button>
+          )}
           {groups.map(({ group: g }, gi) => (
             <div key={`${g.kind}-${gi}`}>
               <div className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
@@ -492,7 +591,36 @@ export function QuickSearch({ open, initialQuery, onClose, onNavigate, actions, 
           ))}
 
           {!showingRecents && settled && groups.length === 0 && (
-            <p className="px-3 py-6 text-center text-sm text-gray-500">{t.quickSearch.noResults}</p>
+            <p className="px-3 py-6 text-center text-sm text-gray-500">
+              {response?.filter && !response.filter.text
+                ? t.quickSearch.filterNeedsWords
+                : t.quickSearch.noResults}
+            </p>
+          )}
+
+          {showingRecents && (
+            <div>
+              <div className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                {t.quickSearch.examplesTitle}
+              </div>
+              <ul>
+                {t.quickSearch.examples.map((example) => (
+                  <li key={example.query}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        changeQuery(example.query);
+                        inputRef.current?.focus();
+                      }}
+                      className="w-full min-h-11 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-3 py-2 rounded-lg text-left hover:bg-gray-700/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    >
+                      <span className="font-mono text-sm text-gray-200">{example.query}</span>
+                      <span className="text-xs text-gray-500">{example.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
 
@@ -636,6 +764,21 @@ function HitContent({ hit, t }: { hit: QuickSearchHit; t: Translations }) {
       );
     }
   }
+}
+
+/** "Ioan · cap. 6 · „paine”" — how a colon filter was read. */
+function filterLabel(filter: QuickSearchFilter, t: Translations): string {
+  const parts: string[] = [];
+  if (filter.bookName) parts.push(filter.bookName);
+  if (filter.chapter !== undefined) {
+    parts.push(t.quickSearch.filterChapter.replace("{n}", String(filter.chapter)));
+  }
+  if (filter.startVerse !== undefined) {
+    const verses = formatVerseRange(filter.startVerse, filter.endVerse ?? filter.startVerse);
+    parts.push(t.quickSearch.filterVerse.replace("{n}", verses));
+  }
+  if (filter.text) parts.push(t.quickSearch.filterText.replace("{text}", filter.text));
+  return parts.join(" · ");
 }
 
 function Hint({ keys, label }: { keys: string; label: string }) {
