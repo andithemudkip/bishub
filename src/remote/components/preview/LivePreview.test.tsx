@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render } from "@testing-library/react";
 import { DEFAULT_SETTINGS, DEFAULT_STATE, type DisplayState } from "../../../shared/types";
 import LivePreview from "./LivePreview";
+import { StageContext, type DisplaySize, type StageData } from "../stage/stageContext";
 
 let intersect: (isIntersecting: boolean) => void = () => {};
 
@@ -123,5 +124,57 @@ describe("IdleScreen", () => {
     const virtual = container.querySelector<HTMLElement>("[data-testid=idle-dim]")!.parentElement!
       .parentElement!;
     expect(virtual.style.transform).toBe(`scale(${446 / 1920}, ${249 / 1080})`);
+  });
+});
+
+describe("LivePreview text", () => {
+  const stage = (displaySize: DisplaySize | null): StageData => ({
+    activities: [],
+    dismiss: vi.fn(),
+    upcomingSchedules: [],
+    recentScheduleEvents: [],
+    displayWindowOpen: true,
+    monitorMissing: false,
+    health: "ok",
+    acknowledgedErrors: new Set(),
+    acknowledgeErrors: vi.fn(),
+    displaySize,
+  });
+  const verses = (count: number): DisplayState => ({
+    ...DEFAULT_STATE,
+    mode: "text",
+    text: {
+      ...DEFAULT_STATE.text,
+      contentType: "bible",
+      slides: Array.from({ length: count }, (_, i) => `Verse ${i + 1}`),
+    },
+  });
+  const renderOn = (displaySize: DisplaySize | null, state: DisplayState) =>
+    render(
+      <StageContext.Provider value={stage(displaySize)}>
+        <LivePreview state={state} settings={DEFAULT_SETTINGS} />
+      </StageContext.Provider>
+    ).container;
+  const currentSlide = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>("[style*='scale(']")!;
+  // The dot row draws one rounded dot per slide; the bar draws none.
+  const dotCount = (container: HTMLElement) =>
+    currentSlide(container).querySelectorAll(".rounded-full.transition-all").length;
+
+  it("lays the slide out at the display's resolution", () => {
+    const container = renderOn({ width: 1280, height: 720 }, verses(3));
+    const virtual = currentSlide(container);
+    expect(virtual.style.width).toBe("1280px");
+    expect(virtual.style.height).toBe("720px");
+  });
+
+  it("switches dots to a bar at the same count as a smaller display", () => {
+    // 70 verses fit as dots across 1920px but not across a 1280px projector.
+    expect(dotCount(renderOn({ width: 1920, height: 1080 }, verses(70)))).toBe(70);
+    expect(dotCount(renderOn({ width: 1280, height: 720 }, verses(70)))).toBe(0);
+  });
+
+  it("assumes 1080p until the monitors are known", () => {
+    expect(dotCount(renderOn(null, verses(70)))).toBe(70);
   });
 });

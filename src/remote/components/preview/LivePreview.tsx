@@ -22,10 +22,7 @@ import { ImageIcon } from "../icons/image";
 import { PlayIcon, PauseIcon } from "../icons/ui";
 import { useOnScreen, usePreviewVideoSync } from "./usePreviewVideo";
 import IdleScreen from "./IdleScreen";
-
-// Virtual resolution matching a typical display (used for scaled-down preview)
-const VIRTUAL_WIDTH = 1920;
-const VIRTUAL_HEIGHT = 1080;
+import { useDisplaySize } from "../stage/stageContext";
 
 // Must match TextMode.tsx constants
 const MAX_FONT_SIZE = 120;
@@ -70,8 +67,11 @@ export default function LivePreview({
 }
 
 /**
- * Renders a single slide at virtual (1920×1080) resolution with the exact same
+ * Renders a single slide at the display's own resolution with the exact same
  * structure and styling as TextMode.tsx, then scales it down to fit the preview.
+ * The display sizes text and chrome in absolute pixels, so only at its real
+ * resolution do lines wrap — and dots give way to a progress bar — at the same
+ * point as on the screen.
  */
 export function ScaledSlide({
   content,
@@ -94,6 +94,7 @@ export function ScaledSlide({
   const titleRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
   const counterRef = useRef<HTMLDivElement>(null);
+  const { width: virtualWidth, height: virtualHeight } = useDisplaySize();
   const chrome = getChromeMetrics(settings);
   const theme = resolveSlideTheme(settings, contentType);
   const [scale, setScale] = useState(0);
@@ -109,8 +110,8 @@ export function ScaledSlide({
 
     const update = () => {
       const s = Math.min(
-        el.clientWidth / VIRTUAL_WIDTH,
-        el.clientHeight / VIRTUAL_HEIGHT,
+        el.clientWidth / virtualWidth,
+        el.clientHeight / virtualHeight,
       );
       setScale(s);
     };
@@ -119,7 +120,7 @@ export function ScaledSlide({
     const observer = new ResizeObserver(update);
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [virtualWidth, virtualHeight]);
 
   // Compute font size using TextMode's exact algorithm at virtual resolution
   useLayoutEffect(() => {
@@ -131,13 +132,13 @@ export function ScaledSlide({
     // `offsetHeight` ignores the CSS scale on the ancestor, so these are the
     // same virtual-resolution pixels TextMode measures on the real display.
     const availableHeight =
-      VIRTUAL_HEIGHT -
+      virtualHeight -
       reservedChromeHeight(
         titleRef.current?.offsetHeight ?? 0,
         dotsRef.current?.offsetHeight ?? 0,
         counterRef.current?.offsetHeight ?? 0,
       );
-    const availableWidth = VIRTUAL_WIDTH - 96;
+    const availableWidth = virtualWidth - 96;
 
     let optimalSize: number;
 
@@ -175,94 +176,105 @@ export function ScaledSlide({
     text.style.fontSize = `${optimalSize}px`;
     setFontSize(optimalSize);
     // Deliberately keyed on `mounted`, not `scale`: measurement happens at the
-    // fixed virtual resolution, so it is scale-independent. Re-running it on
+    // virtual (display) resolution, so it is scale-independent. Re-running it on
     // every container resize only produced redundant reflows.
   }, [
     content,
     contentType,
     mounted,
     title,
+    virtualWidth,
+    virtualHeight,
     chrome.titleLineHeight,
     chrome.counterLineHeight,
     chrome.dotSize,
   ]);
 
   return (
-    <div ref={outerRef} className="w-full h-full overflow-hidden relative">
+    <div
+      ref={outerRef}
+      className="w-full h-full overflow-hidden relative flex items-center justify-center"
+    >
+      {/* Takes up the scaled size, so a display that isn't 16:9 is centred in the box. */}
       <div
-        style={{
-          width: VIRTUAL_WIDTH,
-          height: VIRTUAL_HEIGHT,
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-        }}
+        className="flex-shrink-0"
+        style={{ width: virtualWidth * scale, height: virtualHeight * scale }}
       >
-        {/* Exact replica of TextMode's render output */}
         <div
-          className="w-full h-full flex flex-col items-center justify-center p-12"
-          style={slideBackgroundStyle(theme) as React.CSSProperties}
+          style={{
+            width: virtualWidth,
+            height: virtualHeight,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+          }}
         >
-          {title && (
+          {/* Exact replica of TextMode's render output */}
+          <div
+            className="w-full h-full flex flex-col items-center justify-center p-12"
+            style={slideBackgroundStyle(theme) as React.CSSProperties}
+          >
+            {title && (
+              <div
+                ref={titleRef}
+                className="absolute top-8 left-0 right-0 text-center px-12"
+              >
+                <h1
+                  style={{
+                    fontSize: `${chrome.titleFontSize}px`,
+                    lineHeight: `${chrome.titleLineHeight}px`,
+                    color: theme.title,
+                    textShadow: theme.textShadow,
+                    transition: SLIDE_TEXT_TRANSITION,
+                  }}
+                  className="font-light tracking-wide"
+                >
+                  {title}
+                </h1>
+              </div>
+            )}
+
             <div
-              ref={titleRef}
-              className="absolute top-8 left-0 right-0 text-center px-12"
+              ref={wrapperRef}
+              className={`w-full ${
+                contentType === "bible" ? "text-left" : "text-center"
+              }`}
             >
-              <h1
+              <p
+                ref={textRef}
                 style={{
-                  fontSize: `${chrome.titleFontSize}px`,
-                  lineHeight: `${chrome.titleLineHeight}px`,
-                  color: theme.title,
+                  fontSize: `${fontSize}px`,
+                  color: theme.body,
                   textShadow: theme.textShadow,
                   transition: SLIDE_TEXT_TRANSITION,
                 }}
-                className="font-light tracking-wide"
+                className="font-display leading-relaxed whitespace-pre-line"
               >
-                {title}
-              </h1>
+                {content}
+              </p>
             </div>
-          )}
 
-          <div
-            ref={wrapperRef}
-            className={`w-full ${
-              contentType === "bible" ? "text-left" : "text-center"
-            }`}
-          >
-            <p
-              ref={textRef}
+            <SlideIndicator
+              ref={dotsRef}
+              count={slides.length}
+              current={currentSlide}
+              chrome={chrome}
+              theme={theme}
+              width={virtualWidth}
+            />
+
+            <div
+              ref={counterRef}
+              className="absolute bottom-8 right-8"
               style={{
-                fontSize: `${fontSize}px`,
-                color: theme.body,
+                fontSize: `${chrome.counterFontSize}px`,
+                lineHeight: `${chrome.counterLineHeight}px`,
+                color: theme.counter,
                 textShadow: theme.textShadow,
                 transition: SLIDE_TEXT_TRANSITION,
               }}
-              className="font-display leading-relaxed whitespace-pre-line"
             >
-              {content}
-            </p>
-          </div>
-
-          <SlideIndicator
-            ref={dotsRef}
-            count={slides.length}
-            current={currentSlide}
-            chrome={chrome}
-            theme={theme}
-            width={VIRTUAL_WIDTH}
-          />
-
-          <div
-            ref={counterRef}
-            className="absolute bottom-8 right-8"
-            style={{
-              fontSize: `${chrome.counterFontSize}px`,
-              lineHeight: `${chrome.counterLineHeight}px`,
-              color: theme.counter,
-              textShadow: theme.textShadow,
-              transition: SLIDE_TEXT_TRANSITION,
-            }}
-          >
-            {currentSlide + 1} / {slides.length}
+              {currentSlide + 1} / {slides.length}
+            </div>
           </div>
         </div>
       </div>

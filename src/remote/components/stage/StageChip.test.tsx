@@ -17,6 +17,7 @@ const stage: StageData = {
   health: "ok",
   acknowledgedErrors: new Set(),
   acknowledgeErrors: vi.fn(),
+  displaySize: null,
 };
 
 function renderChip(state: DisplayState) {

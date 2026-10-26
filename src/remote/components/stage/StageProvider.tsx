@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState, type ReactNode } from "react";
 import type { AppSettings, MonitorInfo } from "../../../shared/types";
 import { useActivity } from "../../useActivity";
 import { useSystemHealth } from "../../useSystemHealth";
+import { resolveDisplayMonitor } from "../../../shared/utils";
 import { StageContext, type StageData } from "./stageContext";
 
 interface Props {
@@ -29,6 +30,19 @@ export function StageProvider({ settings, monitors, children }: Props) {
     });
   }, []);
 
+  const displayMonitor = useMemo(() => {
+    if (!monitors) return undefined;
+    const primary = monitors.find((m) => m.isPrimary);
+    return resolveDisplayMonitor(monitors, primary?.id ?? -1, settings.displayMonitor);
+  }, [monitors, settings.displayMonitor]);
+  const displayWidth = displayMonitor?.bounds.width;
+  const displayHeight = displayMonitor?.bounds.height;
+  const displaySize = useMemo(
+    () =>
+      displayWidth && displayHeight ? { width: displayWidth, height: displayHeight } : null,
+    [displayWidth, displayHeight]
+  );
+
   const value = useMemo<StageData>(
     () => ({
       activities,
@@ -40,6 +54,7 @@ export function StageProvider({ settings, monitors, children }: Props) {
       health: displayWindowOpen === false ? "error" : monitorMissing ? "warning" : "ok",
       acknowledgedErrors,
       acknowledgeErrors,
+      displaySize,
     }),
     [
       activities,
@@ -50,6 +65,7 @@ export function StageProvider({ settings, monitors, children }: Props) {
       monitorMissing,
       acknowledgedErrors,
       acknowledgeErrors,
+      displaySize,
     ]
   );
 

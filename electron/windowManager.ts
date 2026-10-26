@@ -2,6 +2,7 @@ import { app, BrowserWindow, screen } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 import type { MonitorInfo } from "../src/shared/types";
+import { resolveDisplayMonitor } from "../src/shared/utils";
 import type { StateManager } from "./state";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -109,27 +110,12 @@ export class WindowManager {
     }
   }
 
-  private getSecondaryMonitor() {
-    const displays = screen.getAllDisplays();
+  private getDisplayMonitor(monitorId = this.stateManager.getSettings().displayMonitor) {
     const primaryDisplay = screen.getPrimaryDisplay();
-
-    // Find a non-primary display, or use primary if only one monitor
-    const secondary = displays.find((d) => d.id !== primaryDisplay.id);
-    return secondary || primaryDisplay;
-  }
-
-  private getDisplayMonitor() {
-    const settings = this.stateManager.getSettings();
-    const displays = screen.getAllDisplays();
-
-    if (settings.displayMonitor === -1) {
-      // Auto-detect: use secondary monitor
-      return this.getSecondaryMonitor();
-    }
-
-    // Find specific monitor by ID
-    const monitor = displays.find((d) => d.id === settings.displayMonitor);
-    return monitor || this.getSecondaryMonitor();
+    return (
+      resolveDisplayMonitor(screen.getAllDisplays(), primaryDisplay.id, monitorId) ??
+      primaryDisplay
+    );
   }
 
   async createDisplayWindow() {
@@ -208,11 +194,7 @@ export class WindowManager {
 
   async moveDisplayToMonitor(monitorId: number) {
     if (!this.displayWindow || this.moveInProgress) return;
-    const monitor =
-      monitorId === -1
-        ? this.getSecondaryMonitor()
-        : screen.getAllDisplays().find((d) => d.id === monitorId) ??
-          this.getSecondaryMonitor();
+    const monitor = this.getDisplayMonitor(monitorId);
 
     this.stateManager.setDisplayMonitor(monitorId);
 

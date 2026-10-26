@@ -197,6 +197,29 @@ export function getSlideIndicatorLayout(
 }
 
 /**
+ * The monitor the display window goes on: the one chosen in Settings while it
+ * is connected, otherwise (and for -1, "auto") the first non-primary monitor,
+ * falling back to the primary when it is the only one.
+ *
+ * Shared so the remote can tell which monitor — and so which resolution — the
+ * display is on without asking: the main process places the window with it,
+ * and `LivePreview` renders at that monitor's size.
+ */
+export function resolveDisplayMonitor<T extends { id: number }>(
+  monitors: readonly T[],
+  primaryId: number,
+  selectedId: number,
+): T | undefined {
+  const selected =
+    selectedId === -1 ? undefined : monitors.find((m) => m.id === selectedId);
+  return (
+    selected ??
+    monitors.find((m) => m.id !== primaryId) ??
+    monitors.find((m) => m.id === primaryId)
+  );
+}
+
+/**
  * Vertical space the chrome claims, as a total to subtract from the container
  * height before fitting the body text.
  *

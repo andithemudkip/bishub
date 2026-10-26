@@ -116,6 +116,7 @@ describe("StageSections video transport", () => {
     health: "ok",
     acknowledgedErrors: new Set(),
     acknowledgeErrors: vi.fn(),
+    displaySize: null,
   };
 
   function renderSections(state: DisplayState, variant: "panel" | "sheet") {
